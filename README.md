@@ -1,4 +1,4 @@
-# Person Matching
+# Open Token
 
 ## Introduction
 Truveta’s approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
@@ -47,10 +47,10 @@ T3      | `DOE\|JOHN\|MALE\|2000-01-01`   | `5df7c60d82729359b63b1cdf99aa3c91c46
 T4      | `000-00-0000\|MALE\|2000-01-01` | `02e1798c9feab464d274f2a5856493b96d8e41c2c56f080a8234d403e11dcb49` |
 T5      | `DOE\|JOH\|MALE`                | `a3c0feb1e9e83623d339f7147d58bbf6448d8379dc21f531091e561b2d78fb88` |
 
-### Person matching data flow
-![person-matching-data-flow](./person-matching-data-flow.jpg)
+### Open Token data flow
+![open-token-data-flow](./open-token-data-flow.jpg)
 
-## Person matching overview
+## Open Token overview
 This library focuses primarily on token generation. Even though the person matching process is beyond the scope of this library, this document discusses how these tokens work in a person matching system.
 
 As noted above, N distinct tokens are generated for each person using this library. The output of this process is below for three person records r1, r2, and r3:
@@ -75,7 +75,7 @@ r3       | T5     | Token(r3,T5)
 
 If tokens are generated for persons from multiple data sources, person matching systems can identify a person match if the tokens for a person from one data source matches tokens for another person from a different data source. In the picture below, all tokens for **r3** and **r4** match, and as such r3 and r4 are considered a match.
 
-![person-matching-system](./person-matching-system.jpg)
+![open-token-system](./open-token-system.jpg)
 
 ## Library driver
 
@@ -88,16 +88,20 @@ A driver is provided so that the library code can be executed easily.
 The driver code could be invoked using:
 
 ```shell
-java -jar person-matching-common-<version>.jar -i <input-file> -t csv -o <output-file> -h "xb7...98a" -e "b32...q1r"
+java -jar open-token-<version>.jar -i <input-file> -t csv -o <output-file> -h "xb7...98a" -e "b32...q1r"
 ```
+Example:
+`java -jar target/open-token-1.0.jar -i src/main/resources/sample.csv -t csv -o src/main/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
 #### Via Docker
 
 Please run the following command in the same folder as the source CSV file:
 
 ```shell
-docker run -v "$(pwd)":/workdir person-matching-common -i <input-file> -t csv -o <output-file> -h "xb7...98a" -e "b32...q1r"
+docker run -v "$(pwd)":/app open-token -i <input-file> -t csv -o <output-file> -h "xb7...98a" -e "b32...q1r"
 ```
+Example:
+`docker run -v "$(pwd)":/app open-token -i src/main/resources/sample.csv -t csv -o src/main/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
 ### Arguments
 
@@ -153,34 +157,44 @@ Prerequisites:
 
 Run the following:
 ```shell
-docker build . -t person-matching-common
+docker build . -t open-token
 ```
 
-This will build a local Docker image called `person-matching-common`.
+This will build a local Docker image called `open-token`.
+
+#### Generating `javadoc`
+
+The `javadoc` for the library can be generated as following:
+
+```shell
+mvn clean javadoc:javadoc
+```
+
+The Java documentation is created in `./target/reports/apidocs`. Invoke by opening `./target/reports/apidocs/index.html` in your favorite browser.
 
 ## Overview of the library
-This project, `person-matching-common`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
+This project, `open-token`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
 
 ## Getting started
-To use `person-matching-common` in your project, follow these steps:
+To use `open-token` in your project, follow these steps:
 
 1. Add it as a dependency in your build configuration file. For Maven, add the following code to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>com.truveta.personmatching.common</groupId>
-    <artifactId>person-matching-common</artifactId>
+    <groupId>com.truveta.opentoken</groupId>
+    <artifactId>open-token</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
 
-2. Import `person-matching-common` in your Java code using the following import statement:
+2. Import `open-token` in your Java code using the following import statement:
 
 ```java
-import com.truveta.personmatching.common.tokens.*;
+import com.truveta.opentoken.tokens.*;
 ```
 
-3. Start using the utilities, models, and services provided by `person-matching-common` in your project. For example, you can use the `TokenGenerator` class to perform person matching operations:
+3. Start using the utilities, models, and services provided by `open-token` in your project. For example, you can use the `TokenGenerator` class to perform token generation operations:
 
 ```java
 ArrayList<Map<String, String>> result = new ArrayList<>();
@@ -238,5 +252,5 @@ python data_generator.py 100 0.05 test_data.csv
 
 Truveta encourages contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key needs of improvements are:
 
-1. The library currently provides `csv` reader and writer. See `com.truveta.personmatching.common.io`. Readers/writers for `parquet` file is highly desired.
+1. The library currently provides `csv` reader and writer. See `com.truveta.opentoken.io`. Readers/writers for `parquet` file is highly desired.
 2. More test coverage.
