@@ -1,10 +1,13 @@
-# Open Token
+# Open token
 
 ## Introduction
+
 Truveta’s approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
 
 ## Token generation strategy
+
 Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Truveta uses multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation. Person attributes include:
+
 - `record-id` Unique identification for the record.
 - `first-name`
 - `last-name`
@@ -13,7 +16,8 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 - `birth-date` Acceptable format: `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31).
 - `social-security-number` Acceptable format: `ddd-dd-dddd` where `d` is a numeric digit (0-9).
 
-### Sample token generation recipes
+### Sample token generation rules
+
 Rule ID | Rule Definition                                          |
 --------|----------------------------------------------------------|
 T1      | `U(last-name)\|U(first-name-1)\|U(gender)\|birth-date`   |
@@ -25,7 +29,8 @@ T5      | `U(last-name)\|U(first-name-3)\|U(gender)`               |
 > U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
 
-### Recipe for token generation
+### Rules for token generation
+
 A token signature is generated first for every token generation rule. The token signature is then cryptographically hashed and hex encoded to generate the token.
 
 > $Token(R) = Hex(Sha256(TokenSignature(R)))$ where R is the rule ID.<br>
@@ -33,12 +38,16 @@ A token signature is generated first for every token generation rule. The token 
 > $Base64(AESEncrypt(Base64(HMACSHA256(Token(R)))))$<br>
 
 ### Example
+
 Given a person with the following attributes:
+
 ```csv
 RecordId,FirstName,LastName,PostalCode,Gender,BirthDate,SocialSecurityNumber
 891dda6c-961f-4154-8541-b48fe18ee620,John,Doe,11111,Male,2000-01-01,000-00-0000
 ```
+
 The token generation rules above generate the following token signatures:
+
 Rule ID | Token Signature                 | Token                                                              |
 --------|---------------------------------|--------------------------------------------------------------------|
 T1      | `DOE\|J\|MALE\|2000-01-01`      | `298a70cef9449dbd45b9e9e4cdcc7e3f2ed1e56f677c57702e89ebb133e541b0` |
@@ -47,10 +56,12 @@ T3      | `DOE\|JOHN\|MALE\|2000-01-01`   | `5df7c60d82729359b63b1cdf99aa3c91c46
 T4      | `000-00-0000\|MALE\|2000-01-01` | `02e1798c9feab464d274f2a5856493b96d8e41c2c56f080a8234d403e11dcb49` |
 T5      | `DOE\|JOH\|MALE`                | `a3c0feb1e9e83623d339f7147d58bbf6448d8379dc21f531091e561b2d78fb88` |
 
-### Open Token data flow
+### Open token data flow
+
 ![open-token-data-flow](./open-token-data-flow.jpg)
 
-## Open Token overview
+## Open token overview
+
 This library focuses primarily on token generation. Even though the person matching process is beyond the scope of this library, this document discusses how these tokens work in a person matching system.
 
 As noted above, N distinct tokens are generated for each person using this library. The output of this process is below for three person records r1, r2, and r3:
@@ -90,6 +101,7 @@ The driver code could be invoked using:
 ```shell
 java -jar open-token-<version>.jar -i <input-file> -t csv -o <output-file> -h "xb7...98a" -e "b32...q1r"
 ```
+
 Example:
 `java -jar target/open-token-1.0.jar -i src/main/resources/sample.csv -t csv -o src/main/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
@@ -100,6 +112,7 @@ Please run the following command in the same folder as the source CSV file:
 ```shell
 docker run -v "$(pwd)":/app open-token -i <input-file> -t csv -o <output-file> -h "xb7...98a" -e "b32...q1r"
 ```
+
 Example:
 `docker run -v "$(pwd)":/app open-token -i src/main/resources/sample.csv -t csv -o src/main/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
@@ -120,6 +133,7 @@ The driver accepts multiple command line arguments:
 The encryption logic is: Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))
 
 The input file (in csv format) must contain at least the following column names:
+
 - RecordId
 - FirstName
 - LastName
@@ -130,6 +144,7 @@ The input file (in csv format) must contain at least the following column names:
 Note: commas are only used for separation of field values, not for within values.
 
 The output file (in csv format) contains the following columns:
+
 - RecordId
 - TokenId
 - Token
@@ -139,6 +154,7 @@ The output file (in csv format) contains the following columns:
 #### With Maven
 
 Prerequisites:
+
 - Java 11 SDK
 - Maven 3.8.7
 
@@ -153,9 +169,11 @@ The compiled jar can be found under ./target
 #### With Docker
 
 Prerequisites:
+
 - Docker
 
 Run the following:
+
 ```shell
 docker build . -t open-token
 ```
@@ -173,9 +191,11 @@ mvn clean javadoc:javadoc
 The Java documentation is created in `./target/reports/apidocs`. Invoke by opening `./target/reports/apidocs/index.html` in your favorite browser.
 
 ## Overview of the library
+
 This project, `open-token`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
 
 ## Getting started
+
 To use `open-token` in your project, follow these steps:
 
 1. Add it as a dependency in your build configuration file. For Maven, add the following code to your `pom.xml`:
