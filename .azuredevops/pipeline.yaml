@@ -1,0 +1,14 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other commands here
+    echo This is a multi-line script
+  displayName: 'Run a multi-line script'
