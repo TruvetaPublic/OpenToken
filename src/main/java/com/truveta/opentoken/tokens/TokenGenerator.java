@@ -70,7 +70,13 @@ public class TokenGenerator {
                 if (!validationRules.validate(personAttributes, attribute.getName())) {
                     return null;
                 }
-                values.add(attribute.getEffectiveValue(personAttributes.get(attribute.getName())));
+                try {
+                    String attributeValue = attribute.getEffectiveValue(personAttributes.get(attribute.getName()));
+                    values.add(attributeValue);
+                } catch (IllegalArgumentException e) {
+                    logger.error(e.getMessage());
+                    return null;
+                }
             }
         }
 
