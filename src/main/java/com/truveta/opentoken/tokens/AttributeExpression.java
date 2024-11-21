@@ -116,7 +116,7 @@ public final class AttributeExpression {
                 }
                 return M(value, expression, args);
             case 'D':
-                return D(value);
+                return D(value, expression);
             default:
                 throw evalError(value, expression, null);
         }
@@ -183,7 +183,7 @@ public final class AttributeExpression {
     }
 
     // Date expression 
-    private static String D(String value) {
+    private static String D(String value, String expression) {
         // Supported date formats, and will be changed to "yyyy-MM-dd"
         // If the date is not in the supported formats, an exception will be thrown.
         String[] possibleFormats = {
@@ -194,7 +194,7 @@ public final class AttributeExpression {
             SimpleDateFormat targetFormat = new SimpleDateFormat("yyyy-MM-dd");
             return targetFormat.format(date);
         } catch (ParseException ex) {
-            throw evalError(value, "Datetime", ex);
+            throw evalError(value, expression, ex);
         }
     }
 
