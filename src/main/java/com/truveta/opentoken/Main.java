@@ -45,7 +45,7 @@ public class Main {
             return;
         }
 
-        if ((hashingSecret == null || hashingSecret.isBlank()) && (encryptionKey == null || encryptionKey.isBlank())){
+        if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null || encryptionKey.isBlank()) {
             logger.error("Hashing secret and encryption key must be specified");
             return;
         }
