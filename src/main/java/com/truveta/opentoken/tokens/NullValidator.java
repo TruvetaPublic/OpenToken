@@ -1,5 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
-
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.tokens;
 
 import javax.validation.constraints.NotNull;
@@ -25,7 +26,8 @@ public final class NullValidator implements AttributeValidator {
      */
     @Override
     public boolean eval(String name, String value) {
-        // * represents wildcard (we don't care what the attribute is, we just want to see if it's null)
+        // * represents wildcard (we don't care what the attribute is, we just want to
+        // see if it's null)
         return (!attributeName.equals("*") && !name.equals(attributeName)) || (value != null && !value.isBlank());
     }
 

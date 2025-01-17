@@ -1,7 +1,8 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
+ * 
  * Reads person attributes from a CSV file.
- * Implements the {@link PersonAttributeReader} interface and the {@link Iterable} interface.
+ * Implements the {@link PersonAttributesReader} interface.
  */
 package com.truveta.opentoken.io;
 
@@ -9,9 +10,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.csv.CSVFormat;
@@ -25,35 +25,45 @@ import org.slf4j.LoggerFactory;
  */
 public class PersonAttributesCSVReader implements PersonAttributesReader {
     private static final Logger logger = LoggerFactory.getLogger(PersonAttributesCSVReader.class.getName());
-    private final String filePath;
+
+    private final Reader reader;
+    private final CSVParser csvParser;
+    private Iterator<CSVRecord> iterator;
 
     /**
      * Initialize the class with the input file in CSV format.
+     * 
      * @param filePath the input file path
+     * @throws IOException if an I/O error occurs
      */
-    public PersonAttributesCSVReader(String filePath) {
-        this.filePath = filePath;
+    public PersonAttributesCSVReader(String filePath) throws IOException {
+        try {
+
+            reader = Files.newBufferedReader(Paths.get(filePath));
+            csvParser = new CSVParser(reader, CSVFormat.Builder.create().setHeader().build());
+            iterator = csvParser.iterator();
+        } catch (IOException e) {
+            logger.error("Error in reading CSV file: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @Override
-    public List<Map<String, String>> readAttributes() throws IOException {
-        List<Map<String, String>> data = new ArrayList<>();
+    public boolean hasNext() {
+        return iterator.hasNext();
+    }
 
-        try (Reader reader = Files.newBufferedReader(Paths.get(filePath));
-            CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
-            
-            for (CSVRecord csvRecord : csvParser) {
-                Map<String, String> row = new HashMap<>();
-                for (String header : csvParser.getHeaderMap().keySet()) {
-                    row.put(header, csvRecord.get(header));
-                }
-                data.add(row);
-            }
-        } catch (IOException e) {
-            logger.error("Error reading CSV file", e);
-            throw e;
-        }
+    @Override
+    public void close() throws Exception {
+        csvParser.close();
+        reader.close();
+    }
 
-        return data;
+    @Override
+    public Map<String, String> next() {
+        CSVRecord record = iterator.next();
+        Map<String, String> personAttributes = new HashMap<>();
+        record.toMap().forEach((key, value) -> personAttributes.put(key, value));
+        return personAttributes;
     }
 }

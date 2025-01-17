@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.tokens;
 
 import java.util.ArrayList;
@@ -35,14 +37,14 @@ public class TokenDefinition implements BaseTokenDefinition {
         t1.add(new AttributeExpression(GENDER, "T|U"));
         t1.add(new AttributeExpression(BIRTH_DATE, "T|D"));
 
-        // Token 2 
+        // Token 2
         var t2 = new ArrayList<AttributeExpression>();
         t2.add(new AttributeExpression(LAST_NAME, "T|U"));
         t2.add(new AttributeExpression(FIRST_NAME, "T|U"));
         t2.add(new AttributeExpression(BIRTH_DATE, "T|D"));
         t2.add(new AttributeExpression(POSTAL_CODE, "T|S(0,3)|U"));
 
-        // Token 3 
+        // Token 3
         var t3 = new ArrayList<AttributeExpression>();
         t3.add(new AttributeExpression(LAST_NAME, "T|U"));
         t3.add(new AttributeExpression(FIRST_NAME, "T|U"));
@@ -61,7 +63,7 @@ public class TokenDefinition implements BaseTokenDefinition {
         t5.add(new AttributeExpression(FIRST_NAME, "T|S(0,3)|U"));
         t5.add(new AttributeExpression(GENDER, "T|U"));
 
-        this.definitions = new HashMap<>();        
+        this.definitions = new HashMap<>();
         this.definitions.put("T1", t1);
         this.definitions.put("T2", t2);
         this.definitions.put("T3", t3);

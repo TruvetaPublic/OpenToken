@@ -1,5 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
-
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.tokens;
 
 import java.util.regex.Pattern;
@@ -27,7 +28,7 @@ public final class RegexValidator implements AttributeValidator {
      */
     @Override
     public boolean eval(String name, String value) {
-        return  (!name.equals(attributeName)) ||
+        return (!name.equals(attributeName)) ||
                 (value != null && Pattern.compile(pattern).matcher(value).matches());
     }
 

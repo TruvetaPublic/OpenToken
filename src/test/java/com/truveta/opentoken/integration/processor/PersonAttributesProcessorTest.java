@@ -1,7 +1,10 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.integration.processor;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +20,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.truveta.opentoken.io.PersonAttributesCSVReader;
+import com.truveta.opentoken.io.PersonAttributesCSVWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
+import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
@@ -29,11 +34,13 @@ public class PersonAttributesProcessorTest {
     final String hash_key = "hash_key";
     final String encryption_key = "the_encryption_key_goes_here....";
     final String hashAlgorithm = "HmacSHA256";
-    final String encryptionAlgorithm =  "AES";
+    final String encryptionAlgorithm = "AES";
 
     /*
-     * This test case takes input csv which has repeat probability of 0.30. RecordIds will still be unique.
-     * The goal is to ensure that the records with repeated data still generate the same tokens.
+     * This test case takes input csv which has repeat probability of 0.30.
+     * RecordIds will still be unique.
+     * The goal is to ensure that the records with repeated data still generate the
+     * same tokens.
      */
     @Test
     public void testInputWithDuplicates() throws Exception {
@@ -43,43 +50,48 @@ public class PersonAttributesProcessorTest {
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
         tokenTransformerList.add(new HashTokenTransformer(hash_key));
         tokenTransformerList.add(new EncryptTokenTransformer(encryption_key));
-        ArrayList<Map<String, String>> resultFromPersonAttributesProcessor = readCSV_fromPersonAttributesProcessor(inputCsvFile, tokenTransformerList);
+        ArrayList<Map<String, String>> resultFromPersonAttributesProcessor = readCSV_fromPersonAttributesProcessor(
+                inputCsvFile, tokenTransformerList);
 
-        for(String processedCsvMapKey: ssnToRecordIdsMap.keySet()){
+        for (String processedCsvMapKey : ssnToRecordIdsMap.keySet()) {
             List<String> recordIds = ssnToRecordIdsMap.get(processedCsvMapKey);
 
             int count = 0;
             List<String> tokenGenerated = new ArrayList<>();
 
-            for(Map<String, String> recordToken: resultFromPersonAttributesProcessor){
+            for (Map<String, String> recordToken : resultFromPersonAttributesProcessor) {
                 String recordId = recordToken.get("RecordId");
                 /*
                  * This code block checks that for multiple recordIds with same SSN
                  * the 5 tokens generated (for each recordId) are always the same
                  */
-                if(recordIds.contains(recordId)){
+                if (recordIds.contains(recordId)) {
                     String token = recordToken.get("Token");
                     // for a new RecordId simply store the 5 tokens as a list
-                    if(tokenGenerated.size()<5){
+                    if (tokenGenerated.size() < 5) {
                         tokenGenerated.add(recordToken.get("Token"));
                     }
                     // for RecordId with same SSN, tokens should match as in the list
-                    else if(tokenGenerated.size()==5){  //assertion to check existing tokens match for duplicate records
+                    else if (tokenGenerated.size() == 5) { // assertion to check existing tokens match for duplicate
+                                                           // records
                         Assertions.assertTrue(tokenGenerated.contains(token));
                     }
                     count++;
                 }
             }
-            Assertions.assertEquals(count, recordIds.size()*5);
+            Assertions.assertEquals(count, recordIds.size() * 5);
         }
     }
 
     /*
-     * This test case comapres two input csv's. A section of these data will overlapp with both the csv's.
+     * This test case comapres two input csv's. A section of these data will
+     * overlapp with both the csv's.
      * The first csv is hashed and encrypted and the second csv is only hashed.
-     * The goal is to ensure that tokenization process still generates the tokens correctly for both the csv's.
+     * The goal is to ensure that tokenization process still generates the tokens
+     * correctly for both the csv's.
      * The test case then ensures the tokens match for overlapping records.
-     * This is done by decrypting the encrypted tokens for the first csv and hashing the tokens in second csv.
+     * This is done by decrypting the encrypted tokens for the first csv and hashing
+     * the tokens in second csv.
      * Finally we find exact matches in both files.
      */
     @Test
@@ -118,33 +130,51 @@ public class PersonAttributesProcessorTest {
             String token1 = recordIdToTokenMap1.get(recordId1);
             if (recordIdToTokenMap2.containsKey(recordId1)) {
                 overlappCount++;
-                Assertions.assertTrue(recordIdToTokenMap2.get(recordId1).equals(token1), "For same RecordIds the tokens must match");
+                Assertions.assertTrue(recordIdToTokenMap2.get(recordId1).equals(token1),
+                        "For same RecordIds the tokens must match");
             }
         }
         Assertions.assertEquals(overlappCount, totalRecordsMatched);
     }
 
     ArrayList<Map<String, String>> readCSV_fromPersonAttributesProcessor(String inputCsvFilePath,
-        List<TokenTransformer> tokenTransformers) throws Exception {
-        PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFilePath);
-        return PersonAttributesProcessor.readAttributes(reader, tokenTransformers);
+            List<TokenTransformer> tokenTransformers) throws Exception {
+
+        String tmpOutputFile = Files.createTempFile("person_attributes_", ".csv").toString();
+        try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFilePath);
+                PersonAttributesWriter writer = new PersonAttributesCSVWriter(tmpOutputFile)) {
+
+            PersonAttributesProcessor.process(reader, writer, tokenTransformers);
+        }
+
+        ArrayList<Map<String, String>> result = new ArrayList<>();
+
+        try (PersonAttributesReader reader = new PersonAttributesCSVReader(tmpOutputFile)) {
+            while (reader.hasNext()) {
+                result.add(reader.next());
+            }
+        }
+        return result;
     }
 
     /*
-    * Returns Map of SSN -> List of RecordIds
-    */
+     * Returns Map of SSN -> List of RecordIds
+     */
     public Map<String, List<String>> groupRecordsIdsWithSameSsn(String inputCsvFilePath) throws Exception {
-        PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFilePath);
-        List<Map<String,String>> data = reader.readAttributes();
-
         Map<String, List<String>> ssnToRecordIdsMap = new HashMap<>();
 
-        data.forEach(row -> {
+        try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFilePath)) {
+
+            while (reader.hasNext()) {
+                Map<String, String> row = reader.next();
+
                 String ssn = row.get("SocialSecurityNumber");
                 List<String> recordIds = ssnToRecordIdsMap.getOrDefault(ssn, new ArrayList<>());
                 recordIds.add(row.get("RecordId"));
                 ssnToRecordIdsMap.put(ssn, recordIds);
-            });
+            }
+
+        }
 
         return ssnToRecordIdsMap;
     }
@@ -154,11 +184,12 @@ public class PersonAttributesProcessorTest {
         mac.init(new SecretKeySpec(hash_key.getBytes(StandardCharsets.UTF_8), hashAlgorithm));
         byte[] dataAsBytes = noOpToken.getBytes();
         byte[] sha = mac.doFinal(dataAsBytes);
-        return Base64.getEncoder().encodeToString(sha); 
+        return Base64.getEncoder().encodeToString(sha);
     }
 
     private String decryptToken(String encryptedToken) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // Decrypt the token using the same encryption settings
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // Decrypt the token using the same encryption
+                                                                    // settings
         SecretKeySpec secretKey = new SecretKeySpec(encryption_key.getBytes(), encryptionAlgorithm);
         IvParameterSpec iv = new IvParameterSpec(new byte[16]); // 16-byte IV (all zeroes)
         cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);

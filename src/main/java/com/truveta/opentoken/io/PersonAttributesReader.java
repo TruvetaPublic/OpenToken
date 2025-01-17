@@ -1,19 +1,20 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
+ * 
  * Represents an interface for reading person attributes.
  */
 package com.truveta.opentoken.io;
 
-import java.io.IOException;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
- * A generic interface for the person attributes reader.
+ * A generic interface for a streaming person attributes reader.
  */
-public interface PersonAttributesReader {
+public interface PersonAttributesReader extends Iterator<Map<String, String>>, AutoCloseable {
+
     /**
-     * Read person attributes from a given input source.
+     * Retrieve the next set of person attributes from an input source.
      * <p>
      * Example person attribute map:
      * <code>
@@ -27,8 +28,9 @@ public interface PersonAttributesReader {
      *   SocialSecurityNumber: 123-45-6789
      * }
      * </code>
-     * @return a list of person attributes map.
-     * @throws java.io.IOException errors encountered while reading from the input data source.
+     * 
+     * @return a person attributes map.
      */
-    List<Map<String, String>> readAttributes() throws IOException;
+    @Override
+    public Map<String, String> next();
 }

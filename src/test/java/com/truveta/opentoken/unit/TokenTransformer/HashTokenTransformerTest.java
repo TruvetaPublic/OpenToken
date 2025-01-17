@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.unit.tokentransformer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,13 +33,13 @@ public class HashTokenTransformerTest {
     public void testTransform_ValidToken_ReturnsHashedToken() throws Exception {
         String hashedToken = transformer.transform(VALID_TOKEN);
         assertNotNull(hashedToken);
-        
+
         // Manually calculate the expected hash for validation
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(new javax.crypto.spec.SecretKeySpec(VALID_SECRET.getBytes(), "HmacSHA256"));
         byte[] expectedHash = mac.doFinal(VALID_TOKEN.getBytes());
         String expectedHashedToken = Base64.getEncoder().encodeToString(expectedHash);
-        
+
         assertEquals(expectedHashedToken, hashedToken);
     }
 
@@ -69,6 +71,6 @@ public class HashTokenTransformerTest {
     public void testTransform_ValidTokenMultipleTimes_ReturnsConsistentHash() throws Exception {
         String hash1 = transformer.transform(VALID_TOKEN);
         String hash2 = transformer.transform(VALID_TOKEN);
-        assertEquals(hash1, hash2);  // The hashed value should be consistent
+        assertEquals(hash1, hash2); // The hashed value should be consistent
     }
 }

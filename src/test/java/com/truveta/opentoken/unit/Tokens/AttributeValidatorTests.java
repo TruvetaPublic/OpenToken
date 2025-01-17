@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 
 package com.truveta.opentoken.unit.tokens;
 
@@ -37,9 +39,10 @@ public class AttributeValidatorTests {
 
         var result = true;
 
-        for(AttributeValidator validator : validationRules) {
+        for (AttributeValidator validator : validationRules) {
             var currResult = validator.eval(attribute, value);
-            if(!currResult) result = false;
+            if (!currResult)
+                result = false;
         }
 
         Assertions.assertEquals(expectedResult, result);
