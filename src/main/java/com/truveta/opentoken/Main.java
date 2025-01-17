@@ -66,7 +66,7 @@ public class Main {
     }
 
     private static CommandLineArguments loadCommandLineArguments(String[] args) {
-        logger.info("Processing command line arguments. {}", String.join("|", args));
+        logger.debug("Processing command line arguments. {}", String.join("|", args));
         CommandLineArguments commandLineArguments = new CommandLineArguments();
         JCommander.newBuilder().addObject(commandLineArguments).build().parse(args);
         logger.info("Command line arguments processed.");
