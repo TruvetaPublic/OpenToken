@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.tokens;
 
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ public class TokenGenerator {
     /**
      * Initializes the token generator.
      * 
-     * @param tokenDefinition the token definition.
+     * @param tokenDefinition      the token definition.
      * @param tokenTransformerList a list of token transformers.
      */
     public TokenGenerator(BaseTokenDefinition tokenDefinition, List<TokenTransformer> tokenTransformerList) {
@@ -50,12 +52,17 @@ public class TokenGenerator {
     /*
      * Get the token signature for a given token identifier.
      *
-     * @param tokenId the token identifier. Possible values are in the range { T1, T2, T3, T4, T5 }
-     * @param personAttributes The person attributes. It is a map of the person attribute
-     * name to value. This version of the library supports the following person attributes -
+     * @param tokenId the token identifier. Possible values are in the range { T1,
+     * T2, T3, T4, T5 }
+     * 
+     * @param personAttributes The person attributes. It is a map of the person
+     * attribute
+     * name to value. This version of the library supports the following person
+     * attributes -
      * FirstName, LastName, Gender, BirthDate, PostalCode, SocialSecurityNumber.
      * 
-     * @return the token signature using the token definition for the given token identifier.
+     * @return the token signature using the token definition for the given token
+     * identifier.
      */
     private String getTokenSignature(String tokenId, Map<String, String> personAttributes) {
         var definition = tokenDefinition.getTokenDefinition(tokenId);
@@ -80,7 +87,8 @@ public class TokenGenerator {
             }
         }
 
-        return Stream.of(values.toArray(new String[0])).filter(s -> null != s && !s.isBlank()).collect(Collectors.joining("|"));
+        return Stream.of(values.toArray(new String[0])).filter(s -> null != s && !s.isBlank())
+                .collect(Collectors.joining("|"));
     }
 
     /**
@@ -109,10 +117,13 @@ public class TokenGenerator {
     /*
      * Get token for a given token identifier.
      *
-     * @param tokenId the token identifier. Possible values are in the range { T1, T2, T3, T4, T5 }
+     * @param tokenId the token identifier. Possible values are in the range { T1,
+     * T2, T3, T4, T5 }
+     * 
      * @param personAttributes the person attributes map.
      * 
      * @return the token using the token definition for the given token identifier.
+     * 
      * @throws Exception in case of failure to generate the token.
      */
     private String getToken(String tokenId, Map<String, String> personAttributes) throws Exception {
@@ -157,12 +168,12 @@ public class TokenGenerator {
      */
     public Set<String> getInvalidPersonAttributes(Map<String, String> personAttributes) {
         String[] attributeNames = {
-            BaseTokenDefinition.FIRST_NAME,
-            BaseTokenDefinition.LAST_NAME,
-            BaseTokenDefinition.GENDER,
-            BaseTokenDefinition.BIRTH_DATE,
-            BaseTokenDefinition.POSTAL_CODE,
-            BaseTokenDefinition.SOCIAL_SECURITY_NUMBER
+                BaseTokenDefinition.FIRST_NAME,
+                BaseTokenDefinition.LAST_NAME,
+                BaseTokenDefinition.GENDER,
+                BaseTokenDefinition.BIRTH_DATE,
+                BaseTokenDefinition.POSTAL_CODE,
+                BaseTokenDefinition.SOCIAL_SECURITY_NUMBER
         };
 
         var response = new HashSet<String>();

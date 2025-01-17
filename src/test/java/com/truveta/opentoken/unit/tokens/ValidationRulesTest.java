@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.unit.tokens;
 
 import org.junit.jupiter.api.Assertions;
@@ -29,7 +31,8 @@ public class ValidationRulesTest {
         // Validate NotInValidator
         AttributeValidator notInValidator = validationRules.get(1);
         Assertions.assertTrue(notInValidator instanceof NotInValidator);
-        Assertions.assertEquals(BaseTokenDefinition.SOCIAL_SECURITY_NUMBER, ((NotInValidator) notInValidator).getAttributeName());
+        Assertions.assertEquals(BaseTokenDefinition.SOCIAL_SECURITY_NUMBER,
+                ((NotInValidator) notInValidator).getAttributeName());
         Assertions.assertArrayEquals(new String[] {
                 "000-00-0000",
                 "111-11-1111",
@@ -46,8 +49,10 @@ public class ValidationRulesTest {
         // Validate RegexValidator for SocialSecurityNumber
         AttributeValidator ssnValidator = validationRules.get(2);
         Assertions.assertTrue(ssnValidator instanceof RegexValidator);
-        Assertions.assertEquals(BaseTokenDefinition.SOCIAL_SECURITY_NUMBER, ((RegexValidator) ssnValidator).getAttributeName());
-        Assertions.assertEquals("^(?!0{3})(?!6{3})[0-8]\\d{2}-(?!0{2})\\d{2}-(?!0{4})\\d{4}$", ((RegexValidator) ssnValidator).getPattern());
+        Assertions.assertEquals(BaseTokenDefinition.SOCIAL_SECURITY_NUMBER,
+                ((RegexValidator) ssnValidator).getAttributeName());
+        Assertions.assertEquals("^(?!0{3})(?!6{3})[0-8]\\d{2}-(?!0{2})\\d{2}-(?!0{4})\\d{4}$",
+                ((RegexValidator) ssnValidator).getPattern());
 
         // Validate RegexValidator for Gender
         AttributeValidator genderValidator = validationRules.get(3);
@@ -58,7 +63,8 @@ public class ValidationRulesTest {
         // Validate RegexValidator for PostalCode
         AttributeValidator postalCodeValidator = validationRules.get(4);
         Assertions.assertTrue(postalCodeValidator instanceof RegexValidator);
-        Assertions.assertEquals(BaseTokenDefinition.POSTAL_CODE, ((RegexValidator) postalCodeValidator).getAttributeName());
+        Assertions.assertEquals(BaseTokenDefinition.POSTAL_CODE,
+                ((RegexValidator) postalCodeValidator).getAttributeName());
         Assertions.assertEquals("^\\d{5}(-\\d{4})?$", ((RegexValidator) postalCodeValidator).getPattern());
     }
 }

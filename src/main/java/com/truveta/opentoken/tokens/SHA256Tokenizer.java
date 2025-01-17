@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.tokens;
 
 import java.io.UnsupportedEncodingException;
@@ -44,12 +46,16 @@ public final class SHA256Tokenizer {
      * 
      * @param value the token signature value.
      * 
-     * @return the token. If the token signature value is <code>null</code> or blank,
-     * {@link #EMPTY EMPTY} is returned.
+     * @return the token. If the token signature value is <code>null</code> or
+     *         blank,
+     *         {@link #EMPTY EMPTY} is returned.
      * 
-     * @throws java.io.UnsupportedEncodingException if the <code>utf-8</code> encoding is not supported.
-     * @throws java.security.NoSuchAlgorithmException if the <code>SHA-256</code> algorithm is not supported.
-     * @throws java.lang.Exception if an error is thrown by the transformer.
+     * @throws java.io.UnsupportedEncodingException   if the <code>utf-8</code>
+     *                                                encoding is not supported.
+     * @throws java.security.NoSuchAlgorithmException if the <code>SHA-256</code>
+     *                                                algorithm is not supported.
+     * @throws java.lang.Exception                    if an error is thrown by the
+     *                                                transformer.
      */
     public String tokenize(String value) throws UnsupportedEncodingException, NoSuchAlgorithmException, Exception {
         if (value == null || value.isBlank()) {
@@ -60,7 +66,7 @@ public final class SHA256Tokenizer {
         byte[] hash = digest.digest(bytes);
         String transformedToken = Hex.encodeHexString(hash);
 
-        for (TokenTransformer tokenTransformer: tokenTransformerList) {
+        for (TokenTransformer tokenTransformer : tokenTransformerList) {
             transformedToken = tokenTransformer.transform(transformedToken);
         }
         return transformedToken;

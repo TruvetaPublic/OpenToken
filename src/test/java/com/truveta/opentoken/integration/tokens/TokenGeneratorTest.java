@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.integration.tokens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +32,7 @@ public class TokenGeneratorTest {
 
     @InjectMocks
     private TokenGenerator tokenGenerator;
-    
+
     @BeforeEach
     void setUp() throws Exception {
         // Setup real TokenDefinition and TokenTransformers for integration testing
@@ -73,5 +75,5 @@ public class TokenGeneratorTest {
         assertTrue(tokens.get("T4").equals("67d996d74a0b7d452fede8b297a7b44362307f9706c10e0004c9e72b11a02723"));
         assertTrue(tokens.get("T5").equals("ffabff596628478fe4ebeef4a971f34c670e9ecff8b012ac54c660567932fbca"));
 
-    }     
+    }
 }
