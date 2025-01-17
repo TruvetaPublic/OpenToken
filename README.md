@@ -204,7 +204,7 @@ To use `open-token` in your project, follow these steps:
 <dependency>
     <groupId>com.truveta.opentoken</groupId>
     <artifactId>open-token</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
