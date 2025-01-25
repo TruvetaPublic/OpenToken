@@ -13,10 +13,10 @@ import com.beust.jcommander.JCommander;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
-import com.truveta.opentoken.io.PersonAttributesCSVReader;
-import com.truveta.opentoken.io.PersonAttributesCSVWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
+import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
+import com.truveta.opentoken.io.parquet.PersonAttributesParquetWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
 
 public class Main {
@@ -56,7 +56,7 @@ public class Main {
         }
 
         try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputPath);
-                PersonAttributesWriter writer = new PersonAttributesCSVWriter(outputPath)) {
+                PersonAttributesWriter writer = new PersonAttributesParquetWriter(outputPath)) {
 
             PersonAttributesProcessor.process(reader, writer, tokenTransformerList);
 

@@ -4,7 +4,7 @@
  * Reads person attributes from a CSV file.
  * Implements the {@link PersonAttributesReader} interface.
  */
-package com.truveta.opentoken.io;
+package com.truveta.opentoken.io.csv;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -19,6 +19,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.truveta.opentoken.io.PersonAttributesReader;
 
 /**
  * A person attributes reader class for the input source in CSV format.

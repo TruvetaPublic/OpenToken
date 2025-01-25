@@ -88,8 +88,8 @@ public final class PersonAttributesProcessor {
                 try {
                     writer.writeAttributes(rowResult);
                 } catch (IOException e) {
-                    logger.error(String.format("Error writing attributes to file for row ",
-                            String.format("%,d", rowCounter)), e);
+                    logger.error("Error writing attributes to file for row {}",
+                            String.format("%,d", rowCounter), e);
                 }
             }
 

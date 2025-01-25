@@ -4,7 +4,7 @@
  * The PersonAttributeCSVWriter class is responsible for writing person attributes to a CSV file.
  * It implements the PersonAttributeWriter interface.
  */
-package com.truveta.opentoken.io;
+package com.truveta.opentoken.io.csv;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -15,6 +15,8 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.truveta.opentoken.io.PersonAttributesWriter;
 
 /**
  * A person attributes writer class for the output source in CSV format.
