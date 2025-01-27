@@ -19,10 +19,10 @@ import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.truveta.opentoken.io.PersonAttributesCSVReader;
-import com.truveta.opentoken.io.PersonAttributesCSVWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
+import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
+import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
