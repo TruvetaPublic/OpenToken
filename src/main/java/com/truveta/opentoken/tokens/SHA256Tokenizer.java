@@ -63,7 +63,7 @@ public final class SHA256Tokenizer {
         }
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8.name());
 
-        var digest = MessageDigest.getInstance("SHA-256");
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(bytes);
         String transformedToken = Hex.encodeHexString(hash);
 
