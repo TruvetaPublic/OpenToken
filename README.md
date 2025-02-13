@@ -12,7 +12,7 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 - `first-name`
 - `last-name`
 - `postal-code` Acceptable format: `ddddd` or `ddddd-dddd` where `d` is a numeric digit (0-9).
-- `gender` Acceptable format: `Male|Female`.
+- `sex` Acceptable format: `Male|Female`.
 - `birth-date` Acceptable format: `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31).
 - `social-security-number` Acceptable format: `ddd-dd-dddd` where `d` is a numeric digit (0-9).
 
@@ -20,11 +20,11 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 
 Rule ID | Rule Definition                                          |
 --------|----------------------------------------------------------|
-T1      | `U(last-name)\|U(first-name-1)\|U(gender)\|birth-date`   |
+T1      | `U(last-name)\|U(first-name-1)\|U(sex)\|birth-date`   |
 T2      | `U(last-name)\|U(first-name)\|birth-date\|postal-code-3` |
-T3      | `U(last-name)\|U(first-name)\|U(gender)\|birth-date`     |
-T4      | `social-security-number\|U(gender)\|birth-date`          |
-T5      | `U(last-name)\|U(first-name-3)\|U(gender)`               |
+T3      | `U(last-name)\|U(first-name)\|U(sex)\|birth-date`     |
+T4      | `social-security-number\|U(sex)\|birth-date`          |
+T5      | `U(last-name)\|U(first-name-3)\|U(sex)`               |
 
 > U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
@@ -42,7 +42,7 @@ A token signature is generated first for every token generation rule. The token 
 Given a person with the following attributes:
 
 ```csv
-RecordId,FirstName,LastName,PostalCode,Gender,BirthDate,SocialSecurityNumber
+RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber
 891dda6c-961f-4154-8541-b48fe18ee620,John,Doe,11111,Male,2000-01-01,000-00-0000
 ```
 
@@ -103,7 +103,7 @@ java -jar open-token-<version>.jar -i <input-file> -t csv -o <output-file> -h "x
 ```
 
 Example:
-`java -jar target/open-token-1.1.0.jar -i src/main/resources/sample.csv -t csv -o src/main/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
+`java -jar target/open-token-1.2.0.jar -i src/main/resources/sample.csv -t csv -o src/main/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
 #### Via Docker
 
@@ -137,7 +137,7 @@ The input file (in csv format) must contain at least the following column names:
 - RecordId
 - FirstName
 - LastName
-- Gender
+- Sex
 - PostalCode
 - BirthDate
 - SocialSecurityNumber
@@ -204,7 +204,7 @@ To use `open-token` in your project, follow these steps:
 <dependency>
     <groupId>com.truveta.opentoken</groupId>
     <artifactId>open-token</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 

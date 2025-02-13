@@ -34,7 +34,7 @@ public class TokenDefinition implements BaseTokenDefinition {
         var t1 = new ArrayList<AttributeExpression>();
         t1.add(new AttributeExpression(LAST_NAME, "T|U"));
         t1.add(new AttributeExpression(FIRST_NAME, "T|S(0,1)|U"));
-        t1.add(new AttributeExpression(GENDER, "T|U"));
+        t1.add(new AttributeExpression(SEX, "T|U"));
         t1.add(new AttributeExpression(BIRTH_DATE, "T|D"));
 
         // Token 2
@@ -48,20 +48,20 @@ public class TokenDefinition implements BaseTokenDefinition {
         var t3 = new ArrayList<AttributeExpression>();
         t3.add(new AttributeExpression(LAST_NAME, "T|U"));
         t3.add(new AttributeExpression(FIRST_NAME, "T|U"));
-        t3.add(new AttributeExpression(GENDER, "T|U"));
+        t3.add(new AttributeExpression(SEX, "T|U"));
         t3.add(new AttributeExpression(BIRTH_DATE, "T|D"));
 
         // Token 4
         var t4 = new ArrayList<AttributeExpression>();
         t4.add(new AttributeExpression(SOCIAL_SECURITY_NUMBER, "T|M(\\d+)"));
-        t4.add(new AttributeExpression(GENDER, "T|U"));
+        t4.add(new AttributeExpression(SEX, "T|U"));
         t4.add(new AttributeExpression(BIRTH_DATE, "T|D"));
 
         // Token 5
         var t5 = new ArrayList<AttributeExpression>();
         t5.add(new AttributeExpression(LAST_NAME, "T|U"));
         t5.add(new AttributeExpression(FIRST_NAME, "T|S(0,3)|U"));
-        t5.add(new AttributeExpression(GENDER, "T|U"));
+        t5.add(new AttributeExpression(SEX, "T|U"));
 
         this.definitions = new HashMap<>();
         this.definitions.put("T1", t1);
