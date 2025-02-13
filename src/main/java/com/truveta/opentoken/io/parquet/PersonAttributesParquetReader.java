@@ -20,12 +20,15 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.io.Closeable;
 
 public class PersonAttributesParquetReader implements PersonAttributesReader, Closeable {
     private ParquetReader<Group> reader;
     private Group currentGroup;
     private Iterator<Group> iterator;
+    private boolean closed = false;
+    private boolean hasNextCalled = false;
 
     public PersonAttributesParquetReader(String filePath) throws IOException {
         Configuration conf = new Configuration();
@@ -54,11 +57,22 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
 
     @Override
     public boolean hasNext() {
-        return iterator.hasNext();
+        if (closed) {
+            throw new NoSuchElementException("Reader is closed");
+        }
+        if (!hasNextCalled) {
+            hasNextCalled = iterator.hasNext();
+        }
+        return hasNextCalled;
     }
 
     @Override
     public Map<String, String> next() {
+        if (closed || !hasNextCalled) {
+            throw new NoSuchElementException("Reader is closed");
+        }
+        hasNextCalled = false;
+
         Group group = iterator.next();
         Map<String, String> attributes = new HashMap<>();
         GroupType schema = group.getType();
@@ -76,5 +90,6 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
     @Override
     public void close() throws IOException {
         reader.close();
+        closed = true;
     }
 }
