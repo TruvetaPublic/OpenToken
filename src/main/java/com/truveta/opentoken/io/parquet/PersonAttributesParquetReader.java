@@ -1,7 +1,8 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  * 
- * Represents a parquet reader for reading person attributes.
+ * Reads person attributes from a Parquet file.
+ * Implements the {@link PersonAttributesReader} interface.
  */
 package com.truveta.opentoken.io.parquet;
 
@@ -23,6 +24,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.io.Closeable;
 
+/**
+ * A person attributes reader class for the input source in Parquet format.
+ */
 public class PersonAttributesParquetReader implements PersonAttributesReader, Closeable {
     private ParquetReader<Group> reader;
     private Group currentGroup;
@@ -30,6 +34,12 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
     private boolean closed = false;
     private boolean hasNextCalled = false;
 
+    /**
+     * Initialize the class with the input file in Parquet format.
+     * 
+     * @param filePath the input file path
+     * @throws IOException if an I/O error occurs
+     */
     public PersonAttributesParquetReader(String filePath) throws IOException {
         Configuration conf = new Configuration();
         Path path = new Path(filePath);

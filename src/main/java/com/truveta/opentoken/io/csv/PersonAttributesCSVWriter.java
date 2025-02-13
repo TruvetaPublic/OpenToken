@@ -2,7 +2,7 @@
  * Copyright (c) Truveta. All rights reserved.
  * 
  * The PersonAttributeCSVWriter class is responsible for writing person attributes to a CSV file.
- * It implements the PersonAttributeWriter interface.
+ * It implements the {@link PersonAttributeWriter} interface.
  */
 package com.truveta.opentoken.io.csv;
 

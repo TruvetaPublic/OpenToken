@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ * 
+ * The PersonAttributeParquetWriter class is responsible for writing person attributes to a Parquet file.
+ * It implements the {@link PersonAttributeWriter} interface.
+ */
 package com.truveta.opentoken.io.parquet;
 
 import org.apache.hadoop.conf.Configuration;
@@ -16,6 +22,9 @@ import com.truveta.opentoken.io.PersonAttributesWriter;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * A person attributes writer class for the output source in Parquet format.
+ */
 public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private ParquetWriter<Group> writer;
     private MessageType schema;
@@ -23,9 +32,38 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private final Configuration conf;
     private boolean initialized = false;
 
+    /**
+     * Initialize the class with the output file in Parquet format.
+     * 
+     * @param filePath the output file path
+     * @throws IOException if an I/O error occurs
+     */
     public PersonAttributesParquetWriter(String filepath) throws IOException {
         this.filepath = filepath;
         this.conf = new Configuration();
+    }
+
+    @Override
+    public void writeAttributes(Map<String, String> attributes) throws IOException {
+        if (!initialized) {
+            initializeWriter(attributes);
+        }
+
+        SimpleGroup group = new SimpleGroup(schema);
+        attributes.forEach((key, value) -> {
+            if (schema.containsField(key) && value != null) {
+                group.add(key, value);
+            }
+        });
+
+        writer.write(group);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (writer != null) {
+            writer.close();
+        }
     }
 
     private void initializeWriter(Map<String, String> firstRecord) throws IOException {
@@ -52,28 +90,5 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
                 .build();
 
         initialized = true;
-    }
-
-    @Override
-    public void writeAttributes(Map<String, String> attributes) throws IOException {
-        if (!initialized) {
-            initializeWriter(attributes);
-        }
-
-        SimpleGroup group = new SimpleGroup(schema);
-        attributes.forEach((key, value) -> {
-            if (schema.containsField(key) && value != null) {
-                group.add(key, value);
-            }
-        });
-
-        writer.write(group);
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (writer != null) {
-            writer.close();
-        }
     }
 }
