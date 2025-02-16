@@ -21,16 +21,14 @@ import lombok.Setter;
 public final class NotInValidator implements AttributeValidator {
 
     @NotNull
-    private String attributeName;
-    @NotNull
     private List<String> invalidValues;
 
     /**
      * Validates that the attribute value is not in the list of invalid values.
      */
     @Override
-    public boolean eval(String name, String value) {
-        return (!name.equals(attributeName)) || !invalidValues.contains(value);
+    public boolean eval(String value) {
+        return value != null && !invalidValues.contains(value);
     }
 
 }

@@ -33,7 +33,7 @@ public class PersonAttributesCSVReader implements PersonAttributesReader {
     private final Reader reader;
     private final CSVParser csvParser;
     private Iterator<CSVRecord> iterator;
-    private Map<String, Attribute> attributeMap;
+    private Map<String, Attribute> attributeMap = new HashMap<>();
 
     /**
      * Initialize the class with the input file in CSV format.

@@ -7,14 +7,14 @@ package com.truveta.opentoken.attributes.validation;
  * A generic interface for attribute validation.
  */
 public interface AttributeValidator {
+
     /**
-     * Validates the attribute name and value.
+     * Validates an attribute value.
      * 
-     * @param name  the attribute name.
      * @param value the attribute value.
      * 
      * @return <code>true</code> if the attribute is valid; <code>false</code>
      *         otherwise.
      */
-    boolean eval(String name, String value);
+    boolean eval(String value);
 }

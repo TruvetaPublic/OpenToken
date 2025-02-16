@@ -16,12 +16,9 @@ import lombok.Setter;
 @Setter
 public final class RegexValidator implements AttributeValidator {
 
-    @NotNull
-    private String attributeName;
     private final Pattern compiledPattern;
 
-    public RegexValidator(@NotNull String attributeName, @NotNull String pattern) {
-        this.attributeName = attributeName;
+    public RegexValidator(@NotNull String pattern) {
         this.compiledPattern = Pattern.compile(pattern);
     }
 
@@ -29,8 +26,7 @@ public final class RegexValidator implements AttributeValidator {
      * Validates that the value matches the regex pattern.
      */
     @Override
-    public boolean eval(String name, String value) {
-        return (!name.equals(attributeName)) ||
-                (value != null && compiledPattern.matcher(value).matches());
+    public boolean eval(String value) {
+        return value != null && compiledPattern.matcher(value).matches();
     }
 }

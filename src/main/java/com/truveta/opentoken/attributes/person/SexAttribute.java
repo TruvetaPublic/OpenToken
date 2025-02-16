@@ -8,6 +8,16 @@ import java.util.List;
 import com.truveta.opentoken.attributes.BaseAttribute;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 
+/**
+ * Represents an assigned sex of a person.
+ * 
+ * This class extends BaseAttribute and provides functionality for working with
+ * these type of fields. It recognizes "Sex" or "Gender" as valid aliases for
+ * this attribute type.
+ * 
+ * The attribute performs normalization on input values, converting them to a
+ * standard format (M or F).
+ */
 public class SexAttribute extends BaseAttribute {
 
     private static final String NAME = "Sex";
@@ -18,7 +28,7 @@ public class SexAttribute extends BaseAttribute {
     public SexAttribute() {
         super(
                 List.of(
-                        new RegexValidator(NAME, VALIDATE_REGEX)));
+                        new RegexValidator(VALIDATE_REGEX)));
     }
 
     @Override
@@ -28,10 +38,16 @@ public class SexAttribute extends BaseAttribute {
 
     @Override
     public String normalize(String value) {
-        if (value == null) {
-            return null;
+        switch (value.charAt(0)) {
+            case 'M':
+            case 'm':
+                return "Male";
+            case 'F':
+            case 'f':
+                return "Female";
+            default:
+                return null;
         }
-        return value.trim().toUpperCase();
     }
 
     @Override
