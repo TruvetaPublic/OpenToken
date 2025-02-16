@@ -11,6 +11,7 @@
         "DotJoshJohnson.xml",
         "yzhang.markdown-all-in-one",
         "AdamViola.parquet-explorer",
-        "SonarSource.sonarlint-vscode"
+        "SonarSource.sonarlint-vscode",
+        "GitHub.vscode-pull-request-github"
     ]
 }
