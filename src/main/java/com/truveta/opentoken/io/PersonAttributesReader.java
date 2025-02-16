@@ -8,10 +8,12 @@ package com.truveta.opentoken.io;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.truveta.opentoken.attributes.Attribute;
+
 /**
  * A generic interface for a streaming person attributes reader.
  */
-public interface PersonAttributesReader extends Iterator<Map<String, String>>, AutoCloseable {
+public interface PersonAttributesReader extends Iterator<Map<Class<? extends Attribute>, String>>, AutoCloseable {
 
     /**
      * Retrieve the next set of person attributes from an input source.
@@ -32,5 +34,5 @@ public interface PersonAttributesReader extends Iterator<Map<String, String>>, A
      * @return a person attributes map.
      */
     @Override
-    public Map<String, String> next();
+    public Map<Class<? extends Attribute>, String> next();
 }

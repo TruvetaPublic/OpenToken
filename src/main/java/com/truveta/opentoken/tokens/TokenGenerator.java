@@ -18,6 +18,9 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.AttributeExpression;
+import com.truveta.opentoken.attributes.AttributeLoader;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 /**
@@ -30,7 +33,8 @@ public class TokenGenerator {
     private SHA256Tokenizer tokenizer;
     private List<TokenTransformer> tokenTransformerList;
     private BaseTokenDefinition tokenDefinition;
-    private ValidationRules validationRules;
+
+    private Map<Class<? extends Attribute>, Attribute> attributeInstanceMap;
 
     /**
      * Initializes the token generator.
@@ -40,8 +44,9 @@ public class TokenGenerator {
      */
     public TokenGenerator(BaseTokenDefinition tokenDefinition, List<TokenTransformer> tokenTransformerList) {
         this.tokenDefinition = tokenDefinition;
-        this.validationRules = new ValidationRules();
         this.tokenTransformerList = tokenTransformerList;
+        this.attributeInstanceMap = new HashMap<>();
+        AttributeLoader.load().forEach(attribute -> attributeInstanceMap.put(attribute.getClass(), attribute));
         try {
             this.tokenizer = new SHA256Tokenizer(tokenTransformerList);
         } catch (Exception e) {
@@ -64,7 +69,7 @@ public class TokenGenerator {
      * @return the token signature using the token definition for the given token
      * identifier.
      */
-    private String getTokenSignature(String tokenId, Map<String, String> personAttributes) {
+    private String getTokenSignature(String tokenId, Map<Class<? extends Attribute>, String> personAttributes) {
         var definition = tokenDefinition.getTokenDefinition(tokenId);
         if (personAttributes == null) {
             throw new IllegalArgumentException("Person attributes cannot be null.");
@@ -72,13 +77,17 @@ public class TokenGenerator {
 
         var values = new ArrayList<String>(definition.size());
 
-        for (AttributeExpression attribute : definition) {
-            if (personAttributes.containsKey(attribute.getName())) {
-                if (!validationRules.validate(personAttributes, attribute.getName())) {
+        for (AttributeExpression attributeExpression : definition) {
+            if (personAttributes.containsKey(attributeExpression.getAttributeClass())) {
+                var attribute = attributeInstanceMap.get(attributeExpression.getAttributeClass());
+                String attributeValue = personAttributes.get(attributeExpression.getAttributeClass());
+                if (!attribute.validate(attributeValue)) {
                     return null;
                 }
+                attributeValue = attribute.normalize(attributeValue);
                 try {
-                    String attributeValue = attribute.getEffectiveValue(personAttributes.get(attribute.getName()));
+                    attributeValue = attributeExpression
+                            .getEffectiveValue(attributeValue);
                     values.add(attributeValue);
                 } catch (IllegalArgumentException e) {
                     logger.error(e.getMessage());
@@ -99,7 +108,7 @@ public class TokenGenerator {
      * 
      * @return A map of token/rule identifier to the token signature.
      */
-    public Map<String, String> getAllTokenSignatures(Map<String, String> personAttributes) {
+    public Map<String, String> getAllTokenSignatures(Map<Class<? extends Attribute>, String> personAttributes) {
         var signatures = new HashMap<String, String>();
         for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
             try {
@@ -126,7 +135,7 @@ public class TokenGenerator {
      * 
      * @throws Exception in case of failure to generate the token.
      */
-    private String getToken(String tokenId, Map<String, String> personAttributes) throws Exception {
+    private String getToken(String tokenId, Map<Class<? extends Attribute>, String> personAttributes) throws Exception {
         var signature = getTokenSignature(tokenId, personAttributes);
         try {
             return tokenizer.tokenize(signature);
@@ -143,7 +152,7 @@ public class TokenGenerator {
      * 
      * @return A map of token/rule identifier to the token value.
      */
-    public Map<String, String> getAllTokens(Map<String, String> personAttributes) {
+    public Map<String, String> getAllTokens(Map<Class<? extends Attribute>, String> personAttributes) {
         var tokens = new HashMap<String, String>();
         for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
             try {
@@ -166,21 +175,12 @@ public class TokenGenerator {
      * 
      * @return A set of invalid person attribute names.
      */
-    public Set<String> getInvalidPersonAttributes(Map<String, String> personAttributes) {
-        String[] attributeNames = {
-                BaseTokenDefinition.FIRST_NAME,
-                BaseTokenDefinition.LAST_NAME,
-                BaseTokenDefinition.GENDER,
-                BaseTokenDefinition.BIRTH_DATE,
-                BaseTokenDefinition.POSTAL_CODE,
-                BaseTokenDefinition.SOCIAL_SECURITY_NUMBER
-        };
-
+    public Set<String> getInvalidPersonAttributes(Map<Class<? extends Attribute>, String> personAttributes) {
         var response = new HashSet<String>();
 
-        for (String attributeName : attributeNames) {
-            if (!validationRules.validate(personAttributes, attributeName)) {
-                response.add(attributeName);
+        for (Class<? extends Attribute> attributeClass : personAttributes.keySet()) {
+            if (!attributeInstanceMap.get(attributeClass).validate(personAttributes.get(attributeClass))) {
+                response.add(attributeInstanceMap.get(attributeClass).getName());
             }
         }
 

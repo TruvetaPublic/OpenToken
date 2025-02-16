@@ -20,11 +20,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import com.truveta.opentoken.tokens.AttributeExpression;
+import com.truveta.opentoken.attributes.AttributeExpression;
+import com.truveta.opentoken.attributes.validation.ValidationRules;
 import com.truveta.opentoken.tokens.BaseTokenDefinition;
 import com.truveta.opentoken.tokens.SHA256Tokenizer;
 import com.truveta.opentoken.tokens.TokenGenerator;
-import com.truveta.opentoken.tokens.ValidationRules;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 public class TokenGeneratorTest {
@@ -51,8 +51,8 @@ public class TokenGeneratorTest {
         tokenizer = mock(SHA256Tokenizer.class);
 
         tokenGenerator = new TokenGenerator(tokenDefinition, tokenTransformerList);
-        tokenGenerator.setTokenizer(tokenizer);  // Inject mock tokenizer
-        tokenGenerator.setValidationRules(validationRules);  // Inject mock validation rules
+        tokenGenerator.setTokenizer(tokenizer); // Inject mock tokenizer
+        tokenGenerator.setValidationRules(validationRules); // Inject mock validation rules
     }
 
     @Test
@@ -84,7 +84,7 @@ public class TokenGeneratorTest {
         assertEquals("hashedToken", tokens.get("token1"));
         assertEquals("hashedToken", tokens.get("token2"));
     }
-    
+
     @Test
     void testGetAllTokens_invalidAttribute_skipsTokenGeneration() throws Exception {
         when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1"));
@@ -95,7 +95,6 @@ public class TokenGeneratorTest {
         attributeExpressions.add(attrExpr);
         when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
 
-        
         Map<String, String> personAttributes = new HashMap<>(); // Person attributes (invalid case with missing name)
         personAttributes.put("address", "123 Main Street");
 

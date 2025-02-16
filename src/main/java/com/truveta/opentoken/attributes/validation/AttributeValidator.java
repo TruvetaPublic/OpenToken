@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.tokens;
+package com.truveta.opentoken.attributes.validation;
 
 /**
  * A generic interface for attribute validation.

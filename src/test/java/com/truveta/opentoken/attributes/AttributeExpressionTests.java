@@ -2,14 +2,13 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-package com.truveta.opentoken.unit.tokens;
+package com.truveta.opentoken.attributes;
 
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.truveta.opentoken.tokens.AttributeExpression;
 import com.truveta.opentoken.tokens.BaseTokenDefinition;
 
 public class AttributeExpressionTests {

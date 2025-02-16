@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.tokens.TokenDefinition;
@@ -55,7 +56,7 @@ public final class PersonAttributesProcessor {
         // TokenGenerator code
         TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
 
-        Map<String, String> row;
+        Map<Class<? extends Attribute>, String> row;
         Map<String, String> tokens;
         Set<String> invalidAttributes;
 

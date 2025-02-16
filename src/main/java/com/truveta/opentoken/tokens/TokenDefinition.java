@@ -8,6 +8,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.AttributeExpression;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SexAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
+
 /**
  * Encapsulates the token definitions.
  * 
@@ -21,7 +30,8 @@ import java.util.Set;
  * <code>AttributeExpression</code> that are concatenated together to get
  * the token signature.
  * 
- * @see com.truveta.opentoken.tokens.AttributeExpression AttributeExpression
+ * @see com.truveta.opentoken.attributes.AttributeExpression
+ *      AttributeExpression
  */
 public class TokenDefinition implements BaseTokenDefinition {
     private final Map<String, ArrayList<AttributeExpression>> definitions;
@@ -32,36 +42,36 @@ public class TokenDefinition implements BaseTokenDefinition {
     public TokenDefinition() {
         // Token 1
         var t1 = new ArrayList<AttributeExpression>();
-        t1.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t1.add(new AttributeExpression(FIRST_NAME, "T|S(0,1)|U"));
-        t1.add(new AttributeExpression(GENDER, "T|U"));
-        t1.add(new AttributeExpression(BIRTH_DATE, "T|D"));
+        t1.add(new AttributeExpression(LastNameAttribute.class, "T|U"));
+        t1.add(new AttributeExpression(FirstNameAttribute.class, "T|S(0,1)|U"));
+        t1.add(new AttributeExpression(SexAttribute.class, "T|U"));
+        t1.add(new AttributeExpression(BirthDateAttribute.class, "T|D"));
 
         // Token 2
         var t2 = new ArrayList<AttributeExpression>();
-        t2.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t2.add(new AttributeExpression(FIRST_NAME, "T|U"));
-        t2.add(new AttributeExpression(BIRTH_DATE, "T|D"));
-        t2.add(new AttributeExpression(POSTAL_CODE, "T|S(0,3)|U"));
+        t2.add(new AttributeExpression(LastNameAttribute.class, "T|U"));
+        t2.add(new AttributeExpression(FirstNameAttribute.class, "T|U"));
+        t2.add(new AttributeExpression(BirthDateAttribute.class, "T|D"));
+        t2.add(new AttributeExpression(PostalCodeAttribute.class, "T|S(0,3)|U"));
 
         // Token 3
         var t3 = new ArrayList<AttributeExpression>();
-        t3.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t3.add(new AttributeExpression(FIRST_NAME, "T|U"));
-        t3.add(new AttributeExpression(GENDER, "T|U"));
-        t3.add(new AttributeExpression(BIRTH_DATE, "T|D"));
+        t3.add(new AttributeExpression(LastNameAttribute.class, "T|U"));
+        t3.add(new AttributeExpression(FirstNameAttribute.class, "T|U"));
+        t3.add(new AttributeExpression(SexAttribute.class, "T|U"));
+        t3.add(new AttributeExpression(BirthDateAttribute.class, "T|D"));
 
         // Token 4
         var t4 = new ArrayList<AttributeExpression>();
-        t4.add(new AttributeExpression(SOCIAL_SECURITY_NUMBER, "T|M(\\d+)"));
-        t4.add(new AttributeExpression(GENDER, "T|U"));
-        t4.add(new AttributeExpression(BIRTH_DATE, "T|D"));
+        t4.add(new AttributeExpression(SocialSecurityNumberAttribute.class, "T|M(\\d+)"));
+        t4.add(new AttributeExpression(SexAttribute.class, "T|U"));
+        t4.add(new AttributeExpression(BirthDateAttribute.class, "T|D"));
 
         // Token 5
         var t5 = new ArrayList<AttributeExpression>();
-        t5.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t5.add(new AttributeExpression(FIRST_NAME, "T|S(0,3)|U"));
-        t5.add(new AttributeExpression(GENDER, "T|U"));
+        t5.add(new AttributeExpression(LastNameAttribute.class, "T|U"));
+        t5.add(new AttributeExpression(FirstNameAttribute.class, "T|S(0,3)|U"));
+        t5.add(new AttributeExpression(SexAttribute.class, "T|U"));
 
         this.definitions = new HashMap<>();
         this.definitions.put("T1", t1);

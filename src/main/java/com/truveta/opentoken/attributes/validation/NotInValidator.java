@@ -1,9 +1,10 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.tokens;
+package com.truveta.opentoken.attributes.validation;
 
-import java.util.Arrays;
+import java.util.List;
+
 import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
@@ -22,14 +23,14 @@ public final class NotInValidator implements AttributeValidator {
     @NotNull
     private String attributeName;
     @NotNull
-    private String[] invalidValues;
+    private List<String> invalidValues;
 
     /**
      * Validates that the attribute value is not in the list of invalid values.
      */
     @Override
     public boolean eval(String name, String value) {
-        return (!name.equals(attributeName)) || !Arrays.asList(invalidValues).contains(value);
+        return (!name.equals(attributeName)) || !invalidValues.contains(value);
     }
 
 }

@@ -2,7 +2,7 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-package com.truveta.opentoken.tokens;
+package com.truveta.opentoken.attributes;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -48,7 +48,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public final class AttributeExpression {
-    private String name;
+
+    private static final Pattern EXPRESSION_PATTERN = Pattern.compile("\\s*(?<expr>[^ (]+)(?:\\((?<args>[^\\)]+)\\))?");
+
+    private Class<? extends Attribute> attributeClass;
     private String expressions;
 
     /**
@@ -70,8 +73,7 @@ public final class AttributeExpression {
         }
 
         String result = value;
-        String[] expressionParts = expressions.indexOf('|') < 0 ? new String[] { expressions }
-                : expressions.split("\\|");
+        String[] expressionParts = expressions.split("\\|");
         for (String expression : expressionParts) {
             result = eval(result, expression);
         }
@@ -89,8 +91,7 @@ public final class AttributeExpression {
             throw evalError(value, expression, null);
         }
 
-        Pattern pattern = Pattern.compile("\\s*(?<expr>[^ (]+)(?:\\((?<args>[^\\)]+)\\))?");
-        Matcher matcher = pattern.matcher(expression);
+        Matcher matcher = EXPRESSION_PATTERN.matcher(expression);
         if (!matcher.matches()) {
             throw evalError(value, expression, null);
         }

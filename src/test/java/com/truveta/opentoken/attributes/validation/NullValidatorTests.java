@@ -2,13 +2,12 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-package com.truveta.opentoken.unit.tokens;
+package com.truveta.opentoken.attributes.validation;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.truveta.opentoken.tokens.BaseTokenDefinition;
-import com.truveta.opentoken.tokens.NullValidator;
 
 public class NullValidatorTests {
 

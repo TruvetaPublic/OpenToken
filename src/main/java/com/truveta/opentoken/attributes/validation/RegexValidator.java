@@ -1,27 +1,29 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.tokens;
+package com.truveta.opentoken.attributes.validation;
 
 import java.util.regex.Pattern;
 import javax.validation.constraints.NotNull;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * A Validator that is designed for validating with regex expressions.
  */
-@AllArgsConstructor
 @Getter
 @Setter
 public final class RegexValidator implements AttributeValidator {
 
     @NotNull
     private String attributeName;
-    @NotNull
-    private String pattern;
+    private final Pattern compiledPattern;
+
+    public RegexValidator(@NotNull String attributeName, @NotNull String pattern) {
+        this.attributeName = attributeName;
+        this.compiledPattern = Pattern.compile(pattern);
+    }
 
     /**
      * Validates that the value matches the regex pattern.
@@ -29,7 +31,6 @@ public final class RegexValidator implements AttributeValidator {
     @Override
     public boolean eval(String name, String value) {
         return (!name.equals(attributeName)) ||
-                (value != null && Pattern.compile(pattern).matcher(value).matches());
+                (value != null && compiledPattern.matcher(value).matches());
     }
-
 }
