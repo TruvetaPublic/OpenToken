@@ -219,27 +219,27 @@ import com.truveta.opentoken.tokens.*;
 ```java
 ArrayList<Map<String, String>> result = new ArrayList<>();
 
-/* get a list of person attributes  */
-List<Map<String,String>> data = reader.readAttributes();
+Map<Class<? extends Attribute>, String> row;
 
-/* process person one by one */
-data.forEach(row -> {
+/* process person record one by one */
+while (reader.hasNext()) {
+    row = reader.next();
+
     /* generate all tokens for one person */
-    Map<String, String> tokens = tokenGenerator.getAllTokens(row);
+    Map<String, String> tokens = tokenGenerator.getAllTokens(row).getTokens();
     logger.info("Tokens: {}", tokens);
 
-    List<String> tokenIds = new ArrayList<>(tokens.keySet());
-    Collections.sort(tokenIds);
+    Set<String> tokenIds = new TreeSet<>(tokens.keySet());
 
     /* add all the token for the person in result */
     for (String tokenId : tokenIds) {
         var rowResult = new HashMap<String, String>();
-        rowResult.put("RecordId", row.get("RecordId"));
+        rowResult.put("RecordId", row.get(RecordIdAttribute.class));
         rowResult.put("RuleId", tokenId);
         rowResult.put("Token", tokens.get(tokenId));
         result.add(rowResult);
     }
-});
+};
 
 // result has tokens for all persons now.
 ```

@@ -76,7 +76,7 @@ class TokenGeneratorTest {
 
         when(tokenizer.tokenize(anyString())).thenReturn("hashedToken");
 
-        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
+        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes).getTokens();
 
         assertNotNull(tokens);
         assertEquals(2, tokens.size());
@@ -98,7 +98,7 @@ class TokenGeneratorTest {
                                                                                     // with missing name)
         personAttributes.put(LastNameAttribute.class, "MacDonald");
 
-        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
+        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes).getTokens();
 
         // Validate that no tokens are generated
         assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to validation failure");
@@ -120,7 +120,7 @@ class TokenGeneratorTest {
         // Simulate error during tokenization
         when(tokenizer.tokenize(anyString())).thenThrow(new RuntimeException("Tokenization error"));
 
-        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
+        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes).getTokens();
 
         // Validate that no tokens are generated due to tokenization error
         assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to tokenization error");
@@ -141,7 +141,7 @@ class TokenGeneratorTest {
         personAttributes.put(FirstNameAttribute.class, "John");
         personAttributes.put(LastNameAttribute.class, "Smith");
 
-        String signature = tokenGenerator.getTokenSignature("token1", personAttributes);
+        String signature = tokenGenerator.getTokenSignature("token1", personAttributes, new TokenGeneratorResult());
 
         assertNotNull(signature);
         assertEquals("JOHN|SMITH", signature);
@@ -150,7 +150,7 @@ class TokenGeneratorTest {
     @Test
     void testGetTokenSignature_nullPersonAttributes() {
         assertThrows(IllegalArgumentException.class, () -> {
-            tokenGenerator.getTokenSignature("token1", null);
+            tokenGenerator.getTokenSignature("token1", null, new TokenGeneratorResult());
         });
     }
 
@@ -166,7 +166,7 @@ class TokenGeneratorTest {
         Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
         personAttributes.put(LastNameAttribute.class, "Smith");
 
-        String signature = tokenGenerator.getTokenSignature("token1", personAttributes);
+        String signature = tokenGenerator.getTokenSignature("token1", personAttributes, new TokenGeneratorResult());
 
         assertNull(signature);
     }
@@ -183,7 +183,7 @@ class TokenGeneratorTest {
         Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
         personAttributes.put(FirstNameAttribute.class, ""); // Invalid empty name
 
-        String signature = tokenGenerator.getTokenSignature("token1", personAttributes);
+        String signature = tokenGenerator.getTokenSignature("token1", personAttributes, new TokenGeneratorResult());
 
         assertNull(signature);
     }
@@ -200,7 +200,7 @@ class TokenGeneratorTest {
         Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
         personAttributes.put(FirstNameAttribute.class, "John");
 
-        String token = tokenGenerator.getToken("token1", personAttributes);
+        String token = tokenGenerator.getToken("token1", personAttributes, new TokenGeneratorResult());
 
         assertNotNull(token);
         assertEquals("hashedToken123", token);
@@ -218,7 +218,7 @@ class TokenGeneratorTest {
         // Missing required attribute leads to null signature
         personAttributes.put(LastNameAttribute.class, "Smith");
 
-        String token = tokenGenerator.getToken("token1", personAttributes);
+        String token = tokenGenerator.getToken("token1", personAttributes, new TokenGeneratorResult());
 
         assertNull(token);
     }
@@ -236,7 +236,7 @@ class TokenGeneratorTest {
         personAttributes.put(FirstNameAttribute.class, "John");
 
         assertThrows(TokenGenerationException.class, () -> {
-            tokenGenerator.getToken("token1", personAttributes);
+            tokenGenerator.getToken("token1", personAttributes, new TokenGeneratorResult());
         });
     }
 }

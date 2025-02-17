@@ -55,17 +55,22 @@ public class TokenGenerator {
     }
 
     /*
-     * Get the token signature for a given token identifier.
+     * Get the token signature for a given token identifier. Populates the
+     * invalidAttributes list in the result object with the attributes that are
+     * invalid.
      *
      * @param tokenId the token identifier.
      * 
      * @param personAttributes The person attributes. It is a map of the person
      * attributes.
      * 
+     * @param result the token generator result.
+     * 
      * @return the token signature using the token definition for the given token
      * identifier.
      */
-    protected String getTokenSignature(String tokenId, Map<Class<? extends Attribute>, String> personAttributes) {
+    protected String getTokenSignature(String tokenId, Map<Class<? extends Attribute>, String> personAttributes,
+            TokenGeneratorResult result) {
         var definition = tokenDefinition.getTokenDefinition(tokenId);
         if (personAttributes == null) {
             throw new IllegalArgumentException("Person attributes cannot be null.");
@@ -81,6 +86,7 @@ public class TokenGenerator {
             var attribute = attributeInstanceMap.get(attributeExpression.getAttributeClass());
             String attributeValue = personAttributes.get(attributeExpression.getAttributeClass());
             if (!attribute.validate(attributeValue)) {
+                result.getInvalidAttributes().add(attribute.getName());
                 return null;
             }
 
@@ -112,7 +118,7 @@ public class TokenGenerator {
         var signatures = new HashMap<String, String>();
         for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
             try {
-                var signature = getTokenSignature(tokenId, personAttributes);
+                var signature = getTokenSignature(tokenId, personAttributes, new TokenGeneratorResult());
                 if (signature != null) {
                     signatures.put(tokenId, signature);
                 }
@@ -130,13 +136,16 @@ public class TokenGenerator {
      * 
      * @param personAttributes the person attributes map.
      * 
+     * @param result the token generator result.
+     * 
      * @return the token using the token definition for the given token identifier.
      * 
      * @throws TokenGenerationException in case of failure to generate the token.
      */
-    protected String getToken(String tokenId, Map<Class<? extends Attribute>, String> personAttributes)
+    protected String getToken(String tokenId, Map<Class<? extends Attribute>, String> personAttributes,
+            TokenGeneratorResult result)
             throws TokenGenerationException {
-        var signature = getTokenSignature(tokenId, personAttributes);
+        var signature = getTokenSignature(tokenId, personAttributes, result);
         try {
             return tokenizer.tokenize(signature);
         } catch (Exception e) {
@@ -150,22 +159,24 @@ public class TokenGenerator {
      * 
      * @param personAttributes the person attributes map.
      * 
-     * @return A map of token/rule identifier to the token value.
+     * @return A {@link TokenGeneratorResult} object containing the tokens and
+     *         invalid attributes.
      */
-    public Map<String, String> getAllTokens(Map<Class<? extends Attribute>, String> personAttributes) {
-        var tokens = new HashMap<String, String>();
+    public TokenGeneratorResult getAllTokens(Map<Class<? extends Attribute>, String> personAttributes) {
+        TokenGeneratorResult result = new TokenGeneratorResult();
+
         for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
             try {
-                var token = getToken(tokenId, personAttributes);
+                var token = getToken(tokenId, personAttributes, result);
                 if (token != null) {
-                    tokens.put(tokenId, token);
+                    result.getTokens().put(tokenId, token);
                 }
             } catch (Exception e) {
                 logger.error("Error generating token for token id: " + tokenId, e);
             }
         }
 
-        return tokens;
+        return result;
     }
 
     /**

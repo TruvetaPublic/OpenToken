@@ -59,7 +59,7 @@ class TokenGeneratorIntegrationTest {
         personAttributes.put(BirthDateAttribute.class, "1993-08-10");
 
         // Generate all tokens
-        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
+        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes).getTokens();
 
         // Validate the tokens
         assertNotNull(tokens);

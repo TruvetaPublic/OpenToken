@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.tokens.TokenDefinition;
 import com.truveta.opentoken.tokens.TokenGenerator;
+import com.truveta.opentoken.tokens.TokenGeneratorResult;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 /**
@@ -61,41 +63,22 @@ public final class PersonAttributesProcessor {
         TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
 
         Map<Class<? extends Attribute>, String> row;
-        Map<String, String> tokens;
-        Set<String> invalidAttributes;
+        TokenGeneratorResult tokenGeneratorResult;
 
         int rowCounter = 0;
-        int rowIssueCounter = 0;
+        Map<String, Long> invalidAttributeCount = new HashMap<>();
 
         while (reader.hasNext()) {
             row = reader.next();
             rowCounter++;
 
-            tokens = tokenGenerator.getAllTokens(row);
-            logger.debug("Tokens: {}", tokens);
+            tokenGeneratorResult = tokenGenerator.getAllTokens(row);
+            logger.debug("Tokens: {}", tokenGeneratorResult.getTokens());
 
-            invalidAttributes = tokenGenerator.getInvalidPersonAttributes(row);
-            if (!invalidAttributes.isEmpty()) {
-                logger.info("Invalid Attributes for row {}: {}", String.format("%,d", rowCounter),
-                        invalidAttributes);
-                rowIssueCounter++;
-            }
-            List<String> tokenIds = tokens.keySet().stream()
-                    .sorted()
-                    .collect(Collectors.toList());
+            keepTrackOfInvalidAttributes(tokenGeneratorResult, rowCounter,
+                    invalidAttributeCount);
 
-            for (String tokenId : tokenIds) {
-                var rowResult = new HashMap<String, String>();
-                rowResult.put(RECORD_ID, row.get(RecordIdAttribute.class));
-                rowResult.put(RULE_ID, tokenId);
-                rowResult.put(TOKEN, tokens.get(tokenId));
-
-                try {
-                    writer.writeAttributes(rowResult);
-                } catch (IOException e) {
-                    logger.error(String.format("Error writing attributes to file for row %,d", rowCounter), e);
-                }
-            }
+            writeTokens(writer, row, rowCounter, tokenGeneratorResult);
 
             if (rowCounter % 10000 == 0) {
                 logger.info(String.format("Processed \"%,d\" records", rowCounter));
@@ -103,6 +86,48 @@ public final class PersonAttributesProcessor {
         }
 
         logger.info(String.format("Processed a total of %,d records", rowCounter));
-        logger.info(String.format("Total number of records with issues: %,d", rowIssueCounter));
+
+        invalidAttributeCount
+                .forEach((key, value) -> logger
+                        .info(String.format("Total invalid Attribute count for [%s]: %,d", key, value)));
+        long rowIssueCounter = invalidAttributeCount.values().stream()
+                .collect(Collectors.summarizingLong(Long::longValue)).getSum();
+        logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
+    }
+
+    private static void writeTokens(PersonAttributesWriter writer, Map<Class<? extends Attribute>, String> row,
+            int rowCounter, TokenGeneratorResult tokenGeneratorResult) {
+
+        Set<String> tokenIds = new TreeSet<>(tokenGeneratorResult.getTokens().keySet());
+
+        for (String tokenId : tokenIds) {
+            var rowResult = new HashMap<String, String>();
+            rowResult.put(RECORD_ID, row.get(RecordIdAttribute.class));
+            rowResult.put(RULE_ID, tokenId);
+            rowResult.put(TOKEN, tokenGeneratorResult.getTokens().get(tokenId));
+
+            try {
+                writer.writeAttributes(rowResult);
+            } catch (IOException e) {
+                logger.error(String.format("Error writing attributes to file for row %,d", rowCounter), e);
+            }
+        }
+    }
+
+    private static void keepTrackOfInvalidAttributes(TokenGeneratorResult tokenGeneratorResult, int rowCounter,
+            Map<String, Long> invalidAttributeCount) {
+
+        if (!tokenGeneratorResult.getInvalidAttributes().isEmpty()) {
+            logger.info("Invalid Attributes for row {}: {}", String.format("%,d", rowCounter),
+                    tokenGeneratorResult.getInvalidAttributes());
+
+            for (String invalidAttribute : tokenGeneratorResult.getInvalidAttributes()) {
+                if (invalidAttributeCount.containsKey(invalidAttribute)) {
+                    invalidAttributeCount.put(invalidAttribute, invalidAttributeCount.get(invalidAttribute) + 1);
+                } else {
+                    invalidAttributeCount.put(invalidAttribute, 1L);
+                }
+            }
+        }
     }
 }
