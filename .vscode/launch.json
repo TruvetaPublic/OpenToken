@@ -9,7 +9,7 @@
             "name": "OpenToken",
             "request": "launch",
             "mainClass": "com.truveta.opentoken.Main",
-            "projectName": "OpenToken",
+            "projectName": "open-token",
             "args": "-i src/main/resources/sample.csv -t csv -o target/output.csv -h \"HashingKey\" -e \"Secret-Encryption-Key-Goes-Here.\""
         }
     ]
