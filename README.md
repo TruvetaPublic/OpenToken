@@ -66,23 +66,23 @@ This library focuses primarily on token generation. Even though the person match
 
 As noted above, N distinct tokens are generated for each person using this library. The output of this process is below for three person records r1, r2, and r3:
 
-RecordId | RuleId | Token(RecordId, RuleId)
----------|--------|------------------------
-r1       | T1     | Token(r1,T1)
-r1       | T2     | Token(r1,T2)
-r1       | T3     | Token(r1,T3)
-r1       | T4     | Token(r1,T4)
-r1       | T5     | Token(r1,T5)
-r2       | T1     | Token(r2,T1)
-r2       | T2     | Token(r2,T2)
-r2       | T3     | Token(r2,T3)
-r2       | T4     | Token(r2,T4)
-r2       | T5     | Token(r2,T5)
-r3       | T1     | Token(r3,T1)
-r3       | T2     | Token(r3,T2)
-r3       | T3     | Token(r3,T3)
-r3       | T4     | Token(r3,T4)
-r3       | T5     | Token(r3,T5)
+RecordId | RuleId | Token(RecordId, RuleId) |
+---------|--------|-------------------------|
+r1       | T1     | Token(r1,T1)            |
+r1       | T2     | Token(r1,T2)            |
+r1       | T3     | Token(r1,T3)            |
+r1       | T4     | Token(r1,T4)            |
+r1       | T5     | Token(r1,T5)            |
+r2       | T1     | Token(r2,T1)            |
+r2       | T2     | Token(r2,T2)            |
+r2       | T3     | Token(r2,T3)            |
+r2       | T4     | Token(r2,T4)            |
+r2       | T5     | Token(r2,T5)            |
+r3       | T1     | Token(r3,T1)            |
+r3       | T2     | Token(r3,T2)            |
+r3       | T3     | Token(r3,T3)            |
+r3       | T4     | Token(r3,T4)            |
+r3       | T5     | Token(r3,T5)            |
 
 If tokens are generated for persons from multiple data sources, person matching systems can identify a person match if the tokens for a person from one data source matches tokens for another person from a different data source. In the picture below, all tokens for **r3** and **r4** match, and as such r3 and r4 are considered a match.
 
