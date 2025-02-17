@@ -35,6 +35,9 @@ public abstract class BaseAttribute implements Attribute {
         this.validationRules = List.copyOf(ruleList);
     }
 
+    /**
+     * Validates the attribute value against a set of validation rules.
+     */
     @Override
     public boolean validate(String value) {
         if (value == null) {

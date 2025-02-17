@@ -57,8 +57,18 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         return ALIASES;
     }
 
+    /**
+     * Normalize the social security number value. Remove any dashes and format the
+     * value as xxx-xx-xxxx.
+     * 
+     * @param value the social security number value.
+     */
     @Override
     public String normalize(String value) {
+
+        value = value.replace("-", "");
+        value = value.substring(0, 3) + "-" + value.substring(3, 5) + "-" + value.substring(5);
+
         return value;
     }
 }
