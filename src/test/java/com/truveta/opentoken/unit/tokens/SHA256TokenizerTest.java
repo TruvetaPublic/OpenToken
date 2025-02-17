@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.unit.tokens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,10 +47,10 @@ public class SHA256TokenizerTest {
 
     @Test
     public void testTokenize_NullOrEmptyInput_ReturnsEmptyString() throws Exception {
-        String resultNull = tokenizer.tokenize(null);   // Test for null input
+        String resultNull = tokenizer.tokenize(null); // Test for null input
         assertEquals(SHA256Tokenizer.EMPTY, resultNull);
 
-        String resultEmpty = tokenizer.tokenize("");    // Test for empty string input
+        String resultEmpty = tokenizer.tokenize(""); // Test for empty string input
         assertEquals(SHA256Tokenizer.EMPTY, resultEmpty);
 
         String resultBlank = tokenizer.tokenize("   "); // Test for input with only whitespace
@@ -59,7 +61,7 @@ public class SHA256TokenizerTest {
     public void testTokenize_ValidInput_ReturnsHashedToken() throws Exception {
         String inputValue = "test-input";
 
-        String expectedHash = calculateSHA256(inputValue);  // Expected SHA-256 hash (in hex format) for "test-input"
+        String expectedHash = calculateSHA256(inputValue); // Expected SHA-256 hash (in hex format) for "test-input"
 
         // Mock the transformations to simulate behavior of TokenTransformers
         when(hashTransformerMock.transform(anyString())).thenReturn(expectedHash);
@@ -71,19 +73,20 @@ public class SHA256TokenizerTest {
         verify(hashTransformerMock).transform(anyString());
         verify(encryptTransformerMock).transform(expectedHash);
 
-        assertEquals("encrypted-token", result);    // Check the final result after applying the transformers
+        assertEquals("encrypted-token", result); // Check the final result after applying the transformers
     }
 
     @Test
     public void testTokenize_ValidInput_NoTransformers_ReturnsRawHash() throws Exception {
         String inputValue = "test-input";
-        
+
         tokenizer = new SHA256Tokenizer(new ArrayList<>()); // Recreate tokenizer with no transformers
-        String expectedHash = calculateSHA256(inputValue);  // Expected SHA-256 hash (in hex format) for "test-input"
+        String expectedHash = calculateSHA256(inputValue); // Expected SHA-256 hash (in hex format) for "test-input"
 
         String result = tokenizer.tokenize(inputValue); // Call the tokenize method
 
-        assertEquals(expectedHash, result); // Verify that the result is just the raw SHA-256 hash (no transformations applied)
+        assertEquals(expectedHash, result); // Verify that the result is just the raw SHA-256 hash (no transformations
+                                            // applied)
     }
 
     @Test

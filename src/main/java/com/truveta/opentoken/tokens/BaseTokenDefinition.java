@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.tokens;
 
 import java.util.ArrayList;
@@ -46,7 +48,8 @@ public interface BaseTokenDefinition {
     String getVersion();
 
     /**
-     * Get all token identifiers. For example, a set of <code>{ T1, T2, T3, T4, T5 }</code>.
+     * Get all token identifiers. For example, a set of
+     * <code>{ T1, T2, T3, T4, T5 }</code>.
      * <p>
      * The token identifiers are also called rule identifiers because every token is
      * generated from rule definition.

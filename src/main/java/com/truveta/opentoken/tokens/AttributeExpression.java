@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 
 package com.truveta.opentoken.tokens;
 
@@ -23,20 +25,23 @@ import lombok.Setter;
  * Below are the components used to compose the attribute expression:
  * 
  * <ul>
- *   <li><code>T</code> - trim</li>
- *   <li><code>U</code> - convert to upper case</li>
- *   <li><code>S(start_index, end_index)</code> - substring of value</li>
- *   <li><code>D</code> - treat as date</li>
- *   <li><code>M(regex)</code> - match the regular expression</li>
- *   <li><code>|</code> - expression separator</li>
+ * <li><code>T</code> - trim</li>
+ * <li><code>U</code> - convert to upper case</li>
+ * <li><code>S(start_index, end_index)</code> - substring of value</li>
+ * <li><code>D</code> - treat as date</li>
+ * <li><code>M(regex)</code> - match the regular expression</li>
+ * <li><code>|</code> - expression separator</li>
  * </ul>
  * 
  * <p>
  * Examples of attribute expressions:
  * <ul>
- *   <li><code>T|S(0,3)|U</code> - trim the value, then take first 3 characters, and then convert to upper case.</li>
- *   <li><code>T|D</code> - trim the value, treat the value as a date in the yyyy-MM-dd format.</li>
- *   <li><code>T|M("\\d+")</code> - trim the value, then make sure that the value matches the regular expression.</li>
+ * <li><code>T|S(0,3)|U</code> - trim the value, then take first 3 characters,
+ * and then convert to upper case.</li>
+ * <li><code>T|D</code> - trim the value, treat the value as a date in the
+ * yyyy-MM-dd format.</li>
+ * <li><code>T|M("\\d+")</code> - trim the value, then make sure that the value
+ * matches the regular expression.</li>
  * </ul>
  */
 @AllArgsConstructor
@@ -65,7 +70,8 @@ public final class AttributeExpression {
         }
 
         String result = value;
-        String[] expressionParts = expressions.indexOf('|') < 0 ? new String[] { expressions } : expressions.split("\\|");
+        String[] expressionParts = expressions.indexOf('|') < 0 ? new String[] { expressions }
+                : expressions.split("\\|");
         for (String expression : expressionParts) {
             result = eval(result, expression);
         }
@@ -116,7 +122,7 @@ public final class AttributeExpression {
                 }
                 return M(value, expression, args);
             case 'D':
-                return D(value);
+                return D(value, expression);
             default:
                 throw evalError(value, expression, null);
         }
@@ -159,10 +165,10 @@ public final class AttributeExpression {
             throw evalError(value, expression, ex);
         }
     }
-    
+
     // RegExe match M(regex)
     private static String M(String value, String expression, String[] args) {
-        
+
         if (args.length != 1) {
             throw evalError(value, expression, null);
         }
@@ -175,26 +181,26 @@ public final class AttributeExpression {
             while (matcher.find()) {
                 result += matcher.group();
             }
-            
+
             return result;
         } catch (PatternSyntaxException ex) {
             throw evalError(value, expression, ex);
         }
     }
 
-    // Date expression 
-    private static String D(String value) {
+    // Date expression
+    private static String D(String value, String expression) {
         // Supported date formats, and will be changed to "yyyy-MM-dd"
         // If the date is not in the supported formats, an exception will be thrown.
         String[] possibleFormats = {
-            "yyyy-MM-dd"
+                "yyyy-MM-dd"
         };
         try {
             Date date = DateUtils.parseDate(value, possibleFormats);
             SimpleDateFormat targetFormat = new SimpleDateFormat("yyyy-MM-dd");
             return targetFormat.format(date);
         } catch (ParseException ex) {
-            throw evalError(value, "Datetime", ex);
+            throw evalError(value, expression, ex);
         }
     }
 

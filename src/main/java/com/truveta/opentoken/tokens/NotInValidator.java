@@ -1,5 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
-
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.tokens;
 
 import java.util.Arrays;

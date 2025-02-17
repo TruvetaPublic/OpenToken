@@ -1,6 +1,9 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +22,8 @@ import com.truveta.opentoken.processor.PersonAttributesProcessor;
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
-    
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws IOException {
         CommandLineArguments commandLineArguments = loadCommandLineArguments(args);
         String hashingSecret = commandLineArguments.getHashingSecret();
         String encryptionKey = commandLineArguments.getEncryptionKey();
@@ -28,24 +31,17 @@ public class Main {
         String inputType = commandLineArguments.getInputType();
         String outputPath = commandLineArguments.getOutputPath();
 
-        logger.info("Hashing Secret: {}", hashingSecret);
-        logger.info("Encryption Key: {}", encryptionKey);
+        logger.info("Hashing Secret: {}", maskString(hashingSecret));
+        logger.info("Encryption Key: {}", maskString(encryptionKey));
         logger.info("Input Path: {}", inputPath);
         logger.info("Input Type: {}", inputType);
         logger.info("Output Path: {}", outputPath);
 
-        PersonAttributesReader reader = null;
-        PersonAttributesWriter writer = null;
-
-        if (inputType.equals("csv")) {
-            reader = new PersonAttributesCSVReader(inputPath);
-            writer = new PersonAttributesCSVWriter(outputPath);
-        } else {
+        if (!"csv".equals(inputType)) {
             logger.error("No input type other than csv supported yet!");
             return;
-        }
-
-        if ((hashingSecret == null || hashingSecret.isBlank()) && (encryptionKey == null || encryptionKey.isBlank())){
+        } else if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null
+                || encryptionKey.isBlank()) {
             logger.error("Hashing secret and encryption key must be specified");
             return;
         }
@@ -54,18 +50,33 @@ public class Main {
         try {
             tokenTransformerList.add(new HashTokenTransformer(hashingSecret));
             tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
-            PersonAttributesProcessor.process(reader, writer, tokenTransformerList);
         } catch (Exception e) {
             logger.error("Error in initializing the transformer. Execution halted. ", e);
             return;
         }
+
+        try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputPath);
+                PersonAttributesWriter writer = new PersonAttributesCSVWriter(outputPath)) {
+
+            PersonAttributesProcessor.process(reader, writer, tokenTransformerList);
+
+        } catch (Exception e) {
+            logger.error("Error in processing the input file. Execution halted. ", e);
+        }
     }
 
     private static CommandLineArguments loadCommandLineArguments(String[] args) {
-        logger.info("Processing command line arguments. {}", String.join("|", args));
+        logger.debug("Processing command line arguments. {}", String.join("|", args));
         CommandLineArguments commandLineArguments = new CommandLineArguments();
         JCommander.newBuilder().addObject(commandLineArguments).build().parse(args);
         logger.info("Command line arguments processed.");
         return commandLineArguments;
+    }
+
+    private static String maskString(String input) {
+        if (input == null || input.length() <= 3) {
+            return input;
+        }
+        return input.substring(0, 3) + "*".repeat(input.length() - 3);
     }
 }

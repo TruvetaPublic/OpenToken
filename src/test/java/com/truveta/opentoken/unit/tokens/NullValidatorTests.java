@@ -1,7 +1,8 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 
 package com.truveta.opentoken.unit.tokens;
-
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

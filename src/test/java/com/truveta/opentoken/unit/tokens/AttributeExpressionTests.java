@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 
 package com.truveta.opentoken.unit.tokens;
 
@@ -11,7 +13,7 @@ import com.truveta.opentoken.tokens.AttributeExpression;
 import com.truveta.opentoken.tokens.BaseTokenDefinition;
 
 public class AttributeExpressionTests {
-    
+
     @Test
     public void getEffectiveValue_With_Empty_Expression_Works() {
         var attribute = new AttributeExpression("RecordId", null);
@@ -20,7 +22,7 @@ public class AttributeExpressionTests {
 
         Assertions.assertEquals(value, result);
     }
-    
+
     @Test
     public void getEffectiveValue_With_Uppercase_Expression_Works() {
         var attribute = new AttributeExpression("RecordId", "U");
@@ -29,13 +31,13 @@ public class AttributeExpressionTests {
 
         Assertions.assertEquals("ABCD", result);
     }
-    
+
     @Test
     public void getEffectiveValue_With_Trim_Expression_Works() {
         var attribute = new AttributeExpression("RecordId", "T");
         var value = " abcd  ";
         var result = attribute.getEffectiveValue(value);
-        
+
         Assertions.assertEquals("abcd", result);
     }
 
@@ -51,7 +53,6 @@ public class AttributeExpressionTests {
         Assertions.assertEquals("d", result2);
     }
 
-    
     @Test
     public void getEffectiveValue_With_Substring_OutOfBounds_Works() {
         var attribute1 = new AttributeExpression("RecordId", "s(0,1)");

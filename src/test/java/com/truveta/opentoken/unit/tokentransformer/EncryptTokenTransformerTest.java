@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.unit.tokentransformer;
 
 import java.nio.charset.StandardCharsets;
@@ -18,7 +20,7 @@ import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 public class EncryptTokenTransformerTest {
     private EncryptTokenTransformer transformer;
     private static final String VALID_KEY = "12345678901234567890123456789012"; // 32-byte key
-    private static final String INVALID_KEY = "short-key";  // Invalid short key
+    private static final String INVALID_KEY = "short-key"; // Invalid short key
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -34,7 +36,7 @@ public class EncryptTokenTransformerTest {
     @Test
     public void testConstructor_InvalidKeyLength_ThrowsIllegalArgumentException() {
         Exception exception = Assertions.assertThrows(InvalidKeyException.class, () -> {
-            new EncryptTokenTransformer(INVALID_KEY);  // Key is too short
+            new EncryptTokenTransformer(INVALID_KEY); // Key is too short
         });
         Assertions.assertEquals("Key must be 32 characters long", exception.getMessage());
     }
@@ -55,12 +57,13 @@ public class EncryptTokenTransformerTest {
 
     @Test
     public void testTransform_ReversibleEncryption() throws Exception {
-        // Testing if encryption followed by decryption will give back the original token.
+        // Testing if encryption followed by decryption will give back the original
+        // token.
         String token = "mySecretToken";
-        
-        String encryptedToken = transformer.transform(token);   // Encrypt the token
 
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");  // Decrypt the token using the same settings
+        String encryptedToken = transformer.transform(token); // Encrypt the token
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // Decrypt the token using the same settings
         SecretKeySpec secretKey = new SecretKeySpec(VALID_KEY.getBytes(), "AES");
         IvParameterSpec iv = new IvParameterSpec(new byte[16]); // 16-byte IV (all zeroes)
         cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
