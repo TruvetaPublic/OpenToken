@@ -105,29 +105,25 @@ public class TokenGeneratorTest {
         assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to validation failure");
     }
 
-@Test
-void testGetAllTokens_errorInTokenGeneration_logsError() throws Exception {
-when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1"));
+    @Test
+    void testGetAllTokens_errorInTokenGeneration_logsError() throws Exception {
+        when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1"));
 
-AttributeExpression attrExpr = new AttributeExpression("name", "U");
+        AttributeExpression attrExpr = new AttributeExpression(FirstNameAttribute.class, "U");
 
-ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
-attributeExpressions.add(attrExpr);
-when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
+        ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
+        attributeExpressions.add(attrExpr);
+        when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
 
-Map<String, String> personAttributes = new HashMap<>();
-personAttributes.put("name", "John");
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(FirstNameAttribute.class, "John");
 
-when(validationRules.validate(personAttributes, "name")).thenReturn(true);
+        // Simulate error during tokenization
+        when(tokenizer.tokenize(anyString())).thenThrow(new RuntimeException("Tokenization error"));
 
-// Simulate error during tokenization
-when(tokenizer.tokenize(anyString())).thenThrow(new
-RuntimeException("Tokenization error"));
+        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
 
-Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
-
-// Validate that no tokens are generated due to tokenization error
-assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to
-tokenization error");
-}
+        // Validate that no tokens are generated due to tokenization error
+        assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to tokenization error");
+    }
 }
