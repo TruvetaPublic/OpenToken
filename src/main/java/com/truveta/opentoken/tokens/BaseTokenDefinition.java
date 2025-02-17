@@ -6,7 +6,6 @@ package com.truveta.opentoken.tokens;
 import java.util.ArrayList;
 import java.util.Set;
 
-import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeExpression;
 
 /**

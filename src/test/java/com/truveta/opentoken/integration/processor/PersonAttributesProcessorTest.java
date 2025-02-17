@@ -1,6 +1,6 @@
 /**
-* Copyright (c) Truveta. All rights reserved.
-*/
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.integration.processor;
 
 import java.io.BufferedReader;

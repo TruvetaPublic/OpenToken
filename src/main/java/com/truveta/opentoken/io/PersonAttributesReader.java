@@ -1,7 +1,5 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
- * 
- * Represents an interface for reading person attributes.
  */
 package com.truveta.opentoken.io;
 

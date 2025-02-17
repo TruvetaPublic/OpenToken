@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.attributes.person;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;

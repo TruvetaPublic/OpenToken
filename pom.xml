@@ -142,6 +142,12 @@
             <version>4.11.0</version>
             <scope>test</scope>
         </dependency>
+        <!-- Checkstyle -->
+        <!-- <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>10.14.0</version>
+        </dependency> -->
     </dependencies>
 
     <!-- Build lifecycle plugins -->
@@ -158,6 +164,28 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
+            </plugin>
+            <!-- Checkstyle -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>                    <!-- Path to your Checkstyle configuration file -->
+                    <failsOnError>true</failsOnError>                    <!-- Fail the build if Checkstyle finds errors -->
+                    <consoleOutput>true</consoleOutput>                    <!-- Output Checkstyle results to the console -->
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>                    <!-- Check test source code as well -->
+                    <excludes>**/package-info.java</excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <!-- Shading -->
             <plugin>

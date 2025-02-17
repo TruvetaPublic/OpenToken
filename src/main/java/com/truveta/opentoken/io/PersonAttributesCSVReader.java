@@ -1,8 +1,5 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
- * 
- * Reads person attributes from a CSV file.
- * Implements the {@link PersonAttributesReader} interface.
  */
 package com.truveta.opentoken.io;
 
@@ -25,7 +22,8 @@ import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeLoader;
 
 /**
- * A person attributes reader class for the input source in CSV format.
+ * Reads person attributes from a CSV file.
+ * Implements the {@link PersonAttributesReader} interface.
  */
 public class PersonAttributesCSVReader implements PersonAttributesReader {
     private static final Logger logger = LoggerFactory.getLogger(PersonAttributesCSVReader.class.getName());

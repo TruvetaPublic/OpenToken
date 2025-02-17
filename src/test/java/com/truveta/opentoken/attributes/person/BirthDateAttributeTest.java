@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.attributes.person;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -23,7 +26,7 @@ class BirthDateAttributeTest {
 
     @Test
     void getAliases_ShouldReturnBirthDateAlias() {
-        assertArrayEquals(new String[] { "RecordId", "Id" }, birthDateAttribute.getAliases());
+        assertArrayEquals(new String[] { "BirthDate" }, birthDateAttribute.getAliases());
     }
 
     @Test

@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeExpression;
 import com.truveta.opentoken.attributes.person.BirthDateAttribute;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;

@@ -1,7 +1,6 @@
 /**
-* Copyright (c) Truveta. All rights reserved.
-*/
-
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.attributes;
 
 import java.util.UUID;
@@ -12,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 
-class AttributeExpressionTests {
+class AttributeExpressionTest {
 
     @Test
     void getEffectiveValue_With_Empty_Expression_Works() {

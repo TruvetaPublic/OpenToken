@@ -1,6 +1,6 @@
 /**
-* Copyright (c) Truveta. All rights reserved.
-*/
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.integration.tokens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,7 +21,6 @@ import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.person.BirthDateAttribute;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
-import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
 import com.truveta.opentoken.attributes.person.SexAttribute;
 import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 import com.truveta.opentoken.tokens.BaseTokenDefinition;

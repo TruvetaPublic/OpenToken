@@ -1,4 +1,6 @@
-// Copyright (c) Truveta. All rights reserved.
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
 package com.truveta.opentoken.unit.tokens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
