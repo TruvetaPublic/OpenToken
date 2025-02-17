@@ -22,6 +22,7 @@ import com.truveta.opentoken.attributes.person.BirthDateAttribute;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
 import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SexAttribute;
 import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 import com.truveta.opentoken.tokens.BaseTokenDefinition;
 import com.truveta.opentoken.tokens.TokenDefinition;
@@ -58,7 +59,7 @@ class TokenGeneratorTest {
         personAttributes.put(FirstNameAttribute.class, "Alice");
         personAttributes.put(LastNameAttribute.class, "Wonderland");
         personAttributes.put(SocialSecurityNumberAttribute.class, "345-54-6795");
-        personAttributes.put(PostalCodeAttribute.class, "98052");
+        personAttributes.put(SexAttribute.class, "F");
         personAttributes.put(BirthDateAttribute.class, "1993-08-10");
 
         // Generate all tokens
@@ -75,11 +76,10 @@ class TokenGeneratorTest {
         assertTrue(tokens.containsKey("T4"));
         assertTrue(tokens.containsKey("T5"));
 
-        assertTrue(tokens.get("T1").equals("812f4cec4ff577e90f6a0dce95361be59b3208892ffe46ce970649e35c1e923d"));
-        assertTrue(tokens.get("T2").equals("786aba25e47fc44c9b6dce5ad9bc84d8dd488c67d89f5909011cfde703993918"));
-        assertTrue(tokens.get("T3").equals("7d69eb47783a8ddc2783c26a70d63b0018f5018c845ee95087074fb6da2b3fb7"));
-        assertTrue(tokens.get("T4").equals("67d996d74a0b7d452fede8b297a7b44362307f9706c10e0004c9e72b11a02723"));
-        assertTrue(tokens.get("T5").equals("ffabff596628478fe4ebeef4a971f34c670e9ecff8b012ac54c660567932fbca"));
-
+        assertEquals("02292af14559b4c2a28a772536b81760ad7b8ebac8ce49e8450ca0fa5044e37f", tokens.get("T1"));
+        assertEquals("0000000000000000000000000000000000000000000000000000000000000000", tokens.get("T2"));
+        assertEquals("a76c3bff664bec8d0f77b4b47ad555d212dc671949ed3cf1c1edef68733835b2", tokens.get("T3"));
+        assertEquals("21c3cf1fdb4fd45197e5def14d0228d26c56bcec1b8641079f9b9ec24f9a6a0b", tokens.get("T4"));
+        assertEquals("3756556f2323148cb57e1e13b1abcd457e1c1706a84ae83d522a3fc0ad43506d", tokens.get("T5"));
     }
 }
