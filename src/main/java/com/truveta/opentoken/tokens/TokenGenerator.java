@@ -74,22 +74,26 @@ public class TokenGenerator {
         var values = new ArrayList<String>(definition.size());
 
         for (AttributeExpression attributeExpression : definition) {
-            if (personAttributes.containsKey(attributeExpression.getAttributeClass())) {
-                var attribute = attributeInstanceMap.get(attributeExpression.getAttributeClass());
-                String attributeValue = personAttributes.get(attributeExpression.getAttributeClass());
-                if (!attribute.validate(attributeValue)) {
-                    return null;
-                }
-                attributeValue = attribute.normalize(attributeValue);
-                try {
-                    attributeValue = attributeExpression
-                            .getEffectiveValue(attributeValue);
-                    values.add(attributeValue);
-                } catch (IllegalArgumentException e) {
-                    logger.error(e.getMessage());
-                    return null;
-                }
+            if (!personAttributes.containsKey(attributeExpression.getAttributeClass())) {
+                return null;
             }
+
+            var attribute = attributeInstanceMap.get(attributeExpression.getAttributeClass());
+            String attributeValue = personAttributes.get(attributeExpression.getAttributeClass());
+            if (!attribute.validate(attributeValue)) {
+                return null;
+            }
+
+            attributeValue = attribute.normalize(attributeValue);
+
+            try {
+                attributeValue = attributeExpression.getEffectiveValue(attributeValue);
+                values.add(attributeValue);
+            } catch (IllegalArgumentException e) {
+                logger.error(e.getMessage());
+                return null;
+            }
+
         }
 
         return Stream.of(values.toArray(new String[0])).filter(s -> null != s && !s.isBlank())
@@ -122,22 +126,22 @@ public class TokenGenerator {
     /*
      * Get token for a given token identifier.
      *
-     * @param tokenId the token identifier. Possible values are in the range { T1,
-     * T2, T3, T4, T5 }
+     * @param tokenId the token identifier.
      * 
      * @param personAttributes the person attributes map.
      * 
      * @return the token using the token definition for the given token identifier.
      * 
-     * @throws Exception in case of failure to generate the token.
+     * @throws TokenGenerationException in case of failure to generate the token.
      */
-    private String getToken(String tokenId, Map<Class<? extends Attribute>, String> personAttributes) throws Exception {
+    private String getToken(String tokenId, Map<Class<? extends Attribute>, String> personAttributes)
+            throws TokenGenerationException {
         var signature = getTokenSignature(tokenId, personAttributes);
         try {
             return tokenizer.tokenize(signature);
         } catch (Exception e) {
             logger.error("Error generating token for token id: " + tokenId, e);
-            throw new Exception("Error generating token");
+            throw new TokenGenerationException("Error generating token", e);
         }
     }
 
@@ -174,9 +178,9 @@ public class TokenGenerator {
     public Set<String> getInvalidPersonAttributes(Map<Class<? extends Attribute>, String> personAttributes) {
         var response = new HashSet<String>();
 
-        for (Class<? extends Attribute> attributeClass : personAttributes.keySet()) {
-            if (!attributeInstanceMap.get(attributeClass).validate(personAttributes.get(attributeClass))) {
-                response.add(attributeInstanceMap.get(attributeClass).getName());
+        for (Map.Entry<Class<? extends Attribute>, String> entry : personAttributes.entrySet()) {
+            if (!attributeInstanceMap.get(entry.getKey()).validate(entry.getValue())) {
+                response.add(attributeInstanceMap.get(entry.getKey()).getName());
             }
         }
 

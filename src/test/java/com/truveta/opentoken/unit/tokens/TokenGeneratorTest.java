@@ -4,7 +4,6 @@ package com.truveta.opentoken.unit.tokens;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,13 +23,12 @@ import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeExpression;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
-//import com.truveta.opentoken.attributes.validation.ValidationRules;
 import com.truveta.opentoken.tokens.BaseTokenDefinition;
 import com.truveta.opentoken.tokens.SHA256Tokenizer;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
-public class TokenGeneratorTest {
+class TokenGeneratorTest {
     @Mock
     private SHA256Tokenizer tokenizer;
 
@@ -44,7 +42,7 @@ public class TokenGeneratorTest {
     private TokenGenerator tokenGenerator;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         tokenDefinition = mock(BaseTokenDefinition.class);
         tokenTransformerList = new ArrayList<>();
         tokenizer = mock(SHA256Tokenizer.class);
@@ -86,7 +84,7 @@ public class TokenGeneratorTest {
     }
 
     @Test
-    void testGetAllTokens_invalidAttribute_skipsTokenGeneration() throws Exception {
+    void testGetAllTokens_invalidAttribute_skipsTokenGeneration() {
         when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1"));
 
         AttributeExpression attrExpr = new AttributeExpression(FirstNameAttribute.class, "U");

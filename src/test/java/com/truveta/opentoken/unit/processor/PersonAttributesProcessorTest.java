@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,11 +58,11 @@ class PersonAttributesProcessorTest {
         PersonAttributesProcessor.process(reader, writer, tokenTransformerList);
 
         verify(reader).next();
-        verify(writer).writeAttributes(any());
+        verify(writer, times(5)).writeAttributes(any());
     }
 
     @Test
-    public void testProcess_IOExceptionWritingAttributes() throws IOException {
+    void testProcess_IOExceptionWritingAttributes() throws IOException {
         List<TokenTransformer> tokenTransformerList = Collections.singletonList(mock(TokenTransformer.class));
         Map<Class<? extends Attribute>, String> data = Map.of(RecordIdAttribute.class, "TestRecordId",
                 FirstNameAttribute.class,
