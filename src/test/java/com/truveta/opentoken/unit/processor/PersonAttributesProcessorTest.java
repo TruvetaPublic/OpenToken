@@ -21,6 +21,10 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.general.RecordIdAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
@@ -29,7 +33,7 @@ import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 @ExtendWith(MockitoExtension.class)
-public class PersonAttributesProcessorTest {
+class PersonAttributesProcessorTest {
     @Mock
     private PersonAttributesReader reader;
 
@@ -40,9 +44,12 @@ public class PersonAttributesProcessorTest {
     private TokenGenerator tokenGenerator;
 
     @Test
-    public void testProcess_HappyPath() throws IOException {
+    void testProcess_HappyPath() throws IOException {
         List<TokenTransformer> tokenTransformerList = Collections.singletonList(mock(HashTokenTransformer.class));
-        Map<String, String> data = Map.of("RecordId", "TestRecordId", "FirstName", "John", "LastName", "Spencer");
+        Map<Class<? extends Attribute>, String> data = Map.of(RecordIdAttribute.class, "TestRecordId",
+                FirstNameAttribute.class,
+                "John",
+                LastNameAttribute.class, "Spencer");
 
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);
@@ -56,7 +63,10 @@ public class PersonAttributesProcessorTest {
     @Test
     public void testProcess_IOExceptionWritingAttributes() throws IOException {
         List<TokenTransformer> tokenTransformerList = Collections.singletonList(mock(TokenTransformer.class));
-        Map<String, String> data = Map.of("RecordId", "1", "Attribute1", "Value1");
+        Map<Class<? extends Attribute>, String> data = Map.of(RecordIdAttribute.class, "TestRecordId",
+                FirstNameAttribute.class,
+                "John",
+                LastNameAttribute.class, "Spencer");
 
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);

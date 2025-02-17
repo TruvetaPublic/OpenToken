@@ -1,6 +1,6 @@
 /**
- * Copyright (c) Truveta. All rights reserved.
- */
+* Copyright (c) Truveta. All rights reserved.
+*/
 package com.truveta.opentoken.integration.tokens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,12 +17,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 import com.truveta.opentoken.tokens.BaseTokenDefinition;
 import com.truveta.opentoken.tokens.TokenDefinition;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
-public class TokenGeneratorTest {
+class TokenGeneratorTest {
 
     @Mock
     private List<TokenTransformer> tokenTransformerList;
@@ -43,17 +49,17 @@ public class TokenGeneratorTest {
     }
 
     @Test
-    void testGetAllTokens_validPersonAttributes_generatesTokens() throws Exception {
+    void testGetAllTokens_validPersonAttributes_generatesTokens() {
         // Define token identifiers and attribute expressions
         tokenDefinition = new TokenDefinition();
 
         // Person attributes to be used for token generation
-        Map<String, String> personAttributes = new HashMap<>();
-        personAttributes.put("FirstName", "Alice");
-        personAttributes.put("LastName", "Wonderland");
-        personAttributes.put("SocialSecurityNumber", "345-54-6795");
-        personAttributes.put("PostalCode", "98052");
-        personAttributes.put("BirthDate", "1993-08-10");
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(FirstNameAttribute.class, "Alice");
+        personAttributes.put(LastNameAttribute.class, "Wonderland");
+        personAttributes.put(SocialSecurityNumberAttribute.class, "345-54-6795");
+        personAttributes.put(PostalCodeAttribute.class, "98052");
+        personAttributes.put(BirthDateAttribute.class, "1993-08-10");
 
         // Generate all tokens
         Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);

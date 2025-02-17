@@ -80,7 +80,13 @@ public class PersonAttributesCSVReader implements PersonAttributesReader {
         CSVRecord record = iterator.next();
 
         Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
-        record.toMap().forEach((key, value) -> personAttributes.put(attributeMap.get(key).getClass(), value));
+        record.toMap().forEach((key, value) -> {
+            Attribute attribute = attributeMap.get(key);
+            if (attribute != null) {
+                personAttributes.put(attribute.getClass(), value);
+            }
+            // else ignore attribute as it's not supported
+        });
 
         return personAttributes;
     }

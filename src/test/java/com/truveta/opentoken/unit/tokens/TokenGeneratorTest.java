@@ -20,8 +20,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeExpression;
-import com.truveta.opentoken.attributes.validation.ValidationRules;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+//import com.truveta.opentoken.attributes.validation.ValidationRules;
 import com.truveta.opentoken.tokens.BaseTokenDefinition;
 import com.truveta.opentoken.tokens.SHA256Tokenizer;
 import com.truveta.opentoken.tokens.TokenGenerator;
@@ -37,9 +40,6 @@ public class TokenGeneratorTest {
     @Mock
     private BaseTokenDefinition tokenDefinition;
 
-    @Mock
-    private ValidationRules validationRules;
-
     @InjectMocks
     private TokenGenerator tokenGenerator;
 
@@ -47,20 +47,21 @@ public class TokenGeneratorTest {
     void setUp() throws Exception {
         tokenDefinition = mock(BaseTokenDefinition.class);
         tokenTransformerList = new ArrayList<>();
-        validationRules = mock(ValidationRules.class);
         tokenizer = mock(SHA256Tokenizer.class);
 
         tokenGenerator = new TokenGenerator(tokenDefinition, tokenTransformerList);
         tokenGenerator.setTokenizer(tokenizer); // Inject mock tokenizer
-        tokenGenerator.setValidationRules(validationRules); // Inject mock validation rules
+
     }
 
     @Test
     void testGetAllTokens_validTokensWithExpressions() throws Exception {
-        when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1", "token2"));
+        when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1",
+                "token2"));
 
-        AttributeExpression attrExpr1 = new AttributeExpression("name", "U");
-        AttributeExpression attrExpr2 = new AttributeExpression("address", "R('Street','St')");
+        AttributeExpression attrExpr1 = new AttributeExpression(FirstNameAttribute.class, "U");
+        AttributeExpression attrExpr2 = new AttributeExpression(LastNameAttribute.class,
+                "R('MacDonald','Donald')");
 
         ArrayList<AttributeExpression> attributeExpressions1 = new ArrayList<>();
         attributeExpressions1.add(attrExpr1);
@@ -70,11 +71,10 @@ public class TokenGeneratorTest {
         when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions1);
         when(tokenDefinition.getTokenDefinition("token2")).thenReturn(attributeExpressions2);
 
-        Map<String, String> personAttributes = new HashMap<>();
-        personAttributes.put("name", "John");
-        personAttributes.put("address", "123 Main Street");
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(FirstNameAttribute.class, "John");
+        personAttributes.put(LastNameAttribute.class, "Old MacDonald");
 
-        when(validationRules.validate(anyMap(), anyString())).thenReturn(true);
         when(tokenizer.tokenize(anyString())).thenReturn("hashedToken");
 
         Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
@@ -89,17 +89,15 @@ public class TokenGeneratorTest {
     void testGetAllTokens_invalidAttribute_skipsTokenGeneration() throws Exception {
         when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1"));
 
-        AttributeExpression attrExpr = new AttributeExpression("name", "U");
+        AttributeExpression attrExpr = new AttributeExpression(FirstNameAttribute.class, "U");
 
         ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
         attributeExpressions.add(attrExpr);
         when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
 
-        Map<String, String> personAttributes = new HashMap<>(); // Person attributes (invalid case with missing name)
-        personAttributes.put("address", "123 Main Street");
-
-        // Validation should fail since 'name' is missing
-        when(validationRules.validate(personAttributes, "name")).thenReturn(false);
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>(); // Person attributes (invalid case
+                                                                                    // with missing name)
+        personAttributes.put(LastNameAttribute.class, "MacDonald");
 
         Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
 
@@ -107,27 +105,29 @@ public class TokenGeneratorTest {
         assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to validation failure");
     }
 
-    @Test
-    void testGetAllTokens_errorInTokenGeneration_logsError() throws Exception {
-        when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1"));
+@Test
+void testGetAllTokens_errorInTokenGeneration_logsError() throws Exception {
+when(tokenDefinition.getTokenIdentifiers()).thenReturn(Set.of("token1"));
 
-        AttributeExpression attrExpr = new AttributeExpression("name", "U");
+AttributeExpression attrExpr = new AttributeExpression("name", "U");
 
-        ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
-        attributeExpressions.add(attrExpr);
-        when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
+ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
+attributeExpressions.add(attrExpr);
+when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
 
-        Map<String, String> personAttributes = new HashMap<>();
-        personAttributes.put("name", "John");
+Map<String, String> personAttributes = new HashMap<>();
+personAttributes.put("name", "John");
 
-        when(validationRules.validate(personAttributes, "name")).thenReturn(true);
+when(validationRules.validate(personAttributes, "name")).thenReturn(true);
 
-        // Simulate error during tokenization
-        when(tokenizer.tokenize(anyString())).thenThrow(new RuntimeException("Tokenization error"));
+// Simulate error during tokenization
+when(tokenizer.tokenize(anyString())).thenThrow(new
+RuntimeException("Tokenization error"));
 
-        Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
+Map<String, String> tokens = tokenGenerator.getAllTokens(personAttributes);
 
-        // Validate that no tokens are generated due to tokenization error
-        assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to tokenization error");
-    }
+// Validate that no tokens are generated due to tokenization error
+assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to
+tokenization error");
+}
 }
