@@ -23,7 +23,7 @@ public class SexAttribute extends BaseAttribute {
     private static final String NAME = "Sex";
     private static final String[] ALIASES = new String[] { NAME, "Gender" };
 
-    private static final String VALIDATE_REGEX = "^(M(ale)?|F(emale)?)$";
+    private static final String VALIDATE_REGEX = "^([Mm](ale)?|[Ff](emale)?)$";
 
     public SexAttribute() {
         super(
