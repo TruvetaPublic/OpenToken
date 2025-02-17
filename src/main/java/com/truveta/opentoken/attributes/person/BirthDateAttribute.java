@@ -7,6 +7,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.time.DateUtils;
 
@@ -50,6 +51,7 @@ public class BirthDateAttribute extends BaseAttribute {
                 new RegexValidator(BIRTHDATE_REGEX)));
 
         this.normalizedDateFormat = new SimpleDateFormat(NORMALIZED_FORMAT);
+        this.normalizedDateFormat.setLenient(false);
     }
 
     @Override
@@ -65,7 +67,7 @@ public class BirthDateAttribute extends BaseAttribute {
     @Override
     public String normalize(String value) {
         try {
-            Date date = DateUtils.parseDate(value, POSSIBLE_INPUT_FORMATS);
+            Date date = DateUtils.parseDateStrictly(value, Locale.ENGLISH, POSSIBLE_INPUT_FORMATS);
             return this.normalizedDateFormat.format(date);
         } catch (ParseException e) {
             throw new IllegalArgumentException("Invalid date format: " + value);

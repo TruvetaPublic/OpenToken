@@ -4,6 +4,7 @@
 package com.truveta.opentoken.attributes.person;
 
 import java.util.List;
+import java.util.Set;
 
 import com.truveta.opentoken.attributes.BaseAttribute;
 import com.truveta.opentoken.attributes.validation.NotInValidator;
@@ -33,7 +34,7 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     public SocialSecurityNumberAttribute() {
         super(List.of(
                 new NotInValidator(
-                        List.of(
+                        Set.of(
                                 "000-00-0000",
                                 "111-11-1111",
                                 "222-22-2222",

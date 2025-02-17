@@ -3,7 +3,7 @@
  */
 package com.truveta.opentoken.attributes.validation;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 
@@ -21,7 +21,7 @@ import lombok.Setter;
 public final class NotInValidator implements AttributeValidator {
 
     @NotNull
-    private List<String> invalidValues;
+    private Set<String> invalidValues;
 
     /**
      * Validates that the attribute value is not in the list of invalid values.

@@ -1,3 +1,6 @@
+/**
+* Copyright (c) Truveta. All rights reserved.
+*/
 package com.truveta.opentoken.attributes.general;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -7,8 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 
 class RecordIdAttributeTest {
 

@@ -12,6 +12,7 @@
         "yzhang.markdown-all-in-one",
         "AdamViola.parquet-explorer",
         "SonarSource.sonarlint-vscode",
-        "GitHub.vscode-pull-request-github"
+        "GitHub.vscode-pull-request-github",
+        "shengchen.vscode-checkstyle"
     ]
 }
