@@ -162,7 +162,7 @@ public final class AttributeExpression {
 
             // Let Replace validate null, empty, etc...
             return value.replace(oldVal, newVal);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             throw evalError(value, expression, ex);
         }
     }
@@ -174,16 +174,16 @@ public final class AttributeExpression {
             throw evalError(value, expression, null);
         }
 
-        String result = "";
+        StringBuilder result = new StringBuilder();
         try {
             Pattern pattern = Pattern.compile(args[0]);
             Matcher matcher = pattern.matcher(value);
 
             while (matcher.find()) {
-                result += matcher.group();
+                result.append(matcher.group());
             }
 
-            return result;
+            return result.toString();
         } catch (PatternSyntaxException ex) {
             throw evalError(value, expression, ex);
         }
