@@ -134,7 +134,7 @@ public class TokenGenerator {
      * 
      * @throws TokenGenerationException in case of failure to generate the token.
      */
-    private String getToken(String tokenId, Map<Class<? extends Attribute>, String> personAttributes)
+    protected String getToken(String tokenId, Map<Class<? extends Attribute>, String> personAttributes)
             throws TokenGenerationException {
         var signature = getTokenSignature(tokenId, personAttributes);
         try {

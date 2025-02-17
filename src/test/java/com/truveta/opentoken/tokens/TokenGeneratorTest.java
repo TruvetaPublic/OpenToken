@@ -187,4 +187,56 @@ class TokenGeneratorTest {
 
         assertNull(signature);
     }
+
+    @Test
+    void testGetToken_validInput_returnsHashedToken() throws Exception {
+        AttributeExpression attrExpr = new AttributeExpression(FirstNameAttribute.class, "U");
+        ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
+        attributeExpressions.add(attrExpr);
+
+        when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
+        when(tokenizer.tokenize(anyString())).thenReturn("hashedToken123");
+
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(FirstNameAttribute.class, "John");
+
+        String token = tokenGenerator.getToken("token1", personAttributes);
+
+        assertNotNull(token);
+        assertEquals("hashedToken123", token);
+    }
+
+    @Test
+    void testGetToken_nullSignature_returnsNull() throws TokenGenerationException {
+        AttributeExpression attrExpr = new AttributeExpression(FirstNameAttribute.class, "U");
+        ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
+        attributeExpressions.add(attrExpr);
+
+        when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
+
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        // Missing required attribute leads to null signature
+        personAttributes.put(LastNameAttribute.class, "Smith");
+
+        String token = tokenGenerator.getToken("token1", personAttributes);
+
+        assertNull(token);
+    }
+
+    @Test
+    void testGetToken_tokenizationError_throwsException() throws Exception {
+        AttributeExpression attrExpr = new AttributeExpression(FirstNameAttribute.class, "U");
+        ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
+        attributeExpressions.add(attrExpr);
+
+        when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
+        when(tokenizer.tokenize(anyString())).thenThrow(new RuntimeException("Tokenization failed"));
+
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(FirstNameAttribute.class, "John");
+
+        assertThrows(TokenGenerationException.class, () -> {
+            tokenGenerator.getToken("token1", personAttributes);
+        });
+    }
 }
