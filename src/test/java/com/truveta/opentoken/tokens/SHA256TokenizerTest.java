@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.unit.tokens;
+package com.truveta.opentoken.tokens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -20,12 +20,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.truveta.opentoken.tokens.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
-public class SHA256TokenizerTest {
+class SHA256TokenizerTest {
     private TokenTransformer hashTransformerMock;
     private TokenTransformer encryptTransformerMock;
     private SHA256Tokenizer tokenizer;
@@ -46,7 +45,7 @@ public class SHA256TokenizerTest {
     }
 
     @Test
-    public void testTokenize_NullOrEmptyInput_ReturnsEmptyString() throws Exception {
+    void testTokenize_NullOrEmptyInput_ReturnsEmptyString() throws Exception {
         String resultNull = tokenizer.tokenize(null); // Test for null input
         assertEquals(SHA256Tokenizer.EMPTY, resultNull);
 
@@ -58,7 +57,7 @@ public class SHA256TokenizerTest {
     }
 
     @Test
-    public void testTokenize_ValidInput_ReturnsHashedToken() throws Exception {
+    void testTokenize_ValidInput_ReturnsHashedToken() throws Exception {
         String inputValue = "test-input";
 
         String expectedHash = calculateSHA256(inputValue); // Expected SHA-256 hash (in hex format) for "test-input"
@@ -77,7 +76,7 @@ public class SHA256TokenizerTest {
     }
 
     @Test
-    public void testTokenize_ValidInput_NoTransformers_ReturnsRawHash() throws Exception {
+    void testTokenize_ValidInput_NoTransformers_ReturnsRawHash() throws Exception {
         String inputValue = "test-input";
 
         tokenizer = new SHA256Tokenizer(new ArrayList<>()); // Recreate tokenizer with no transformers
@@ -90,7 +89,7 @@ public class SHA256TokenizerTest {
     }
 
     @Test
-    public void testTokenize_ValidInput_TransformerThrowsException() throws Exception {
+    void testTokenize_ValidInput_TransformerThrowsException() throws Exception {
         String inputValue = "test-input";
 
         // Mock the first transformer to throw an exception

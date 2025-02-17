@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.unit.tokentransformer;
+package com.truveta.opentoken.tokentransformer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,21 +16,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.Base64;
 
-import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
-
-public class HashTokenTransformerTest {
+class HashTokenTransformerTest {
     private static final String VALID_SECRET = "sampleSecret";
     private static final String VALID_TOKEN = "sampleToken";
 
     private HashTokenTransformer transformer;
 
     @BeforeEach
-    public void setup() throws NoSuchAlgorithmException, InvalidKeyException {
+    void setup() throws NoSuchAlgorithmException, InvalidKeyException {
         transformer = new HashTokenTransformer(VALID_SECRET);
     }
 
     @Test
-    public void testTransform_ValidToken_ReturnsHashedToken() throws Exception {
+    void testTransform_ValidToken_ReturnsHashedToken() throws Exception {
         String hashedToken = transformer.transform(VALID_TOKEN);
         assertNotNull(hashedToken);
 
@@ -44,7 +42,7 @@ public class HashTokenTransformerTest {
     }
 
     @Test
-    public void testTransform_NullToken_ThrowsIllegalArgumentException() {
+    void testTransform_NullToken_ThrowsIllegalArgumentException() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             transformer.transform(null);
         });
@@ -52,7 +50,7 @@ public class HashTokenTransformerTest {
     }
 
     @Test
-    public void testConstructor_NullSecret_InitializesWithNullMac() throws Exception {
+    void testConstructor_NullSecret_InitializesWithNullMac() throws Exception {
         HashTokenTransformer nullSecretTransformer = new HashTokenTransformer(null);
         assertThrows(NullPointerException.class, () -> {
             nullSecretTransformer.transform(VALID_TOKEN);
@@ -60,7 +58,7 @@ public class HashTokenTransformerTest {
     }
 
     @Test
-    public void testConstructor_BlankSecret_InitializesWithNullMac() throws Exception {
+    void testConstructor_BlankSecret_InitializesWithNullMac() throws Exception {
         HashTokenTransformer blankSecretTransformer = new HashTokenTransformer("");
         assertThrows(NullPointerException.class, () -> {
             blankSecretTransformer.transform(VALID_TOKEN);
@@ -68,7 +66,7 @@ public class HashTokenTransformerTest {
     }
 
     @Test
-    public void testTransform_ValidTokenMultipleTimes_ReturnsConsistentHash() throws Exception {
+    void testTransform_ValidTokenMultipleTimes_ReturnsConsistentHash() throws Exception {
         String hash1 = transformer.transform(VALID_TOKEN);
         String hash2 = transformer.transform(VALID_TOKEN);
         assertEquals(hash1, hash2); // The hashed value should be consistent

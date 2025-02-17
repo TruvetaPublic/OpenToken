@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.unit.tokentransformer;
+package com.truveta.opentoken.tokentransformer;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -15,26 +15,24 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
-
-public class EncryptTokenTransformerTest {
+class EncryptTokenTransformerTest {
     private EncryptTokenTransformer transformer;
     private static final String VALID_KEY = "12345678901234567890123456789012"; // 32-byte key
     private static final String INVALID_KEY = "short-key"; // Invalid short key
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         transformer = new EncryptTokenTransformer(VALID_KEY);
     }
 
     @Test
-    public void testConstructor_ValidKey_Success() throws Exception {
+    void testConstructor_ValidKey_Success() throws Exception {
         EncryptTokenTransformer validTransformer = new EncryptTokenTransformer(VALID_KEY);
         Assertions.assertNotNull(validTransformer);
     }
 
     @Test
-    public void testConstructor_InvalidKeyLength_ThrowsIllegalArgumentException() {
+    void testConstructor_InvalidKeyLength_ThrowsIllegalArgumentException() {
         Exception exception = Assertions.assertThrows(InvalidKeyException.class, () -> {
             new EncryptTokenTransformer(INVALID_KEY); // Key is too short
         });
@@ -42,7 +40,7 @@ public class EncryptTokenTransformerTest {
     }
 
     @Test
-    public void testTransform_ValidToken_ReturnsEncryptedToken() throws Exception {
+    void testTransform_ValidToken_ReturnsEncryptedToken() throws Exception {
         String token = "mySecretToken";
         String encryptedToken = transformer.transform(token);
 
@@ -56,7 +54,7 @@ public class EncryptTokenTransformerTest {
     }
 
     @Test
-    public void testTransform_ReversibleEncryption() throws Exception {
+    void testTransform_ReversibleEncryption() throws Exception {
         // Testing if encryption followed by decryption will give back the original
         // token.
         String token = "mySecretToken";

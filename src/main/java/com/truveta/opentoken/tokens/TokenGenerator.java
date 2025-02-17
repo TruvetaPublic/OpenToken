@@ -65,7 +65,7 @@ public class TokenGenerator {
      * @return the token signature using the token definition for the given token
      * identifier.
      */
-    private String getTokenSignature(String tokenId, Map<Class<? extends Attribute>, String> personAttributes) {
+    protected String getTokenSignature(String tokenId, Map<Class<? extends Attribute>, String> personAttributes) {
         var definition = tokenDefinition.getTokenDefinition(tokenId);
         if (personAttributes == null) {
             throw new IllegalArgumentException("Person attributes cannot be null.");

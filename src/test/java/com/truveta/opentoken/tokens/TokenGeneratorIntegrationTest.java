@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.integration.tokens;
+package com.truveta.opentoken.tokens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,12 +23,9 @@ import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
 import com.truveta.opentoken.attributes.person.SexAttribute;
 import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
-import com.truveta.opentoken.tokens.BaseTokenDefinition;
-import com.truveta.opentoken.tokens.TokenDefinition;
-import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
-class TokenGeneratorTest {
+class TokenGeneratorIntegrationTest {
 
     @Mock
     private List<TokenTransformer> tokenTransformerList;

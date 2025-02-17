@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.integration.processor;
+package com.truveta.opentoken.processor;
 
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
@@ -31,13 +31,12 @@ import com.truveta.opentoken.io.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.PersonAttributesCSVWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
-import com.truveta.opentoken.processor.PersonAttributesProcessor;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.NoOperationTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
-class PersonAttributesProcessorTest {
+class PersonAttributesProcessorIntegrationTest {
     final int totalRecordsMatched = 1001;
     final String hashKey = "hash_key";
     final String encryptionKey = "the_encryption_key_goes_here....";

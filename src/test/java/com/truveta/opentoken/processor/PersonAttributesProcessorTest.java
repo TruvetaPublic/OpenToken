@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.unit.processor;
+package com.truveta.opentoken.processor;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,13 +28,13 @@ import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
-import com.truveta.opentoken.processor.PersonAttributesProcessor;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 @ExtendWith(MockitoExtension.class)
 class PersonAttributesProcessorTest {
+
     @Mock
     private PersonAttributesReader reader;
 

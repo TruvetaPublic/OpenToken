@@ -1,10 +1,12 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.unit.tokens;
+package com.truveta.opentoken.tokens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -25,9 +27,6 @@ import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeExpression;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
-import com.truveta.opentoken.tokens.BaseTokenDefinition;
-import com.truveta.opentoken.tokens.SHA256Tokenizer;
-import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 class TokenGeneratorTest {
@@ -125,5 +124,67 @@ class TokenGeneratorTest {
 
         // Validate that no tokens are generated due to tokenization error
         assertTrue(tokens.isEmpty(), "Expected no tokens to be generated due to tokenization error");
+    }
+
+    @Test
+    void testGetTokenSignature_validSignature() {
+        AttributeExpression attrExpr1 = new AttributeExpression(FirstNameAttribute.class, "U");
+        AttributeExpression attrExpr2 = new AttributeExpression(LastNameAttribute.class, "U");
+
+        ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
+        attributeExpressions.add(attrExpr1);
+        attributeExpressions.add(attrExpr2);
+
+        when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
+
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(FirstNameAttribute.class, "John");
+        personAttributes.put(LastNameAttribute.class, "Smith");
+
+        String signature = tokenGenerator.getTokenSignature("token1", personAttributes);
+
+        assertNotNull(signature);
+        assertEquals("JOHN|SMITH", signature);
+    }
+
+    @Test
+    void testGetTokenSignature_nullPersonAttributes() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            tokenGenerator.getTokenSignature("token1", null);
+        });
+    }
+
+    @Test
+    void testGetTokenSignature_missingRequiredAttribute() {
+        AttributeExpression attrExpr = new AttributeExpression(FirstNameAttribute.class, "U");
+
+        ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
+        attributeExpressions.add(attrExpr);
+
+        when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
+
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(LastNameAttribute.class, "Smith");
+
+        String signature = tokenGenerator.getTokenSignature("token1", personAttributes);
+
+        assertNull(signature);
+    }
+
+    @Test
+    void testGetTokenSignature_invalidAttributeValue() {
+        AttributeExpression attrExpr = new AttributeExpression(FirstNameAttribute.class, "U");
+
+        ArrayList<AttributeExpression> attributeExpressions = new ArrayList<>();
+        attributeExpressions.add(attrExpr);
+
+        when(tokenDefinition.getTokenDefinition("token1")).thenReturn(attributeExpressions);
+
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(FirstNameAttribute.class, ""); // Invalid empty name
+
+        String signature = tokenGenerator.getTokenSignature("token1", personAttributes);
+
+        assertNull(signature);
     }
 }
