@@ -56,11 +56,11 @@ The token generation rules above generate the following token signatures:
 
 | Rule ID | Token Signature               | Token                                                              |
 | ------- | ----------------------------- | ------------------------------------------------------------------ |
-| T1      | `DOE\|J\|MALE\|2000-01-01`    | `298a70cef9449dbd45b9e9e4cdcc7e3f2ed1e56f677c57702e89ebb133e541b0` |
-| T2      | `DOE\|JOHN\|2000-01-01\|123`  | `5e5c1f512807d769e8babc8a42891c2550ff57e74ff5f4386ac42869b53bed10` |
-| T3      | `DOE\|JOHN\|MALE\|2000-01-01` | `5df7c60d82729359b63b1cdf99aa3c91c462c07c69b17d264e25173e836ce1be` |
-| T4      | `123456789\|MALE\|2000-01-01` | `02e1798c9feab464d274f2a5856493b96d8e41c2c56f080a8234d403e11dcb49` |
-| T5      | `DOE\|JOH\|MALE`              | `a3c0feb1e9e83623d339f7147d58bbf6448d8379dc21f531091e561b2d78fb88` |
+| T1      | `DOE\|J\|MALE\|2000-01-01`    | `9HdbWM4Am2Mz33NOdXLSf1FkiEY/KR6wdgG5SX49yphJW2N2dUfkPve1m8SBbAOC` |
+| T2      | `DOE\|JOHN\|2000-01-01\|123`  | `BOHBswpv2mYmfa/dAQ2zSk5ZN0lj0xh/TE/PXXABCtHsNwG+27OctVYlyo01uoFp` |
+| T3      | `DOE\|JOHN\|MALE\|2000-01-01` | `pcl0aLmeMvzVxPxYoZobgBZwpfCO84dOZLLPa3mXJi52ZWzbw3giTciS5cb9SNOM` |
+| T4      | `123456789\|MALE\|2000-01-01` | `hkz2s466wycwMRAmP31xbKuPEqyd+qpH9GSCrNJXBxWJUDqBEFA59xkKYOfVOnWT` |
+| T5      | `DOE\|JOH\|MALE`              | `6cH6S2gcTZFK+Ds5JRH151TfE6klmjHgj5tM6y3ftNuwQTzuJn6WRh9rMq45+s0F` |
 
 **Note:** No attribute values can be empty to be considered valid.
 
