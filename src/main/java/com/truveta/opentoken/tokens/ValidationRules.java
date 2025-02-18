@@ -20,14 +20,15 @@ public class ValidationRules {
     public ValidationRules() {
         // Create regex expressions for validation rules
         final String ssnExpression = "^(?!0{3})(?!6{3})[0-8]\\d{2}-(?!0{2})\\d{2}-(?!0{4})\\d{4}$";
-        final String genderExpression = "^(Male|Female)$";
+        final String sexExpression = "^(Male|Female)$";
         final String postalCodeExpression = "^\\d{5}(-\\d{4})?$";
 
         validationRules = new ArrayList<AttributeValidator>();
 
         // Validate all attributes to ensure they are not null
         validationRules.add(new NullValidator("*"));
-        validationRules.add(new NotInValidator("SocialSecurityNumber",
+        validationRules.add(new NotInValidator(
+                BaseTokenDefinition.SOCIAL_SECURITY_NUMBER,
                 new String[] {
                         "000-00-0000",
                         "111-11-1111",
@@ -40,9 +41,9 @@ public class ValidationRules {
                         "888-88-8888",
                         "999-99-9999"
                 }));
-        validationRules.add(new RegexValidator("SocialSecurityNumber", ssnExpression));
-        validationRules.add(new RegexValidator("Gender", genderExpression));
-        validationRules.add(new RegexValidator("PostalCode", postalCodeExpression));
+        validationRules.add(new RegexValidator(BaseTokenDefinition.SOCIAL_SECURITY_NUMBER, ssnExpression));
+        validationRules.add(new RegexValidator(BaseTokenDefinition.SEX, sexExpression));
+        validationRules.add(new RegexValidator(BaseTokenDefinition.POSTAL_CODE, postalCodeExpression));
     }
 
     /**
@@ -64,7 +65,7 @@ public class ValidationRules {
      * <ul>
      * <li>FirstName</li>
      * <li>LastName</li>
-     * <li>Gender</li>
+     * <li>Sex</li>
      * <li>BirthDate</li>
      * <li>PostalCode</li>
      * <li>SocialSecurityNumber</li>

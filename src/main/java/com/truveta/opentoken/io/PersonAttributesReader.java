@@ -22,7 +22,7 @@ public interface PersonAttributesReader extends Iterator<Map<String, String>>, A
      *   RecordId: 2ea45fee-90c3-494a-a503-36022c9e1281,
      *   FirstName: John,
      *   LastName: Doe,
-     *   Gender: Male,
+     *   Sex: Male,
      *   BirthDate: 01/01/2001,
      *   PostalCode: 54321,
      *   SocialSecurityNumber: 123-45-6789

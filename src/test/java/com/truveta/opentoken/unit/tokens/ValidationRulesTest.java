@@ -54,11 +54,11 @@ public class ValidationRulesTest {
         Assertions.assertEquals("^(?!0{3})(?!6{3})[0-8]\\d{2}-(?!0{2})\\d{2}-(?!0{4})\\d{4}$",
                 ((RegexValidator) ssnValidator).getPattern());
 
-        // Validate RegexValidator for Gender
-        AttributeValidator genderValidator = validationRules.get(3);
-        Assertions.assertTrue(genderValidator instanceof RegexValidator);
-        Assertions.assertEquals(BaseTokenDefinition.GENDER, ((RegexValidator) genderValidator).getAttributeName());
-        Assertions.assertEquals("^(Male|Female)$", ((RegexValidator) genderValidator).getPattern());
+        // Validate RegexValidator for Sex
+        AttributeValidator sexValidator = validationRules.get(3);
+        Assertions.assertTrue(sexValidator instanceof RegexValidator);
+        Assertions.assertEquals(BaseTokenDefinition.SEX, ((RegexValidator) sexValidator).getAttributeName());
+        Assertions.assertEquals("^(Male|Female)$", ((RegexValidator) sexValidator).getPattern());
 
         // Validate RegexValidator for PostalCode
         AttributeValidator postalCodeValidator = validationRules.get(4);

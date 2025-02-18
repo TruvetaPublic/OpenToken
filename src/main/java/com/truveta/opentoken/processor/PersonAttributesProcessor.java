@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
+import com.truveta.opentoken.tokens.BaseTokenDefinition;
 import com.truveta.opentoken.tokens.TokenDefinition;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
@@ -31,6 +32,10 @@ public final class PersonAttributesProcessor {
     private static final String TOKEN = "Token";
     private static final String RULE_ID = "RuleId";
     private static final String RECORD_ID = "RecordId";
+
+    // map containing a mapping of attribute names for backward compatibility
+    private static final Map<String, String> ATTRIBUTE_MAPPINGS = Map.of(
+            "Gender", BaseTokenDefinition.SEX);
 
     private static final Logger logger = LoggerFactory.getLogger(PersonAttributesProcessor.class.getName());
 
@@ -66,6 +71,8 @@ public final class PersonAttributesProcessor {
             row = reader.next();
             rowCounter++;
 
+            mapAttributesForBackwardCompatibility(row);
+
             tokens = tokenGenerator.getAllTokens(row);
             logger.debug("Tokens: {}", tokens);
 
@@ -100,5 +107,16 @@ public final class PersonAttributesProcessor {
 
         logger.info("Processed a total of {} records", String.format("%,d", rowCounter));
         logger.info("Total number of records with issues: {}", String.format("%,d", rowIssueCounter));
+    }
+
+    private static void mapAttributesForBackwardCompatibility(Map<String, String> row) {
+        for (var entry : ATTRIBUTE_MAPPINGS.entrySet()) {
+            if (row.containsKey(entry.getKey())) {
+                row.put(entry.getValue(), row.get(entry.getKey()));
+
+                // remove the old attribute
+                row.remove(entry.getKey());
+            }
+        }
     }
 }

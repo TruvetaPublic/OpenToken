@@ -37,7 +37,7 @@ public class TokenGeneratorTest {
     void setUp() throws Exception {
         // Setup real TokenDefinition and TokenTransformers for integration testing
         tokenDefinition = new TokenDefinition();
-        tokenTransformerList = new ArrayList<>();
+        tokenTransformerList = new ArrayList<TokenTransformer>();
 
         tokenGenerator = new TokenGenerator(tokenDefinition, tokenTransformerList);
     }

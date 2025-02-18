@@ -59,7 +59,7 @@ public class TokenGenerator {
      * attribute
      * name to value. This version of the library supports the following person
      * attributes -
-     * FirstName, LastName, Gender, BirthDate, PostalCode, SocialSecurityNumber.
+     * FirstName, LastName, Sex, BirthDate, PostalCode, SocialSecurityNumber.
      * 
      * @return the token signature using the token definition for the given token
      * identifier.
@@ -170,7 +170,7 @@ public class TokenGenerator {
         String[] attributeNames = {
                 BaseTokenDefinition.FIRST_NAME,
                 BaseTokenDefinition.LAST_NAME,
-                BaseTokenDefinition.GENDER,
+                BaseTokenDefinition.SEX,
                 BaseTokenDefinition.BIRTH_DATE,
                 BaseTokenDefinition.POSTAL_CODE,
                 BaseTokenDefinition.SOCIAL_SECURITY_NUMBER

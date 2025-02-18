@@ -21,9 +21,9 @@ public interface BaseTokenDefinition {
     String LAST_NAME = "LastName";
 
     /**
-     * Person attribute name for the <b>Gender</b>.
+     * Person attribute name for the <b>Sex</b>.
      */
-    String GENDER = "Gender";
+    String SEX = "Sex";
 
     /**
      * Person attribute name for the <b>Birth Date</b>.
