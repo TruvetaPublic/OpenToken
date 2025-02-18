@@ -26,11 +26,11 @@ All attribute values get normalized as part of their processing.
 
 | Rule ID | Rule Definition                                          |
 | ------- | -------------------------------------------------------- |
-| T1      | `U(last-name)\|U(first-name-1)\|U(gender)\|birth-date`   |
+| T1      | `U(last-name)\|U(first-name-1)\|U(sex)\|birth-date`      |
 | T2      | `U(last-name)\|U(first-name)\|birth-date\|postal-code-3` |
-| T3      | `U(last-name)\|U(first-name)\|U(gender)\|birth-date`     |
-| T4      | `social-security-number\|U(gender)\|birth-date`          |
-| T5      | `U(last-name)\|U(first-name-3)\|U(gender)`               |
+| T3      | `U(last-name)\|U(first-name)\|U(sex)\|birth-date`        |
+| T4      | `social-security-number\|U(sex)\|birth-date`             |
+| T5      | `U(last-name)\|U(first-name-3)\|U(sex)`                  |
 
 > U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
