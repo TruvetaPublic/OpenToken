@@ -142,12 +142,6 @@
             <version>4.11.0</version>
             <scope>test</scope>
         </dependency>
-        <!-- Checkstyle -->
-        <!-- <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>10.14.0</version>
-        </dependency> -->
     </dependencies>
 
     <!-- Build lifecycle plugins -->
