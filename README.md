@@ -48,7 +48,7 @@ A token signature is generated first for every token generation rule. The token 
 Given a person with the following attributes:
 
 ```csv
-RecordId,FirstName,LastName,PostalCode,Gender,BirthDate,SocialSecurityNumber
+RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber
 891dda6c-961f-4154-8541-b48fe18ee620,John,Doe,12345,Male,2000-01-01,123-45-6789
 ```
 
@@ -111,7 +111,7 @@ java -jar open-token-<version>.jar -i <input-file> -t csv -o <output-file> -h "x
 ```
 
 Example:
-`java -jar target/open-token-1.1.0.jar -i src/main/resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
+`java -jar target/open-token-1.2.0.jar -i src/main/resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
 #### Via Docker
 
@@ -219,7 +219,7 @@ To use `open-token` in your project, follow these steps:
 <dependency>
     <groupId>com.truveta.opentoken</groupId>
     <artifactId>open-token</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 

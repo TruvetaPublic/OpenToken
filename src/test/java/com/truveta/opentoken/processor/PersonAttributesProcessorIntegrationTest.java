@@ -5,6 +5,7 @@ package com.truveta.opentoken.processor;
 
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -145,6 +146,58 @@ class PersonAttributesProcessorIntegrationTest {
             }
         }
         Assertions.assertEquals(overlappCount, totalRecordsMatched);
+    }
+
+    @Test
+    public void testInputBackwardCompatibility() throws Exception {
+        String oldTmpInputFile = Files.createTempFile("person_attributes_old", ".csv").toString();
+        String newTmpInputFile = Files.createTempFile("person_attributes_new", ".csv").toString();
+
+        String oldTmpOutputFile = Files.createTempFile("person_attributes_old_out", ".csv").toString();
+        String newTmpOutputFile = Files.createTempFile("person_attributes_new_out", ".csv").toString();
+
+        // Person attributes to be used for token generation
+        Map<String, String> personAttributes = new HashMap<>();
+        personAttributes.put("FirstName", "Alice");
+        personAttributes.put("LastName", "Wonderland");
+        personAttributes.put("SocialSecurityNumber", "345-54-6795");
+        personAttributes.put("PostalCode", "98052");
+        personAttributes.put("BirthDate", "1993-08-10");
+        personAttributes.put("Sex", "Female");
+
+        try (PersonAttributesWriter writer = new PersonAttributesCSVWriter(newTmpInputFile)) {
+            writer.writeAttributes(personAttributes);
+        }
+
+        personAttributes.remove("Sex");
+        personAttributes.put("Gender", "Female");
+
+        try (PersonAttributesWriter writer = new PersonAttributesCSVWriter(oldTmpInputFile)) {
+            writer.writeAttributes(personAttributes);
+        }
+
+        // Truveta file is neither hashed nor encrypted
+        List<TokenTransformer> tokenTransformers = new ArrayList<>();
+        tokenTransformers.add(new NoOperationTokenTransformer());
+
+        try (PersonAttributesReader reader = new PersonAttributesCSVReader(
+                newTmpInputFile);
+                PersonAttributesWriter writer = new PersonAttributesCSVWriter(newTmpOutputFile)) {
+
+            PersonAttributesProcessor.process(reader, writer, tokenTransformers);
+        }
+
+        try (PersonAttributesReader reader = new PersonAttributesCSVReader(
+                oldTmpInputFile);
+                PersonAttributesWriter writer = new PersonAttributesCSVWriter(oldTmpOutputFile)) {
+
+            PersonAttributesProcessor.process(reader, writer, tokenTransformers);
+        }
+
+        // read oldTmpOutputFile and newTmpOutputFile as strings and assert equality
+        String oldOutput = Files.readString(FileSystems.getDefault().getPath(oldTmpOutputFile));
+        String newOutput = Files.readString(FileSystems.getDefault().getPath(newTmpOutputFile));
+        Assertions.assertEquals(oldOutput, newOutput);
     }
 
     ArrayList<Map<String, String>> readCSV_fromPersonAttributesProcessor(String inputCsvFilePath,
