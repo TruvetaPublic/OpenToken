@@ -43,7 +43,7 @@ jobs:
 
       - name: Add Code Coverage to PR
         id: jacoco
-        uses: madrapps/jacoco-report@1.6.1
+        uses: madrapps/jacoco-report@v1.7.1
         with:
           paths: |
             ${{ github.workspace }}/**/target/site/jacoco/jacoco.xml
