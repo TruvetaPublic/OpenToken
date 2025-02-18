@@ -40,7 +40,7 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "VERSION=$(bumpversion --dry-run --list patch | grep new_version | sed -r s,"^.*=",,)" >> $GITHUB_ENV
+        run: echo "VERSION=$(bumpversion --dry-run --list patch | grep current_version | sed -r s,"^.*=",,)" >> $GITHUB_ENV
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
