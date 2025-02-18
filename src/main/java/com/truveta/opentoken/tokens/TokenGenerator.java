@@ -62,16 +62,9 @@ public class TokenGenerator {
      * @param tokenId the token identifier.
      * 
      * @param personAttributes The person attributes. It is a map of the person
-     * <<<<<<< HEAD
      * attributes.
      * 
      * @param result the token generator result.
-     * =======
-     * attribute
-     * name to value. This version of the library supports the following person
-     * attributes -
-     * FirstName, LastName, Sex, BirthDate, PostalCode, SocialSecurityNumber.
-     * >>>>>>> main
      * 
      * @return the token signature using the token definition for the given token
      * identifier.
