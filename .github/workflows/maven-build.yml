@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
 
+env:
+  MIN_COVERAGE_OVERALL: "60"
+  MIN_COVERAGE_CHANGED_FILES: "80"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,13 +27,32 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
-      # test with maven and publish test results
-      - name: Test with Maven
-        run: mvn test
-
       - name: Publish Test Report
         if: success() || failure()
         uses: scacap/action-surefire-report@v1
+
+      - name: Generate JaCoCo report
+        run: mvn jacoco:report
+
+      - name: Upload JaCoCo Report
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: code-coverage-report
+          path: |
+            ${{ github.workspace }}/**/target/site/jacoco/*
+
+      - name: Add Code Coverage to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@1.6.1
+        with:
+          paths: |
+            ${{ github.workspace }}/**/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Code Coverage
+          min-coverage-overall: ${{ env.MIN_COVERAGE_OVERALL }}
+          min-coverage-changed-files: ${{ env.MIN_COVERAGE_CHANGED_FILES }}
+          pass-emoji: ":green_circle:"
+          fail-emoji: ":red_circle:"
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
