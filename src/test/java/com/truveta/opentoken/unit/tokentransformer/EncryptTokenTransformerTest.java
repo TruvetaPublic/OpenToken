@@ -9,7 +9,6 @@ import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.junit.jupiter.api.Assertions;
@@ -75,7 +74,7 @@ class EncryptTokenTransformerTest {
         SecretKeySpec secretKey = new SecretKeySpec(VALID_KEY.getBytes(StandardCharsets.UTF_8), "AES");
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(128, iv);
         cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameterSpec);
-        
+
         byte[] decryptedBytes = cipher.doFinal(cipherBytes);
         String decryptedToken = new String(decryptedBytes, StandardCharsets.UTF_8);
 

@@ -14,7 +14,7 @@ import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.junit.jupiter.api.Assertions;
@@ -32,8 +32,8 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 class PersonAttributesProcessorTest {
     final int totalRecordsMatched = 1001;
-    final String hash_key = "hash_key";
-    final String encryption_key = "the_encryption_key_goes_here....";
+    final String hashKey = "hash_key";
+    final String encryptionKey = "the_encryption_key_goes_here....";
     final String hashAlgorithm = "HmacSHA256";
     final String encryptionAlgorithm = "AES";
 
@@ -49,8 +49,8 @@ class PersonAttributesProcessorTest {
         Map<String, List<String>> ssnToRecordIdsMap = groupRecordsIdsWithSameSsn(inputCsvFile);
 
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
-        tokenTransformerList.add(new HashTokenTransformer(hash_key));
-        tokenTransformerList.add(new EncryptTokenTransformer(encryption_key));
+        tokenTransformerList.add(new HashTokenTransformer(hashKey));
+        tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
         ArrayList<Map<String, String>> resultFromPersonAttributesProcessor = readCSV_fromPersonAttributesProcessor(
                 inputCsvFile, tokenTransformerList);
 
@@ -99,8 +99,8 @@ class PersonAttributesProcessorTest {
     void testInputWithOverlappingData() throws Exception {
         // Incoming file is hashed and encrypted
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
-        tokenTransformerList.add(new HashTokenTransformer(hash_key));
-        tokenTransformerList.add(new EncryptTokenTransformer(encryption_key));
+        tokenTransformerList.add(new HashTokenTransformer(hashKey));
+        tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
         ArrayList<Map<String, String>> resultFromPersonAttributesProcessor1 = readCSV_fromPersonAttributesProcessor(
                 "src/test/resources/mockdata/test_overlap1.csv", tokenTransformerList);
 
@@ -131,7 +131,7 @@ class PersonAttributesProcessorTest {
             String token1 = recordIdToTokenMap1.get(recordId1);
             if (recordIdToTokenMap2.containsKey(recordId1)) {
                 overlappCount++;
-                Assertions.assertTrue(recordIdToTokenMap2.get(recordId1).equals(token1),
+                Assertions.assertEquals(recordIdToTokenMap2.get(recordId1), token1,
                         "For same RecordIds the tokens must match");
             }
         }
@@ -234,19 +234,26 @@ class PersonAttributesProcessorTest {
 
     private String hashToken(String noOpToken) throws Exception {
         Mac mac = Mac.getInstance(hashAlgorithm);
-        mac.init(new SecretKeySpec(hash_key.getBytes(StandardCharsets.UTF_8), hashAlgorithm));
+        mac.init(new SecretKeySpec(hashKey.getBytes(StandardCharsets.UTF_8), hashAlgorithm));
         byte[] dataAsBytes = noOpToken.getBytes();
         byte[] sha = mac.doFinal(dataAsBytes);
         return Base64.getEncoder().encodeToString(sha);
     }
 
     private String decryptToken(String encryptedToken) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Decrypt the token using the same encryption
-                                                                    // settings
-        SecretKeySpec secretKey = new SecretKeySpec(encryption_key.getBytes(), encryptionAlgorithm);
-        IvParameterSpec iv = new IvParameterSpec(new byte[16]); // 16-byte IV (all zeroes)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedToken));
+        byte[] messageBytes = Base64.getDecoder().decode(encryptedToken);
+        byte[] iv = new byte[32];
+        byte[] cipherBytes = new byte[messageBytes.length - 32];
+
+        System.arraycopy(messageBytes, 0, iv, 0, 32);
+        System.arraycopy(messageBytes, 32, cipherBytes, 0, cipherBytes.length);
+
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Decrypt the token using the same settings
+        SecretKeySpec secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), "AES");
+        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(128, iv);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameterSpec);
+
+        byte[] decryptedBytes = cipher.doFinal(cipherBytes);
         return new String(decryptedBytes, StandardCharsets.UTF_8);
     }
 }
