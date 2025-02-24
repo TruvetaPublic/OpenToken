@@ -32,11 +32,13 @@ public class EncryptTokenTransformer implements TokenTransformer {
     private static final String AES = "AES";
     private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
     private static final int KEY_BYTE_LENGTH = 32;
-    private static final int BLOCK_SIZE = 32;
+    private static final int BLOCK_SIZE = 12;
     private static final int TAG_LENGTH_BITS = 128;
 
-    private Cipher cipher;
-    private byte[] ivBytes;
+    private final Cipher cipher;
+    private final SecretKeySpec secretKey;
+
+    private final SecureRandom secureRandom;
 
     /**
      * Initializes the underlying cipher (AES) with the encryption secret.
@@ -60,20 +62,12 @@ public class EncryptTokenTransformer implements TokenTransformer {
             throw new InvalidKeyException(String.format("Key must be %s characters long", KEY_BYTE_LENGTH));
         }
 
-        SecretKeySpec secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), AES);
+        secureRandom = new SecureRandom();
 
-        // Generate random IV (for AES block size)
-        this.ivBytes = new byte[BLOCK_SIZE];
-        SecureRandom random = new SecureRandom();
-        random.nextBytes(this.ivBytes);
-
-        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(TAG_LENGTH_BITS, this.ivBytes);
+        this.secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), AES);
 
         // Initialize AES cipher in GCM mode with no padding for encryption
         this.cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
-
-        // Initialize the cipher for encryption
-        this.cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmParameterSpec);
     }
 
     /**
@@ -97,15 +91,28 @@ public class EncryptTokenTransformer implements TokenTransformer {
      *                                                process the input data
      *                                                provided.
      * @throws javax.crypto.BadPaddingException       invalid padding size.
+     * @throws InvalidAlgorithmParameterException     invalid encryption
+     * @throws InvalidKeyException                    invalid encryption key.
      */
     @Override
     public String transform(String token)
-            throws IllegalStateException, IllegalBlockSizeException, BadPaddingException {
+            throws IllegalStateException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException,
+            InvalidAlgorithmParameterException {
+
+        // Generate random IV (for AES block size)
+        byte[] ivBytes = new byte[BLOCK_SIZE];
+        secureRandom.nextBytes(ivBytes);
+
+        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(TAG_LENGTH_BITS, ivBytes);
+
+        // Initialize the cipher for encryption
+        this.cipher.init(Cipher.ENCRYPT_MODE, this.secretKey, gcmParameterSpec);
+
         byte[] encryptedBytes = this.cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
 
         byte[] messageBytes = new byte[BLOCK_SIZE + encryptedBytes.length];
 
-        System.arraycopy(this.ivBytes, 0, messageBytes, 0, BLOCK_SIZE);
+        System.arraycopy(ivBytes, 0, messageBytes, 0, BLOCK_SIZE);
         System.arraycopy(encryptedBytes, 0, messageBytes, BLOCK_SIZE, encryptedBytes.length);
 
         return Base64.getEncoder().encodeToString(messageBytes);

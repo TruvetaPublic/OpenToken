@@ -64,11 +64,11 @@ class EncryptTokenTransformerTest {
         String encryptedToken = transformer.transform(token); // Encrypt the token
 
         byte[] messageBytes = Base64.getDecoder().decode(encryptedToken);
-        byte[] iv = new byte[32];
-        byte[] cipherBytes = new byte[messageBytes.length - 32];
+        byte[] iv = new byte[12];
+        byte[] cipherBytes = new byte[messageBytes.length - 12];
 
-        System.arraycopy(messageBytes, 0, iv, 0, 32);
-        System.arraycopy(messageBytes, 32, cipherBytes, 0, cipherBytes.length);
+        System.arraycopy(messageBytes, 0, iv, 0, 12);
+        System.arraycopy(messageBytes, 12, cipherBytes, 0, cipherBytes.length);
 
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Decrypt the token using the same settings
         SecretKeySpec secretKey = new SecretKeySpec(VALID_KEY.getBytes(StandardCharsets.UTF_8), "AES");

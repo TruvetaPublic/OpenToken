@@ -3,6 +3,9 @@
  */
 package com.truveta.opentoken.integration.processor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -17,7 +20,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.truveta.opentoken.io.PersonAttributesCSVReader;
@@ -67,20 +69,20 @@ class PersonAttributesProcessorTest {
                  * the 5 tokens generated (for each recordId) are always the same
                  */
                 if (recordIds.contains(recordId)) {
-                    String token = recordToken.get("Token");
+                    String token = decryptToken(recordToken.get("Token"));
                     // for a new RecordId simply store the 5 tokens as a list
                     if (tokenGenerated.size() < 5) {
-                        tokenGenerated.add(recordToken.get("Token"));
+                        tokenGenerated.add(token);
                     }
                     // for RecordId with same SSN, tokens should match as in the list
                     else if (tokenGenerated.size() == 5) { // assertion to check existing tokens match for duplicate
                                                            // records
-                        Assertions.assertTrue(tokenGenerated.contains(token));
+                        assertTrue(tokenGenerated.contains(token));
                     }
                     count++;
                 }
             }
-            Assertions.assertEquals(count, recordIds.size() * 5);
+            assertEquals(count, recordIds.size() * 5);
         }
     }
 
@@ -131,11 +133,11 @@ class PersonAttributesProcessorTest {
             String token1 = recordIdToTokenMap1.get(recordId1);
             if (recordIdToTokenMap2.containsKey(recordId1)) {
                 overlappCount++;
-                Assertions.assertEquals(recordIdToTokenMap2.get(recordId1), token1,
+                assertEquals(recordIdToTokenMap2.get(recordId1), token1,
                         "For same RecordIds the tokens must match");
             }
         }
-        Assertions.assertEquals(overlappCount, totalRecordsMatched);
+        assertEquals(overlappCount, totalRecordsMatched);
     }
 
     @Test
@@ -187,7 +189,7 @@ class PersonAttributesProcessorTest {
         // read oldTmpOutputFile and newTmpOutputFile as strings and assert equality
         String oldOutput = Files.readString(FileSystems.getDefault().getPath(oldTmpOutputFile));
         String newOutput = Files.readString(FileSystems.getDefault().getPath(newTmpOutputFile));
-        Assertions.assertEquals(oldOutput, newOutput);
+        assertEquals(oldOutput, newOutput);
     }
 
     ArrayList<Map<String, String>> readCSV_fromPersonAttributesProcessor(String inputCsvFilePath,
@@ -242,11 +244,11 @@ class PersonAttributesProcessorTest {
 
     private String decryptToken(String encryptedToken) throws Exception {
         byte[] messageBytes = Base64.getDecoder().decode(encryptedToken);
-        byte[] iv = new byte[32];
-        byte[] cipherBytes = new byte[messageBytes.length - 32];
+        byte[] iv = new byte[12];
+        byte[] cipherBytes = new byte[messageBytes.length - 12];
 
-        System.arraycopy(messageBytes, 0, iv, 0, 32);
-        System.arraycopy(messageBytes, 32, cipherBytes, 0, cipherBytes.length);
+        System.arraycopy(messageBytes, 0, iv, 0, 12);
+        System.arraycopy(messageBytes, 12, cipherBytes, 0, cipherBytes.length);
 
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Decrypt the token using the same settings
         SecretKeySpec secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), "AES");
