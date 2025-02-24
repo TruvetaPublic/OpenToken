@@ -7,14 +7,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Base64;
 
-import javax.crypto.AEADBadTagException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.slf4j.Logger;
@@ -30,8 +30,13 @@ public class EncryptTokenTransformer implements TokenTransformer {
     private static final Logger logger = LoggerFactory.getLogger(EncryptTokenTransformer.class.getName());
 
     private static final String AES = "AES";
-    private static final String ENCRYPTION_ALGORITHM = "AES/CBC/PKCS5Padding";
+    private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
+    private static final int KEY_BYTE_LENGTH = 32;
+    private static final int BLOCK_SIZE = 32;
+    private static final int TAG_LENGTH_BITS = 128;
+
     private Cipher cipher;
+    private byte[] ivBytes;
 
     /**
      * Initializes the underlying cipher (AES) with the encryption secret.
@@ -50,22 +55,25 @@ public class EncryptTokenTransformer implements TokenTransformer {
      */
     public EncryptTokenTransformer(String encryptionKey) throws NoSuchAlgorithmException, NoSuchPaddingException,
             InvalidKeyException, InvalidAlgorithmParameterException {
-        if (encryptionKey.length() != 32) {
-            logger.error("Invalid Argument. Key must be 32 characters long");
-            throw new InvalidKeyException("Key must be 32 characters long");
+        if (encryptionKey.length() != KEY_BYTE_LENGTH) {
+            logger.error("Invalid Argument. Key must be {} characters long", KEY_BYTE_LENGTH);
+            throw new InvalidKeyException(String.format("Key must be %s characters long", KEY_BYTE_LENGTH));
         }
 
         SecretKeySpec secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), AES);
 
-        // Generate random IV (16 bytes for AES block size) - using zero IV for
-        // simplicity
-        IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+        // Generate random IV (for AES block size)
+        this.ivBytes = new byte[BLOCK_SIZE];
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(this.ivBytes);
 
-        // Initialize AES cipher in CBC mode with PKCS5 padding for encryption
-        cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
+        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(TAG_LENGTH_BITS, this.ivBytes);
+
+        // Initialize AES cipher in GCM mode with no padding for encryption
+        this.cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
 
         // Initialize the cipher for encryption
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
+        this.cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmParameterSpec);
     }
 
     /**
@@ -89,12 +97,17 @@ public class EncryptTokenTransformer implements TokenTransformer {
      *                                                process the input data
      *                                                provided.
      * @throws javax.crypto.BadPaddingException       invalid padding size.
-     * @throws javax.crypto.AEADBadTagException       invalid tag.
      */
     @Override
     public String transform(String token)
-            throws IllegalStateException, IllegalBlockSizeException, BadPaddingException, AEADBadTagException {
-        byte[] encryptedBytes = cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(encryptedBytes);
+            throws IllegalStateException, IllegalBlockSizeException, BadPaddingException {
+        byte[] encryptedBytes = this.cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
+
+        byte[] messageBytes = new byte[BLOCK_SIZE + encryptedBytes.length];
+
+        System.arraycopy(this.ivBytes, 0, messageBytes, 0, BLOCK_SIZE);
+        System.arraycopy(encryptedBytes, 0, messageBytes, BLOCK_SIZE, encryptedBytes.length);
+
+        return Base64.getEncoder().encodeToString(messageBytes);
     }
 }

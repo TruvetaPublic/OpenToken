@@ -6,7 +6,6 @@ package com.truveta.opentoken.integration.processor;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +30,7 @@ import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.NoOperationTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
-public class PersonAttributesProcessorTest {
+class PersonAttributesProcessorTest {
     final int totalRecordsMatched = 1001;
     final String hash_key = "hash_key";
     final String encryption_key = "the_encryption_key_goes_here....";
@@ -45,7 +44,7 @@ public class PersonAttributesProcessorTest {
      * same tokens.
      */
     @Test
-    public void testInputWithDuplicates() throws Exception {
+    void testInputWithDuplicates() throws Exception {
         String inputCsvFile = "src/test/resources/mockdata/test_data.csv";
         Map<String, List<String>> ssnToRecordIdsMap = groupRecordsIdsWithSameSsn(inputCsvFile);
 
@@ -97,7 +96,7 @@ public class PersonAttributesProcessorTest {
      * Finally we find exact matches in both files.
      */
     @Test
-    public void testInputWithOverlappingData() throws Exception {
+    void testInputWithOverlappingData() throws Exception {
         // Incoming file is hashed and encrypted
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
         tokenTransformerList.add(new HashTokenTransformer(hash_key));
@@ -140,7 +139,7 @@ public class PersonAttributesProcessorTest {
     }
 
     @Test
-    public void testInputBackwardCompatibility() throws Exception {
+    void testInputBackwardCompatibility() throws Exception {
         String oldTmpInputFile = Files.createTempFile("person_attributes_old", ".csv").toString();
         String newTmpInputFile = Files.createTempFile("person_attributes_new", ".csv").toString();
 
@@ -214,7 +213,7 @@ public class PersonAttributesProcessorTest {
     /*
      * Returns Map of SSN -> List of RecordIds
      */
-    public Map<String, List<String>> groupRecordsIdsWithSameSsn(String inputCsvFilePath) throws Exception {
+    Map<String, List<String>> groupRecordsIdsWithSameSsn(String inputCsvFilePath) throws Exception {
         Map<String, List<String>> ssnToRecordIdsMap = new HashMap<>();
 
         try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFilePath)) {
@@ -242,7 +241,7 @@ public class PersonAttributesProcessorTest {
     }
 
     private String decryptToken(String encryptedToken) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // Decrypt the token using the same encryption
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Decrypt the token using the same encryption
                                                                     // settings
         SecretKeySpec secretKey = new SecretKeySpec(encryption_key.getBytes(), encryptionAlgorithm);
         IvParameterSpec iv = new IvParameterSpec(new byte[16]); // 16-byte IV (all zeroes)
