@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.reflections.Reflections;
+
+import com.truveta.opentoken.attributes.AttributeExpression;
+
 /**
  * Encapsulates the token definitions.
  * 
@@ -21,7 +25,8 @@ import java.util.Set;
  * <code>AttributeExpression</code> that are concatenated together to get
  * the token signature.
  * 
- * @see com.truveta.opentoken.tokens.AttributeExpression AttributeExpression
+ * @see com.truveta.opentoken.attributes.AttributeExpression
+ *      AttributeExpression
  */
 public class TokenDefinition implements BaseTokenDefinition {
     private final Map<String, ArrayList<AttributeExpression>> definitions;
@@ -30,45 +35,20 @@ public class TokenDefinition implements BaseTokenDefinition {
      * Initializes the token definitions.
      */
     public TokenDefinition() {
-        // Token 1
-        var t1 = new ArrayList<AttributeExpression>();
-        t1.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t1.add(new AttributeExpression(FIRST_NAME, "T|S(0,1)|U"));
-        t1.add(new AttributeExpression(GENDER, "T|U"));
-        t1.add(new AttributeExpression(BIRTH_DATE, "T|D"));
+        // load all implementations of Token interface and store in definitions
+        definitions = new HashMap<>();
 
-        // Token 2
-        var t2 = new ArrayList<AttributeExpression>();
-        t2.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t2.add(new AttributeExpression(FIRST_NAME, "T|U"));
-        t2.add(new AttributeExpression(BIRTH_DATE, "T|D"));
-        t2.add(new AttributeExpression(POSTAL_CODE, "T|S(0,3)|U"));
+        Reflections reflections = new Reflections(TokenDefinition.class.getPackageName());
+        Set<Class<? extends Token>> tokenClasses = reflections.getSubTypesOf(Token.class);
 
-        // Token 3
-        var t3 = new ArrayList<AttributeExpression>();
-        t3.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t3.add(new AttributeExpression(FIRST_NAME, "T|U"));
-        t3.add(new AttributeExpression(GENDER, "T|U"));
-        t3.add(new AttributeExpression(BIRTH_DATE, "T|D"));
-
-        // Token 4
-        var t4 = new ArrayList<AttributeExpression>();
-        t4.add(new AttributeExpression(SOCIAL_SECURITY_NUMBER, "T|M(\\d+)"));
-        t4.add(new AttributeExpression(GENDER, "T|U"));
-        t4.add(new AttributeExpression(BIRTH_DATE, "T|D"));
-
-        // Token 5
-        var t5 = new ArrayList<AttributeExpression>();
-        t5.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t5.add(new AttributeExpression(FIRST_NAME, "T|S(0,3)|U"));
-        t5.add(new AttributeExpression(GENDER, "T|U"));
-
-        this.definitions = new HashMap<>();
-        this.definitions.put("T1", t1);
-        this.definitions.put("T2", t2);
-        this.definitions.put("T3", t3);
-        this.definitions.put("T4", t4);
-        this.definitions.put("T5", t5);
+        for (Class<? extends Token> tokenClass : tokenClasses) {
+            try {
+                Token token = tokenClass.getDeclaredConstructor().newInstance();
+                definitions.put(token.getIdentifier(), token.getDefinition());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override
