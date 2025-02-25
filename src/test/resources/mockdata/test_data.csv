@@ -1,4 +1,4 @@
-RecordId,BirthDate,FirstName,LastName,PostalCode,Gender,SocialSecurityNumber
+RecordId,BirthDate,FirstName,LastName,PostalCode,Sex,SocialSecurityNumber
 3dead710-9768-4e4e-8883-ff73c24638d5,1996-05-15,John,Hopkins,86236,Female,157-71-1836
 f509792b-e53c-4f76-8248-2f3f7df15b45,1977-04-28,Carol,Morrow,67874,Male,631-99-7540
 bf9fc4a3-827d-420d-8a87-4e6a1af8f814,1940-06-09,Betty,Valencia,81318,Female,363-29-3376
