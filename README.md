@@ -52,6 +52,8 @@ RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber
 891dda6c-961f-4154-8541-b48fe18ee620,John,Doe,12345,Male,2000-01-01,123-45-6789
 ```
 
+**Note:** No attribute value can be empty to be considered valid.
+
 The token generation rules above generate the following token signatures:
 
 | Rule ID | Token Signature               | Token                                                              |
@@ -62,7 +64,7 @@ The token generation rules above generate the following token signatures:
 | T4      | `123456789\|MALE\|2000-01-01` | `hkz2s466wycwMRAmP31xbKuPEqyd+qpH9GSCrNJXBxWJUDqBEFA59xkKYOfVOnWT` |
 | T5      | `DOE\|JOH\|MALE`              | `6cH6S2gcTZFK+Ds5JRH151TfE6klmjHgj5tM6y3ftNuwQTzuJn6WRh9rMq45+s0F` |
 
-**Note:** No attribute values can be empty to be considered valid.
+**Note:** The tokens in the example above have been generated using the hash key `HashingKey` and encryption key `Secret-Encryption-Key-Goes-Here.`
 
 ### Open token data flow
 
@@ -111,7 +113,7 @@ java -jar open-token-<version>.jar -i <input-file> -t csv -o <output-file> -h "x
 ```
 
 Example:
-`java -jar target/open-token-1.3.0.jar -i src/main/resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
+`java -jar target/open-token-1.4.0.jar -i src/main/resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
 #### Via Docker
 
@@ -219,7 +221,7 @@ To use `open-token` in your project, follow these steps:
 <dependency>
     <groupId>com.truveta.opentoken</groupId>
     <artifactId>open-token</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
