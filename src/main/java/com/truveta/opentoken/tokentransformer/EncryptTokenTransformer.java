@@ -35,7 +35,6 @@ public class EncryptTokenTransformer implements TokenTransformer {
     private static final int BLOCK_SIZE = 12;
     private static final int TAG_LENGTH_BITS = 128;
 
-    private final Cipher cipher;
     private final SecretKeySpec secretKey;
 
     private final SecureRandom secureRandom;
@@ -45,18 +44,14 @@ public class EncryptTokenTransformer implements TokenTransformer {
      * 
      * @param encryptionKey the encryption key. The key must be 32 characters long.
      * 
-     * @throws java.security.NoSuchAlgorithmException           invalid encryption
-     *                                                          algorithm/mode.
-     * @throws javax.crypto.NoSuchPaddingException              invalid encryption
-     *                                                          algorithm padding.
      * @throws java.security.InvalidKeyException                invalid encryption
      *                                                          key.
      * @throws java.security.InvalidAlgorithmParameterException invalid encryption
      *                                                          algorithm
      *                                                          parameters.
      */
-    public EncryptTokenTransformer(String encryptionKey) throws NoSuchAlgorithmException, NoSuchPaddingException,
-            InvalidKeyException, InvalidAlgorithmParameterException {
+    public EncryptTokenTransformer(String encryptionKey)
+            throws InvalidKeyException, InvalidAlgorithmParameterException {
         if (encryptionKey.length() != KEY_BYTE_LENGTH) {
             logger.error("Invalid Argument. Key must be {} characters long", KEY_BYTE_LENGTH);
             throw new InvalidKeyException(String.format("Key must be %s characters long", KEY_BYTE_LENGTH));
@@ -65,9 +60,6 @@ public class EncryptTokenTransformer implements TokenTransformer {
         secureRandom = new SecureRandom();
 
         this.secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), AES);
-
-        // Initialize AES cipher in GCM mode with no padding for encryption
-        this.cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
     }
 
     /**
@@ -93,11 +85,15 @@ public class EncryptTokenTransformer implements TokenTransformer {
      * @throws javax.crypto.BadPaddingException       invalid padding size.
      * @throws InvalidAlgorithmParameterException     invalid encryption
      * @throws InvalidKeyException                    invalid encryption key.
+     * @throws java.security.NoSuchAlgorithmException invalid encryption
+     *                                                algorithm/mode.
+     * @throws javax.crypto.NoSuchPaddingException    invalid encryption
+     *                                                algorithm padding.
      */
     @Override
     public String transform(String token)
             throws IllegalStateException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException,
-            InvalidAlgorithmParameterException {
+            InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
 
         // Generate random IV (for AES block size)
         byte[] ivBytes = new byte[BLOCK_SIZE];
@@ -105,10 +101,12 @@ public class EncryptTokenTransformer implements TokenTransformer {
 
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(TAG_LENGTH_BITS, ivBytes);
 
+        // Initialize AES cipher in GCM mode with no padding for encryption
+        Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
         // Initialize the cipher for encryption
-        this.cipher.init(Cipher.ENCRYPT_MODE, this.secretKey, gcmParameterSpec);
+        cipher.init(Cipher.ENCRYPT_MODE, this.secretKey, gcmParameterSpec);
 
-        byte[] encryptedBytes = this.cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
+        byte[] encryptedBytes = cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
 
         byte[] messageBytes = new byte[BLOCK_SIZE + encryptedBytes.length];
 
