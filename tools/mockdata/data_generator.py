@@ -49,6 +49,9 @@ with open(output_file, mode='w', newline='') as file:
 
     # Write all records to the CSV file
     for record in cache:
+        # write record count every 1000 records
+        if cache.index(record) % 1000 == 0:
+            print(f"Writing record {cache.index(record)}")
         writer.writerow(record)
 
 print(f"CSV file '{output_file}' created successfully.")
