@@ -32,7 +32,7 @@ public class EncryptTokenTransformer implements TokenTransformer {
     private static final String AES = "AES";
     private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
     private static final int KEY_BYTE_LENGTH = 32;
-    private static final int BLOCK_SIZE = 12;
+    private static final int IV_SIZE = 12;
     private static final int TAG_LENGTH_BITS = 128;
 
     private final SecretKeySpec secretKey;
@@ -96,7 +96,7 @@ public class EncryptTokenTransformer implements TokenTransformer {
             InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
 
         // Generate random IV (for AES block size)
-        byte[] ivBytes = new byte[BLOCK_SIZE];
+        byte[] ivBytes = new byte[IV_SIZE];
         secureRandom.nextBytes(ivBytes);
 
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(TAG_LENGTH_BITS, ivBytes);
@@ -108,10 +108,10 @@ public class EncryptTokenTransformer implements TokenTransformer {
 
         byte[] encryptedBytes = cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
 
-        byte[] messageBytes = new byte[BLOCK_SIZE + encryptedBytes.length];
+        byte[] messageBytes = new byte[IV_SIZE + encryptedBytes.length];
 
-        System.arraycopy(ivBytes, 0, messageBytes, 0, BLOCK_SIZE);
-        System.arraycopy(encryptedBytes, 0, messageBytes, BLOCK_SIZE, encryptedBytes.length);
+        System.arraycopy(ivBytes, 0, messageBytes, 0, IV_SIZE);
+        System.arraycopy(encryptedBytes, 0, messageBytes, IV_SIZE, encryptedBytes.length);
 
         return Base64.getEncoder().encodeToString(messageBytes);
     }
