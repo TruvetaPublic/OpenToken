@@ -1,8 +1,5 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
- * 
- * The PersonAttributeParquetWriter class is responsible for writing person attributes to a Parquet file.
- * It implements the {@link PersonAttributeWriter} interface.
  */
 package com.truveta.opentoken.io.parquet;
 
@@ -23,7 +20,9 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * A person attributes writer class for the output source in Parquet format.
+ * The PersonAttributeParquetWriter class is responsible for writing person
+ * attributes to a Parquet file.
+ * It implements the {@link PersonAttributeWriter} interface.
  */
 public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private ParquetWriter<Group> writer;

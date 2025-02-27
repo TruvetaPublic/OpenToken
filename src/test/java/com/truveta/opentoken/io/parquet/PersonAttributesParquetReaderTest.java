@@ -3,7 +3,12 @@
  */
 package com.truveta.opentoken.io.parquet;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,6 +26,11 @@ import org.apache.parquet.schema.MessageTypeParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.general.RecordIdAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 
 class PersonAttributesParquetReaderTest {
 
@@ -47,30 +57,30 @@ class PersonAttributesParquetReaderTest {
             Map<String, String> record1 = new HashMap<>();
             record1.put("RecordId", "1");
             record1.put("SocialSecurityNumber", "123-45-6789");
-            record1.put("Name", "John Doe");
+            record1.put("FirstName", "John");
             writer.writeAttributes(record1);
 
             Map<String, String> record2 = new HashMap<>();
             record2.put("RecordId", "2");
             record2.put("SocialSecurityNumber", "987-65-4321");
-            record2.put("Name", "Jane Smith");
+            record2.put("FirstName", "Jane");
             writer.writeAttributes(record2);
         }
 
         try (PersonAttributesParquetReader reader = new PersonAttributesParquetReader(tempFilePath)) {
             assertTrue(reader.hasNext());
 
-            Map<String, String> firstRecord = reader.next();
-            assertEquals("1", firstRecord.get("RecordId"));
-            assertEquals("123-45-6789", firstRecord.get("SocialSecurityNumber"));
-            assertEquals("John Doe", firstRecord.get("Name"));
+            Map<Class<? extends Attribute>, String> firstRecord = reader.next();
+            assertEquals("1", firstRecord.get(RecordIdAttribute.class));
+            assertEquals("123-45-6789", firstRecord.get(SocialSecurityNumberAttribute.class));
+            assertEquals("John", firstRecord.get(FirstNameAttribute.class));
 
             assertTrue(reader.hasNext());
 
-            Map<String, String> secondRecord = reader.next();
-            assertEquals("2", secondRecord.get("RecordId"));
-            assertEquals("987-65-4321", secondRecord.get("SocialSecurityNumber"));
-            assertEquals("Jane Smith", secondRecord.get("Name"));
+            Map<Class<? extends Attribute>, String> secondRecord = reader.next();
+            assertEquals("2", secondRecord.get(RecordIdAttribute.class));
+            assertEquals("987-65-4321", secondRecord.get(SocialSecurityNumberAttribute.class));
+            assertEquals("Jane", secondRecord.get(FirstNameAttribute.class));
 
             assertFalse(reader.hasNext());
         }
@@ -112,7 +122,7 @@ class PersonAttributesParquetReaderTest {
             Map<String, String> record1 = new HashMap<>();
             record1.put("RecordId", "1");
             record1.put("SocialSecurityNumber", "123-45-6789");
-            record1.put("Name", "John Doe");
+            record1.put("FirstName", "John");
             writer.writeAttributes(record1);
         }
 
@@ -130,7 +140,7 @@ class PersonAttributesParquetReaderTest {
             Map<String, String> record1 = new HashMap<>();
             record1.put("RecordId", "1");
             record1.put("SocialSecurityNumber", "123-45-6789");
-            record1.put("Name", "John Doe");
+            record1.put("FirstName", "John");
             writer.writeAttributes(record1);
         }
 
@@ -138,11 +148,11 @@ class PersonAttributesParquetReaderTest {
             boolean hasNext = reader.hasNext();
             assertTrue(hasNext);
 
-            Map<String, String> record = reader.next();
+            Map<Class<? extends Attribute>, String> record = reader.next();
             assertNotNull(record);
-            assertEquals("1", record.get("RecordId"));
-            assertEquals("123-45-6789", record.get("SocialSecurityNumber"));
-            assertEquals("John Doe", record.get("Name"));
+            assertEquals("1", record.get(RecordIdAttribute.class));
+            assertEquals("123-45-6789", record.get(SocialSecurityNumberAttribute.class));
+            assertEquals("John", record.get(FirstNameAttribute.class));
         }
     }
 
@@ -153,14 +163,14 @@ class PersonAttributesParquetReaderTest {
             Map<String, String> record1 = new HashMap<>();
             record1.put("RecordId", "1");
             record1.put("SocialSecurityNumber", "123-45-6789");
-            record1.put("Name", "John Doe");
+            record1.put("FirstName", "John Doe");
             writer.writeAttributes(record1);
         }
 
         PersonAttributesParquetReader reader = new PersonAttributesParquetReader(tempFilePath);
         reader.close();
-        assertThrows(NoSuchElementException.class, () -> reader.hasNext());
-        assertThrows(NoSuchElementException.class, () -> reader.next());
+        assertThrows(NoSuchElementException.class, reader::hasNext);
+        assertThrows(NoSuchElementException.class, reader::next);
     }
 
     @Test

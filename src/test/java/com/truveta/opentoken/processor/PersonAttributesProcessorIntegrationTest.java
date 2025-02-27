@@ -27,11 +27,13 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.Test;
 
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.general.RecordIdAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
-import com.truveta.opentoken.processor.PersonAttributesProcessor;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.NoOperationTokenTransformer;

@@ -1,8 +1,5 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
- * 
- * Reads person attributes from a Parquet file.
- * Implements the {@link PersonAttributesReader} interface.
  */
 package com.truveta.opentoken.io.parquet;
 
@@ -13,6 +10,8 @@ import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
 import org.apache.hadoop.conf.Configuration;
 
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.AttributeLoader;
 import com.truveta.opentoken.io.PersonAttributesReader;
 
 import org.apache.hadoop.fs.Path;
@@ -22,10 +21,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.io.Closeable;
 
 /**
- * A person attributes reader class for the input source in Parquet format.
+ * Reads person attributes from a Parquet file.
+ * Implements the {@link PersonAttributesReader} interface.
  */
 public class PersonAttributesParquetReader implements PersonAttributesReader, Closeable {
     private ParquetReader<Group> reader;
@@ -33,6 +34,8 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
     private Iterator<Group> iterator;
     private boolean closed = false;
     private boolean hasNextCalled = false;
+
+    private Map<String, Attribute> attributeMap = new HashMap<>();
 
     /**
      * Initialize the class with the input file in Parquet format.
@@ -43,6 +46,15 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
     public PersonAttributesParquetReader(String filePath) throws IOException {
         Configuration conf = new Configuration();
         Path path = new Path(filePath);
+
+        Set<Attribute> attributes = AttributeLoader.load();
+        for (Attribute attribute : attributes) {
+            for (String alias : attribute.getAliases()) {
+                attributeMap.put(alias.toLowerCase(), attribute);
+            }
+
+        }
+
         GroupReadSupport readSupport = new GroupReadSupport();
 
         this.reader = ParquetReader.builder(readSupport, path).withConf(conf).build();
@@ -77,23 +89,24 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
     }
 
     @Override
-    public Map<String, String> next() {
+    public Map<Class<? extends Attribute>, String> next() {
         if (closed || !hasNextCalled) {
             throw new NoSuchElementException("Reader is closed");
         }
         hasNextCalled = false;
 
         Group group = iterator.next();
-        Map<String, String> attributes = new HashMap<>();
+        Map<Class<? extends Attribute>, String> attributes = new HashMap<>();
         GroupType schema = group.getType();
         for (Type field : schema.getFields()) {
             String fieldName = field.getName();
             int fieldIndex = schema.getFieldIndex(fieldName);
             if (group.getFieldRepetitionCount(fieldIndex) > 0) {
                 String fieldValue = group.getValueToString(fieldIndex, 0);
-                attributes.put(fieldName, fieldValue);
+                attributes.put(attributeMap.get(fieldName.toLowerCase()).getClass(), fieldValue);
             }
         }
+
         return attributes;
     }
 
