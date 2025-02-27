@@ -3,10 +3,13 @@
  */
 package com.truveta.opentoken.processor;
 
-import java.io.BufferedReader;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.io.BufferedReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,13 +19,12 @@ import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.truveta.opentoken.attributes.Attribute;
@@ -75,20 +77,20 @@ class PersonAttributesProcessorIntegrationTest {
                  * the 5 tokens generated (for each recordId) are always the same
                  */
                 if (recordIds.contains(recordId)) {
-                    String token = recordToken.get("Token");
+                    String token = decryptToken(recordToken.get("Token"));
                     // for a new RecordId simply store the 5 tokens as a list
                     if (tokenGenerated.size() < 5) {
-                        tokenGenerated.add(recordToken.get("Token"));
+                        tokenGenerated.add(token);
                     }
                     // for RecordId with same SSN, tokens should match as in the list
                     else if (tokenGenerated.size() == 5) { // assertion to check existing tokens match for duplicate
-                        // records
-                        Assertions.assertTrue(tokenGenerated.contains(token));
+                                                           // records
+                        assertTrue(tokenGenerated.contains(token));
                     }
                     count++;
                 }
             }
-            Assertions.assertEquals(count, recordIds.size() * 5);
+            assertEquals(count, recordIds.size() * 5);
         }
     }
 
@@ -141,15 +143,15 @@ class PersonAttributesProcessorIntegrationTest {
             String token1 = recordIdToTokenMap1.get(recordId1);
             if (recordIdToTokenMap2.containsKey(recordId1)) {
                 overlappCount++;
-                Assertions.assertEquals(recordIdToTokenMap2.get(recordId1), token1,
+                assertEquals(recordIdToTokenMap2.get(recordId1), token1,
                         "For same RecordIds the tokens must match");
             }
         }
-        Assertions.assertEquals(overlappCount, totalRecordsMatched);
+        assertEquals(overlappCount, totalRecordsMatched);
     }
 
     @Test
-    public void testInputBackwardCompatibility() throws Exception {
+    void testInputBackwardCompatibility() throws Exception {
         String oldTmpInputFile = Files.createTempFile("person_attributes_old", ".csv").toString();
         String newTmpInputFile = Files.createTempFile("person_attributes_new", ".csv").toString();
 
@@ -197,7 +199,7 @@ class PersonAttributesProcessorIntegrationTest {
         // read oldTmpOutputFile and newTmpOutputFile as strings and assert equality
         String oldOutput = Files.readString(FileSystems.getDefault().getPath(oldTmpOutputFile));
         String newOutput = Files.readString(FileSystems.getDefault().getPath(newTmpOutputFile));
-        Assertions.assertEquals(oldOutput, newOutput);
+        assertEquals(oldOutput, newOutput);
     }
 
     ArrayList<Map<String, String>> readCSV_fromPersonAttributesProcessor(String inputCsvFilePath,
@@ -229,7 +231,7 @@ class PersonAttributesProcessorIntegrationTest {
     /*
      * Returns Map of SSN -> List of RecordIds
      */
-    public Map<String, List<String>> groupRecordsIdsWithSameSsn(String inputCsvFilePath) throws Exception {
+    Map<String, List<String>> groupRecordsIdsWithSameSsn(String inputCsvFilePath) throws Exception {
         Map<String, List<String>> ssnToRecordIdsMap = new HashMap<>();
 
         try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFilePath)) {
@@ -250,21 +252,26 @@ class PersonAttributesProcessorIntegrationTest {
 
     private String hashToken(String noOpToken) throws Exception {
         Mac mac = Mac.getInstance(hashAlgorithm);
-        mac.init(new SecretKeySpec(hashKey.getBytes(StandardCharsets.UTF_8),
-                hashAlgorithm));
+        mac.init(new SecretKeySpec(hashKey.getBytes(StandardCharsets.UTF_8), hashAlgorithm));
         byte[] dataAsBytes = noOpToken.getBytes();
         byte[] sha = mac.doFinal(dataAsBytes);
         return Base64.getEncoder().encodeToString(sha);
     }
 
     private String decryptToken(String encryptedToken) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // Decrypt the token using the same encryption
-        // settings
-        SecretKeySpec secretKey = new SecretKeySpec(encryptionKey.getBytes(),
-                encryptionAlgorithm);
-        IvParameterSpec iv = new IvParameterSpec(new byte[16]); // 16-byte IV (all zeroes)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedToken));
+        byte[] messageBytes = Base64.getDecoder().decode(encryptedToken);
+        byte[] iv = new byte[12];
+        byte[] cipherBytes = new byte[messageBytes.length - 12];
+
+        System.arraycopy(messageBytes, 0, iv, 0, 12);
+        System.arraycopy(messageBytes, 12, cipherBytes, 0, cipherBytes.length);
+
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Decrypt the token using the same settings
+        SecretKeySpec secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), "AES");
+        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(128, iv);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameterSpec);
+
+        byte[] decryptedBytes = cipher.doFinal(cipherBytes);
         return new String(decryptedBytes, StandardCharsets.UTF_8);
     }
 }

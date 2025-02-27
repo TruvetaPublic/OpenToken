@@ -8,7 +8,7 @@ import java.security.InvalidKeyException;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.junit.jupiter.api.Assertions;
@@ -61,11 +61,19 @@ class EncryptTokenTransformerTest {
 
         String encryptedToken = transformer.transform(token); // Encrypt the token
 
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // Decrypt the token using the same settings
-        SecretKeySpec secretKey = new SecretKeySpec(VALID_KEY.getBytes(), "AES");
-        IvParameterSpec iv = new IvParameterSpec(new byte[16]); // 16-byte IV (all zeroes)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedToken));
+        byte[] messageBytes = Base64.getDecoder().decode(encryptedToken);
+        byte[] iv = new byte[12];
+        byte[] cipherBytes = new byte[messageBytes.length - 12];
+
+        System.arraycopy(messageBytes, 0, iv, 0, 12);
+        System.arraycopy(messageBytes, 12, cipherBytes, 0, cipherBytes.length);
+
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Decrypt the token using the same settings
+        SecretKeySpec secretKey = new SecretKeySpec(VALID_KEY.getBytes(StandardCharsets.UTF_8), "AES");
+        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(128, iv);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameterSpec);
+
+        byte[] decryptedBytes = cipher.doFinal(cipherBytes);
         String decryptedToken = new String(decryptedBytes, StandardCharsets.UTF_8);
 
         Assertions.assertEquals(token, decryptedToken); // Ensure the decrypted token matches the original token
