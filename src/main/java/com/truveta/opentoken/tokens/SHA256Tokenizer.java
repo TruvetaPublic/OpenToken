@@ -3,10 +3,8 @@
  */
 package com.truveta.opentoken.tokens;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
@@ -57,7 +55,7 @@ public final class SHA256Tokenizer {
      * @throws java.lang.Exception                    if an error is thrown by the
      *                                                transformer.
      */
-    public String tokenize(String value) throws UnsupportedEncodingException, NoSuchAlgorithmException, Exception {
+    public String tokenize(String value) throws Exception {
         if (value == null || value.isBlank()) {
             return EMPTY;
         }

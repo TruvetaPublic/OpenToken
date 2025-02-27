@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.reflections.Reflections;
+
+import com.truveta.opentoken.attributes.AttributeExpression;
+
 /**
  * Encapsulates the token definitions.
  * 
@@ -23,7 +27,8 @@ import java.util.Set;
  * <code>AttributeExpression</code> that are concatenated together to get
  * the token signature.
  * 
- * @see com.truveta.opentoken.tokens.AttributeExpression AttributeExpression
+ * @see com.truveta.opentoken.attributes.AttributeExpression
+ *      AttributeExpression
  */
 public class TokenDefinition implements BaseTokenDefinition {
     private final Map<String, List<AttributeExpression>> definitions;
@@ -32,51 +37,20 @@ public class TokenDefinition implements BaseTokenDefinition {
      * Initializes the token definitions.
      */
     public TokenDefinition() {
-        // Token 1
-        List<AttributeExpression> t1 = new ArrayList<>();
-        t1.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t1.add(new AttributeExpression(FIRST_NAME, "T|S(0,1)|U"));
-        t1.add(new AttributeExpression(GENDER, "T|U"));
-        t1.add(new AttributeExpression(BIRTH_DATE, "T|D"));
-        t1 = Collections.unmodifiableList(t1);
+        // load all implementations of Token interface and store in definitions
+        definitions = new HashMap<>();
 
-        // Token 2
-        List<AttributeExpression> t2 = new ArrayList<>();
-        t2.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t2.add(new AttributeExpression(FIRST_NAME, "T|U"));
-        t2.add(new AttributeExpression(BIRTH_DATE, "T|D"));
-        t2.add(new AttributeExpression(POSTAL_CODE, "T|S(0,3)|U"));
-        t2 = Collections.unmodifiableList(t2);
+        Reflections reflections = new Reflections(TokenDefinition.class.getPackageName());
+        Set<Class<? extends Token>> tokenClasses = reflections.getSubTypesOf(Token.class);
 
-        // Token 3
-        List<AttributeExpression> t3 = new ArrayList<>();
-        t3.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t3.add(new AttributeExpression(FIRST_NAME, "T|U"));
-        t3.add(new AttributeExpression(GENDER, "T|U"));
-        t3.add(new AttributeExpression(BIRTH_DATE, "T|D"));
-        t3 = Collections.unmodifiableList(t3);
-
-        // Token 4
-        List<AttributeExpression> t4 = new ArrayList<>();
-        t4.add(new AttributeExpression(SOCIAL_SECURITY_NUMBER, "T|M(\\d+)"));
-        t4.add(new AttributeExpression(GENDER, "T|U"));
-        t4.add(new AttributeExpression(BIRTH_DATE, "T|D"));
-        t4 = Collections.unmodifiableList(t4);
-
-        // Token 5
-        List<AttributeExpression> t5 = new ArrayList<>();
-        t5.add(new AttributeExpression(LAST_NAME, "T|U"));
-        t5.add(new AttributeExpression(FIRST_NAME, "T|S(0,3)|U"));
-        t5.add(new AttributeExpression(GENDER, "T|U"));
-        t5 = Collections.unmodifiableList(t5);
-
-        Map<String, List<AttributeExpression>> definitionMap = new HashMap<>();
-        definitionMap.put("T1", t1);
-        definitionMap.put("T2", t2);
-        definitionMap.put("T3", t3);
-        definitionMap.put("T4", t4);
-        definitionMap.put("T5", t5);
-        this.definitions = Collections.unmodifiableMap(definitionMap);
+        for (Class<? extends Token> tokenClass : tokenClasses) {
+            try {
+                Token token = tokenClass.getDeclaredConstructor().newInstance();
+                definitions.put(token.getIdentifier(), token.getDefinition());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override

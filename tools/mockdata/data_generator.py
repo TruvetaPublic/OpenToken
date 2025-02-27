@@ -20,7 +20,7 @@ with open(output_file, mode='w', newline='') as file:
     writer = csv.writer(file)
     # Write the header
     writer.writerow(['RecordId', 'BirthDate', 'FirstName', 'LastName',
-                    'PostalCode', 'Gender', 'SocialSecurityNumber'])
+                    'PostalCode', 'Sex', 'SocialSecurityNumber'])
 
     # Define a cache to store generated values
     cache = []
@@ -36,10 +36,10 @@ with open(output_file, mode='w', newline='') as file:
         first_name = fake.first_name()
         last_name = fake.last_name()
         zip_code = fake.zipcode()
-        gender = fake.random_element(elements=('Male', 'Female'))
+        sex = fake.random_element(elements=('Male', 'Female'))
         ssn = fake.ssn()
         cache.append(
-            (record_id, birth_date, first_name, last_name, zip_code, gender, ssn))
+            (record_id, birth_date, first_name, last_name, zip_code, sex, ssn))
 
     for _ in range(num_repeats):
         repeated_record = fake.random_element(cache)
@@ -49,6 +49,9 @@ with open(output_file, mode='w', newline='') as file:
 
     # Write all records to the CSV file
     for record in cache:
+        # write record count every 1000 records
+        if cache.index(record) % 1000 == 0:
+            print(f"Writing record {cache.index(record)}")
         writer.writerow(record)
 
 print(f"CSV file '{output_file}' created successfully.")

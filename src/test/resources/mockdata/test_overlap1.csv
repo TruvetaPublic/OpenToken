@@ -1,4 +1,4 @@
-RecordId,BirthDate,FirstName,LastName,PostalCode,Gender,SocialSecurityNumber
+RecordId,BirthDate,FirstName,LastName,PostalCode,Sex,SocialSecurityNumber
 e35c76fe-7b60-47d8-948f-814e256e001b,1990-08-21,David,Ayers,71733,Male,274-53-4012
 986535b9-166c-46f2-91fb-1468c79cd487,1961-07-06,Shawn,Jones,95707,Female,026-45-7234
 2065471b-7a98-4604-8489-60143eab9e1f,1961-10-02,Dawn,Johnson,54463,Male,386-64-5318

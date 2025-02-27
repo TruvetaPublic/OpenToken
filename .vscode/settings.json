@@ -1,4 +1,9 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.templates.fileHeader": [
+        "/**",
+        " * Copyright (c) Truveta. All rights reserved.",
+        " */"
+    ]
 }
