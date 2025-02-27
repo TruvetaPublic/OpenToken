@@ -10,7 +10,7 @@
             "request": "launch",
             "mainClass": "com.truveta.opentoken.Main",
             "projectName": "open-token",
-            "args": "-i src/main/resources/sample.csv -t csv -o src/main/output.csv -ot csv -h \"HashingKey\" -e \"Secret-Encryption-Key-Goes-Here.\""
+            "args": "-i src/main/resources/sample.csv -t csv -o target/output.csv -ot csv -h \"HashingKey\" -e \"Secret-Encryption-Key-Goes-Here.\""
         }
     ]
 }
