@@ -34,11 +34,13 @@ public class Main {
         String outputPath = commandLineArguments.getOutputPath();
         String outputType = commandLineArguments.getOutputType();
         if (outputType == null || outputType.isEmpty()) {
-            outputType = inputType;
+            outputType = inputType; // defaulting to input type if not provided
         }
 
-        logger.info("Hashing Secret: {}", maskString(hashingSecret));
-        logger.info("Encryption Key: {}", maskString(encryptionKey));
+        if (logger.isInfoEnabled()) {
+            logger.info("Hashing Secret: {}", maskString(hashingSecret));
+            logger.info("Encryption Key: {}", maskString(encryptionKey));
+        }
         logger.info("Input Path: {}", inputPath);
         logger.info("Input Type: {}", inputType);
         logger.info("Output Path: {}", outputPath);

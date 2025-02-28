@@ -98,13 +98,20 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
         Group group = iterator.next();
         Map<Class<? extends Attribute>, String> attributes = new HashMap<>();
         GroupType schema = group.getType();
+
+        String fieldName;
+        int fieldIndex;
+        String fieldValue;
+        Class<? extends Attribute> attributeClass;
         for (Type field : schema.getFields()) {
-            String fieldName = field.getName();
-            int fieldIndex = schema.getFieldIndex(fieldName);
+            fieldName = field.getName();
+            fieldIndex = schema.getFieldIndex(fieldName);
+            fieldValue = null;
+            attributeClass = attributeMap.get(fieldName.toLowerCase()).getClass();
             if (group.getFieldRepetitionCount(fieldIndex) > 0) {
-                String fieldValue = group.getValueToString(fieldIndex, 0);
-                attributes.put(attributeMap.get(fieldName.toLowerCase()).getClass(), fieldValue);
+                fieldValue = group.getValueToString(fieldIndex, 0);
             }
+            attributes.put(attributeClass, fieldValue);
         }
 
         return attributes;
