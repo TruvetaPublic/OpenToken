@@ -113,7 +113,7 @@ java -jar open-token-<version>.jar -i <input-file> -t <input-type> -o <output-fi
 ```
 
 Example:
-`java -jar target/open-token-1.3.0.jar -i src/main/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
+`java -jar target/open-token-1.4.0.jar -i src/main/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
 #### Via Docker
 
