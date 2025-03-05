@@ -12,34 +12,6 @@
     <name>open-token</name>
     <url>http://www.truveta.com</url>
 
-    <!-- Truveta Repositories for Internal developers -->
-    <repositories>
-        <repository>
-            <id>Dev</id>
-            <url>https://pkgs.dev.azure.com/Truveta/Main/_packaging/Dev/maven/v1</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
-    <!-- Truveta distributionManagement for Internal developers -->
-    <distributionManagement>
-        <repository>
-            <id>Dev</id>
-            <url>https://pkgs.dev.azure.com/Truveta/Main/_packaging/Dev/maven/v1</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </distributionManagement>
-
     <properties>
         <revision>1.4.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
