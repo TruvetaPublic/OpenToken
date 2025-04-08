@@ -3,6 +3,7 @@
  */
 package com.truveta.opentoken.tokentransformer;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -21,10 +22,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @see <a href=https://datatracker.ietf.org/doc/html/rfc4868>HMACSHA256</a>
  */
-public class HashTokenTransformer implements TokenTransformer {
+public class HashTokenTransformer implements TokenTransformer, Serializable {
     private static final Logger logger = LoggerFactory.getLogger(HashTokenTransformer.class.getName());
-
-    public static final int NUMBEROFBYTES = 32;
 
     private final Mac mac;
     private final Encoder encoder;
