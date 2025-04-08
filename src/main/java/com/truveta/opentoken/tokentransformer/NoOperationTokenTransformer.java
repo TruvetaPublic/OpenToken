@@ -3,8 +3,6 @@
  */
 package com.truveta.opentoken.tokentransformer;
 
-import java.io.Serializable;
-
 /**
  * A <code>No Operation</code> token transformer. No transformation is
  * applied whatsoever.
