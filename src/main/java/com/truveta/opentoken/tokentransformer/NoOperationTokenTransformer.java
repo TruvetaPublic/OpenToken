@@ -9,7 +9,7 @@ import java.io.Serializable;
  * A <code>No Operation</code> token transformer. No transformation is
  * applied whatsoever.
  */
-public class NoOperationTokenTransformer implements TokenTransformer, Serializable {
+public class NoOperationTokenTransformer implements TokenTransformer {
 
     /**
      * No operation token transformer.

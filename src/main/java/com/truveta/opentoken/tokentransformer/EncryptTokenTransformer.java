@@ -3,7 +3,6 @@
  */
 package com.truveta.opentoken.tokentransformer;
 
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -25,10 +24,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @see <a href=https://datatracker.ietf.org/doc/html/rfc3826>AES</a>
  */
-public class EncryptTokenTransformer implements TokenTransformer, Serializable {
+public class EncryptTokenTransformer implements TokenTransformer {
 
     private static final Logger logger = LoggerFactory.getLogger(EncryptTokenTransformer.class.getName());
-
     private static final String AES = "AES";
     private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
     private static final int KEY_BYTE_LENGTH = 32;

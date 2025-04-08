@@ -11,6 +11,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,24 @@ class EncryptTokenTransformerTest {
     @BeforeEach
     void setUp() throws Exception {
         transformer = new EncryptTokenTransformer(VALID_KEY);
+    }
+
+    @Test
+    void testSerializable() throws Exception {
+        TokenTransformer encryptTokenTransformer = new EncryptTokenTransformer(VALID_KEY);
+        byte[] serialized = SerializationUtils.serialize(encryptTokenTransformer);
+        TokenTransformer deserialized = SerializationUtils.deserialize(serialized);
+
+        String token = "mySecretToken";
+        String encryptedToken = deserialized.transform(token);
+
+        // Ensure the encrypted token is not null or empty
+        Assertions.assertNotNull(encryptedToken);
+        Assertions.assertFalse(encryptedToken.isEmpty());
+
+        // check if the token is base64-encoded by decoding it
+        byte[] decodedBytes = Base64.getDecoder().decode(encryptedToken);
+        Assertions.assertNotNull(decodedBytes);
     }
 
     @Test
