@@ -4,7 +4,6 @@
 package com.truveta.opentoken.attributes.person;
 
 import java.util.List;
-
 import com.truveta.opentoken.attributes.BaseAttribute;
 
 /**
@@ -35,10 +34,4 @@ public class FirstNameAttribute extends BaseAttribute {
     public String[] getAliases() {
         return ALIASES;
     }
-
-    @Override
-    public String normalize(String value) {
-        return value;
-    }
-
 }

@@ -3,8 +3,11 @@
  */
 package com.truveta.opentoken.attributes;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import com.truveta.opentoken.attributes.validation.AttributeValidator;
 import com.truveta.opentoken.attributes.validation.NotNullOrEmptyValidator;
 
@@ -25,7 +28,8 @@ import com.truveta.opentoken.attributes.validation.NotNullOrEmptyValidator;
  * </p>
  */
 public abstract class BaseAttribute implements Attribute {
-
+    
+    private static final Pattern DIACRITICS = Pattern.compile("\\p{M}");
     private final List<AttributeValidator> validationRules;
 
     protected BaseAttribute(List<AttributeValidator> validationRules) {
@@ -45,5 +49,10 @@ public abstract class BaseAttribute implements Attribute {
         }
 
         return validationRules.stream().allMatch(rule -> rule.eval(value));
+    }
+
+    @Override
+    public String normalize(String value) {
+        return DIACRITICS.matcher(Normalizer.normalize(value.trim(), Normalizer.Form.NFD)).replaceAll("");
     }
 }

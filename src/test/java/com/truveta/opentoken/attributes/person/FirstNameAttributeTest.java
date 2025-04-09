@@ -38,6 +38,18 @@ class FirstNameAttributeTest {
     }
 
     @Test
+    void normalize_Accent() {
+        String name1 = "José";
+        String name2 = "Vũ";
+        String name3 = "François";
+        String name4 = "Renée";
+        assertEquals("Jose", firstNameAttribute.normalize(name1));
+        assertEquals("Vu", firstNameAttribute.normalize(name2));
+        assertEquals("Francois", firstNameAttribute.normalize(name3));
+        assertEquals("Renee", firstNameAttribute.normalize(name4));
+    }
+
+    @Test
     void validate_ShouldReturnTrueForAnyNonEmptyString() {
         assertTrue(firstNameAttribute.validate("John"));
         assertTrue(firstNameAttribute.validate("Jane Doe"));
