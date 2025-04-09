@@ -113,7 +113,7 @@ java -jar open-token-<version>.jar -i <input-file> -t <input-type> -o <output-fi
 ```
 
 Example:
-`java -jar target/open-token-1.5.3.jar -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
+`java -jar target/open-token-1.5.2.jar -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
 #### Via Docker
 
@@ -223,7 +223,7 @@ To use `open-token` in your project, follow these steps:
 <dependency>
     <groupId>com.truveta.opentoken</groupId>
     <artifactId>open-token</artifactId>
-    <version>1.5.3</version>
+    <version>1.5.2</version>
 </dependency>
 ```
 
