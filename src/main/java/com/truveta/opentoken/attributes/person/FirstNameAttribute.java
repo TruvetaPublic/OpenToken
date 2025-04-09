@@ -4,8 +4,8 @@
 package com.truveta.opentoken.attributes.person;
 
 import java.util.List;
-
 import com.truveta.opentoken.attributes.BaseAttribute;
+import com.truveta.opentoken.attributes.utilities.AttributeUtilities;
 
 /**
  * Represents the first name of a person.
@@ -38,7 +38,6 @@ public class FirstNameAttribute extends BaseAttribute {
 
     @Override
     public String normalize(String value) {
-        return value;
+        return AttributeUtilities.normalize(value);
     }
-
 }

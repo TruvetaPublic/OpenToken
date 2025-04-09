@@ -38,6 +38,18 @@ class LastNameAttributeTest {
     }
 
     @Test
+    void normalize_Accent() {
+        String name1 = "Gómez";
+        String name2 = "Gutiérrez";
+        String name3 = "Hernández";
+        String name4 = "Mäder";
+        assertEquals("Gomez", lastNameAttribute.normalize(name1));
+        assertEquals("Gutierrez", lastNameAttribute.normalize(name2));
+        assertEquals("Hernandez", lastNameAttribute.normalize(name3));
+        assertEquals("Mader", lastNameAttribute.normalize(name4));
+    }
+
+    @Test
     void validate_ShouldReturnTrueForAnyNonEmptyString() {
         assertTrue(lastNameAttribute.validate("Doe"));
         assertTrue(lastNameAttribute.validate("Smith-Jones"));
@@ -51,4 +63,6 @@ class LastNameAttributeTest {
         assertFalse(lastNameAttribute.validate(""), "Empty value should not be allowed");
         assertTrue(lastNameAttribute.validate("test123"), "Non-empty value should be allowed");
     }
+
+    
 }

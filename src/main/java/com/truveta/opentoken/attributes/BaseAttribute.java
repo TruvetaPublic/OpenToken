@@ -25,7 +25,7 @@ import com.truveta.opentoken.attributes.validation.NotNullOrEmptyValidator;
  * </p>
  */
 public abstract class BaseAttribute implements Attribute {
-
+    
     private final List<AttributeValidator> validationRules;
 
     protected BaseAttribute(List<AttributeValidator> validationRules) {
