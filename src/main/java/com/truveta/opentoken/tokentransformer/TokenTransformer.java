@@ -3,10 +3,12 @@
  */
 package com.truveta.opentoken.tokentransformer;
 
+import java.io.Serializable;
+
 /**
  * A generic interface for the token transformer.
  */
-public interface TokenTransformer {
+public interface TokenTransformer extends Serializable {
     /**
      * Transforms the token using a token transformation rule/strategy.
      * 
