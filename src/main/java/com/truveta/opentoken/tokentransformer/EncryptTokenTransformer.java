@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 public class EncryptTokenTransformer implements TokenTransformer {
 
     private static final Logger logger = LoggerFactory.getLogger(EncryptTokenTransformer.class.getName());
-
     private static final String AES = "AES";
     private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
     private static final int KEY_BYTE_LENGTH = 32;

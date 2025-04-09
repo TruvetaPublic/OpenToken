@@ -6,12 +6,10 @@ package com.truveta.opentoken.tokentransformer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
-
 import javax.crypto.Mac;
-
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.Base64;
@@ -25,6 +23,24 @@ class HashTokenTransformerTest {
     @BeforeEach
     void setup() throws NoSuchAlgorithmException, InvalidKeyException {
         transformer = new HashTokenTransformer(VALID_SECRET);
+    }
+
+    @Test
+    void testSerializable() throws Exception {
+        TokenTransformer encryptTokenTransformer = new HashTokenTransformer(VALID_SECRET);
+        byte[] serialized = SerializationUtils.serialize(encryptTokenTransformer);
+        TokenTransformer deserialized = SerializationUtils.deserialize(serialized);
+        String hashedToken = deserialized.transform(VALID_TOKEN);
+
+        assertNotNull(hashedToken);
+
+        // Manually calculate the expected hash for validation
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new javax.crypto.spec.SecretKeySpec(VALID_SECRET.getBytes(), "HmacSHA256"));
+        byte[] expectedHash = mac.doFinal(VALID_TOKEN.getBytes());
+        String expectedHashedToken = Base64.getEncoder().encodeToString(expectedHash);
+
+        assertEquals(expectedHashedToken, hashedToken);
     }
 
     @Test
