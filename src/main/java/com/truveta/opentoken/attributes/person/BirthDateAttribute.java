@@ -4,7 +4,9 @@
 package com.truveta.opentoken.attributes.person;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -44,12 +46,8 @@ public class BirthDateAttribute extends BaseAttribute {
             NORMALIZED_FORMAT, "yyyy/MM/dd", "MM/dd/yyyy",
             "MM-dd-yyyy", "dd.MM.yyyy" };
 
-    // ThreadLocal to cache SimpleDateFormat instances for each thread
-    private static final ThreadLocal<SimpleDateFormat> NORMALIZED_DATE_FORMAT = ThreadLocal.withInitial(() -> {
-        SimpleDateFormat formatter = new SimpleDateFormat(NORMALIZED_FORMAT);
-        formatter.setLenient(false);
-        return formatter;
-    });
+    // Thread-safe date formatter
+    private static final DateTimeFormatter NORMALIZED_DATE_FORMATTER = DateTimeFormatter.ofPattern(NORMALIZED_FORMAT);
 
     public BirthDateAttribute() {
         super(List.of(
@@ -69,9 +67,12 @@ public class BirthDateAttribute extends BaseAttribute {
     @Override
     public String normalize(String value) {
         try {
+            // We still need to use DateUtils to parse the various formats
             Date date = DateUtils.parseDateStrictly(value, Locale.ENGLISH, POSSIBLE_INPUT_FORMATS);
-            // Use the thread-local SimpleDateFormat instead of creating a new one each time
-            return NORMALIZED_DATE_FORMAT.get().format(date);
+
+            // Convert Date to LocalDate and format using thread-safe DateTimeFormatter
+            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            return NORMALIZED_DATE_FORMATTER.format(localDate);
         } catch (ParseException e) {
             throw new IllegalArgumentException("Invalid date format: " + value);
         }
