@@ -44,6 +44,13 @@ public class BirthDateAttribute extends BaseAttribute {
             NORMALIZED_FORMAT, "yyyy/MM/dd", "MM/dd/yyyy",
             "MM-dd-yyyy", "dd.MM.yyyy" };
 
+    // ThreadLocal to cache SimpleDateFormat instances for each thread
+    private static final ThreadLocal<SimpleDateFormat> NORMALIZED_DATE_FORMAT = ThreadLocal.withInitial(() -> {
+        SimpleDateFormat formatter = new SimpleDateFormat(NORMALIZED_FORMAT);
+        formatter.setLenient(false);
+        return formatter;
+    });
+
     public BirthDateAttribute() {
         super(List.of(
                 new RegexValidator(BIRTHDATE_REGEX)));
@@ -63,9 +70,8 @@ public class BirthDateAttribute extends BaseAttribute {
     public String normalize(String value) {
         try {
             Date date = DateUtils.parseDateStrictly(value, Locale.ENGLISH, POSSIBLE_INPUT_FORMATS);
-            SimpleDateFormat normalizedDateFormat = new SimpleDateFormat(NORMALIZED_FORMAT);
-            normalizedDateFormat.setLenient(false);
-            return normalizedDateFormat.format(date);
+            // Use the thread-local SimpleDateFormat instead of creating a new one each time
+            return NORMALIZED_DATE_FORMAT.get().format(date);
         } catch (ParseException e) {
             throw new IllegalArgumentException("Invalid date format: " + value);
         }
