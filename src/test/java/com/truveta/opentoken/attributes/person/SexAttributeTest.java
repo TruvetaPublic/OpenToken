@@ -9,6 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -67,5 +74,42 @@ class SexAttributeTest {
         assertFalse(sexAttribute.validate("Other"), "Invalid value should not be allowed");
         assertFalse(sexAttribute.validate(""), "Empty value should not be allowed");
         assertFalse(sexAttribute.validate(null), "Null value should not be allowed");
+    }
+
+    @Test
+    void normalize_ThreadSafety() throws InterruptedException {
+        final int threadCount = 100;
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch finishLatch = new CountDownLatch(threadCount);
+        final CyclicBarrier barrier = new CyclicBarrier(threadCount);
+        final List<String> results = Collections.synchronizedList(new ArrayList<>());
+        final String testSex = "m";
+
+        for (int i = 0; i < threadCount; i++) {
+            Thread thread = new Thread(() -> {
+                try {
+                    startLatch.await(); // Wait for all threads to be ready
+                    barrier.await(); // Synchronize to increase contention
+
+                    // Perform normalization
+                    String result = sexAttribute.normalize(testSex);
+                    results.add(result);
+
+                    finishLatch.countDown();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            thread.start();
+        }
+
+        startLatch.countDown(); // Start all threads
+        finishLatch.await(15, TimeUnit.SECONDS); // Wait for all threads to complete
+
+        // Verify all threads got the same result
+        assertEquals(threadCount, results.size());
+        for (String result : results) {
+            assertEquals("Male", result);
+        }
     }
 }

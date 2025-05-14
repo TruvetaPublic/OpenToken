@@ -44,14 +44,9 @@ public class BirthDateAttribute extends BaseAttribute {
             NORMALIZED_FORMAT, "yyyy/MM/dd", "MM/dd/yyyy",
             "MM-dd-yyyy", "dd.MM.yyyy" };
 
-    private SimpleDateFormat normalizedDateFormat;
-
     public BirthDateAttribute() {
         super(List.of(
                 new RegexValidator(BIRTHDATE_REGEX)));
-
-        this.normalizedDateFormat = new SimpleDateFormat(NORMALIZED_FORMAT);
-        this.normalizedDateFormat.setLenient(false);
     }
 
     @Override
@@ -68,7 +63,9 @@ public class BirthDateAttribute extends BaseAttribute {
     public String normalize(String value) {
         try {
             Date date = DateUtils.parseDateStrictly(value, Locale.ENGLISH, POSSIBLE_INPUT_FORMATS);
-            return this.normalizedDateFormat.format(date);
+            SimpleDateFormat normalizedDateFormat = new SimpleDateFormat(NORMALIZED_FORMAT);
+            normalizedDateFormat.setLenient(false);
+            return normalizedDateFormat.format(date);
         } catch (ParseException e) {
             throw new IllegalArgumentException("Invalid date format: " + value);
         }
