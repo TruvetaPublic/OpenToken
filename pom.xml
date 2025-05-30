@@ -142,7 +142,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
-            <version>4.1.11.Final</version>
+            <version>4.1.121.Final</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.parquet/parquet-hadoop -->
         <dependency>
