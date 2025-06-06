@@ -29,6 +29,9 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
 
     private static final String NAME = "SocialSecurityNumber";
     private static final String[] ALIASES = new String[] { NAME, "NationalIdentificationNumber" };
+
+    // Accepts SSNs in xxx-xx-xxxx or xxxxxxxxx format. Rejects: area 000/666/9xx,
+    // group 00, serial 0000
     private static final String SSN_REGEX = "^(?!0{3})(?!6{3})[0-8]\\d{2}-?(?!0{2})\\d{2}-?(?!0{4})\\d{4}$";
 
     public SocialSecurityNumberAttribute() {
