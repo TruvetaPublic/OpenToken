@@ -9,6 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -110,6 +114,63 @@ class SexAttributeTest {
         assertEquals(threadCount, results.size());
         for (String result : results) {
             assertEquals("Male", result);
+        }
+    }
+
+    @Test
+    void testSerialization() throws Exception {
+        // Serialize the attribute
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(sexAttribute);
+        oos.close();
+
+        // Deserialize the attribute
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        SexAttribute deserializedAttribute = (SexAttribute) ois.readObject();
+        ois.close();
+
+        // Test various sex values with both original and deserialized attributes
+        String[] testValues = {
+            "M",
+            "Male", 
+            "m",
+            "male",
+            "F",
+            "Female",
+            "f",
+            "female",
+            "U",
+            "Unknown",
+            "u",
+            "unknown"
+        };
+        
+        for (String value : testValues) {
+            assertEquals(
+                sexAttribute.getName(),
+                deserializedAttribute.getName(),
+                "Attribute names should match"
+            );
+            
+            assertArrayEquals(
+                sexAttribute.getAliases(),
+                deserializedAttribute.getAliases(),
+                "Attribute aliases should match"
+            );
+            
+            assertEquals(
+                sexAttribute.normalize(value),
+                deserializedAttribute.normalize(value),
+                "Normalization should be identical for value: " + value
+            );
+            
+            assertEquals(
+                sexAttribute.validate(value),
+                deserializedAttribute.validate(value),
+                "Validation should be identical for value: " + value
+            );
         }
     }
 }

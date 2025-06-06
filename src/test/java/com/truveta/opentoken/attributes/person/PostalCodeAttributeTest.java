@@ -8,6 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -94,6 +98,58 @@ class PostalCodeAttributeTest {
         assertEquals(threadCount, results.size());
         for (String result : results) {
             assertEquals("12345", result);
+        }
+    }
+
+    @Test
+    void testSerialization() throws Exception {
+        // Serialize the attribute
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(postalCodeAttribute);
+        oos.close();
+
+        // Deserialize the attribute
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        PostalCodeAttribute deserializedAttribute = (PostalCodeAttribute) ois.readObject();
+        ois.close();
+
+        // Test various postal code values with both original and deserialized attributes
+        String[] testValues = {
+            "12345",
+            "12345-6789",
+            "01234-6789",
+            "98765",
+            "00000-0000",
+            "99999",
+            "54321-9876"
+        };
+        
+        for (String value : testValues) {
+            assertEquals(
+                postalCodeAttribute.getName(),
+                deserializedAttribute.getName(),
+                "Attribute names should match"
+            );
+            
+            assertArrayEquals(
+                postalCodeAttribute.getAliases(),
+                deserializedAttribute.getAliases(),
+                "Attribute aliases should match"
+            );
+            
+            assertEquals(
+                postalCodeAttribute.normalize(value),
+                deserializedAttribute.normalize(value),
+                "Normalization should be identical for value: " + value
+            );
+            
+            assertEquals(
+                postalCodeAttribute.validate(value),
+                deserializedAttribute.validate(value),
+                "Validation should be identical for value: " + value
+            );
         }
     }
 }
