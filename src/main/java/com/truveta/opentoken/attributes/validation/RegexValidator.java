@@ -14,7 +14,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public final class RegexValidator implements AttributeValidator {
+public final class RegexValidator implements SerializableAttributeValidator {
+
+    private static final long serialVersionUID = 1L;
 
     private final Pattern compiledPattern;
 

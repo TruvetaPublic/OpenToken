@@ -8,6 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -98,6 +102,53 @@ class SocialSecurityNumberAttributeTest {
         assertEquals(threadCount, results.size());
         for (String result : results) {
             assertEquals("123-45-6789", result);
+        }
+    }
+
+    @Test
+    void testSerialization() throws Exception {
+        // Serialize the attribute
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(ssnAttribute);
+        oos.close();
+
+        // Deserialize the attribute
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        SocialSecurityNumberAttribute deserializedAttribute = (SocialSecurityNumberAttribute) ois.readObject();
+        ois.close();
+
+        // Test various SSN values with both original and deserialized attributes
+        String[] testValues = {
+                "123456789",
+                "123-45-6789",
+                "001-23-4567",
+                "001234567",
+                "999-99-9999",
+                "999999999"
+        };
+
+        for (String value : testValues) {
+            assertEquals(
+                    ssnAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
+            assertArrayEquals(
+                    ssnAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
+            assertEquals(
+                    ssnAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
+            assertEquals(
+                    ssnAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
         }
     }
 }
