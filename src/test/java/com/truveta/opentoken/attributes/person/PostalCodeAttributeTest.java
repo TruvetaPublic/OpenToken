@@ -115,41 +115,38 @@ class PostalCodeAttributeTest {
         PostalCodeAttribute deserializedAttribute = (PostalCodeAttribute) ois.readObject();
         ois.close();
 
-        // Test various postal code values with both original and deserialized attributes
+        // Test various postal code values with both original and deserialized
+        // attributes
         String[] testValues = {
-            "12345",
-            "12345-6789",
-            "01234-6789",
-            "98765",
-            "00000-0000",
-            "99999",
-            "54321-9876"
+                "12345",
+                "12345-6789",
+                "01234-6789",
+                "98765",
+                "00000-0000",
+                "99999",
+                "54321-9876"
         };
-        
+
         for (String value : testValues) {
             assertEquals(
-                postalCodeAttribute.getName(),
-                deserializedAttribute.getName(),
-                "Attribute names should match"
-            );
-            
+                    postalCodeAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
             assertArrayEquals(
-                postalCodeAttribute.getAliases(),
-                deserializedAttribute.getAliases(),
-                "Attribute aliases should match"
-            );
-            
+                    postalCodeAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
             assertEquals(
-                postalCodeAttribute.normalize(value),
-                deserializedAttribute.normalize(value),
-                "Normalization should be identical for value: " + value
-            );
-            
+                    postalCodeAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
             assertEquals(
-                postalCodeAttribute.validate(value),
-                deserializedAttribute.validate(value),
-                "Validation should be identical for value: " + value
-            );
+                    postalCodeAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
         }
     }
 }

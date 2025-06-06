@@ -121,38 +121,34 @@ class SocialSecurityNumberAttributeTest {
 
         // Test various SSN values with both original and deserialized attributes
         String[] testValues = {
-            "123456789",
-            "123-45-6789",
-            "001-23-4567",
-            "001234567",
-            "999-99-9999",
-            "999999999"
+                "123456789",
+                "123-45-6789",
+                "001-23-4567",
+                "001234567",
+                "999-99-9999",
+                "999999999"
         };
-        
+
         for (String value : testValues) {
             assertEquals(
-                ssnAttribute.getName(),
-                deserializedAttribute.getName(),
-                "Attribute names should match"
-            );
-            
+                    ssnAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
             assertArrayEquals(
-                ssnAttribute.getAliases(),
-                deserializedAttribute.getAliases(),
-                "Attribute aliases should match"
-            );
-            
+                    ssnAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
             assertEquals(
-                ssnAttribute.normalize(value),
-                deserializedAttribute.normalize(value),
-                "Normalization should be identical for value: " + value
-            );
-            
+                    ssnAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
             assertEquals(
-                ssnAttribute.validate(value),
-                deserializedAttribute.validate(value),
-                "Validation should be identical for value: " + value
-            );
+                    ssnAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
         }
     }
 }

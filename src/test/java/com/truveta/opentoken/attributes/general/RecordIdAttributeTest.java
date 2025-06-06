@@ -64,39 +64,35 @@ class RecordIdAttributeTest {
 
         // Test various record ID values with both original and deserialized attributes
         String[] testValues = {
-            "test123",
-            "record_001",
-            "ID-12345",
-            "user@domain.com",
-            "a1b2c3d4",
-            "RECORD123",
-            "123abc"
+                "test123",
+                "record_001",
+                "ID-12345",
+                "user@domain.com",
+                "a1b2c3d4",
+                "RECORD123",
+                "123abc"
         };
-        
+
         for (String value : testValues) {
             assertEquals(
-                recordIdAttribute.getName(),
-                deserializedAttribute.getName(),
-                "Attribute names should match"
-            );
-            
+                    recordIdAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
             assertArrayEquals(
-                recordIdAttribute.getAliases(),
-                deserializedAttribute.getAliases(),
-                "Attribute aliases should match"
-            );
-            
+                    recordIdAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
             assertEquals(
-                recordIdAttribute.normalize(value),
-                deserializedAttribute.normalize(value),
-                "Normalization should be identical for value: " + value
-            );
-            
+                    recordIdAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
             assertEquals(
-                recordIdAttribute.validate(value),
-                deserializedAttribute.validate(value),
-                "Validation should be identical for value: " + value
-            );
+                    recordIdAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
         }
     }
 }

@@ -115,40 +115,36 @@ class BirthDateAttributeTest {
 
         // Test various date formats with both original and deserialized attributes
         String[] testValues = {
-            "2023-10-26",
-            "2023/10/26",
-            "10/26/2023",
-            "10-26-2023",
-            "26.10.2023",
-            "1990-01-01",
-            "12/31/1999",
-            "01-01-2000"
+                "2023-10-26",
+                "2023/10/26",
+                "10/26/2023",
+                "10-26-2023",
+                "26.10.2023",
+                "1990-01-01",
+                "12/31/1999",
+                "01-01-2000"
         };
-        
+
         for (String value : testValues) {
             assertEquals(
-                birthDateAttribute.getName(),
-                deserializedAttribute.getName(),
-                "Attribute names should match"
-            );
-            
+                    birthDateAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
             assertArrayEquals(
-                birthDateAttribute.getAliases(),
-                deserializedAttribute.getAliases(),
-                "Attribute aliases should match"
-            );
-            
+                    birthDateAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
             assertEquals(
-                birthDateAttribute.normalize(value),
-                deserializedAttribute.normalize(value),
-                "Normalization should be identical for value: " + value
-            );
-            
+                    birthDateAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
             assertEquals(
-                birthDateAttribute.validate(value),
-                deserializedAttribute.validate(value),
-                "Validation should be identical for value: " + value
-            );
+                    birthDateAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
         }
     }
 }

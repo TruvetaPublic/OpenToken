@@ -133,44 +133,40 @@ class SexAttributeTest {
 
         // Test various sex values with both original and deserialized attributes
         String[] testValues = {
-            "M",
-            "Male", 
-            "m",
-            "male",
-            "F",
-            "Female",
-            "f",
-            "female",
-            "U",
-            "Unknown",
-            "u",
-            "unknown"
+                "M",
+                "Male",
+                "m",
+                "male",
+                "F",
+                "Female",
+                "f",
+                "female",
+                "U",
+                "Unknown",
+                "u",
+                "unknown"
         };
-        
+
         for (String value : testValues) {
             assertEquals(
-                sexAttribute.getName(),
-                deserializedAttribute.getName(),
-                "Attribute names should match"
-            );
-            
+                    sexAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
             assertArrayEquals(
-                sexAttribute.getAliases(),
-                deserializedAttribute.getAliases(),
-                "Attribute aliases should match"
-            );
-            
+                    sexAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
             assertEquals(
-                sexAttribute.normalize(value),
-                deserializedAttribute.normalize(value),
-                "Normalization should be identical for value: " + value
-            );
-            
+                    sexAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
             assertEquals(
-                sexAttribute.validate(value),
-                deserializedAttribute.validate(value),
-                "Validation should be identical for value: " + value
-            );
+                    sexAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
         }
     }
 }
