@@ -8,6 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import org.junit.jupiter.api.Test;
 
 class RegexValidatorTest {
@@ -49,5 +54,20 @@ class RegexValidatorTest {
         RegexValidator validator = new RegexValidator("test");
         assertNotNull(validator.getCompiledPattern(), "Pattern should be compiled");
         assertEquals("test", validator.getCompiledPattern().pattern(), "Pattern should be the same as input");
+    }
+
+    @Test
+    void serialization_ShouldPreserveState() throws Exception {
+        RegexValidator originalValidator = new RegexValidator("^[A-Z]+$");
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(byteOut);
+        out.writeObject(originalValidator);
+
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+        ObjectInputStream in = new ObjectInputStream(byteIn);
+        RegexValidator deserializedValidator = (RegexValidator) in.readObject();
+
+        assertEquals(originalValidator.getCompiledPattern().pattern(),
+                deserializedValidator.getCompiledPattern().pattern(), "Compiled patterns should match");
     }
 }

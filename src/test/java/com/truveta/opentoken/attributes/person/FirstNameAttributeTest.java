@@ -8,6 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -105,6 +109,57 @@ class FirstNameAttributeTest {
         assertEquals(threadCount, results.size());
         for (String result : results) {
             assertEquals("Francois", result);
+        }
+    }
+
+    @Test
+    void serialization_ShouldPreserveState() throws Exception {
+        FirstNameAttribute originalAttribute = new FirstNameAttribute();
+
+        // Serialize the attribute
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(byteOut);
+        out.writeObject(originalAttribute);
+        out.close();
+
+        // Deserialize the attribute
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+        ObjectInputStream in = new ObjectInputStream(byteIn);
+        FirstNameAttribute deserializedAttribute = (FirstNameAttribute) in.readObject();
+        in.close();
+
+        // Test that both attributes behave identically
+        String[] testValues = {
+                "John",
+                "Mr. John A",
+                "Dr. Jane B.",
+                "José",
+                "François",
+                "John-Paul",
+                "Mary Jane",
+                "Prof. Robert C"
+        };
+
+        for (String value : testValues) {
+            assertEquals(
+                    originalAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
+            assertArrayEquals(
+                    originalAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
+            assertEquals(
+                    originalAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
+            assertEquals(
+                    originalAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
         }
     }
 }
