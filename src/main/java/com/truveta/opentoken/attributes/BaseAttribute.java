@@ -28,9 +28,9 @@ public abstract class BaseAttribute implements SerializableAttribute {
 
     private static final long serialVersionUID = 1L;
 
-    private final List<? extends SerializableAttributeValidator> validationRules;
+    private final List<SerializableAttributeValidator> validationRules;
 
-    protected BaseAttribute(List<? extends SerializableAttributeValidator> validationRules) {
+    protected BaseAttribute(List<SerializableAttributeValidator> validationRules) {
         ArrayList<SerializableAttributeValidator> ruleList = new ArrayList<>();
         ruleList.add(new NotNullOrEmptyValidator());
         ruleList.addAll(validationRules);
