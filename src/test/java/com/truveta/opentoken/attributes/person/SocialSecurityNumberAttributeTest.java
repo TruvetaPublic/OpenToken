@@ -45,6 +45,32 @@ class SocialSecurityNumberAttributeTest {
     void normalize_ShouldFormatWithDashes() {
         assertEquals("123-45-6789", ssnAttribute.normalize("123456789"), "Should format without dashes");
         assertEquals("123-45-6789", ssnAttribute.normalize("123-45-6789"), "Should format with dashes");
+        assertEquals("123-45-6789", ssnAttribute.normalize("123456789.0"), "Should format with decimal point");
+        assertEquals("001-23-4567", ssnAttribute.normalize("1234567"), "Should format with leading zeros");
+        assertEquals("001-23-4567", ssnAttribute.normalize("1234567.0"),
+                "Should format with leading zeros and decimal point");
+    }
+
+    @Test
+    void normalize_ShouldHandleSpaces() {
+        assertEquals("123-45-6789", ssnAttribute.normalize("123 45 6789"), "Should normalize spaces to dashes");
+        assertEquals("123-45-6789", ssnAttribute.normalize("123  45  6789"),
+                "Should normalize multiple spaces to dashes");
+        assertEquals("123-45-6789", ssnAttribute.normalize(" 123456789 "), "Should trim and format");
+    }
+
+    @Test
+    void normalize_ShouldHandleMixedFormatting() {
+        assertEquals("123-45-6789", ssnAttribute.normalize("123 45-6789"), "Should normalize mix of spaces and dashes");
+        assertEquals("123-45-6789", ssnAttribute.normalize("123-45 6789"), "Should normalize mix of dashes and spaces");
+        assertEquals("123-45-6789", ssnAttribute.normalize(" 123-456789"),
+                "Should handle leading space and partial formatting");
+    }
+
+    @Test
+    void normalize_ShouldHandleNullAndEmptyValues() {
+        assertEquals(null, ssnAttribute.normalize(null), "Should return null for null input");
+        assertEquals("", ssnAttribute.normalize(""), "Should return empty for empty input");
     }
 
     @Test
@@ -65,6 +91,8 @@ class SocialSecurityNumberAttributeTest {
         assertFalse(ssnAttribute.validate("123-11-0000"), "All zeros in last group should not be allowed");
         assertFalse(ssnAttribute.validate("123-00-1234"), "All zeros in middle group should not be allowed");
         assertFalse(ssnAttribute.validate("000-45-6789"), "All zeros in first group should not be allowed");
+        assertFalse(ssnAttribute.validate("900-45-6789"), "SSN starting with 900 should not be allowed");
+        assertFalse(ssnAttribute.validate("999-45-6789"), "SSN starting with 999 should not be allowed");
         assertFalse(ssnAttribute.validate("ABCDEFGHI"), "Non-numeric should not be allowed");
     }
 
