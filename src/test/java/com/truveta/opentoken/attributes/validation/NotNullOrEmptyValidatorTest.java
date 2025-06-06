@@ -3,8 +3,14 @@
  */
 package com.truveta.opentoken.attributes.validation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import org.junit.jupiter.api.Test;
 
@@ -46,5 +52,31 @@ class NotNullOrEmptyValidatorTest {
         assertFalse(result, "Newline value should not be allowed");
         result = validator.eval("\r");
         assertFalse(result, "Carriage return value should not be allowed");
+    }
+
+    @Test
+    void serialization_ShouldPreserveState() throws Exception {
+        // Test serialization and deserialization
+        NotNullOrEmptyValidator originalValidator = new NotNullOrEmptyValidator();
+
+        // Serialize the validator
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(byteOut);
+        out.writeObject(originalValidator);
+        out.close();
+
+        // Deserialize the validator
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+        ObjectInputStream in = new ObjectInputStream(byteIn);
+        NotNullOrEmptyValidator deserializedValidator = (NotNullOrEmptyValidator) in.readObject();
+        in.close();
+
+        // Test that both validators behave the same way
+        String[] testValues = { "valid", null, "", " ", "\t", "\n", "test123" };
+
+        for (String value : testValues) {
+            assertEquals(originalValidator.eval(value), deserializedValidator.eval(value),
+                    "Validators should behave identically for value: " + value);
+        }
     }
 }
