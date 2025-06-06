@@ -4,6 +4,8 @@
 package com.truveta.opentoken.attributes.person;
 
 import java.util.List;
+import java.util.regex.Pattern;
+
 import com.truveta.opentoken.attributes.BaseAttribute;
 import com.truveta.opentoken.attributes.utilities.AttributeUtilities;
 
@@ -21,6 +23,10 @@ public class FirstNameAttribute extends BaseAttribute {
 
     private static final String NAME = "FirstName";
     private static final String[] ALIASES = new String[] { NAME, "GivenName" };
+    private static final Pattern TITLE_PATTERN = Pattern.compile(
+            "(?i)^(mr|mrs|ms|miss|dr|prof|capt|sir|col|gen|cmdr|lt|rabbi|father|brother|sister|hon|honorable|reverend|rev|doctor)\\.?\\s+");
+    private static final Pattern TRAILING_PATTERN = Pattern.compile("\\s[^\\s]\\.?$");
+    private static final Pattern NON_ALPHANUMERIC_PATTERN = Pattern.compile("[^a-zA-Z]");
 
     public FirstNameAttribute() {
         super(List.of());
@@ -38,6 +44,18 @@ public class FirstNameAttribute extends BaseAttribute {
 
     @Override
     public String normalize(String value) {
-        return AttributeUtilities.normalize(value);
+        String normalized = AttributeUtilities.normalize(value);
+
+        // remove common titles and title abbreviations
+        normalized = TITLE_PATTERN.matcher(normalized).replaceAll("");
+
+        // trim trailing periods
+        // remove trailing periods and middle initials
+        normalized = TRAILING_PATTERN.matcher(normalized).replaceAll("");
+
+        // remove dashes, spaces and other non-alphanumeric characters
+        normalized = NON_ALPHANUMERIC_PATTERN.matcher(normalized).replaceAll("");
+
+        return normalized;
     }
 }

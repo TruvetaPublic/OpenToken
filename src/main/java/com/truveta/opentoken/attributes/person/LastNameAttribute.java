@@ -4,6 +4,8 @@
 package com.truveta.opentoken.attributes.person;
 
 import java.util.List;
+import java.util.regex.Pattern;
+
 import com.truveta.opentoken.attributes.BaseAttribute;
 import com.truveta.opentoken.attributes.utilities.AttributeUtilities;
 
@@ -21,6 +23,10 @@ public class LastNameAttribute extends BaseAttribute {
 
     private static final String NAME = "LastName";
     private static final String[] ALIASES = new String[] { NAME, "Surname" };
+    private static final Pattern SUFFIX_PATTERN = Pattern
+            .compile("(?i)\\s+(jr\\.?|junior|sr\\.?|senior|I{1,3}|IV|V|VI{0,3}|IX|X|\\d+(st|nd|rd|th))$");
+
+    private static final Pattern NON_ALPHANUMERIC_PATTERN = Pattern.compile("[^a-zA-Z]");
 
     public LastNameAttribute() {
         super(List.of());
@@ -38,6 +44,14 @@ public class LastNameAttribute extends BaseAttribute {
 
     @Override
     public String normalize(String value) {
-        return AttributeUtilities.normalize(value);
+        String normalized = AttributeUtilities.normalize(value);
+
+        // remove generational suffix
+        normalized = SUFFIX_PATTERN.matcher(normalized).replaceAll("");
+
+        // remove dashes, spaces and other non-alphanumeric characters
+        normalized = NON_ALPHANUMERIC_PATTERN.matcher(normalized).replaceAll("");
+
+        return normalized;
     }
 }

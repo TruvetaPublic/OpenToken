@@ -5,8 +5,10 @@ package com.truveta.opentoken.attributes.person;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -92,5 +94,45 @@ class BirthDateAttributeTest {
         for (String result : results) {
             assertEquals("2023-10-26", result);
         }
+    }
+
+    @Test
+    void normalize_DateOutsideAcceptableRange_ShouldReturnNull() {
+        // Test dates before 1910-01-01
+        assertNull(birthDateAttribute.normalize("1909-12-31"));
+        assertNull(birthDateAttribute.normalize("12/31/1909"));
+        assertNull(birthDateAttribute.normalize("1900-01-01"));
+        assertNull(birthDateAttribute.normalize("01/01/1900"));
+        assertNull(birthDateAttribute.normalize("31.12.1909"));
+
+        // Test dates after today
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        LocalDate nextYear = LocalDate.now().plusYears(1);
+
+        String tomorrowFormatted = tomorrow.toString(); // yyyy-MM-dd format
+        String nextYearFormatted = nextYear.toString(); // yyyy-MM-dd format
+
+        assertNull(birthDateAttribute.normalize(tomorrowFormatted));
+        assertNull(birthDateAttribute.normalize(nextYearFormatted));
+        assertNull(birthDateAttribute.normalize("2030-01-01"));
+        assertNull(birthDateAttribute.normalize("01/01/2030"));
+    }
+
+    @Test
+    void normalize_DateWithinAcceptableRange_ShouldReturnNormalizedDate() {
+        // Test boundary dates that should be accepted
+        assertEquals("1910-01-01", birthDateAttribute.normalize("1910-01-01"));
+        assertEquals("1910-01-01", birthDateAttribute.normalize("01/01/1910"));
+        assertEquals("1910-01-01", birthDateAttribute.normalize("01.01.1910"));
+
+        // Test today's date (should be accepted)
+        LocalDate today = LocalDate.now();
+        String todayFormatted = today.toString();
+        assertEquals(todayFormatted, birthDateAttribute.normalize(todayFormatted));
+
+        // Test some dates within the acceptable range
+        assertEquals("1950-06-15", birthDateAttribute.normalize("1950-06-15"));
+        assertEquals("1990-12-25", birthDateAttribute.normalize("12/25/1990"));
+        assertEquals("2000-02-29", birthDateAttribute.normalize("29.02.2000")); // Leap year
     }
 }

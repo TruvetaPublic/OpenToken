@@ -72,6 +72,13 @@ public class BirthDateAttribute extends BaseAttribute {
 
             // Convert Date to LocalDate and format using thread-safe DateTimeFormatter
             LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            // if date is before 1910/1/1 or after today, return null
+            if (localDate.isBefore(LocalDate.of(1910, 1, 1)) || localDate.isAfter(LocalDate.now())) {
+                return null;
+            }
+
+            // Format the LocalDate to the normalized format
             return NORMALIZED_DATE_FORMATTER.format(localDate);
         } catch (ParseException e) {
             throw new IllegalArgumentException("Invalid date format: " + value);

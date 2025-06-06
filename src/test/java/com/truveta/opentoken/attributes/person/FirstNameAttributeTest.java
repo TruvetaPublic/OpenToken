@@ -107,4 +107,84 @@ class FirstNameAttributeTest {
             assertEquals("Francois", result);
         }
     }
+
+    @Test
+    void normalize_ShouldRemoveTitles() {
+        // Test various title formats
+        assertEquals("John", firstNameAttribute.normalize("Mr. John"));
+        assertEquals("Jane", firstNameAttribute.normalize("Mrs. Jane"));
+        assertEquals("Sarah", firstNameAttribute.normalize("Ms. Sarah"));
+        assertEquals("Emily", firstNameAttribute.normalize("Miss Emily"));
+        assertEquals("Robert", firstNameAttribute.normalize("Dr. Robert"));
+        assertEquals("Alice", firstNameAttribute.normalize("Prof. Alice"));
+        assertEquals("James", firstNameAttribute.normalize("Capt. James"));
+        assertEquals("William", firstNameAttribute.normalize("Sir William"));
+        assertEquals("David", firstNameAttribute.normalize("Col. David"));
+        assertEquals("Michael", firstNameAttribute.normalize("Gen. Michael"));
+        assertEquals("Thomas", firstNameAttribute.normalize("Cmdr. Thomas"));
+        assertEquals("Daniel", firstNameAttribute.normalize("Lt. Daniel"));
+        assertEquals("Samuel", firstNameAttribute.normalize("Rabbi Samuel"));
+        assertEquals("Joseph", firstNameAttribute.normalize("Father Joseph"));
+        assertEquals("Francis", firstNameAttribute.normalize("Brother Francis"));
+        assertEquals("Mary", firstNameAttribute.normalize("Sister Mary"));
+        assertEquals("Charles", firstNameAttribute.normalize("Hon. Charles"));
+        assertEquals("George", firstNameAttribute.normalize("Honorable George"));
+        assertEquals("Matthew", firstNameAttribute.normalize("Reverend Matthew"));
+        assertEquals("Andrew", firstNameAttribute.normalize("Doctor Andrew"));
+
+        // Test titles without periods
+        assertEquals("John", firstNameAttribute.normalize("Mr John"));
+        assertEquals("Jane", firstNameAttribute.normalize("Dr Jane"));
+
+        // Test case insensitive titles
+        assertEquals("John", firstNameAttribute.normalize("MR. John"));
+        assertEquals("Jane", firstNameAttribute.normalize("dr. Jane"));
+        assertEquals("Sarah", firstNameAttribute.normalize("MS Sarah"));
+    }
+
+    @Test
+    void normalize_ShouldRemoveMiddleInitials() {
+        // Test middle initial removal (detected by second to last character being a
+        // space)
+        assertEquals("John", firstNameAttribute.normalize("John A"));
+        assertEquals("Jane", firstNameAttribute.normalize("Jane B"));
+        assertEquals("Robert", firstNameAttribute.normalize("Robert C"));
+        assertEquals("Mary", firstNameAttribute.normalize("Mary X"));
+
+        // Test with periods in middle initials
+        assertEquals("John", firstNameAttribute.normalize("John A."));
+        assertEquals("Jane", firstNameAttribute.normalize("Jane B."));
+
+        // Test names that shouldn't have initials removed (no space before last
+        // character)
+        assertEquals("Jo", firstNameAttribute.normalize("Jo")); // Short name, no middle initial
+        assertEquals("A", firstNameAttribute.normalize("A")); // Single character name
+    }
+
+    @Test
+    void normalize_ShouldHandleTitlesAndInitialsTogether() {
+        // Test combination of title and middle initial
+        assertEquals("John", firstNameAttribute.normalize("Dr. John A"));
+        assertEquals("Jane", firstNameAttribute.normalize("Mrs. Jane B."));
+        assertEquals("Robert", firstNameAttribute.normalize("Prof. Robert C"));
+        assertEquals("Mary", firstNameAttribute.normalize("Miss Mary X"));
+
+        // Test with accents, titles, and initials
+        assertEquals("Jose", firstNameAttribute.normalize("Mr. José A"));
+        assertEquals("Francois", firstNameAttribute.normalize("Dr. François B."));
+    }
+
+    @Test
+    void normalize_ShouldRemoveNonAlphabeticCharacters() {
+        // Test removal of dashes, spaces, and other non-alphanumeric characters
+        assertEquals("JohnDoe", firstNameAttribute.normalize("John-Doe"));
+        assertEquals("MaryJane", firstNameAttribute.normalize("Mary Jane"));
+        assertEquals("AnnMarie", firstNameAttribute.normalize("Ann-Marie"));
+        assertEquals("JeanLuc", firstNameAttribute.normalize("Jean-Luc"));
+
+        // Test with numbers and special characters
+        assertEquals("John", firstNameAttribute.normalize("John123"));
+        assertEquals("Jane", firstNameAttribute.normalize("Jane@#$"));
+        assertEquals("RobertSmith", firstNameAttribute.normalize("Robert_Smith"));
+    }
 }

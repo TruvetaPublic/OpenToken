@@ -67,7 +67,28 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     @Override
     public String normalize(String value) {
 
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+
+        // Remove any whitespace
+        value = value.trim().replaceAll("\\s+", "");
+
+        // Remove decimal point/separator and all following numbers if present
+        // Only remove the decimal if it's after at least the 7th digit
+        int decimalIndex = value.indexOf('.');
+        if (decimalIndex != -1 && decimalIndex >= 7) {
+            value = value.substring(0, decimalIndex);
+        }
+
+        // Remove any dashes for now
         value = value.replace("-", "");
+
+        // pad with leading zeros if necessary
+        if (value.length() < 9) {
+            value = String.format("%09d", Long.parseLong(value));
+        }
+
         value = value.substring(0, 3) + "-" + value.substring(3, 5) + "-" + value.substring(5);
 
         return value;
