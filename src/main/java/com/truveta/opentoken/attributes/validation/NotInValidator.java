@@ -18,7 +18,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public final class NotInValidator implements AttributeValidator {
+public final class NotInValidator implements SerializableAttributeValidator {
+
+    private static final long serialVersionUID = 1L;
 
     @NotNull
     private Set<String> invalidValues;
