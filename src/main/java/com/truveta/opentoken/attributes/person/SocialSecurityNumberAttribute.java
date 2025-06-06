@@ -35,16 +35,13 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         super(List.of(
                 new NotInValidator(
                         Set.of(
-                                "000-00-0000",
                                 "111-11-1111",
                                 "222-22-2222",
                                 "333-33-3333",
                                 "444-44-4444",
                                 "555-55-5555",
-                                "666-66-6666",
                                 "777-77-7777",
-                                "888-88-8888",
-                                "999-99-9999")),
+                                "888-88-8888")),
                 new RegexValidator(SSN_REGEX)));
     }
 
@@ -75,7 +72,9 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         value = value.trim().replaceAll("\\s+", "");
 
         // Remove decimal point/separator and all following numbers if present
-        // Only remove the decimal if it's after at least the 7th digit
+        // Remove the decimal portion only if it occurs after the 7th digit,
+        // as a SSN interpreted as a number would need to be at least 7 digits long
+        // (non-zero leading digits)
         int decimalIndex = value.indexOf('.');
         if (decimalIndex != -1 && decimalIndex >= 7) {
             value = value.substring(0, decimalIndex);
