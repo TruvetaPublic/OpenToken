@@ -48,7 +48,7 @@ public class LastNameAttribute extends BaseAttribute {
         normalized = SUFFIX_PATTERN.matcher(normalized).replaceAll("");
 
         // remove dashes, spaces and other non-alphanumeric characters
-        normalized = AttributeUtilities.NON_ALPHANUMERIC_PATTERN.matcher(normalized).replaceAll("");
+        normalized = AttributeUtilities.NON_ALPHABETIC_PATTERN.matcher(normalized).replaceAll("");
 
         return normalized;
     }
