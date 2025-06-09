@@ -25,7 +25,9 @@ public class FirstNameAttribute extends BaseAttribute {
     private static final String[] ALIASES = new String[] { NAME, "GivenName" };
     private static final Pattern TITLE_PATTERN = Pattern.compile(
             "(?i)^(mr|mrs|ms|miss|dr|prof|capt|sir|col|gen|cmdr|lt|rabbi|father|brother|sister|hon|honorable|reverend|rev|doctor)\\.?\\s+");
-    private static final Pattern TRAILING_PATTERN = Pattern.compile("\\s[^\\s]\\.?$");
+
+    // Pattern to match trailing periods and middle initials in names
+    private static final Pattern TRAILING_PERIOD_AND_INITIAL_PATTERN = Pattern.compile("\\s[^\\s]\\.?$");
 
     public FirstNameAttribute() {
         super(List.of());
@@ -55,7 +57,7 @@ public class FirstNameAttribute extends BaseAttribute {
 
         // trim trailing periods
         // remove trailing periods and middle initials
-        normalized = TRAILING_PATTERN.matcher(normalized).replaceAll("");
+        normalized = TRAILING_PERIOD_AND_INITIAL_PATTERN.matcher(normalized).replaceAll("");
 
         // remove dashes, spaces and other non-alphanumeric characters
         normalized = AttributeUtilities.NON_ALPHANUMERIC_PATTERN.matcher(normalized).replaceAll("");
