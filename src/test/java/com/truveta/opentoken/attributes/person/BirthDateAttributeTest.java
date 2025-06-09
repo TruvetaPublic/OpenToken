@@ -9,6 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.LocalDate;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -134,5 +139,52 @@ class BirthDateAttributeTest {
         assertEquals("1950-06-15", birthDateAttribute.normalize("1950-06-15"));
         assertEquals("1990-12-25", birthDateAttribute.normalize("12/25/1990"));
         assertEquals("2000-02-29", birthDateAttribute.normalize("29.02.2000")); // Leap year
+
+    void testSerialization() throws Exception {
+        // Serialize the attribute
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(birthDateAttribute);
+        oos.close();
+
+        // Deserialize the attribute
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        BirthDateAttribute deserializedAttribute = (BirthDateAttribute) ois.readObject();
+        ois.close();
+
+        // Test various date formats with both original and deserialized attributes
+        String[] testValues = {
+                "2023-10-26",
+                "2023/10/26",
+                "10/26/2023",
+                "10-26-2023",
+                "26.10.2023",
+                "1990-01-01",
+                "12/31/1999",
+                "01-01-2000"
+        };
+
+        for (String value : testValues) {
+            assertEquals(
+                    birthDateAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
+            assertArrayEquals(
+                    birthDateAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
+            assertEquals(
+                    birthDateAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
+            assertEquals(
+                    birthDateAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
+        }
     }
 }

@@ -7,6 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -191,5 +196,54 @@ class LastNameAttributeTest {
         // Test edge cases
         assertEquals("TetNme", lastNameAttribute.normalize("Te$t-N@me Jr."));
         assertEquals("ComplexName", lastNameAttribute.normalize("Cömplex-Nâme123 Senior"));
+    }
+
+    void testSerialization() throws Exception {
+        // Serialize the attribute
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(lastNameAttribute);
+        oos.close();
+
+        // Deserialize the attribute
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        LastNameAttribute deserializedAttribute = (LastNameAttribute) ois.readObject();
+        ois.close();
+
+        // Test various values with both original and deserialized attributes
+        String[] testValues = {
+                "Smith",
+                "Johnson",
+                "García",
+                "Gómez",
+                "Mäder",
+                "van der Berg",
+                "O'Connor",
+                "Smith-Jones",
+                "McDonald"
+        };
+
+        for (String value : testValues) {
+            assertEquals(
+                    lastNameAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
+            assertArrayEquals(
+                    lastNameAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
+            assertEquals(
+                    lastNameAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
+            assertEquals(
+                    lastNameAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
+        }
     }
 }

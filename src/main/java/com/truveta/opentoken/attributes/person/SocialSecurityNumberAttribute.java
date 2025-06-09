@@ -29,22 +29,22 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
 
     private static final String NAME = "SocialSecurityNumber";
     private static final String[] ALIASES = new String[] { NAME, "NationalIdentificationNumber" };
+
+    // Accepts SSNs in xxx-xx-xxxx or xxxxxxxxx format. Rejects: area 000/666/9xx,
+    // group 00, serial 0000
     private static final String SSN_REGEX = "^(?!0{3})(?!6{3})[0-8]\\d{2}-?(?!0{2})\\d{2}-?(?!0{4})\\d{4}$";
 
     public SocialSecurityNumberAttribute() {
         super(List.of(
                 new NotInValidator(
                         Set.of(
-                                "000-00-0000",
                                 "111-11-1111",
                                 "222-22-2222",
                                 "333-33-3333",
                                 "444-44-4444",
                                 "555-55-5555",
-                                "666-66-6666",
                                 "777-77-7777",
-                                "888-88-8888",
-                                "999-99-9999")),
+                                "888-88-8888")),
                 new RegexValidator(SSN_REGEX)));
     }
 
@@ -75,7 +75,9 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         value = value.trim().replaceAll("\\s+", "");
 
         // Remove decimal point/separator and all following numbers if present
-        // Only remove the decimal if it's after at least the 7th digit
+        // Remove the decimal portion only if it occurs after the 7th digit,
+        // as a SSN interpreted as a number would need to be at least 7 digits long
+        // (non-zero leading digits)
         int decimalIndex = value.indexOf('.');
         if (decimalIndex != -1 && decimalIndex >= 7) {
             value = value.substring(0, decimalIndex);
@@ -84,8 +86,9 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         // Remove any dashes for now
         value = value.replace("-", "");
 
-        // pad with leading zeros if necessary
-        if (value.length() < 9) {
+        // pad with leading zeros if necessary if the length is less than 9
+        // but at least 7
+        if (value.length() > 6 && value.length() < 9) {
             value = String.format("%09d", Long.parseLong(value));
         }
 

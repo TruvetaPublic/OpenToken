@@ -5,11 +5,11 @@ package com.truveta.opentoken.attributes;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.truveta.opentoken.attributes.validation.AttributeValidator;
 import com.truveta.opentoken.attributes.validation.NotNullOrEmptyValidator;
+import com.truveta.opentoken.attributes.validation.SerializableAttributeValidator;
 
 /**
- * A base implementation of the {@link Attribute} interface.
+ * A base implementation of the {@link SerializableAttribute} interface.
  * 
  * <p>
  * This class provides a default implementation of the
@@ -24,12 +24,14 @@ import com.truveta.opentoken.attributes.validation.NotNullOrEmptyValidator;
  * </ul>
  * </p>
  */
-public abstract class BaseAttribute implements Attribute {
-    
-    private final List<AttributeValidator> validationRules;
+public abstract class BaseAttribute implements SerializableAttribute {
 
-    protected BaseAttribute(List<AttributeValidator> validationRules) {
-        ArrayList<AttributeValidator> ruleList = new ArrayList<>();
+    private static final long serialVersionUID = 1L;
+
+    private final List<SerializableAttributeValidator> validationRules;
+
+    protected BaseAttribute(List<SerializableAttributeValidator> validationRules) {
+        ArrayList<SerializableAttributeValidator> ruleList = new ArrayList<>();
         ruleList.add(new NotNullOrEmptyValidator());
         ruleList.addAll(validationRules);
         this.validationRules = List.copyOf(ruleList);
