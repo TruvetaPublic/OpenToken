@@ -19,11 +19,6 @@ public class AttributeUtilities {
      * or A-Z).
      * Used for removing or identifying non-alphabetic characters in strings.
      */
-    /**
-     * Pattern that matches any character that is not an alphabetic character (a-z
-     * or A-Z).
-     * Used for removing or identifying non-alphabetic characters in strings.
-     */
     public static final Pattern NON_ALPHABETIC_PATTERN = Pattern.compile("[^a-zA-Z]");
 
     private AttributeUtilities() {
