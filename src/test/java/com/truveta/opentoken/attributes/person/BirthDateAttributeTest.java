@@ -139,6 +139,7 @@ class BirthDateAttributeTest {
         assertEquals("1950-06-15", birthDateAttribute.normalize("1950-06-15"));
         assertEquals("1990-12-25", birthDateAttribute.normalize("12/25/1990"));
         assertEquals("2000-02-29", birthDateAttribute.normalize("29.02.2000")); // Leap year
+    }
 
     void testSerialization() throws Exception {
         // Serialize the attribute

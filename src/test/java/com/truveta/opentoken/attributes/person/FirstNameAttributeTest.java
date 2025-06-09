@@ -190,6 +190,7 @@ class FirstNameAttributeTest {
         assertEquals("John", firstNameAttribute.normalize("John123"));
         assertEquals("Jane", firstNameAttribute.normalize("Jane@#$"));
         assertEquals("RobertSmith", firstNameAttribute.normalize("Robert_Smith"));
+    }
 
     void serialization_ShouldPreserveState() throws Exception {
         FirstNameAttribute originalAttribute = new FirstNameAttribute();
