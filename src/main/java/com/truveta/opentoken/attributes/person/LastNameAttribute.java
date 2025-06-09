@@ -26,8 +26,6 @@ public class LastNameAttribute extends BaseAttribute {
     private static final Pattern SUFFIX_PATTERN = Pattern
             .compile("(?i)\\s+(jr\\.?|junior|sr\\.?|senior|I{1,3}|IV|V|VI{0,3}|IX|X|\\d+(st|nd|rd|th))$");
 
-    private static final Pattern NON_ALPHANUMERIC_PATTERN = Pattern.compile("[^a-zA-Z]");
-
     public LastNameAttribute() {
         super(List.of());
     }
@@ -44,13 +42,13 @@ public class LastNameAttribute extends BaseAttribute {
 
     @Override
     public String normalize(String value) {
-        String normalized = AttributeUtilities.normalize(value);
+        String normalized = AttributeUtilities.normalizeDiacritics(value);
 
         // remove generational suffix
         normalized = SUFFIX_PATTERN.matcher(normalized).replaceAll("");
 
         // remove dashes, spaces and other non-alphanumeric characters
-        normalized = NON_ALPHANUMERIC_PATTERN.matcher(normalized).replaceAll("");
+        normalized = AttributeUtilities.NON_ALPHANUMERIC_PATTERN.matcher(normalized).replaceAll("");
 
         return normalized;
     }

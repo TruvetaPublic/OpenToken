@@ -26,7 +26,6 @@ public class FirstNameAttribute extends BaseAttribute {
     private static final Pattern TITLE_PATTERN = Pattern.compile(
             "(?i)^(mr|mrs|ms|miss|dr|prof|capt|sir|col|gen|cmdr|lt|rabbi|father|brother|sister|hon|honorable|reverend|rev|doctor)\\.?\\s+");
     private static final Pattern TRAILING_PATTERN = Pattern.compile("\\s[^\\s]\\.?$");
-    private static final Pattern NON_ALPHANUMERIC_PATTERN = Pattern.compile("[^a-zA-Z]");
 
     public FirstNameAttribute() {
         super(List.of());
@@ -44,17 +43,22 @@ public class FirstNameAttribute extends BaseAttribute {
 
     @Override
     public String normalize(String value) {
-        String normalized = AttributeUtilities.normalize(value);
+        String normalized = AttributeUtilities.normalizeDiacritics(value);
 
         // remove common titles and title abbreviations
-        normalized = TITLE_PATTERN.matcher(normalized).replaceAll("");
+        String withoutTitle = TITLE_PATTERN.matcher(normalized).replaceAll("");
+
+        // if the title removal results in an empty string, use the original value
+        if (!withoutTitle.isEmpty()) {
+            normalized = withoutTitle;
+        }
 
         // trim trailing periods
         // remove trailing periods and middle initials
         normalized = TRAILING_PATTERN.matcher(normalized).replaceAll("");
 
         // remove dashes, spaces and other non-alphanumeric characters
-        normalized = NON_ALPHANUMERIC_PATTERN.matcher(normalized).replaceAll("");
+        normalized = AttributeUtilities.NON_ALPHANUMERIC_PATTERN.matcher(normalized).replaceAll("");
 
         return normalized;
     }

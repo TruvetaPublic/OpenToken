@@ -241,4 +241,30 @@ class FirstNameAttributeTest {
                     "Validation should be identical for value: " + value);
         }
     }
+
+    @Test
+    void normalize_ShouldHandleEdgeCasesInTitleRemoval() {
+        // Test edge cases for title removal
+        assertEquals("Mr", firstNameAttribute.normalize("Mr."));
+        assertEquals("Sir", firstNameAttribute.normalize("Sir"));
+        assertEquals("Prof", firstNameAttribute.normalize("Prof."));
+        assertEquals("General", firstNameAttribute.normalize("General"));
+
+        // Test titles with only spaces after
+        assertEquals("Mr", firstNameAttribute.normalize("Mr. "));
+        assertEquals("Dr", firstNameAttribute.normalize("    Dr.   "));
+
+        // Test multiple titles (should only remove the first one)
+        assertEquals("Smith", firstNameAttribute.normalize("Mr. Smith"));
+        assertEquals("Johnson", firstNameAttribute.normalize("Dr. Johnson"));
+
+        // Test names that start with title-like words but aren't titles
+        assertEquals("Drew", firstNameAttribute.normalize("Drew"));
+        assertEquals("Profeta", firstNameAttribute.normalize("Profeta"));
+        assertEquals("Missy", firstNameAttribute.normalize("Missy"));
+
+        // Test titles with unusual spacing
+        assertEquals("MrJohn", firstNameAttribute.normalize("Mr.John"));
+        assertEquals("Jane", firstNameAttribute.normalize("Dr.  Jane"));
+    }
 }
