@@ -6,6 +6,7 @@ package com.truveta.opentoken.attributes.person;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -110,7 +111,7 @@ class PostalCodeAttributeTest {
         assertEquals("1", postalCodeAttribute.normalize("1"));
 
         // Test null and empty values
-        assertEquals(null, postalCodeAttribute.normalize(null));
+        assertNull(postalCodeAttribute.normalize(null));
         assertEquals("", postalCodeAttribute.normalize(""));
 
         // Test exactly 5 characters
