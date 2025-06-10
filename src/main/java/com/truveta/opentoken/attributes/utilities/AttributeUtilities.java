@@ -7,13 +7,14 @@ import java.text.Normalizer;
 import java.util.regex.Pattern;
 
 /**
- * This class includes functions such as normalizing accents,  
- * standardizing formats, and other attribute-related transformations.  
+ * This class includes functions such as normalizing accents,
+ * standardizing formats, and other attribute-related transformations.
  * 
  */
 public class AttributeUtilities {
     private static final Pattern DIACRITICS = Pattern.compile("\\p{M}");
-    
+    public static final String WHITESPACE_REGEX = "\\s+";
+
     private AttributeUtilities() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
@@ -22,6 +23,3 @@ public class AttributeUtilities {
         return DIACRITICS.matcher(Normalizer.normalize(value.trim(), Normalizer.Form.NFD)).replaceAll("");
     }
 }
-
-
-

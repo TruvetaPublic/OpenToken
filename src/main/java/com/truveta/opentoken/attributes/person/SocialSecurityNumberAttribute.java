@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.truveta.opentoken.attributes.BaseAttribute;
+import com.truveta.opentoken.attributes.utilities.AttributeUtilities;
 import com.truveta.opentoken.attributes.validation.NotInValidator;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 
@@ -35,7 +36,6 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     private static final String[] ALIASES = new String[] { NAME, "NationalIdentificationNumber" };
     private static final String DASH = "-";
     private static final String SSN_FORMAT = "%09d";
-    private static final String WHITESPACE_REGEX = "\\s+";
 
     private static final int MIN_SSN_LENGTH = 7;
     private static final int SSN_LENGTH = 9;
@@ -85,7 +85,7 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         }
 
         // Remove any whitespace
-        value = value.trim().replaceAll(WHITESPACE_REGEX, StringUtils.EMPTY);
+        value = value.trim().replaceAll(AttributeUtilities.WHITESPACE_REGEX, StringUtils.EMPTY);
 
         // Remove decimal point/separator and all following numbers if present
         // Remove the decimal portion only if it occurs after the 7th digit,
