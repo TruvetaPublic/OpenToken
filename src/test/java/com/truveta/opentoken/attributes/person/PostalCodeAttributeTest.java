@@ -6,6 +6,7 @@ package com.truveta.opentoken.attributes.person;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -50,6 +51,8 @@ class PostalCodeAttributeTest {
     @Test
     void validate_ShouldReturnTrueForValidPostalCodes() {
         assertTrue(postalCodeAttribute.validate("12345"));
+        assertTrue(postalCodeAttribute.validate(" 12345"));
+        assertTrue(postalCodeAttribute.validate("12345 "));
         assertTrue(postalCodeAttribute.validate("12345-6789"));
         assertTrue(postalCodeAttribute.validate("01234-6789"));
     }
@@ -99,6 +102,29 @@ class PostalCodeAttributeTest {
         for (String result : results) {
             assertEquals("12345", result);
         }
+    }
+
+    @Test
+    void normalize_ShouldHandleEdgeCases() {
+        // Test short postal codes (less than 5 characters)
+        assertEquals("1234", postalCodeAttribute.normalize("1234 "));
+        assertEquals("123", postalCodeAttribute.normalize("123"));
+        assertEquals("12", postalCodeAttribute.normalize("12"));
+        assertEquals("1", postalCodeAttribute.normalize("1"));
+
+        // Test null and empty values
+        assertNull(postalCodeAttribute.normalize(null));
+        assertEquals("", postalCodeAttribute.normalize(""));
+
+        // Test exactly 5 characters
+        assertEquals("12345", postalCodeAttribute.normalize("12345"));
+
+        assertEquals("12345", postalCodeAttribute.normalize(" 12345"));
+
+        // Test more than 5 characters
+        assertEquals("12345", postalCodeAttribute.normalize("123456"));
+        assertEquals("12345", postalCodeAttribute.normalize("12345-6789"));
+        assertEquals("12345", postalCodeAttribute.normalize("123456789"));
     }
 
     @Test
