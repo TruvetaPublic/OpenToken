@@ -35,7 +35,7 @@ public final class NotStartsWithValidator implements SerializableAttributeValida
             return false;
         }
 
-        return invalidPrefixes.stream().noneMatch(value::startsWith);
+        return invalidPrefixes.stream().noneMatch(prefix -> value.trim().startsWith(prefix));
     }
 
 }
