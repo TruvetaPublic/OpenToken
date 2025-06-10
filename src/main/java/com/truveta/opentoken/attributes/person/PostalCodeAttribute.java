@@ -4,8 +4,11 @@
 package com.truveta.opentoken.attributes.person;
 
 import java.util.List;
+import java.util.Set;
 
 import com.truveta.opentoken.attributes.BaseAttribute;
+import com.truveta.opentoken.attributes.validation.NotInValidator;
+import com.truveta.opentoken.attributes.validation.NotStartsWithValidator;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 
 /**
@@ -25,7 +28,24 @@ public class PostalCodeAttribute extends BaseAttribute {
     private static final String POSTAL_CODE_REGEX = "^\\d{5}(-\\d{4})?$";
 
     public PostalCodeAttribute() {
-        super(List.of(new RegexValidator(POSTAL_CODE_REGEX)));
+        super(List.of(
+                new RegexValidator(POSTAL_CODE_REGEX),
+                new NotStartsWithValidator(
+                        Set.of(
+                                "00000",
+                                "11111",
+                                "22222",
+                                "33333",
+                                "55555",
+                                "66666",
+                                "77777",
+                                "88888", // Valid but assigned to the North Pole
+                                "99999",
+                                // Commonly used placeholders
+                                "01234",
+                                "12345",
+                                "54321",
+                                "98765"))));
     }
 
     @Override
