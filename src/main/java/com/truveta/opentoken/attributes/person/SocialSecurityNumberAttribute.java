@@ -3,7 +3,9 @@
  */
 package com.truveta.opentoken.attributes.person;
 
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,10 +36,12 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     private static final String DASH = "-";
     private static final String SSN_FORMAT = "%09d";
     private static final String WHITESPACE_REGEX = "\\s+";
-    private static final String DECIMAL_POINT = ".";
 
     private static final int MIN_SSN_LENGTH = 7;
     private static final int SSN_LENGTH = 9;
+
+    private static final char DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance(Locale.getDefault())
+            .getDecimalSeparator();
 
     // Accepts SSNs in xxx-xx-xxxx or xxxxxxxxx format. Rejects: area 000/666/9xx,
     // group 00, serial 0000
@@ -87,7 +91,7 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         // Remove the decimal portion only if it occurs after the 7th digit,
         // as a SSN interpreted as a number would need to be at least 7 digits long
         // (non-zero leading digits)
-        int decimalIndex = value.indexOf(DECIMAL_POINT);
+        int decimalIndex = value.indexOf(DECIMAL_SEPARATOR);
         if (decimalIndex != -1 && decimalIndex >= MIN_SSN_LENGTH) {
             value = value.substring(0, decimalIndex);
         }
@@ -111,6 +115,17 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         return value;
     }
 
+    /**
+     * Takes a 9-digit SSN and adds dashes in the right places.
+     * 
+     * Takes: "123456789"
+     * Returns: "123-45-6789"
+     * 
+     * SSN parts:
+     * - First 3 digits: Area number
+     * - Middle 2 digits: Group number
+     * - Last 4 digits: Serial number
+     */
     private String formatWithDashes(String value) {
         String areaNumber = value.substring(0, 3);
         String groupNumber = value.substring(3, 5);
