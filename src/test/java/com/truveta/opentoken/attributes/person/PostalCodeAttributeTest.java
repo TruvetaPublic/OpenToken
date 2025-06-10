@@ -50,8 +50,8 @@ class PostalCodeAttributeTest {
 
     @Test
     void validate_ShouldReturnTrueForValidPostalCodes() {
-        assertTrue(postalCodeAttribute.validate("12345"));
-        assertTrue(postalCodeAttribute.validate(" 12345"));
+        assertTrue(postalCodeAttribute.validate("95123 "));
+        assertTrue(postalCodeAttribute.validate(" 95123"));
         assertTrue(postalCodeAttribute.validate("95123"));
         assertTrue(postalCodeAttribute.validate("95123-6789"));
         assertTrue(postalCodeAttribute.validate("65201-6789"));

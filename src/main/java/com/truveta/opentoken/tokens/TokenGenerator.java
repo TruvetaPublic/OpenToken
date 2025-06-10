@@ -29,7 +29,7 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
 @Getter
 @Setter
 public class TokenGenerator {
-    private static final Logger logger = LoggerFactory.getLogger(TokenGenerator.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(TokenGenerator.class);
     private SHA256Tokenizer tokenizer;
     private List<TokenTransformer> tokenTransformerList;
     private BaseTokenDefinition tokenDefinition;
@@ -146,6 +146,7 @@ public class TokenGenerator {
             TokenGeneratorResult result)
             throws TokenGenerationException {
         var signature = getTokenSignature(tokenId, personAttributes, result);
+        logger.debug("Token signature for token id {}: {}", tokenId, signature);
         try {
             return tokenizer.tokenize(signature);
         } catch (Exception e) {

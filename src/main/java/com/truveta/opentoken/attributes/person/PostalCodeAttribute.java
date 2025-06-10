@@ -9,6 +9,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.truveta.opentoken.attributes.BaseAttribute;
+import com.truveta.opentoken.attributes.utilities.AttributeUtilities;
 import com.truveta.opentoken.attributes.validation.NotStartsWithValidator;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 

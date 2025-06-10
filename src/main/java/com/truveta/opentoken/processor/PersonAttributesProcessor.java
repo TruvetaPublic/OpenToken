@@ -36,7 +36,7 @@ public final class PersonAttributesProcessor {
     private static final String RULE_ID = "RuleId";
     private static final String RECORD_ID = "RecordId";
 
-    private static final Logger logger = LoggerFactory.getLogger(PersonAttributesProcessor.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(PersonAttributesProcessor.class);
 
     PersonAttributesProcessor() {
     }

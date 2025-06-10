@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * @see <a href=https://datatracker.ietf.org/doc/html/rfc4868>HMACSHA256</a>
  */
 public class HashTokenTransformer implements TokenTransformer {
-    private static final Logger logger = LoggerFactory.getLogger(HashTokenTransformer.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(HashTokenTransformer.class);
 
     private transient Mac mac;
     private transient Encoder encoder;
@@ -81,13 +81,13 @@ public class HashTokenTransformer implements TokenTransformer {
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
-        oos.defaultWriteObject();  // Serializes hashingSecret
+        oos.defaultWriteObject(); // Serializes hashingSecret
     }
 
     // Custom deserialization
     private void readObject(ObjectInputStream ois)
             throws IOException, ClassNotFoundException {
-        ois.defaultReadObject();  // Deserializes hashingSecret
+        ois.defaultReadObject(); // Deserializes hashingSecret
         try {
             if (StringUtils.isEmpty(this.hashingSecret)) {
                 this.mac = null;
