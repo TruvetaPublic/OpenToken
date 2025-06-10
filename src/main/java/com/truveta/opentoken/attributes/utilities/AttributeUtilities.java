@@ -13,7 +13,19 @@ import java.util.regex.Pattern;
  */
 public class AttributeUtilities {
     private static final Pattern DIACRITICS = Pattern.compile("\\p{M}");
-    public static final String WHITESPACE_REGEX = "\\s+";
+
+    /**
+     * Pattern that matches one or more whitespace characters.
+     * This includes spaces, tabs, line breaks, and other Unicode whitespace.
+     * 
+     * Examples:
+     * " " -> single space
+     * "\t" -> tab
+     * "\n" -> newline
+     * "\r\n" -> carriage return + newline
+     * " " -> multiple spaces
+     */
+    public static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
     private AttributeUtilities() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");

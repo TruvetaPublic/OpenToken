@@ -85,7 +85,7 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         }
 
         // Remove any whitespace
-        value = value.trim().replaceAll(AttributeUtilities.WHITESPACE_REGEX, StringUtils.EMPTY);
+        value = AttributeUtilities.WHITESPACE.matcher(value.trim()).replaceAll(StringUtils.EMPTY);
 
         // Remove decimal point/separator and all following numbers if present
         // Remove the decimal portion only if it occurs after the 7th digit,

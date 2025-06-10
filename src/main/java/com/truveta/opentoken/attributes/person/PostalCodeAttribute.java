@@ -58,7 +58,7 @@ public class PostalCodeAttribute extends BaseAttribute {
         if (value == null) {
             return value;
         }
-        value = value.trim().replaceAll(AttributeUtilities.WHITESPACE_REGEX, StringUtils.EMPTY);
+        value = value.trim().replaceAll(AttributeUtilities.WHITESPACE.pattern(), StringUtils.EMPTY);
 
         if (value.length() < 5) {
             return value; // Return original value if less than 5 characters
