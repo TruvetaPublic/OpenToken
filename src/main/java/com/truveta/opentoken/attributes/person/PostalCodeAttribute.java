@@ -52,8 +52,12 @@ public class PostalCodeAttribute extends BaseAttribute {
      */
     @Override
     public String normalize(String value) {
-        if (value == null || value.length() < 5) {
+        if (value == null) {
             return value;
+        }
+        value = value.trim();
+        if (value.length() < 5) {
+            return value; // Return original value if less than 5 characters
         }
         return value.substring(0, 5);
     }
