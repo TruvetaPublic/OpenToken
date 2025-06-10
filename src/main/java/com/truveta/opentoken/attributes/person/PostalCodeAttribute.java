@@ -38,8 +38,23 @@ public class PostalCodeAttribute extends BaseAttribute {
         return ALIASES;
     }
 
+    /**
+     * Normalizes a postal code by taking the first 5 characters.
+     * 
+     * This method returns the first 5 characters of the input postal code string,
+     * which corresponds to the standard 5-digit format for US ZIP codes.
+     * If the input value is null or less than 5 characters in length,
+     * the original value is returned unchanged.
+     *
+     * @param value The postal code to normalize
+     * @return The normalized postal code (first 5 digits) or the original value if
+     *         too short
+     */
     @Override
     public String normalize(String value) {
+        if (value == null || value.length() < 5) {
+            return value;
+        }
         return value.substring(0, 5);
     }
 

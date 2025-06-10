@@ -102,6 +102,27 @@ class PostalCodeAttributeTest {
     }
 
     @Test
+    void normalize_ShouldHandleEdgeCases() {
+        // Test short postal codes (less than 5 characters)
+        assertEquals("1234", postalCodeAttribute.normalize("1234"));
+        assertEquals("123", postalCodeAttribute.normalize("123"));
+        assertEquals("12", postalCodeAttribute.normalize("12"));
+        assertEquals("1", postalCodeAttribute.normalize("1"));
+
+        // Test null and empty values
+        assertEquals(null, postalCodeAttribute.normalize(null));
+        assertEquals("", postalCodeAttribute.normalize(""));
+
+        // Test exactly 5 characters
+        assertEquals("12345", postalCodeAttribute.normalize("12345"));
+
+        // Test more than 5 characters
+        assertEquals("12345", postalCodeAttribute.normalize("123456"));
+        assertEquals("12345", postalCodeAttribute.normalize("12345-6789"));
+        assertEquals("12345", postalCodeAttribute.normalize("123456789"));
+    }
+
+    @Test
     void testSerialization() throws Exception {
         // Serialize the attribute
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
