@@ -261,6 +261,7 @@ class PersonAttributesProcessorIntegrationTest {
 
     private String decryptToken(String encryptedToken) throws Exception {
         if (SHA256Tokenizer.EMPTY.equals(encryptedToken)) {
+            // empty tokens don't get encrypted
             return SHA256Tokenizer.EMPTY;
         }
         byte[] messageBytes = Base64.getDecoder().decode(encryptedToken);
