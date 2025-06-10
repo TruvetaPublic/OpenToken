@@ -5,6 +5,8 @@ package com.truveta.opentoken.attributes.person;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.truveta.opentoken.attributes.BaseAttribute;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 
@@ -23,6 +25,7 @@ public class PostalCodeAttribute extends BaseAttribute {
     private static final String NAME = "PostalCode";
     private static final String[] ALIASES = new String[] { NAME, "ZipCode" };
     private static final String POSTAL_CODE_REGEX = "^\\s*\\d{5}(-\\d{4})?\\s*$";
+    private static final String WHITESPACE_REGEX = "\\s+";
 
     public PostalCodeAttribute() {
         super(List.of(new RegexValidator(POSTAL_CODE_REGEX)));
@@ -55,7 +58,8 @@ public class PostalCodeAttribute extends BaseAttribute {
         if (value == null) {
             return value;
         }
-        value = value.trim();
+        value = value.trim().replaceAll(WHITESPACE_REGEX, StringUtils.EMPTY);
+
         if (value.length() < 5) {
             return value; // Return original value if less than 5 characters
         }
