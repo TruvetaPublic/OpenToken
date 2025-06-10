@@ -22,7 +22,7 @@ public class PostalCodeAttribute extends BaseAttribute {
 
     private static final String NAME = "PostalCode";
     private static final String[] ALIASES = new String[] { NAME, "ZipCode" };
-    private static final String POSTAL_CODE_REGEX = "^\\d{5}(-\\d{4})?$";
+    private static final String POSTAL_CODE_REGEX = "^\\s*\\d{5}(-\\d{4})?\\s*$";
 
     public PostalCodeAttribute() {
         super(List.of(new RegexValidator(POSTAL_CODE_REGEX)));
