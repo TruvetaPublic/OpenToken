@@ -3,10 +3,15 @@
  */
 package com.truveta.opentoken.attributes.person;
 
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.truveta.opentoken.attributes.BaseAttribute;
+import com.truveta.opentoken.attributes.utilities.AttributeUtilities;
 import com.truveta.opentoken.attributes.validation.NotInValidator;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 
@@ -29,6 +34,14 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
 
     private static final String NAME = "SocialSecurityNumber";
     private static final String[] ALIASES = new String[] { NAME, "NationalIdentificationNumber" };
+    private static final String DASH = "-";
+    private static final String SSN_FORMAT = "%09d";
+
+    private static final int MIN_SSN_LENGTH = 7;
+    private static final int SSN_LENGTH = 9;
+
+    private static final char DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance(Locale.getDefault())
+            .getDecimalSeparator();
 
     // Accepts SSNs in xxx-xx-xxxx or xxxxxxxxx format. Rejects: area 000/666/9xx,
     // group 00, serial 0000
@@ -72,28 +85,55 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         }
 
         // Remove any whitespace
-        value = value.trim().replaceAll("\\s+", "");
+        value = AttributeUtilities.WHITESPACE.matcher(value.trim()).replaceAll(StringUtils.EMPTY);
 
         // Remove decimal point/separator and all following numbers if present
         // Remove the decimal portion only if it occurs after the 7th digit,
         // as a SSN interpreted as a number would need to be at least 7 digits long
         // (non-zero leading digits)
-        int decimalIndex = value.indexOf('.');
-        if (decimalIndex != -1 && decimalIndex >= 7) {
+        int decimalIndex = value.indexOf(DECIMAL_SEPARATOR);
+        if (decimalIndex != -1 && decimalIndex >= MIN_SSN_LENGTH) {
             value = value.substring(0, decimalIndex);
         }
 
         // Remove any dashes for now
-        value = value.replace("-", "");
+        value = value.replace(DASH, StringUtils.EMPTY);
 
-        // pad with leading zeros if necessary if the length is less than 9
-        // but at least 7
-        if (value.length() > 6 && value.length() < 9) {
-            value = String.format("%09d", Long.parseLong(value));
+        value = padWithZeros(value);
+
+        return formatWithDashes(value);
+    }
+
+    // If SSN is between 7-8 digits, pad with leading zeros to reach 9 digits
+    // Examples:
+    // "1234567" -> "001234567"
+    // "12345678" -> "012345678"
+    private String padWithZeros(String value) {
+        if (value.length() >= MIN_SSN_LENGTH && value.length() < SSN_LENGTH) {
+            value = String.format(SSN_FORMAT, Long.parseLong(value));
         }
+        return value;
+    }
 
-        value = value.substring(0, 3) + "-" + value.substring(3, 5) + "-" + value.substring(5);
-
+    /**
+     * Takes a 9-digit SSN and adds dashes in the right places.
+     * 
+     * Takes: "123456789"
+     * Returns: "123-45-6789"
+     * 
+     * SSN parts:
+     * - First 3 digits: Area number
+     * - Middle 2 digits: Group number
+     * - Last 4 digits: Serial number
+     */
+    private String formatWithDashes(String value) {
+        String areaNumber = value.substring(0, 3);
+        String groupNumber = value.substring(3, 5);
+        String serialNumber = value.substring(5);
+        value = String.join(DASH,
+                areaNumber,
+                groupNumber,
+                serialNumber);
         return value;
     }
 }

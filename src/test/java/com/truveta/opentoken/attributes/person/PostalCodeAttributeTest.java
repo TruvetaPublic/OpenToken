@@ -58,6 +58,22 @@ class PostalCodeAttributeTest {
     }
 
     @Test
+    void normalize_ShouldHandleWhitespace() {
+        PostalCodeAttribute attribute = new PostalCodeAttribute();
+
+        // Test different types of whitespace
+        assertEquals("12345", attribute.normalize("12345"), "No whitespace");
+        assertEquals("12345", attribute.normalize(" 12345"), "Leading space");
+        assertEquals("12345", attribute.normalize("12345 "), "Trailing space");
+        assertEquals("12345", attribute.normalize(" 12345 "), "Leading and trailing spaces");
+        assertEquals("12345", attribute.normalize("1 2 3 4 5"), "Spaces between digits");
+        assertEquals("12345", attribute.normalize("12\t345"), "Tab character");
+        assertEquals("12345", attribute.normalize("12\n345"), "Newline character");
+        assertEquals("12345", attribute.normalize("12\r\n345"), "Carriage return and newline");
+        assertEquals("12345", attribute.normalize("  12   345  "), "Multiple spaces");
+    }
+
+    @Test
     void validate_ShouldReturnFalseForInvalidPostalCodes() {
         assertFalse(postalCodeAttribute.validate(null), "Null value should not be allowed");
         assertFalse(postalCodeAttribute.validate(""), "Empty value should not be allowed");

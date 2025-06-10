@@ -5,7 +5,10 @@ package com.truveta.opentoken.attributes.person;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.truveta.opentoken.attributes.BaseAttribute;
+import com.truveta.opentoken.attributes.utilities.AttributeUtilities;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 
 /**
@@ -55,7 +58,8 @@ public class PostalCodeAttribute extends BaseAttribute {
         if (value == null) {
             return value;
         }
-        value = value.trim();
+        value = value.trim().replaceAll(AttributeUtilities.WHITESPACE.pattern(), StringUtils.EMPTY);
+
         if (value.length() < 5) {
             return value; // Return original value if less than 5 characters
         }
