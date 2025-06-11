@@ -13,7 +13,7 @@
     <url>http://www.truveta.com</url>
 
     <properties>
-        <revision>1.6.4</revision>
+        <revision>1.6.5</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
