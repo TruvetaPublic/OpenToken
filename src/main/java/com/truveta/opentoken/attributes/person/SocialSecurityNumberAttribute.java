@@ -87,17 +87,21 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         // Remove any whitespace
         value = AttributeUtilities.WHITESPACE.matcher(value.trim()).replaceAll(StringUtils.EMPTY);
 
+        // Remove any dashes for now
+        value = value.replace(DASH, StringUtils.EMPTY);
+
         // Remove decimal point/separator and all following numbers if present
         // Remove the decimal portion only if it occurs after the 7th digit,
         // as a SSN interpreted as a number would need to be at least 7 digits long
         // (non-zero leading digits)
         int decimalIndex = value.indexOf(DECIMAL_SEPARATOR);
-        if (decimalIndex != -1 && decimalIndex >= MIN_SSN_LENGTH) {
+        if (decimalIndex != -1) {
             value = value.substring(0, decimalIndex);
         }
 
-        // Remove any dashes for now
-        value = value.replace(DASH, StringUtils.EMPTY);
+        if (value.length() < MIN_SSN_LENGTH || value.length() > SSN_LENGTH) {
+            return value; // Invalid length for SSN
+        }
 
         value = padWithZeros(value);
 
