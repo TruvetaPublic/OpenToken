@@ -23,8 +23,6 @@ public class LastNameAttribute extends BaseAttribute {
 
     private static final String NAME = "LastName";
     private static final String[] ALIASES = new String[] { NAME, "Surname" };
-    private static final Pattern SUFFIX_PATTERN = Pattern
-            .compile("(?i)\\s+(jr\\.?|junior|sr\\.?|senior|I{1,3}|IV|V|VI{0,3}|IX|X|\\d+(st|nd|rd|th))$");
 
     public LastNameAttribute() {
         super(List.of());
@@ -45,7 +43,7 @@ public class LastNameAttribute extends BaseAttribute {
         String normalized = AttributeUtilities.normalizeDiacritics(value);
 
         // remove generational suffix
-        normalized = SUFFIX_PATTERN.matcher(normalized).replaceAll("");
+        normalized = AttributeUtilities.GENERATIONAL_SUFFIX_PATTERN.matcher(normalized).replaceAll("");
 
         // remove dashes, spaces and other non-alphanumeric characters
         normalized = AttributeUtilities.NON_ALPHABETIC_PATTERN.matcher(normalized).replaceAll("");

@@ -55,6 +55,14 @@ public class FirstNameAttribute extends BaseAttribute {
             normalized = withoutTitle;
         }
 
+        String withoutSuffix = AttributeUtilities.GENERATIONAL_SUFFIX_PATTERN.matcher(normalized).replaceAll("");
+
+        // if the generational suffix removal results in an empty string, use the
+        // original value
+        if (!withoutSuffix.isEmpty()) {
+            normalized = withoutSuffix;
+        }
+
         // trim trailing periods
         // remove trailing periods and middle initials
         normalized = TRAILING_PERIOD_AND_INITIAL_PATTERN.matcher(normalized).replaceAll("");

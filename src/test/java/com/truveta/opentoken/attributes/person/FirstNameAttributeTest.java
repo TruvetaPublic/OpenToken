@@ -267,4 +267,138 @@ class FirstNameAttributeTest {
         assertEquals("MrJohn", firstNameAttribute.normalize("Mr.John"));
         assertEquals("Jane", firstNameAttribute.normalize("Dr.  Jane"));
     }
+
+    @Test
+    void normalize_ShouldRemoveGenerationalSuffixes() {
+        // Test various generational suffix formats in first names
+        assertEquals("John", firstNameAttribute.normalize("John Jr."));
+        assertEquals("Jane", firstNameAttribute.normalize("Jane Junior"));
+        assertEquals("Robert", firstNameAttribute.normalize("Robert Sr."));
+        assertEquals("Mary", firstNameAttribute.normalize("Mary Senior"));
+        assertEquals("William", firstNameAttribute.normalize("William II"));
+        assertEquals("Elizabeth", firstNameAttribute.normalize("Elizabeth III"));
+        assertEquals("Charles", firstNameAttribute.normalize("Charles IV"));
+        assertEquals("David", firstNameAttribute.normalize("David V"));
+        assertEquals("Michael", firstNameAttribute.normalize("Michael VI"));
+        assertEquals("Sarah", firstNameAttribute.normalize("Sarah VII"));
+        assertEquals("James", firstNameAttribute.normalize("James VIII"));
+        assertEquals("Anna", firstNameAttribute.normalize("Anna IX"));
+        assertEquals("Thomas", firstNameAttribute.normalize("Thomas X"));
+
+        // Test numeric suffixes
+        assertEquals("Daniel", firstNameAttribute.normalize("Daniel 1st"));
+        assertEquals("Emily", firstNameAttribute.normalize("Emily 2nd"));
+        assertEquals("Andrew", firstNameAttribute.normalize("Andrew 3rd"));
+        assertEquals("Jennifer", firstNameAttribute.normalize("Jennifer 4th"));
+        assertEquals("Christopher", firstNameAttribute.normalize("Christopher 5th"));
+
+        // Test case insensitive matching
+        assertEquals("Matthew", firstNameAttribute.normalize("Matthew jr."));
+        assertEquals("Jessica", firstNameAttribute.normalize("Jessica SENIOR"));
+        assertEquals("Nicholas", firstNameAttribute.normalize("Nicholas ii"));
+        assertEquals("Amanda", firstNameAttribute.normalize("Amanda JR"));
+
+        // Test suffixes without periods
+        assertEquals("Joshua", firstNameAttribute.normalize("Joshua Jr"));
+        assertEquals("Michelle", firstNameAttribute.normalize("Michelle Sr"));
+    }
+
+    @Test
+    void normalize_ShouldHandleTitlesAndGenerationalSuffixesTogether() {
+        // Test combination of titles and generational suffixes
+        assertEquals("John", firstNameAttribute.normalize("Dr. John Jr."));
+        assertEquals("Jane", firstNameAttribute.normalize("Mrs. Jane Sr."));
+        assertEquals("Robert", firstNameAttribute.normalize("Prof. Robert III"));
+        assertEquals("Mary", firstNameAttribute.normalize("Miss Mary II"));
+        assertEquals("William", firstNameAttribute.normalize("Mr. William Senior"));
+        assertEquals("Elizabeth", firstNameAttribute.normalize("Dr. Elizabeth Junior"));
+
+        // Test with accents, titles, and generational suffixes
+        assertEquals("Jose", firstNameAttribute.normalize("Mr. José Jr."));
+        assertEquals("Francois", firstNameAttribute.normalize("Dr. François Sr."));
+        assertEquals("Maria", firstNameAttribute.normalize("Mrs. María III"));
+
+        // Test with middle initials, titles, and suffixes
+        assertEquals("John", firstNameAttribute.normalize("Dr. John A. Jr."));
+        assertEquals("Jane", firstNameAttribute.normalize("Mrs. Jane B Sr."));
+        assertEquals("Robert", firstNameAttribute.normalize("Prof. Robert C III"));
+
+        // Test different orders and combinations
+        assertEquals("Charles", firstNameAttribute.normalize("Sir Charles IV"));
+        assertEquals("David", firstNameAttribute.normalize("Col. David V"));
+        assertEquals("Michael", firstNameAttribute.normalize("Gen. Michael VI"));
+    }
+
+    @Test
+    void normalize_ShouldHandleEdgeCasesWithTitlesAndSuffixes() {
+        // Test when title and suffix removal would result in empty string
+        assertEquals("Jr", firstNameAttribute.normalize("Jr."));
+        assertEquals("Senior", firstNameAttribute.normalize("Senior"));
+        assertEquals("III", firstNameAttribute.normalize("III"));
+        assertEquals("Dr", firstNameAttribute.normalize("Dr."));
+
+        // Test names that look like titles or suffixes but aren't
+        assertEquals("Junior", firstNameAttribute.normalize("Junior")); // As a first name
+        assertEquals("King", firstNameAttribute.normalize("King")); // Not in title pattern
+        assertEquals("Prince", firstNameAttribute.normalize("Prince")); // Not in title pattern
+        assertEquals("Earl", firstNameAttribute.normalize("Earl")); // Not in title pattern
+
+        // Test complex combinations with multiple spaces
+        assertEquals("John", firstNameAttribute.normalize("  Mr.   John   Jr.  "));
+        assertEquals("Jane", firstNameAttribute.normalize("Dr.    Jane    Senior"));
+        assertEquals("Robert", firstNameAttribute.normalize("   Prof. Robert   III   "));
+
+        // Test unusual but valid combinations
+        assertEquals("JohnPaul", firstNameAttribute.normalize("Dr. John-Paul Jr."));
+        assertEquals("MaryEllen", firstNameAttribute.normalize("Mrs. Mary Ellen Sr."));
+        assertEquals("JeanLuc", firstNameAttribute.normalize("Capt. Jean-Luc III"));
+
+        // Test with numbers and special characters mixed in
+        assertEquals("John", firstNameAttribute.normalize("Mr. John123 Jr."));
+        assertEquals("Jane", firstNameAttribute.normalize("Dr. Jane@#$ Sr."));
+        assertEquals("RobertSmith", firstNameAttribute.normalize("Prof. Robert_Smith III"));
+    }
+
+    @Test
+    void normalize_ShouldHandleMultipleTitlesAndSuffixes() {
+        // Test multiple titles (should only remove the first valid one)
+        assertEquals("DrJohn", firstNameAttribute.normalize("Mr. Dr. John"));
+        assertEquals("MrsJane", firstNameAttribute.normalize("Dr. Mrs. Jane"));
+
+        // Test multiple suffixes (should remove all recognized suffixes)
+        assertEquals("JohnJr", firstNameAttribute.normalize("John Jr. Sr.")); // This should remove both
+        assertEquals("JaneIII", firstNameAttribute.normalize("Jane III II")); // This should remove both
+
+        // Test edge case: title that looks like a name
+        assertEquals("Drew", firstNameAttribute.normalize("Drew")); // Drew is not Dr.
+        assertEquals("Missy", firstNameAttribute.normalize("Missy")); // Missy is not Miss
+        assertEquals("Gene", firstNameAttribute.normalize("Gene")); // Gene is not Gen.
+    }
+
+    @Test
+    void normalize_ShouldHandleGenerationalSuffixesWithoutTitles() {
+        // Test standalone generational suffixes in various formats
+        assertEquals("Alexander", firstNameAttribute.normalize("Alexander Jr."));
+        assertEquals("Benjamin", firstNameAttribute.normalize("Benjamin Junior"));
+        assertEquals("Catherine", firstNameAttribute.normalize("Catherine Sr."));
+        assertEquals("Dominic", firstNameAttribute.normalize("Dominic Senior"));
+
+        // Test Roman numerals
+        assertEquals("Edward", firstNameAttribute.normalize("Edward I"));
+        assertEquals("Frederick", firstNameAttribute.normalize("Frederick II"));
+        assertEquals("George", firstNameAttribute.normalize("George III"));
+        assertEquals("Henry", firstNameAttribute.normalize("Henry IV"));
+        assertEquals("Isaac", firstNameAttribute.normalize("Isaac V"));
+
+        // Test ordinal numbers
+        assertEquals("Jonathan", firstNameAttribute.normalize("Jonathan 1st"));
+        assertEquals("Katherine", firstNameAttribute.normalize("Katherine 2nd"));
+        assertEquals("Lawrence", firstNameAttribute.normalize("Lawrence 3rd"));
+        assertEquals("Margaret", firstNameAttribute.normalize("Margaret 4th"));
+
+        // Test with accents and special characters
+        assertEquals("Jose", firstNameAttribute.normalize("José Jr."));
+        assertEquals("Francois", firstNameAttribute.normalize("François Sr."));
+        assertEquals("JeanMarc", firstNameAttribute.normalize("Jean-Marc III"));
+    }
 }
