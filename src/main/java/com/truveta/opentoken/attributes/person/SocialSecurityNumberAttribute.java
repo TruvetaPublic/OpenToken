@@ -75,17 +75,17 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
      * Normalize the social security number value. Remove any dashes and format the
      * value as xxx-xx-xxxx. If not possible return the original but trimmed value.
      * 
-     * @param value the social security number value.
+     * @param originalValue the social security number value.
      */
     @Override
-    public String normalize(String value) {
+    public String normalize(String originalValue) {
 
-        if (value == null || value.isEmpty()) {
-            return value;
+        if (originalValue == null || originalValue.isEmpty()) {
+            return originalValue;
         }
 
         // Remove any whitespace
-        value = AttributeUtilities.WHITESPACE.matcher(value.trim()).replaceAll(StringUtils.EMPTY);
+        String value = AttributeUtilities.WHITESPACE.matcher(originalValue.trim()).replaceAll(StringUtils.EMPTY);
 
         // Remove any dashes for now
         String normalizedValue = value.replace(DASH, StringUtils.EMPTY);
@@ -98,11 +98,11 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
 
         // Check if the string contains only digits
         if (!normalizedValue.matches("\\d+")) {
-            return value; // Return original value if it contains non-numeric characters
+            return originalValue; // Return original value if it contains non-numeric characters
         }
 
         if (normalizedValue.length() < MIN_SSN_LENGTH || normalizedValue.length() > SSN_LENGTH) {
-            return value; // Invalid length for SSN
+            return originalValue; // Invalid length for SSN
         }
 
         normalizedValue = padWithZeros(normalizedValue);

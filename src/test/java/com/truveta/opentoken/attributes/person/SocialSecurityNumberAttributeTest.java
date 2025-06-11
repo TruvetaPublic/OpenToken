@@ -58,7 +58,7 @@ class SocialSecurityNumberAttributeTest {
                 "Should drop decimal point even if exceeds length");
         assertEquals("12345678901", ssnAttribute.normalize("12345678901"),
                 "Should return unchanged for long input without decimal");
-        assertEquals("12345.0", ssnAttribute.normalize("12345.0"), "Should drop decimal point for short input");
+        assertEquals("12345.0", ssnAttribute.normalize("12345.0"), "Should retain decimal point for short input");
         assertEquals("Unknown", ssnAttribute.normalize("Unknown"), "Should return non-numeric input unchanged");
         assertEquals("ABC-12-DEFG", ssnAttribute.normalize("ABC-12-DEFG"), "Should return non-numeric input unchanged");
     }
