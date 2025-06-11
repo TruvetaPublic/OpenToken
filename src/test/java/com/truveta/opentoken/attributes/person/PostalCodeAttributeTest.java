@@ -50,11 +50,11 @@ class PostalCodeAttributeTest {
 
     @Test
     void validate_ShouldReturnTrueForValidPostalCodes() {
-        assertTrue(postalCodeAttribute.validate("12345"));
-        assertTrue(postalCodeAttribute.validate(" 12345"));
-        assertTrue(postalCodeAttribute.validate("12345 "));
-        assertTrue(postalCodeAttribute.validate("12345-6789"));
-        assertTrue(postalCodeAttribute.validate("01234-6789"));
+        assertTrue(postalCodeAttribute.validate("95123 "));
+        assertTrue(postalCodeAttribute.validate(" 95123"));
+        assertTrue(postalCodeAttribute.validate("95123"));
+        assertTrue(postalCodeAttribute.validate("95123-6789"));
+        assertTrue(postalCodeAttribute.validate("65201-6789"));
     }
 
     @Test
@@ -78,6 +78,8 @@ class PostalCodeAttributeTest {
         assertFalse(postalCodeAttribute.validate(null), "Null value should not be allowed");
         assertFalse(postalCodeAttribute.validate(""), "Empty value should not be allowed");
         assertFalse(postalCodeAttribute.validate("1234"), "Short postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("12345"), "Invalid postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("54321"), "Invalid postal code should not be allowed");
         assertFalse(postalCodeAttribute.validate("123456"), "Long postal code should not be allowed");
         assertFalse(postalCodeAttribute.validate("1234-5678"), "Invalid format should not be allowed");
         assertFalse(postalCodeAttribute.validate("abcde"), "Non-numeric should not be allowed");

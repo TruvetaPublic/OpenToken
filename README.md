@@ -8,20 +8,6 @@ Truveta’s approach to person matching relies on building a set of matching tok
 
 Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Truveta uses multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
 
-### Normalized person attributes for token generation
-
-All attribute values get normalized as part of their processing.
-
-| Attribute Name           | Normalized Format                                   |
-| ------------------------ | --------------------------------------------------- |
-| `record-id`              | Any unique string identifier                        |
-| `first-name`             | Any string                                          |
-| `last-name`              | Any string                                          |
-| `postal-code`            | `ddddd` where `d` is a numeric digit (0-9)          |
-| `sex`                    | `Male\|Female`                                      |
-| `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31) |
-| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)      |
-
 ### Sample token generation rules
 
 | Rule ID | Rule Definition                                          |
@@ -32,7 +18,7 @@ All attribute values get normalized as part of their processing.
 | T4      | `social-security-number\|U(sex)\|birth-date`             |
 | T5      | `U(last-name)\|U(first-name-3)\|U(sex)`                  |
 
-> U(X) = uppercase(X)<br>
+> U(X) = uppercase(X)  
 > attribute-N = take first N characters from the `attribute`
 
 ### Rules for token generation
@@ -49,26 +35,50 @@ Given a person with the following attributes:
 
 ```csv
 RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber
-891dda6c-961f-4154-8541-b48fe18ee620,John,Doe,12345,Male,2000-01-01,123-45-6789
+891dda6c-961f-4154-8541-b48fe18ee620,John,Doe,98004,Male,2000-01-01,123-45-6789
 ```
 
-**Note:** No attribute value can be empty to be considered valid.
+**Note:** No attribute value can be blank to be considered valid.
 
 The token generation rules above generate the following token signatures:
 
-| Rule ID | Token Signature               | Token                                                              |
-| ------- | ----------------------------- | ------------------------------------------------------------------ |
-| T1      | `DOE\|J\|MALE\|2000-01-01`    | `9HdbWM4Am2Mz33NOdXLSf1FkiEY/KR6wdgG5SX49yphJW2N2dUfkPve1m8SBbAOC` |
-| T2      | `DOE\|JOHN\|2000-01-01\|123`  | `BOHBswpv2mYmfa/dAQ2zSk5ZN0lj0xh/TE/PXXABCtHsNwG+27OctVYlyo01uoFp` |
-| T3      | `DOE\|JOHN\|MALE\|2000-01-01` | `pcl0aLmeMvzVxPxYoZobgBZwpfCO84dOZLLPa3mXJi52ZWzbw3giTciS5cb9SNOM` |
-| T4      | `123456789\|MALE\|2000-01-01` | `hkz2s466wycwMRAmP31xbKuPEqyd+qpH9GSCrNJXBxWJUDqBEFA59xkKYOfVOnWT` |
-| T5      | `DOE\|JOH\|MALE`              | `6cH6S2gcTZFK+Ds5JRH151TfE6klmjHgj5tM6y3ftNuwQTzuJn6WRh9rMq45+s0F` |
+| Rule ID | Token Signature               | Token                                                                                              |
+| ------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| T1      | `DOE\|J\|MALE\|2000-01-01`    | `Gn7t1Zj16E5Qy+z9iINtczP6fRDYta6C0XFrQtpjnVQSEZ5pQXAzo02Aa9LS9oNMOog6Ssw9GZE6fvJrX2sQ/cThSkB6m91L` |
+| T2      | `DOE\|JOHN\|2000-01-01\|980`  | `pUxPgYL9+cMxkA+8928Pil+9W+dm9kISwHYPdkZS+I2nQ/bQ/8HyL3FOVf3NYPW5NKZZO1OZfsz7LfKYpTlaxyzMLqMF2Wk7` |
+| T3      | `DOE\|JOHN\|MALE\|2000-01-01` | `rwjfwIo5OcJUItTx8KCoSZMtr7tVGSyXsWv/hhCWmD2pBO5JyfmujsosvwYbYeeQ4Vl1Z3eq0cTwzkvfzJVS/EKaRhtjMZz5` |
+| T4      | `123456789\|MALE\|2000-01-01` | `9o7HIYZkhizczFzJL1HFyanlllzSa8hlgQWQ5gHp3Niuo2AvEGcUwtKZXChzHmAa8Jm3183XVoacbL/bFEJyOYYS4EQDppev` |
+| T5      | `DOE\|JOH\|MALE`              | `QpBpGBqaMhagfcHGZhVavn23ko03jkyS9Vo4qe78E4sKw+Zq2CIw4MMWG8VXVwInnsFBVk6NSDUI79wECf5DchV5CXQ9AFqR` |
 
 **Note:** The tokens in the example above have been generated using the hash key `HashingKey` and encryption key `Secret-Encryption-Key-Goes-Here.`
 
 ### Open token data flow
 
 ![open-token-data-flow](./open-token-data-flow.jpg)
+
+### Validation of person attribute values prior to normalization
+
+The person attributes are validated before normalization. The validation rules are as follows:
+
+| Attribute Name         | Validation Rule                                                                                                                                                                                                                                                 |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PostalCode`           | Must be a valid 5 or 9 digit postal code. If 9 digits, it must be in the format `ddddd-dddd`. Cannot start with specific invalid prefixes: `00000`, `11111`, `22222`, `33333`, `55555`, `66666`, `77777`, `88888`, `99999`, `01234`, `12345`, `54321`, `98765`. |
+| `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.             |
+
+### Normalized person attributes for token generation
+
+All attribute values get normalized as part of their processing.
+
+| Attribute Name           | Normalized Format                                   |
+| ------------------------ | --------------------------------------------------- |
+| `record-id`              | Any unique string identifier                        |
+| `first-name`             | Any (see below)string                               |
+| `last-name`              | Any (see below)string                               |
+| `postal-code`            | `ddddd` where `d` is a numeric digit (0-9)          |
+| `sex`                    | `Male\|Female`                                      |
+| `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31) |
+| `social-security-number` | `ddd-dd-dddd` where `d` is a numeric digit (0-9)    |
+
 
 ## Open token overview
 
@@ -113,7 +123,7 @@ java -jar open-token-<version>.jar -i <input-file> -t <input-type> -o <output-fi
 ```
 
 Example:
-`java -jar target/open-token-1.6.2.jar -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
+`java -jar target/open-token-1.6.4.jar -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
 
 #### Via Docker
 
@@ -223,7 +233,7 @@ To use `open-token` in your project, follow these steps:
 <dependency>
     <groupId>com.truveta.opentoken</groupId>
     <artifactId>open-token</artifactId>
-    <version>1.6.2</version>
+    <version>1.6.4</version>
 </dependency>
 ```
 
