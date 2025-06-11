@@ -53,10 +53,9 @@ class SocialSecurityNumberAttributeTest {
 
     @Test
     void normalize_ShouldHandleEdgeCases() {
-        // assertEquals("1234567890", ssnAttribute.normalize("1234567890"), "Should
-        // return unchanged");
-        // assertEquals("12345678901", ssnAttribute.normalize("12345678901.0"),
-        // "Should drop decimal point even if exceeds length");
+        assertEquals("1234567890", ssnAttribute.normalize("1234567890"), "Should return unchanged");
+        assertEquals("12345678901", ssnAttribute.normalize("12345678901.0"),
+                "Should drop decimal point even if exceeds length");
         assertEquals("12345", ssnAttribute.normalize("12345.0"), "Should drop decimal point for short input");
     }
 
