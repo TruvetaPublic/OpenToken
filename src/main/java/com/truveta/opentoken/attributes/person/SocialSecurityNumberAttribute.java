@@ -91,9 +91,6 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         value = value.replace(DASH, StringUtils.EMPTY);
 
         // Remove decimal point/separator and all following numbers if present
-        // Remove the decimal portion only if it occurs after the 7th digit,
-        // as a SSN interpreted as a number would need to be at least 7 digits long
-        // (non-zero leading digits)
         int decimalIndex = value.indexOf(DECIMAL_SEPARATOR);
         if (decimalIndex != -1) {
             value = value.substring(0, decimalIndex);
