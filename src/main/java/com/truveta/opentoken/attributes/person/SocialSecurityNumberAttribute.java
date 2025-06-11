@@ -73,7 +73,7 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
 
     /**
      * Normalize the social security number value. Remove any dashes and format the
-     * value as xxx-xx-xxxx.
+     * value as xxx-xx-xxxx. If not possible return the original but trimmed value.
      * 
      * @param value the social security number value.
      */
@@ -88,32 +88,37 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
         value = AttributeUtilities.WHITESPACE.matcher(value.trim()).replaceAll(StringUtils.EMPTY);
 
         // Remove any dashes for now
-        value = value.replace(DASH, StringUtils.EMPTY);
+        String normalizedValue = value.replace(DASH, StringUtils.EMPTY);
 
         // Remove decimal point/separator and all following numbers if present
-        int decimalIndex = value.indexOf(DECIMAL_SEPARATOR);
+        int decimalIndex = normalizedValue.indexOf(DECIMAL_SEPARATOR);
         if (decimalIndex != -1) {
-            value = value.substring(0, decimalIndex);
+            normalizedValue = normalizedValue.substring(0, decimalIndex);
         }
 
-        if (value.length() < MIN_SSN_LENGTH || value.length() > SSN_LENGTH) {
+        // Check if the string contains only digits
+        if (!normalizedValue.matches("\\d+")) {
+            return value; // Return original value if it contains non-numeric characters
+        }
+
+        if (normalizedValue.length() < MIN_SSN_LENGTH || normalizedValue.length() > SSN_LENGTH) {
             return value; // Invalid length for SSN
         }
 
-        value = padWithZeros(value);
+        normalizedValue = padWithZeros(normalizedValue);
 
-        return formatWithDashes(value);
+        return formatWithDashes(normalizedValue);
     }
 
     // If SSN is between 7-8 digits, pad with leading zeros to reach 9 digits
     // Examples:
     // "1234567" -> "001234567"
     // "12345678" -> "012345678"
-    private String padWithZeros(String value) {
-        if (value.length() >= MIN_SSN_LENGTH && value.length() < SSN_LENGTH) {
-            value = String.format(SSN_FORMAT, Long.parseLong(value));
+    private String padWithZeros(String ssn) {
+        if (ssn.length() >= MIN_SSN_LENGTH && ssn.length() < SSN_LENGTH) {
+            ssn = String.format(SSN_FORMAT, Long.parseLong(ssn));
         }
-        return value;
+        return ssn;
     }
 
     /**
