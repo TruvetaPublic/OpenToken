@@ -119,10 +119,10 @@ class FirstNameAttributeTest {
         assertFalse(firstNameAttribute.validate("UNKNOWN"), "UNKNOWN (uppercase) should not be allowed");
         assertFalse(firstNameAttribute.validate("unknown"), "unknown (lowercase) should not be allowed");
         assertFalse(firstNameAttribute.validate("UnKnOwN"), "UnKnOwN (mixed case) should not be allowed");
-        
+
         assertFalse(firstNameAttribute.validate("SAMPLE"), "SAMPLE (uppercase) should not be allowed");
         assertFalse(firstNameAttribute.validate("sample"), "sample (lowercase) should not be allowed");
-        
+
         assertFalse(firstNameAttribute.validate("MISSING"), "MISSING (uppercase) should not be allowed");
         assertFalse(firstNameAttribute.validate("missing"), "missing (lowercase) should not be allowed");
     }
@@ -140,7 +140,7 @@ class FirstNameAttributeTest {
         assertTrue(firstNameAttribute.validate("Jean-Luc"), "Jean-Luc should be allowed");
     }
 
-    @Test 
+    @Test
     void validate_ShouldReturnTrueForNamesCloseToPlaceholders() {
         // Test names that might be similar to placeholders but are legitimate
         assertTrue(firstNameAttribute.validate("Tester"), "Tester should be allowed (different from Test)");
@@ -439,7 +439,7 @@ class FirstNameAttributeTest {
         assertEquals("DrJohn", firstNameAttribute.normalize("Mr. Dr. John"));
         assertEquals("MrsJane", firstNameAttribute.normalize("Dr. Mrs. Jane"));
 
-        // Test multiple suffixes (should remove all recognized suffixes)
+        // Test multiple suffixes (should remove only first recognized suffix)
         assertEquals("JohnJr", firstNameAttribute.normalize("John Jr. Sr.")); // This should remove both
         assertEquals("JaneIII", firstNameAttribute.normalize("Jane III II")); // This should remove both
 
