@@ -76,6 +76,80 @@ class FirstNameAttributeTest {
     }
 
     @Test
+    void validate_ShouldReturnFalseForBasicPlaceholderValues() {
+        // Test basic placeholder values
+        assertFalse(firstNameAttribute.validate("Unknown"), "Unknown should not be allowed");
+        assertFalse(firstNameAttribute.validate("N/A"), "N/A should not be allowed");
+        assertFalse(firstNameAttribute.validate("None"), "None should not be allowed");
+        assertFalse(firstNameAttribute.validate("Test"), "Test should not be allowed");
+        assertFalse(firstNameAttribute.validate("Sample"), "Sample should not be allowed");
+        assertFalse(firstNameAttribute.validate("Anonymous"), "Anonymous should not be allowed");
+    }
+
+    @Test
+    void validate_ShouldReturnFalseForMedicalPlaceholderValues() {
+        // Test medical/healthcare specific placeholders
+        assertFalse(firstNameAttribute.validate("Donor"), "Donor should not be allowed");
+        assertFalse(firstNameAttribute.validate("Patient"), "Patient should not be allowed");
+        assertFalse(firstNameAttribute.validate("patient not found"), "patient not found should not be allowed");
+        assertFalse(firstNameAttribute.validate("patientnotfound"), "patientnotfound should not be allowed");
+        assertFalse(firstNameAttribute.validate("<masked>"), "<masked> should not be allowed");
+    }
+
+    @Test
+    void validate_ShouldReturnFalseForTestingPlaceholderValues() {
+        // Test automation/testing specific placeholders
+        assertFalse(firstNameAttribute.validate("Automation Test"), "Automation Test should not be allowed");
+        assertFalse(firstNameAttribute.validate("Automationtest"), "Automationtest should not be allowed");
+        assertFalse(firstNameAttribute.validate("zzztrash"), "zzztrash should not be allowed");
+    }
+
+    @Test
+    void validate_ShouldReturnFalseForDataAvailabilityPlaceholders() {
+        // Test data availability placeholders
+        assertFalse(firstNameAttribute.validate("Missing"), "Missing should not be allowed");
+        assertFalse(firstNameAttribute.validate("Unavailable"), "Unavailable should not be allowed");
+        assertFalse(firstNameAttribute.validate("Not Available"), "Not Available should not be allowed");
+        assertFalse(firstNameAttribute.validate("NotAvailable"), "NotAvailable should not be allowed");
+    }
+
+    @Test
+    void validate_ShouldReturnFalseForCaseInsensitivePlaceholders() {
+        // Test case insensitivity (NotInValidator uses equalsIgnoreCase)
+        assertFalse(firstNameAttribute.validate("UNKNOWN"), "UNKNOWN (uppercase) should not be allowed");
+        assertFalse(firstNameAttribute.validate("unknown"), "unknown (lowercase) should not be allowed");
+        assertFalse(firstNameAttribute.validate("UnKnOwN"), "UnKnOwN (mixed case) should not be allowed");
+        
+        assertFalse(firstNameAttribute.validate("SAMPLE"), "SAMPLE (uppercase) should not be allowed");
+        assertFalse(firstNameAttribute.validate("sample"), "sample (lowercase) should not be allowed");
+        
+        assertFalse(firstNameAttribute.validate("MISSING"), "MISSING (uppercase) should not be allowed");
+        assertFalse(firstNameAttribute.validate("missing"), "missing (lowercase) should not be allowed");
+    }
+
+    @Test
+    void validate_ShouldReturnTrueForValidNames() {
+        // Test that legitimate names are still allowed
+        assertTrue(firstNameAttribute.validate("John"), "John should be allowed");
+        assertTrue(firstNameAttribute.validate("Jane"), "Jane should be allowed");
+        assertTrue(firstNameAttribute.validate("Michael"), "Michael should be allowed");
+        assertTrue(firstNameAttribute.validate("Sarah"), "Sarah should be allowed");
+        assertTrue(firstNameAttribute.validate("José"), "José should be allowed");
+        assertTrue(firstNameAttribute.validate("François"), "François should be allowed");
+        assertTrue(firstNameAttribute.validate("Mary-Jane"), "Mary-Jane should be allowed");
+        assertTrue(firstNameAttribute.validate("Jean-Luc"), "Jean-Luc should be allowed");
+    }
+
+    @Test 
+    void validate_ShouldReturnTrueForNamesCloseToPlaceholders() {
+        // Test names that might be similar to placeholders but are legitimate
+        assertTrue(firstNameAttribute.validate("Tester"), "Tester should be allowed (different from Test)");
+        assertTrue(firstNameAttribute.validate("Samples"), "Samples should be allowed (different from Sample)");
+        assertTrue(firstNameAttribute.validate("Patrice"), "Patrice should be allowed (different from Patient)");
+        assertTrue(firstNameAttribute.validate("Ana"), "Ana should be allowed (different from Anonymous)");
+    }
+
+    @Test
     void normalize_ThreadSafety() throws InterruptedException {
         final int threadCount = 100;
         final CountDownLatch startLatch = new CountDownLatch(1);
