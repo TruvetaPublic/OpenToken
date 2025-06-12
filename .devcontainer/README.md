@@ -24,6 +24,27 @@ You can find more information using these resources:
 
 **Note 3:** The first time you run this it will take a few minutes to build the container.
 
+### Zscaler SSL Inspection Support
+
+If your organization uses Zscaler for SSL inspection, you'll need to configure the development container to trust Zscaler's root certificate:
+
+1. **Export the Zscaler certificate from your system:**
+
+   - **For macOS, Git Bash or WSL users:**
+     ```bash
+     ./.devcontainer/scripts/export_host_zscaler_cert.sh
+     ```
+
+   - **For Windows PowerShell users:**
+     ```powershell
+     .\.devcontainer\scripts\Export-ZscalerCert.ps1
+     ```
+
+2. **Build or rebuild the container:**
+   The container will automatically detect and use the exported certificate.
+
+For more details, see [Zscaler Certificate Management](./scripts/README.md).
+
 ### Keeping it relevant
 
 If you end up needing additional tools, extensions or settings, please add them to the `.devcontainer/devcontainer.json` file. This will ensure that everyone has the same environment with everything needed.

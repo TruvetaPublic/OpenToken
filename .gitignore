@@ -41,5 +41,5 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-.devcontainer
 .DS_Store
+.devcontainer/scripts/zscaler_root.pem
