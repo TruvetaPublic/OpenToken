@@ -8,9 +8,11 @@
         "vscjava.vscode-java-pack",
         "DotJoshJohnson.xml",
         "yzhang.markdown-all-in-one",
-        "AdamViola.parquet-explorer",
         "SonarSource.sonarlint-vscode",
+        "AdamViola.parquet-explorer",
         "GitHub.vscode-pull-request-github",
-        "shengchen.vscode-checkstyle"
+        "shengchen.vscode-checkstyle",
+        "GitHub.vscode-github-actions",
+        "GitHub.copilot-chat"
     ]
 }

@@ -42,4 +42,8 @@ buildNumber.properties
 .classpath
 
 .DS_Store
+# Ignore potential Zscaler root certificate
 .devcontainer/scripts/zscaler_root.pem
+# Ignore DER files generated during conversion
+.devcontainer/scripts/zscaler_root.pem.der
+core

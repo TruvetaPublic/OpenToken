@@ -38,7 +38,7 @@ check_domain_for_zscaler() {
     echo "===> Checking domain: $domain"
 
     # Get certificate chain
-    cert_output=$(echo "" | openssl s_client -showcerts -connect ${domain}:443 2>/dev/null)
+    cert_output=$(echo "" | openssl s_client -showcerts -connect ${domain}:443 -timeout 5 2>/dev/null)
     if [ $? -ne 0 ]; then
         echo "===> Failed to connect to $domain"
         return 1
