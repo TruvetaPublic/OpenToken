@@ -16,7 +16,7 @@ You can find more information using these resources:
 1. Open the project in VS Code.
 1. Click on the green or blue `><` in the bottom left corner.
 1. Select `Reopen in Container`.
-1. Alternatively, ff you don't see the green or blue `><` you can open the command palette and search for `Dev Containers: Reopen in Container`.
+1. Alternatively, if you don't see the green or blue `><` you can open the command palette and search for `Dev Containers: Reopen in Container`.
 
 **Note 1:** VS Code should automatically detect that the project is a Dev Container and offer you to install the Dev Container Extension. If it doesn't, you can manually install it from the marketplace: `ms-vscode-remote.remote-containers`
 
