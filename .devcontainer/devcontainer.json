@@ -20,6 +20,7 @@
             "installGradle": "false"
         },
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/devcontainers/features/git-lfs:1": {},
         "ghcr.io/devcontainers/features/node:1": {}
     },
     "customizations": {
@@ -39,7 +40,10 @@
                 "shengchen.vscode-checkstyle",
                 "GitHub.vscode-github-actions",
                 "GitHub.copilot-chat"
-            ]
+            ],
+            "settings": {
+                "sonarlint.ls.javaHome": "/usr/local/sdkman/candidates/java/17.0.14-ms"
+            }
         }
     },
     "mounts": [],
