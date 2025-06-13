@@ -55,43 +55,24 @@ export_cert_windows() {
   if command -v powershell.exe &> /dev/null; then
     echo "Using PowerShell to export certificate..."
     
-    # Use PowerShell to find and export the certificate
-    powershell.exe -Command "
-      \$cert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object {\$_.Subject -match 'CN=$CERT_NAME'} | Select-Object -First 1
-      if (\$cert) {
-        \$certBytes = \$cert.Export('Cert')
-        [System.IO.File]::WriteAllBytes('$OUTPUT_FILE', \$certBytes)
-        Write-Host 'Certificate found and exported.'
-        exit 0
-      } else {
-        Write-Host 'Certificate not found in the Root store.'
-        # Try the CurrentUser store as well
-        \$cert = Get-ChildItem -Path Cert:\CurrentUser\Root | Where-Object {\$_.Subject -match 'CN=$CERT_NAME'} | Select-Object -First 1
-        if (\$cert) {
-          \$certBytes = \$cert.Export('Cert')
-          [System.IO.File]::WriteAllBytes('$OUTPUT_FILE', \$certBytes)
-          Write-Host 'Certificate found in CurrentUser store and exported.'
-          exit 0
-        } else {
-          Write-Host 'Certificate not found in CurrentUser store either.'
-          exit 1
-        }
-      }
-    "
+    # Call the PowerShell script to export the certificate
+    PS1_SCRIPT="$OUTPUT_DIR/Export-ZscalerCert.ps1"
     
-    if [ $? -eq 0 ] && [ -s "$OUTPUT_FILE" ]; then
-      echo "Certificate successfully exported to $OUTPUT_FILE"
-      # Convert DER format to PEM if needed
-      if ! grep -q "BEGIN CERTIFICATE" "$OUTPUT_FILE"; then
-        echo "Converting certificate from DER to PEM format..."
-        DER_FILE="${OUTPUT_FILE}.der"
-        mv "$OUTPUT_FILE" "$DER_FILE"
-        openssl x509 -inform DER -in "$DER_FILE" -out "$OUTPUT_FILE"
-        rm "$DER_FILE"
+    # Check if the PS1 script exists
+    if [ -f "$PS1_SCRIPT" ]; then
+      echo "Found PowerShell script: $PS1_SCRIPT"
+      powershell.exe -ExecutionPolicy Bypass -File "$PS1_SCRIPT"
+      
+      if [ $? -eq 0 ] && [ -s "$OUTPUT_FILE" ]; then
+        echo "Certificate successfully exported to $OUTPUT_FILE"
+        # No need for DER to PEM conversion as the PS1 script already outputs in PEM format
+        return 0
+      else
+        echo "Failed to export certificate or export was empty."
+        return 1
       fi
-      return 0
     else
-      echo "Failed to export certificate or export was empty."
+      echo "PowerShell script not found: $PS1_SCRIPT"
       return 1
     fi
   else
