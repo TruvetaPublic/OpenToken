@@ -11,8 +11,8 @@
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
     "workbench.colorCustomizations": {
-        "titleBar.activeBackground": "#00c3b4", // A fresh green color for the active background
-        "titleBar.inactiveBackground": "#00c3b4" // Replace with your desired inactive background color
+        "titleBar.activeBackground": "#00c3b4",
+        "titleBar.inactiveBackground": "#00c3b4"
     },
     "files.trimFinalNewlines": true,
     "files.eol": "\n"
