@@ -43,3 +43,5 @@ buildNumber.properties
 
 .devcontainer
 .DS_Store
+src/main/java/com/truveta/opentoken/attributes/person/LastNameAttribute.java
+core
