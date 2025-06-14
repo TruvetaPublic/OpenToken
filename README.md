@@ -18,7 +18,7 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 | T4      | `social-security-number\|U(sex)\|birth-date`             |
 | T5      | `U(last-name)\|U(first-name-3)\|U(sex)`                  |
 
-> U(X) = uppercase(X)  
+> U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
 
 ### Rules for token generation
@@ -38,7 +38,7 @@ RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber
 891dda6c-961f-4154-8541-b48fe18ee620,John,Doe,98004,Male,2000-01-01,123-45-6789
 ```
 
-**Note:** No attribute value can be blank to be considered valid.
+**Note:** No attribute value can be empty to be considered valid.
 
 The token generation rules above generate the following token signatures:
 
@@ -62,23 +62,40 @@ The person attributes are validated before normalization. The validation rules a
 
 | Attribute Name         | Validation Rule                                                                                                                                                                                                                                                 |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FirstName`            | Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                        |
+| `LastName`             | Must be at least 2 characters long. For 2-character names, must contain at least one vowel or be "Ng". Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty. |
+| `BirthDate`            | Must be after January 1, 1910. Cannot be in the future (after today's date). Must be in a valid date format.                                                                                                                                                 |
 | `PostalCode`           | Must be a valid 5 or 9 digit postal code. If 9 digits, it must be in the format `ddddd-dddd`. Cannot start with specific invalid prefixes: `00000`, `11111`, `22222`, `33333`, `55555`, `66666`, `77777`, `88888`, `99999`, `01234`, `12345`, `54321`, `98765`. |
 | `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.             |
 
 ### Normalized person attributes for token generation
 
-All attribute values get normalized as part of their processing.
+All attribute values get normalized as part of their processing. The normalization process includes:
+
+**First Name normalization:**
+
+- Removes titles (e.g., "Dr. John" → "John")
+- Removes middle initials (e.g., "John J" → "John")
+- Removes trailing periods (e.g., "John J." → "John")
+- Removes generational suffixes (e.g., "Henry IV" → "Henry")
+- Removes non-alphabetic characters (e.g., "Anne-Marie" → "AnneMarie")
+- Normalizes diacritics (e.g., "José" → "Jose")
+
+**Last Name normalization:**
+
+- Removes generational suffixes (e.g., "Warner IV" → "Warner")
+- Removes non-alphabetic characters (e.g., "O'Keefe" → "OKeefe")
+- Normalizes diacritics (e.g., "García" → "Garcia")
 
 | Attribute Name           | Normalized Format                                   |
 | ------------------------ | --------------------------------------------------- |
 | `record-id`              | Any unique string identifier                        |
-| `first-name`             | Any (see below)string                               |
-| `last-name`              | Any (see below)string                               |
+| `first-name`             | Any string (after normalization as described above) |
+| `last-name`              | Any string (after normalization as described above) |
 | `postal-code`            | `ddddd` where `d` is a numeric digit (0-9)          |
 | `sex`                    | `Male\|Female`                                      |
 | `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31) |
-| `social-security-number` | `ddd-dd-dddd` where `d` is a numeric digit (0-9)    |
-
+| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)      |
 
 ## Open token overview
 
