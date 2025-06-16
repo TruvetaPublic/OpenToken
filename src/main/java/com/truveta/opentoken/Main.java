@@ -21,6 +21,7 @@ import com.truveta.opentoken.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
 
+// test commit
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
