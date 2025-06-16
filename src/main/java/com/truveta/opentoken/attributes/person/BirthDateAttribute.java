@@ -14,6 +14,7 @@ import java.util.Locale;
 import org.apache.commons.lang3.time.DateUtils;
 
 import com.truveta.opentoken.attributes.BaseAttribute;
+import com.truveta.opentoken.attributes.validation.BirthDateRangeValidator;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 
 /**
@@ -51,7 +52,8 @@ public class BirthDateAttribute extends BaseAttribute {
 
     public BirthDateAttribute() {
         super(List.of(
-                new RegexValidator(BIRTHDATE_REGEX)));
+                new RegexValidator(BIRTHDATE_REGEX),
+                new BirthDateRangeValidator()));
     }
 
     @Override
@@ -72,6 +74,8 @@ public class BirthDateAttribute extends BaseAttribute {
 
             // Convert Date to LocalDate and format using thread-safe DateTimeFormatter
             LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            // Format the LocalDate to the normalized format
             return NORMALIZED_DATE_FORMATTER.format(localDate);
         } catch (ParseException e) {
             throw new IllegalArgumentException("Invalid date format: " + value);

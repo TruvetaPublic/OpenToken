@@ -26,11 +26,17 @@ public final class NotInValidator implements SerializableAttributeValidator {
     private Set<String> invalidValues;
 
     /**
-     * Validates that the attribute value is not in the list of invalid values.
+     * Validates that the attribute value is not in the list of invalid values
+     * independent of case.
      */
     @Override
     public boolean eval(String value) {
-        return value != null && !invalidValues.contains(value);
+        if (value == null) {
+            return false;
+        }
+
+        return invalidValues.stream()
+                .noneMatch(invalidValue -> invalidValue.equalsIgnoreCase(value));
     }
 
 }

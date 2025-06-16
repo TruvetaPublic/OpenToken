@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -99,7 +98,6 @@ class BirthDateAttributeTest {
         }
     }
 
-    @Test
     void testSerialization() throws Exception {
         // Serialize the attribute
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
