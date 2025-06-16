@@ -17,9 +17,12 @@ import org.apache.parquet.schema.MessageTypeParser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.truveta.opentoken.io.PersonAttributesWriter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.nio.file.Files;
 
 /**
  * The PersonAttributeParquetWriter class is responsible for writing person
@@ -33,6 +36,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private final Configuration conf;
     private boolean initialized = false;
     private final Map<String, String> metadata = new HashMap<>();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Initialize the class with the output file in Parquet format.
@@ -82,7 +86,6 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
         this.schema = MessageTypeParser.parseMessageType(schemaBuilder.toString());
         GroupWriteSupport.setSchema(schema, conf);
-        metadata.forEach((key, value) -> conf.set("parquet.metadata." + key, value));
         Path path = new Path(filepath);
 
         writer = ExampleParquetWriter.builder(path)
@@ -102,5 +105,11 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
         metadata.put("total_rows", String.valueOf(rowCount));
         metadata.put("total_rows_with_invalid_attributes", String.valueOf(invalidAttributeCount));
         metadata.put("invalid_attributes_by_type", invalidAttributesByType.toString());
+        
+        Files.write(
+            Paths.get(filepath + ".metadata.json"),
+            objectMapper.writeValueAsBytes(metadata)
+            );
+        
     }
 }
