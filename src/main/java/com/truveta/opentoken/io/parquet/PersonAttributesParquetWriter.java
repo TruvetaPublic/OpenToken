@@ -15,8 +15,10 @@ import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,6 +32,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private final String filepath;
     private final Configuration conf;
     private boolean initialized = false;
+    private final Map<String, String> metadata = new HashMap<>();
 
     /**
      * Initialize the class with the output file in Parquet format.
@@ -79,6 +82,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
         this.schema = MessageTypeParser.parseMessageType(schemaBuilder.toString());
         GroupWriteSupport.setSchema(schema, conf);
+        metadata.forEach((key, value) -> conf.set("parquet.metadata." + key, value));
         Path path = new Path(filepath);
 
         writer = ExampleParquetWriter.builder(path)
@@ -89,5 +93,14 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
                 .build();
 
         initialized = true;
+    }
+
+    @Override
+    public void setMetadataFields(int rowCount, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException, JsonProcessingException{
+        metadata.put("java_version", System.getProperty("java.version"));
+        metadata.put("library_revision", "1.0.0");
+        metadata.put("total_rows", String.valueOf(rowCount));
+        metadata.put("total_rows_with_invalid_attributes", String.valueOf(invalidAttributeCount));
+        metadata.put("invalid_attributes_by_type", invalidAttributesByType.toString());
     }
 }

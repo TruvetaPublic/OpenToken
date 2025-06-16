@@ -6,12 +6,15 @@ package com.truveta.opentoken.io.csv;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 
 /**
@@ -25,6 +28,8 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     private final BufferedWriter fileWriter;
     private final CSVPrinter csvPrinter;
     private boolean headerWritten = false;
+    private final Map<String, Object> metadata = new HashMap<>();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Initialize the class with the output file in CSV format.
@@ -35,6 +40,10 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     public PersonAttributesCSVWriter(String filePath) throws IOException {
         fileWriter = new BufferedWriter(new FileWriter(filePath));
         csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+
+        metadata.put("java_version", System.getProperty("java.version"));
+        metadata.put("library_revision", "1.0.0");
+        metadata.put("output_format", "CSV");
     }
 
     @Override
@@ -60,4 +69,12 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
         this.fileWriter.close();
     }
 
+    @Override
+    public void setMetadataFields(int totalRows, Long invalidAttributeCount,
+            Map<String, Long> invalidAttributesByType) throws IOException {
+        metadata.put("total_rows", totalRows);
+        metadata.put("total_rows_with_invalid_attributes", invalidAttributeCount);
+        metadata.put("invalid_attributes_by_type", new HashMap<>(invalidAttributesByType));
+        fileWriter.write("# " + objectMapper.writeValueAsString(metadata) + "\n");
+    }
 }

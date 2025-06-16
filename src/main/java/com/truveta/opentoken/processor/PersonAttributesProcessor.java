@@ -57,7 +57,7 @@ public final class PersonAttributesProcessor {
      * @see com.truveta.opentoken.tokentransformer.TokenTransformer TokenTransformer
      */
     public static void process(PersonAttributesReader reader, PersonAttributesWriter writer,
-            List<TokenTransformer> tokenTransformerList) {
+            List<TokenTransformer> tokenTransformerList) throws IOException {
 
         // TokenGenerator code
         TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
@@ -92,6 +92,7 @@ public final class PersonAttributesProcessor {
                         .info(String.format("Total invalid Attribute count for [%s]: %,d", key, value)));
         long rowIssueCounter = invalidAttributeCount.values().stream()
                 .collect(Collectors.summarizingLong(Long::longValue)).getSum();
+        writer.setMetadataFields(rowCounter, rowIssueCounter, invalidAttributeCount);
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
     }
 

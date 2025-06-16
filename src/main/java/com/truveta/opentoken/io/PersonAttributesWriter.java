@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public interface PersonAttributesWriter extends AutoCloseable {
 
-    /**
+    /** 
      * Writes the provided person attributes to a an output target.
      * <p>
      * Example person attribute map:
@@ -28,4 +28,6 @@ public interface PersonAttributesWriter extends AutoCloseable {
      *                             data source.
      */
     void writeAttributes(Map<String, String> data) throws IOException;
+
+    void setMetadataFields(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAtrributesByType) throws IOException;
 }
