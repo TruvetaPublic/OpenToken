@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public interface PersonAttributesWriter extends AutoCloseable {
 
-    /** 
+    /**
      * Writes the provided person attributes to a an output target.
      * <p>
      * Example person attribute map:
