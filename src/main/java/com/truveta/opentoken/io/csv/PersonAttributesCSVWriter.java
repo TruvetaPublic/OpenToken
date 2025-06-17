@@ -6,6 +6,8 @@ package com.truveta.opentoken.io.csv;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
@@ -26,6 +28,7 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
 
     private final BufferedWriter fileWriter;
     private final CSVPrinter csvPrinter;
+    private final String filePath;
     private boolean headerWritten = false;
     private final Map<String, Object> metadata = new HashMap<>();
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -37,12 +40,9 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
      * @throws IOException if an I/O error occurs
      */
     public PersonAttributesCSVWriter(String filePath) throws IOException {
+        this.filePath = filePath;
         fileWriter = new BufferedWriter(new FileWriter(filePath));
         csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
-
-        metadata.put("java_version", System.getProperty("java.version"));
-        metadata.put("library_revision", "1.0.0");
-        metadata.put("output_format", "CSV");
     }
 
     @Override
@@ -71,9 +71,17 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     @Override
     public void setMetadataFields(int totalRows, Long invalidAttributeCount,
             Map<String, Long> invalidAttributesByType) throws IOException {
+        metadata.put("java_version", System.getProperty("java.version"));
+        metadata.put("library_revision", "1.0.0");
+        metadata.put("output_format", "CSV");
         metadata.put("total_rows", totalRows);
         metadata.put("total_rows_with_invalid_attributes", invalidAttributeCount);
         metadata.put("invalid_attributes_by_type", new HashMap<>(invalidAttributesByType));
         fileWriter.write("# " + objectMapper.writeValueAsString(metadata) + "\n");
+
+        Files.write(
+            Paths.get(filePath + ".metadata.json"),
+            objectMapper.writeValueAsBytes(metadata)
+            );
     }
 }

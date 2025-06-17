@@ -15,7 +15,6 @@ import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -99,9 +98,10 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     }
 
     @Override
-    public void setMetadataFields(int rowCount, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException, JsonProcessingException{
+    public void setMetadataFields(int rowCount, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
         metadata.put("java_version", System.getProperty("java.version"));
         metadata.put("library_revision", "1.0.0");
+        metadata.put("output_format", "Parquet");
         metadata.put("total_rows", String.valueOf(rowCount));
         metadata.put("total_rows_with_invalid_attributes", String.valueOf(invalidAttributeCount));
         metadata.put("invalid_attributes_by_type", invalidAttributesByType.toString());
