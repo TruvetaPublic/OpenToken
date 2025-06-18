@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.truveta.opentoken.io.PersonAttributesMetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 
 /**
@@ -30,8 +31,8 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     private final CSVPrinter csvPrinter;
     private final String filePath;
     private boolean headerWritten = false;
-    private final Map<String, Object> metadata = new HashMap<>();
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private PersonAttributesMetadataWriter personAttributesMetadataWriter;
 
     /**
      * Initialize the class with the output file in CSV format.
@@ -70,18 +71,11 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
 
     @Override
     public void setMetadataFields(int totalRows, Long invalidAttributeCount,
-            Map<String, Long> invalidAttributesByType) throws IOException {
-        metadata.put("java_version", System.getProperty("java.version"));
-        metadata.put("library_revision", "1.0.0");
-        metadata.put("output_format", "CSV");
-        metadata.put("total_rows", totalRows);
-        metadata.put("total_rows_with_invalid_attributes", invalidAttributeCount);
-        metadata.put("invalid_attributes_by_type", new HashMap<>(invalidAttributesByType));
-        fileWriter.write("# " + objectMapper.writeValueAsString(metadata) + "\n");
-
-        Files.write(
-            Paths.get(filePath + ".metadata.json"),
-            objectMapper.writeValueAsBytes(metadata)
-            );
+                              Map<String, Long> invalidAttributesByType) throws IOException {
+        Map<String, Object> metadata = PersonAttributesMetadataWriter.buildMetadata(
+            "CSV", totalRows, invalidAttributeCount, invalidAttributesByType
+        );
+        fileWriter.write("# " + PersonAttributesMetadataWriter.toJson(metadata) + "\n");
+        PersonAttributesMetadataWriter.writeToFile(filePath, metadata);
     }
 }

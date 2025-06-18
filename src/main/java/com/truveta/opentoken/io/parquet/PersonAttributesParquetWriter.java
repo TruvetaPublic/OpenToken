@@ -15,13 +15,12 @@ import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 
+import com.truveta.opentoken.io.PersonAttributesMetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.nio.file.Files;
 
 /**
  * The PersonAttributeParquetWriter class is responsible for writing person
@@ -31,11 +30,10 @@ import java.nio.file.Files;
 public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private ParquetWriter<Group> writer;
     private MessageType schema;
-    private final String filepath;
+    private String filePath;
     private final Configuration conf;
     private boolean initialized = false;
-    private final Map<String, String> metadata = new HashMap<>();
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private PersonAttributesMetadataWriter metadataWriter;
 
     /**
      * Initialize the class with the output file in Parquet format.
@@ -44,7 +42,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
      * @throws IOException if an I/O error occurs
      */
     public PersonAttributesParquetWriter(String filepath) throws IOException {
-        this.filepath = filepath;
+        this.filePath = filepath;
         this.conf = new Configuration();
     }
 
@@ -85,7 +83,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
         this.schema = MessageTypeParser.parseMessageType(schemaBuilder.toString());
         GroupWriteSupport.setSchema(schema, conf);
-        Path path = new Path(filepath);
+        Path path = new Path(filePath);
 
         writer = ExampleParquetWriter.builder(path)
                 .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
@@ -99,17 +97,9 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
     @Override
     public void setMetadataFields(int rowCount, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
-        metadata.put("java_version", System.getProperty("java.version"));
-        metadata.put("library_revision", "1.0.0");
-        metadata.put("output_format", "Parquet");
-        metadata.put("total_rows", String.valueOf(rowCount));
-        metadata.put("total_rows_with_invalid_attributes", String.valueOf(invalidAttributeCount));
-        metadata.put("invalid_attributes_by_type", invalidAttributesByType.toString());
-        
-        Files.write(
-            Paths.get(filepath + ".metadata.json"),
-            objectMapper.writeValueAsBytes(metadata)
-            );
-        
+        Map<String, Object> metadata = PersonAttributesMetadataWriter.buildMetadata(
+            "Parquet", rowCount, invalidAttributeCount, invalidAttributesByType
+        );
+        PersonAttributesMetadataWriter.writeToFile(filePath, metadata);
     }
 }
