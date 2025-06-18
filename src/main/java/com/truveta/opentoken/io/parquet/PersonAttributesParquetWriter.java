@@ -15,7 +15,8 @@ import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 
-import com.truveta.opentoken.io.PersonAttributesMetadataWriter;
+import com.truveta.opentoken.io.Const;
+import com.truveta.opentoken.io.OutputMetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import java.io.IOException;
 import java.util.Map;
@@ -94,8 +95,8 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
     @Override
     public void setMetadataFields(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
-        PersonAttributesMetadataWriter personAttributesMetadataWriter = new PersonAttributesMetadataWriter(
-            "Parquet", totalRows, invalidAttributeCount, invalidAttributesByType
+        OutputMetadataWriter personAttributesMetadataWriter = new OutputMetadataWriter(
+            Const.outputFormatParquet, totalRows, invalidAttributeCount, invalidAttributesByType
         );
         personAttributesMetadataWriter.writeToFile(filePath);
     }

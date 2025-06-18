@@ -17,23 +17,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * The PersonAttributesMetadataWriter class is responsible for writing metadata for output file
  * such as Java version, OpenToken version, output format, total rows, and invalid attributes..
  */
-public class PersonAttributesMetadataWriter {
+public class OutputMetadataWriter {
 
     Map<String, Object> metadata = new LinkedHashMap<>();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PersonAttributesMetadataWriter(String outputFormat, int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) {
-        metadata.put("java_version", System.getProperty("java.version"));
-        metadata.put("opentoken_version", "1.0.0");
-        metadata.put("output_format", outputFormat);
-        metadata.put("total_rows", totalRows);
-        metadata.put("total_rows_with_invalid_attributes", invalidAttributeCount);
-        metadata.put("invalid_attributes_by_type", new HashMap<>(invalidAttributesByType));
+    public OutputMetadataWriter(String outputFormat, int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) {
+        metadata.put(Const.javaVersion, System.getProperty("java.version"));
+        metadata.put(Const.openTokenVersion, Const.systemJavaVersion);
+        metadata.put(Const.outputFormat, outputFormat);
+        metadata.put(Const.totalRows, totalRows);
+        metadata.put(Const.totalRowsWithInvalidAttributes, invalidAttributeCount);
+        metadata.put(Const.invalidAttributesByType, new HashMap<>(invalidAttributesByType));
     }
 
     public void writeToFile(String baseFilePath) throws IOException {
         Files.write(
-                Paths.get(baseFilePath + ".metadata.json"),
+                Paths.get(baseFilePath + Const.metadataFileExtension),
                 objectMapper.writeValueAsBytes(metadata)
         );
     }
