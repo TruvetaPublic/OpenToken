@@ -13,6 +13,10 @@ import java.util.Map;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * The PersonAttributesMetadataWriter class is responsible for writing metadata for output file
+ * such as Java version, OpenToken version, output format, total rows, and invalid attributes..
+ */
 public class PersonAttributesMetadataWriter {
 
     Map<String, Object> metadata = new LinkedHashMap<>();

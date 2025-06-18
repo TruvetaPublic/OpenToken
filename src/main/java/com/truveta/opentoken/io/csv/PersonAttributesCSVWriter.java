@@ -6,16 +6,12 @@ package com.truveta.opentoken.io.csv;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truveta.opentoken.io.PersonAttributesMetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 
@@ -31,7 +27,6 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     private final CSVPrinter csvPrinter;
     private final String filePath;
     private boolean headerWritten = false;
-    private PersonAttributesMetadataWriter personAttributesMetadataWriter;
 
     /**
      * Initialize the class with the output file in CSV format.
@@ -70,10 +65,9 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
 
     @Override
     public void setMetadataFields(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
-        personAttributesMetadataWriter = new PersonAttributesMetadataWriter(
+        PersonAttributesMetadataWriter personAttributesMetadataWriter = new PersonAttributesMetadataWriter(
             "CSV", totalRows, invalidAttributeCount, invalidAttributesByType
         );
-        fileWriter.write("# " + personAttributesMetadataWriter.toJson() + "\n");
         personAttributesMetadataWriter.writeToFile(filePath);
     }
 }
