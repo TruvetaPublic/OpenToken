@@ -33,7 +33,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private String filePath;
     private final Configuration conf;
     private boolean initialized = false;
-    private PersonAttributesMetadataWriter metadataWriter;
+    private PersonAttributesMetadataWriter personAttributesMetadataWriter;
 
     /**
      * Initialize the class with the output file in Parquet format.
@@ -96,10 +96,10 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     }
 
     @Override
-    public void setMetadataFields(int rowCount, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
-        Map<String, Object> metadata = PersonAttributesMetadataWriter.buildMetadata(
-            "Parquet", rowCount, invalidAttributeCount, invalidAttributesByType
+    public void setMetadataFields(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
+        personAttributesMetadataWriter = new PersonAttributesMetadataWriter(
+            "Parquet", totalRows, invalidAttributeCount, invalidAttributesByType
         );
-        PersonAttributesMetadataWriter.writeToFile(filePath, metadata);
+        personAttributesMetadataWriter.writeToFile(filePath);
     }
 }

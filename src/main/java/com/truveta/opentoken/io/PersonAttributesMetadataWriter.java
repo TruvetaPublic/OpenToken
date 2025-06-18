@@ -15,31 +15,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PersonAttributesMetadataWriter {
 
+    Map<String, Object> metadata = new LinkedHashMap<>();
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    public static Map<String, Object> buildMetadata(
-            String outputFormat,
-            int totalRows,
-            Long invalidAttributeCount,
-            Map<String, Long> invalidAttributesByType
-    ) {
-        Map<String, Object> metadata = new LinkedHashMap<>();
+
+    public PersonAttributesMetadataWriter(String outputFormat, int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) {
         metadata.put("java_version", System.getProperty("java.version"));
-        metadata.put("library_revision", "1.0.0");
+        metadata.put("opentoken_version", "1.0.0");
         metadata.put("output_format", outputFormat);
         metadata.put("total_rows", totalRows);
         metadata.put("total_rows_with_invalid_attributes", invalidAttributeCount);
         metadata.put("invalid_attributes_by_type", new HashMap<>(invalidAttributesByType));
-        return metadata;
     }
 
-    public static void writeToFile(String baseFilePath, Map<String, Object> metadata) throws IOException {
+    public void writeToFile(String baseFilePath) throws IOException {
         Files.write(
                 Paths.get(baseFilePath + ".metadata.json"),
                 objectMapper.writeValueAsBytes(metadata)
         );
     }
 
-    public static String toJson(Map<String, Object> metadata) throws JsonProcessingException {
+    public String toJson() throws JsonProcessingException {
         return objectMapper.writeValueAsString(metadata);
     }
 }

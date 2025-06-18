@@ -31,7 +31,6 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     private final CSVPrinter csvPrinter;
     private final String filePath;
     private boolean headerWritten = false;
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     private PersonAttributesMetadataWriter personAttributesMetadataWriter;
 
     /**
@@ -70,12 +69,11 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     }
 
     @Override
-    public void setMetadataFields(int totalRows, Long invalidAttributeCount,
-                              Map<String, Long> invalidAttributesByType) throws IOException {
-        Map<String, Object> metadata = PersonAttributesMetadataWriter.buildMetadata(
+    public void setMetadataFields(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
+        personAttributesMetadataWriter = new PersonAttributesMetadataWriter(
             "CSV", totalRows, invalidAttributeCount, invalidAttributesByType
         );
-        fileWriter.write("# " + PersonAttributesMetadataWriter.toJson(metadata) + "\n");
-        PersonAttributesMetadataWriter.writeToFile(filePath, metadata);
+        fileWriter.write("# " + personAttributesMetadataWriter.toJson() + "\n");
+        personAttributesMetadataWriter.writeToFile(filePath);
     }
 }
