@@ -13,7 +13,7 @@
             "configureZshAsDefaultShell": true
         },
         "ghcr.io/devcontainers/features/java:1": {
-            "version": "11",
+            "version": "11.0.26",
             "additionalVersions": "17.0.14",
             "installMaven": "true",
             "mavenVersion": "3.8.7",
