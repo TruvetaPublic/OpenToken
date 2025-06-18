@@ -20,7 +20,7 @@ import com.truveta.opentoken.io.PersonAttributesWriter;
  * It implements the {@link PersonAttributeWriter} interface.
  */
 public class PersonAttributesCSVWriter implements PersonAttributesWriter {
-    private static final Logger logger = LoggerFactory.getLogger(PersonAttributesCSVWriter.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(PersonAttributesCSVWriter.class);
 
     private final BufferedWriter fileWriter;
     private final CSVPrinter csvPrinter;

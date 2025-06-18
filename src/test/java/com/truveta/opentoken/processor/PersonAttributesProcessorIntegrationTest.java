@@ -34,6 +34,7 @@ import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
+import com.truveta.opentoken.tokens.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.NoOperationTokenTransformer;
@@ -259,6 +260,10 @@ class PersonAttributesProcessorIntegrationTest {
     }
 
     private String decryptToken(String encryptedToken) throws Exception {
+        if (SHA256Tokenizer.EMPTY.equals(encryptedToken)) {
+            // empty tokens don't get encrypted
+            return SHA256Tokenizer.EMPTY;
+        }
         byte[] messageBytes = Base64.getDecoder().decode(encryptedToken);
         byte[] iv = new byte[12];
         byte[] cipherBytes = new byte[messageBytes.length - 12];

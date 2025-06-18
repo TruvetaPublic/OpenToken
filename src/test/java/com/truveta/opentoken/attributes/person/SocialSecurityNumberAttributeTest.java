@@ -8,6 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +45,55 @@ class SocialSecurityNumberAttributeTest {
     void normalize_ShouldFormatWithDashes() {
         assertEquals("123-45-6789", ssnAttribute.normalize("123456789"), "Should format without dashes");
         assertEquals("123-45-6789", ssnAttribute.normalize("123-45-6789"), "Should format with dashes");
+        assertEquals("123-45-6789", ssnAttribute.normalize("123456789.0"), "Should format with decimal point");
+        assertEquals("001-23-4567", ssnAttribute.normalize("1234567"), "Should format with leading zeros");
+        assertEquals("001-23-4567", ssnAttribute.normalize("1234567.0"),
+                "Should format with leading zeros and decimal point");
+    }
+
+    @Test
+    void normalize_ShouldHandleEdgeCases() {
+        assertEquals("1234567890", ssnAttribute.normalize("1234567890"), "Should return unchanged");
+        assertEquals("12345678901.0", ssnAttribute.normalize("12345678901.0"),
+                "Should drop decimal point even if exceeds length");
+        assertEquals("12345678901", ssnAttribute.normalize("12345678901"),
+                "Should return unchanged for long input without decimal");
+        assertEquals("12345.0", ssnAttribute.normalize("12345.0"), "Should retain decimal point for short input");
+        assertEquals("Unknown", ssnAttribute.normalize("Unknown"), "Should return non-numeric input unchanged");
+        assertEquals("ABC-12-DEFG", ssnAttribute.normalize("ABC-12-DEFG"), "Should return non-numeric input unchanged");
+    }
+
+    @Test
+    void normalize_ShouldHandleShortInputsWithoutCrashing() {
+        assertEquals("123456", ssnAttribute.normalize("123456"), "Should handle 6-digit input without crashing");
+        assertEquals("12345", ssnAttribute.normalize("12345"), "Should handle 5-digit input without crashing");
+        assertEquals("1234", ssnAttribute.normalize("1234"), "Should handle 4-digit input without crashing");
+        assertEquals("123", ssnAttribute.normalize("123"), "Should handle 3-digit input without crashing");
+        assertEquals("12", ssnAttribute.normalize("12"), "Should handle 2-digit input without crashing");
+        assertEquals("1", ssnAttribute.normalize("1"), "Should handle 1-digit input without crashing");
+        assertEquals("", ssnAttribute.normalize(""), "Should handle empty input without crashing");
+    }
+
+    @Test
+    void normalize_ShouldHandleSpaces() {
+        assertEquals("123-45-6789", ssnAttribute.normalize("123 45 6789"), "Should normalize spaces to dashes");
+        assertEquals("123-45-6789", ssnAttribute.normalize("123  45  6789"),
+                "Should normalize multiple spaces to dashes");
+        assertEquals("123-45-6789", ssnAttribute.normalize(" 123456789 "), "Should trim and format");
+    }
+
+    @Test
+    void normalize_ShouldHandleMixedFormatting() {
+        assertEquals("123-45-6789", ssnAttribute.normalize("123 45-6789"), "Should normalize mix of spaces and dashes");
+        assertEquals("123-45-6789", ssnAttribute.normalize("123-45 6789"), "Should normalize mix of dashes and spaces");
+        assertEquals("123-45-6789", ssnAttribute.normalize(" 123-456789"),
+                "Should handle leading space and partial formatting");
+    }
+
+    @Test
+    void normalize_ShouldHandleNullAndEmptyValues() {
+        assertEquals(null, ssnAttribute.normalize(null), "Should return null for null input");
+        assertEquals("", ssnAttribute.normalize(""), "Should return empty for empty input");
     }
 
     @Test
@@ -61,6 +114,8 @@ class SocialSecurityNumberAttributeTest {
         assertFalse(ssnAttribute.validate("123-11-0000"), "All zeros in last group should not be allowed");
         assertFalse(ssnAttribute.validate("123-00-1234"), "All zeros in middle group should not be allowed");
         assertFalse(ssnAttribute.validate("000-45-6789"), "All zeros in first group should not be allowed");
+        assertFalse(ssnAttribute.validate("900-45-6789"), "SSN starting with 900 should not be allowed");
+        assertFalse(ssnAttribute.validate("999-45-6789"), "SSN starting with 999 should not be allowed");
         assertFalse(ssnAttribute.validate("ABCDEFGHI"), "Non-numeric should not be allowed");
     }
 
@@ -98,6 +153,53 @@ class SocialSecurityNumberAttributeTest {
         assertEquals(threadCount, results.size());
         for (String result : results) {
             assertEquals("123-45-6789", result);
+        }
+    }
+
+    @Test
+    void testSerialization() throws Exception {
+        // Serialize the attribute
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(ssnAttribute);
+        oos.close();
+
+        // Deserialize the attribute
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        SocialSecurityNumberAttribute deserializedAttribute = (SocialSecurityNumberAttribute) ois.readObject();
+        ois.close();
+
+        // Test various SSN values with both original and deserialized attributes
+        String[] testValues = {
+                "123456789",
+                "123-45-6789",
+                "001-23-4567",
+                "001234567",
+                "999-99-9999",
+                "999999999"
+        };
+
+        for (String value : testValues) {
+            assertEquals(
+                    ssnAttribute.getName(),
+                    deserializedAttribute.getName(),
+                    "Attribute names should match");
+
+            assertArrayEquals(
+                    ssnAttribute.getAliases(),
+                    deserializedAttribute.getAliases(),
+                    "Attribute aliases should match");
+
+            assertEquals(
+                    ssnAttribute.normalize(value),
+                    deserializedAttribute.normalize(value),
+                    "Normalization should be identical for value: " + value);
+
+            assertEquals(
+                    ssnAttribute.validate(value),
+                    deserializedAttribute.validate(value),
+                    "Validation should be identical for value: " + value);
         }
     }
 }

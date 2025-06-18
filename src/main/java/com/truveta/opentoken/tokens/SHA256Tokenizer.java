@@ -21,6 +21,13 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
  * 
  */
 public final class SHA256Tokenizer {
+
+    /**
+     * The empty token value.
+     * <p>
+     * This is the value returned when the token signature is <code>null</code> or
+     * blank.
+     */
     public static final String EMPTY = "0000000000000000000000000000000000000000000000000000000000000000";
     private final List<TokenTransformer> tokenTransformerList;
 

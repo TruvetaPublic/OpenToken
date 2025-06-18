@@ -12,22 +12,22 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A Validator that asserts that the attribute values is
- * <b>NOT IN</b> the list of invalid values.
+ * A Validator that asserts that the attribute value does
+ * <b>NOT START WITH</b> any of the invalid prefixes.
  */
 @AllArgsConstructor
 @Getter
 @Setter
-public final class NotInValidator implements SerializableAttributeValidator {
+public final class NotStartsWithValidator implements SerializableAttributeValidator {
 
     private static final long serialVersionUID = 1L;
 
     @NotNull
-    private Set<String> invalidValues;
+    private Set<String> invalidPrefixes;
 
     /**
-     * Validates that the attribute value is not in the list of invalid values
-     * independent of case.
+     * Validates that the attribute value does not start with any of the invalid
+     * prefixes.
      */
     @Override
     public boolean eval(String value) {
@@ -35,8 +35,7 @@ public final class NotInValidator implements SerializableAttributeValidator {
             return false;
         }
 
-        return invalidValues.stream()
-                .noneMatch(invalidValue -> invalidValue.equalsIgnoreCase(value));
+        return invalidPrefixes.stream().noneMatch(prefix -> value.trim().startsWith(prefix));
     }
 
 }

@@ -27,7 +27,7 @@ import com.truveta.opentoken.attributes.AttributeLoader;
  * Implements the {@link PersonAttributesReader} interface.
  */
 public class PersonAttributesCSVReader implements PersonAttributesReader {
-    private static final Logger logger = LoggerFactory.getLogger(PersonAttributesCSVReader.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(PersonAttributesCSVReader.class);
 
     private final Reader reader;
     private final CSVParser csvParser;

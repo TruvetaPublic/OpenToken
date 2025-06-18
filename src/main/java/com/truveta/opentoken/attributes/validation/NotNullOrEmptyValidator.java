@@ -7,7 +7,9 @@ package com.truveta.opentoken.attributes.validation;
  * A Validator that asserts the value is <b>NOT</b> <code>null</code>
  * and blank.
  */
-public final class NotNullOrEmptyValidator implements AttributeValidator {
+public final class NotNullOrEmptyValidator implements SerializableAttributeValidator {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Validates that the attribute value is not <code>null</code> or blank.
