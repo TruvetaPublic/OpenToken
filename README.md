@@ -320,3 +320,21 @@ Truveta encourages contributions in the form of features, bug fixes, documentati
 
 1. The library currently provides `csv` reader and writer. See `com.truveta.opentoken.io`. Readers/writers for `parquet` file is highly desired.
 2. More test coverage.
+
+## Development Environment
+
+This project includes a [Development Container](https://containers.dev/) configuration that provides a consistent and isolated development environment for working with OpenToken. The Dev Container includes all necessary tools and dependencies pre-configured, making it easy to start contributing right away.
+
+### Getting Started with the Dev Container
+
+For detailed instructions on how to use the development container, please refer to the [Dev Container README](./.devcontainer/README.md).
+
+The Dev Container provides:
+
+- Java 11 SDK pre-installed
+- Maven 3.8.7 pre-installed
+- All necessary dependencies configured
+- Git and other development tools
+- SSL certificate handling for corporate environments
+
+Using the Dev Container ensures all contributors work with the same environment, avoiding "works on my machine" issues and making the development experience more consistent and reproducible.
