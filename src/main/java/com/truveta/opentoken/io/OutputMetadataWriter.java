@@ -23,8 +23,8 @@ public class OutputMetadataWriter {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public OutputMetadataWriter(String outputFormat, int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) {
-        metadata.put(Const.javaVersion, System.getProperty("java.version"));
-        metadata.put(Const.openTokenVersion, Const.systemJavaVersion);
+        metadata.put(Const.javaVersion, Const.systemJavaVersion);
+        metadata.put(Const.openTokenVersion, "1.7.0");
         metadata.put(Const.outputFormat, outputFormat);
         metadata.put(Const.totalRows, totalRows);
         metadata.put(Const.totalRowsWithInvalidAttributes, invalidAttributeCount);
