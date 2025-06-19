@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.io;
+package com.truveta.opentoken;
 
 public final class Const {
 
