@@ -12,7 +12,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.truveta.opentoken.io.Const;
+import com.truveta.opentoken.Const;
 import com.truveta.opentoken.io.OutputMetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 

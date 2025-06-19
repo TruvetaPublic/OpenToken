@@ -15,7 +15,7 @@ import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 
-import com.truveta.opentoken.io.Const;
+import com.truveta.opentoken.Const;
 import com.truveta.opentoken.io.OutputMetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import java.io.IOException;
