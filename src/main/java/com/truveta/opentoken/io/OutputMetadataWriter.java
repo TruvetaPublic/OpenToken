@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.truveta.opentoken.Const;
 
 /**
  * The PersonAttributesMetadataWriter class is responsible for writing metadata for output file
