@@ -19,7 +19,7 @@ public class MetadataWriter {
     public static void writeMetadata(Map<String, String> metadataMap) throws IOException {
         
         Files.write(
-                Paths.get("target/output" + Const.metadataFileExtension),
+                Paths.get(Const.METADATA_OUTPUT_FILE + Const.METADATA_FILE_EXTENSION),
                 objectMapper.writeValueAsBytes(metadataMap)
         );
     }

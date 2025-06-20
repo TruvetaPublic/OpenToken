@@ -137,11 +137,12 @@ public final class PersonAttributesProcessor {
     
     private static void writeMetaData(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
         Map<String, String> metadata = new HashMap<>();
-        metadata.put(Const.javaVersion, Const.systemJavaVersion);
-        metadata.put(Const.openTokenVersion, "1.7.0");
-        metadata.put(Const.totalRows, String.valueOf(totalRows));
-        metadata.put(Const.totalRowsWithInvalidAttributes, String.valueOf(invalidAttributeCount));
-        metadata.put(Const.invalidAttributesByType, String.valueOf((invalidAttributesByType)));
+        metadata.put(Const.PLATFORM, Const.PLATFORM_JAVA);
+        metadata.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
+        metadata.put(Const.OPENTOKEN_VERSION, "1.7.0");
+        metadata.put(Const.TOTAL_ROWS, String.valueOf(totalRows));
+        metadata.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(invalidAttributeCount));
+        metadata.put(Const.INVALID_ATTRIBUTES_BY_TYPE, String.valueOf((invalidAttributesByType)));
         MetadataWriter.writeMetadata(metadata);
     }
 }
