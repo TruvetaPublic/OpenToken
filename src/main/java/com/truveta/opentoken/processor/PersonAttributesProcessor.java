@@ -14,8 +14,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.Const;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
+import com.truveta.opentoken.io.MetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.tokens.TokenDefinition;
@@ -92,7 +94,8 @@ public final class PersonAttributesProcessor {
                         .info(String.format("Total invalid Attribute count for [%s]: %,d", key, value)));
         long rowIssueCounter = invalidAttributeCount.values().stream()
                 .collect(Collectors.summarizingLong(Long::longValue)).getSum();
-        writer.setMetadataFields(rowCounter, rowIssueCounter, invalidAttributeCount);
+
+        writeMetaData(rowCounter, rowIssueCounter, invalidAttributeCount);
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
     }
 
@@ -130,5 +133,15 @@ public final class PersonAttributesProcessor {
                 }
             }
         }
+    }
+    
+    private static void writeMetaData(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put(Const.javaVersion, Const.systemJavaVersion);
+        metadata.put(Const.openTokenVersion, "1.7.0");
+        metadata.put(Const.totalRows, String.valueOf(totalRows));
+        metadata.put(Const.totalRowsWithInvalidAttributes, String.valueOf(invalidAttributeCount));
+        metadata.put(Const.invalidAttributesByType, String.valueOf((invalidAttributesByType)));
+        MetadataWriter.writeMetadata(metadata);
     }
 }

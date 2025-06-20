@@ -12,8 +12,6 @@ import org.apache.commons.csv.CSVPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.truveta.opentoken.Const;
-import com.truveta.opentoken.io.OutputMetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 
 /**
@@ -62,13 +60,5 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     public void close() throws Exception {
         this.csvPrinter.close();
         this.fileWriter.close();
-    }
-
-    @Override
-    public void setMetadataFields(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
-        OutputMetadataWriter personAttributesMetadataWriter = new OutputMetadataWriter(
-            Const.outputFormatCSV, totalRows, invalidAttributeCount, invalidAttributesByType
-        );
-        personAttributesMetadataWriter.writeToFile(filePath);
     }
 }

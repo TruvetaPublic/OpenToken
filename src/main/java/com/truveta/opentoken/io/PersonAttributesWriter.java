@@ -29,5 +29,4 @@ public interface PersonAttributesWriter extends AutoCloseable {
      */
     void writeAttributes(Map<String, String> data) throws IOException;
 
-    void setMetadataFields(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException;
 }
