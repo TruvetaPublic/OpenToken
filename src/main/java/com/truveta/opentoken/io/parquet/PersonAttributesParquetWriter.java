@@ -27,7 +27,7 @@ import java.util.Map;
 public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private ParquetWriter<Group> writer;
     private MessageType schema;
-    private String filePath;
+    private final String filePath;
     private final Configuration conf;
     private boolean initialized = false;
 

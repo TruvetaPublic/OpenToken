@@ -6,6 +6,7 @@ package com.truveta.opentoken.processor;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -136,7 +137,7 @@ public final class PersonAttributesProcessor {
     }
     
     private static void writeMetaData(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
-        Map<String, String> metadata = new HashMap<>();
+        Map<String, String> metadata = new LinkedHashMap<>();
         metadata.put(Const.PLATFORM, Const.PLATFORM_JAVA);
         metadata.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
         metadata.put(Const.OPENTOKEN_VERSION, "1.7.0");
