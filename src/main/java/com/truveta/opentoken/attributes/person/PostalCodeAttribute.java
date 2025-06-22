@@ -76,33 +76,38 @@ public class PostalCodeAttribute extends BaseAttribute {
     /**
      * Normalizes a postal code to standard format.
      * 
-     * For US ZIP codes: returns the first 5 digits (e.g., "12345-6789" becomes "12345")
-     * For Canadian postal codes: returns uppercase format with space (e.g., "k1a0a6" becomes "K1A 0A6")
-     * If the input value is null or doesn't match expected patterns, the original value is returned.
+     * For US ZIP codes: returns the first 5 digits (e.g., "12345-6789" becomes
+     * "12345")
+     * For Canadian postal codes: returns uppercase format with space (e.g.,
+     * "k1a0a6" becomes "K1A 0A6")
+     * If the input value is null or doesn't match expected patterns, the original
+     * value is returned.
      *
      * @param value The postal code to normalize
-     * @return The normalized postal code or the original value if normalization isn't applicable
+     * @return The normalized postal code or the original value if normalization
+     *         isn't applicable
      */
     @Override
     public String normalize(String value) {
         if (value == null) {
             return value;
         }
-        
+
         String trimmed = value.trim().replaceAll(AttributeUtilities.WHITESPACE.pattern(), StringUtils.EMPTY);
-        
+
         // Check if it's a US ZIP code (5 or 9 digits)
         if (trimmed.matches("\\d{5}(-?\\d{4})?")) {
-            return trimmed.length() >= 5 ? trimmed.substring(0, 5) : trimmed;
+            return trimmed.substring(0, 5);
         }
-        
+
         // Check if it's a Canadian postal code (6 alphanumeric characters)
         if (trimmed.matches("[A-Za-z]\\d[A-Za-z]\\d[A-Za-z]\\d")) {
             String upper = trimmed.toUpperCase();
             return upper.substring(0, 3) + " " + upper.substring(3, 6);
         }
-        
-        // For values that are too short or don't match patterns, return as-is or truncate to 5
+
+        // For values that are too short or don't match patterns, return as-is or
+        // truncate to 5
         if (trimmed.length() < 5) {
             return trimmed;
         }
