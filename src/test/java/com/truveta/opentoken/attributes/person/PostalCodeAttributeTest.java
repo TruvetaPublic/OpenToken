@@ -49,12 +49,35 @@ class PostalCodeAttributeTest {
     }
 
     @Test
+    void normalize_ShouldHandleCanadianPostalCodes() {
+        assertEquals("K1A 0A6", postalCodeAttribute.normalize("K1A0A6"));
+        assertEquals("K1A 0A6", postalCodeAttribute.normalize("k1a0a6"));
+        assertEquals("K1A 0A6", postalCodeAttribute.normalize("K1A 0A6"));
+        assertEquals("M5V 3L9", postalCodeAttribute.normalize("m5v3l9"));
+        assertEquals("H3Z 2Y7", postalCodeAttribute.normalize("H3Z2Y7"));
+        assertEquals("T2X 1V4", postalCodeAttribute.normalize("t2x1v4"));
+    }
+
+    @Test
     void validate_ShouldReturnTrueForValidPostalCodes() {
         assertTrue(postalCodeAttribute.validate("95123 "));
         assertTrue(postalCodeAttribute.validate(" 95123"));
         assertTrue(postalCodeAttribute.validate("95123"));
         assertTrue(postalCodeAttribute.validate("95123-6789"));
         assertTrue(postalCodeAttribute.validate("65201-6789"));
+    }
+
+    @Test
+    void validate_ShouldReturnTrueForValidCanadianPostalCodes() {
+        assertTrue(postalCodeAttribute.validate("K1A 0A7"));
+        assertTrue(postalCodeAttribute.validate("K1A0A7"));
+        assertTrue(postalCodeAttribute.validate("k1a 0a7"));
+        assertTrue(postalCodeAttribute.validate("k1a0a7"));
+        assertTrue(postalCodeAttribute.validate("M5V 3L9"));
+        assertTrue(postalCodeAttribute.validate("H3Z 2Y7"));
+        assertTrue(postalCodeAttribute.validate("T2X 1V4"));
+        assertTrue(postalCodeAttribute.validate(" K1A 0A7 "));
+        assertTrue(postalCodeAttribute.validate("  K1A0A7  "));
     }
 
     @Test
@@ -83,6 +106,17 @@ class PostalCodeAttributeTest {
         assertFalse(postalCodeAttribute.validate("123456"), "Long postal code should not be allowed");
         assertFalse(postalCodeAttribute.validate("1234-5678"), "Invalid format should not be allowed");
         assertFalse(postalCodeAttribute.validate("abcde"), "Non-numeric should not be allowed");
+
+        // Invalid Canadian postal code formats
+        assertFalse(postalCodeAttribute.validate("K1A"), "Incomplete Canadian postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K1A 0A"), "Incomplete Canadian postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K1A 0A67"), "Too long Canadian postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K11 0A6"),
+                "Invalid Canadian postal code format should not be allowed");
+        assertFalse(postalCodeAttribute.validate("KAA 0A6"),
+                "Invalid Canadian postal code format should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K1A 0AA"),
+                "Invalid Canadian postal code format should not be allowed");
     }
 
     @Test
@@ -168,7 +202,11 @@ class PostalCodeAttributeTest {
                 "98765",
                 "00000-0000",
                 "99999",
-                "54321-9876"
+                "54321-9876",
+                "K1A 0A6",
+                "k1a0a6",
+                "M5V 3L9",
+                "H3Z2Y7"
         };
 
         for (String value : testValues) {

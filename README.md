@@ -65,7 +65,7 @@ The person attributes are validated before normalization. The validation rules a
 | `FirstName`            | Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                        |
 | `LastName`             | Must be at least 2 characters long. For 2-character names, must contain at least one vowel or be "Ng". Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty. |
 | `BirthDate`            | Must be after January 1, 1910. Cannot be in the future (after today's date). Must be in a valid date format.                                                                                                                                                 |
-| `PostalCode`           | Must be a valid 5 or 9 digit postal code. If 9 digits, it must be in the format `ddddd-dddd`. Cannot start with specific invalid prefixes: `00000`, `11111`, `22222`, `33333`, `55555`, `66666`, `77777`, `88888`, `99999`, `01234`, `12345`, `54321`, `98765`. |
+| `PostalCode`           | Must be a valid US ZIP code (5 or 9 digits) or Canadian postal code. US ZIP codes: `ddddd` or `ddddd-dddd`. Canadian postal codes: `AdA dAd` format (letter-digit-letter space digit-letter-digit). Cannot be common placeholder values like `00000`, `11111`, `12345`, `54321`, `98765` for US or `A1A 1A1`, `K1A 0A6`, `H0H 0H0` for Canadian codes. |
 | `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.             |
 
 ### Normalized person attributes for token generation
@@ -92,7 +92,7 @@ All attribute values get normalized as part of their processing. The normalizati
 | `record-id`              | Any unique string identifier                        |
 | `first-name`             | Any string (after normalization as described above) |
 | `last-name`              | Any string (after normalization as described above) |
-| `postal-code`            | `ddddd` where `d` is a numeric digit (0-9)          |
+| `postal-code`            | US: `ddddd` where `d` is a numeric digit (0-9). Canadian: `AdA dAd` where `A` is a letter and `d` is a digit |
 | `sex`                    | `Male\|Female`                                      |
 | `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31) |
 | `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)      |
@@ -180,7 +180,7 @@ The input file (in csv format) must contain at least the following columns and v
 | RecordId, Id                                       | Any unique string identifier                                                   |
 | FirstName, GivenName                               | Any string value                                                               |
 | LastName, Surname                                  | Any string value                                                               |
-| PostalCode, ZipCode                                | 5 or 9 digit postal code, `ddddd` or `ddddd-dddd`                              |
+| PostalCode, ZipCode                                | US: 5 or 9 digit ZIP code `ddddd` or `ddddd-dddd`. Canadian: 6 character postal code `AdAdAd` (with or without space) |
 | Sex, Gender                                        | `Male`, `M`, `Female`, `F`                                                     |
 | BirthDate, DateOfBirth                             | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy` |
 | SocialSecurityNumber, NationalIdentificationNumber | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                     |
