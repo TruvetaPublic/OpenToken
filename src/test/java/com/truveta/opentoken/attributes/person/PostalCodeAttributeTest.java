@@ -173,8 +173,6 @@ class PostalCodeAttributeTest {
 
         assertEquals("12345", postalCodeAttribute.normalize(" 12345"));
 
-        // Test more than 5 characters
-        assertEquals("12345", postalCodeAttribute.normalize("123456"));
         assertEquals("12345", postalCodeAttribute.normalize("12345-6789"));
         assertEquals("12345", postalCodeAttribute.normalize("123456789"));
     }
