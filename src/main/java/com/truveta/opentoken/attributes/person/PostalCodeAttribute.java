@@ -106,12 +106,8 @@ public class PostalCodeAttribute extends BaseAttribute {
             return upper.substring(0, 3) + " " + upper.substring(3, 6);
         }
 
-        // For values that are too short or don't match patterns, return as-is or
-        // truncate to 5
-        if (trimmed.length() < 5) {
-            return trimmed;
-        }
-        return trimmed.substring(0, 5);
+        // For values that are too short or don't match patterns, return as-is
+        return value;
     }
 
 }
