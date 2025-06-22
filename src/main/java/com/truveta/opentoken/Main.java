@@ -19,6 +19,7 @@ import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetWriter;
+import com.truveta.opentoken.metrics.DemographicMetricsCollector;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
 
 public class Main {
@@ -67,7 +68,7 @@ public class Main {
         try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
                 PersonAttributesWriter writer = createPersonAttributesWriter(outputPath, outputType)) {
 
-            PersonAttributesProcessor.process(reader, writer, tokenTransformerList);
+            PersonAttributesProcessor.process(reader, writer, tokenTransformerList, new DemographicMetricsCollector());
 
         } catch (Exception e) {
             logger.error("Error in processing the input file. Execution halted. ", e);

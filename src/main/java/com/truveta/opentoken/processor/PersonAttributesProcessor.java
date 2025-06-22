@@ -16,8 +16,15 @@ import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SexAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
+import com.truveta.opentoken.metrics.DemographicMetricsCollector;
 import com.truveta.opentoken.tokens.TokenDefinition;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokens.TokenGeneratorResult;
@@ -58,6 +65,28 @@ public final class PersonAttributesProcessor {
      */
     public static void process(PersonAttributesReader reader, PersonAttributesWriter writer,
             List<TokenTransformer> tokenTransformerList) {
+        process(reader, writer, tokenTransformerList, null);
+    }
+
+    /**
+     * Reads person attributes from the input data source, generates token, and
+     * write the result back to the output data source. The tokens can be optionally
+     * transformed before writing. Optionally collects demographic bias metrics.
+     * 
+     * @param reader               the reader initialized with the input data
+     *                             source.
+     * @param writer               the writer initialized with the output data
+     *                             source.
+     * @param tokenTransformerList a list of token transformers.
+     * @param metricsCollector     optional demographics metrics collector for bias
+     *                             detection.
+     * 
+     * @see com.truveta.opentoken.io.PersonAttributesReader PersonAttributesReader
+     * @see com.truveta.opentoken.io.PersonAttributesWriter PersonAttributesWriter
+     * @see com.truveta.opentoken.tokentransformer.TokenTransformer TokenTransformer
+     */
+    public static void process(PersonAttributesReader reader, PersonAttributesWriter writer,
+            List<TokenTransformer> tokenTransformerList, DemographicMetricsCollector metricsCollector) {
 
         // TokenGenerator code
         TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
@@ -69,6 +98,8 @@ public final class PersonAttributesProcessor {
         Map<String, Long> invalidAttributeCount = new HashMap<>();
 
         while (reader.hasNext()) {
+            long recordStartTime = System.currentTimeMillis();
+
             row = reader.next();
             rowCounter++;
 
@@ -79,6 +110,16 @@ public final class PersonAttributesProcessor {
                     invalidAttributeCount);
 
             writeTokens(writer, row, rowCounter, tokenGeneratorResult);
+
+            // Collect demographic metrics if collector is provided
+            if (metricsCollector != null) {
+                long processingTime = System.currentTimeMillis() - recordStartTime;
+                boolean tokenGenerationSuccessful = !tokenGeneratorResult.getTokens().isEmpty();
+
+                // Convert row to string map for metrics collection
+                Map<String, String> recordData = convertRowToStringMap(row);
+                metricsCollector.recordPersonMetrics(recordData, processingTime, tokenGenerationSuccessful);
+            }
 
             if (rowCounter % 10000 == 0) {
                 logger.info(String.format("Processed \"%,d\" records", rowCounter));
@@ -93,6 +134,13 @@ public final class PersonAttributesProcessor {
         long rowIssueCounter = invalidAttributeCount.values().stream()
                 .collect(Collectors.summarizingLong(Long::longValue)).getSum();
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
+
+        // Generate and log bias detection report if metrics collector is provided
+        if (metricsCollector != null) {
+            logger.info("=== DEMOGRAPHIC BIAS DETECTION REPORT ===");
+            String biasReport = metricsCollector.generateBiasReport();
+            logger.info("\n{}", biasReport);
+        }
     }
 
     private static void writeTokens(PersonAttributesWriter writer, Map<Class<? extends Attribute>, String> row,
@@ -129,5 +177,40 @@ public final class PersonAttributesProcessor {
                 }
             }
         }
+    }
+
+    /**
+     * Converts the row map from Class keys to String keys for metrics collection.
+     * 
+     * @param row The row data with Class keys
+     * @return Map with string keys matching attribute names
+     */
+    private static Map<String, String> convertRowToStringMap(Map<Class<? extends Attribute>, String> row) {
+        Map<String, String> stringMap = new HashMap<>();
+
+        // Convert each known attribute class to its string key
+        if (row.containsKey(RecordIdAttribute.class)) {
+            stringMap.put("RecordId", row.get(RecordIdAttribute.class));
+        }
+        if (row.containsKey(FirstNameAttribute.class)) {
+            stringMap.put("FirstName", row.get(FirstNameAttribute.class));
+        }
+        if (row.containsKey(LastNameAttribute.class)) {
+            stringMap.put("LastName", row.get(LastNameAttribute.class));
+        }
+        if (row.containsKey(SexAttribute.class)) {
+            stringMap.put("Sex", row.get(SexAttribute.class));
+        }
+        if (row.containsKey(BirthDateAttribute.class)) {
+            stringMap.put("BirthDate", row.get(BirthDateAttribute.class));
+        }
+        if (row.containsKey(PostalCodeAttribute.class)) {
+            stringMap.put("PostalCode", row.get(PostalCodeAttribute.class));
+        }
+        if (row.containsKey(SocialSecurityNumberAttribute.class)) {
+            stringMap.put("SocialSecurityNumber", row.get(SocialSecurityNumberAttribute.class));
+        }
+
+        return stringMap;
     }
 }
