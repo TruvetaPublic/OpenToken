@@ -107,7 +107,7 @@ public class PostalCodeAttribute extends BaseAttribute {
         }
 
         // For values that are too short or don't match patterns, return as-is
-        return value;
+        return value.trim();
     }
 
 }
