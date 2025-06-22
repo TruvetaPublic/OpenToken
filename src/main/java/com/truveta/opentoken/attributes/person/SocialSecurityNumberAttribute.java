@@ -44,9 +44,9 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     private static final char DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance(Locale.getDefault())
             .getDecimalSeparator();
 
-    // Accepts SSNs in xxx-xx-xxxx or xxxxxxxxx format. Rejects: area 000/666/9xx,
-    // group 00, serial 0000
-    private static final String SSN_REGEX = "^(?!0{3})(?!6{3})[0-8]\\d{2}-?(?!0{2})\\d{2}-?(?!0{4})\\d{4}$";
+    // Accepts SSNs in xxx-xx-xxxx, xxxxxxxxx, or decimal format (xxxxxxxxx.0). 
+    // Also accepts 7-9 digit numbers that can be padded to valid SSNs.
+    private static final String SSN_REGEX = "^\\d{7,9}(\\.0*)?$|^\\d{3}-?\\d{2}-?\\d{4}$";
 
     private static final Pattern DIGITS_ONLY_PATTERN = Pattern.compile("\\d+");
 
