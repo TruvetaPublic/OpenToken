@@ -44,9 +44,15 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     private static final char DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance(Locale.getDefault())
             .getDecimalSeparator();
 
-    // Accepts SSNs in xxx-xx-xxxx, xxxxxxxxx, or decimal format (xxxxxxxxx.0). 
-    // Also accepts 7-9 digit numbers that can be padded to valid SSNs.
-    private static final String SSN_REGEX = "^\\d{7,9}(\\.0*)?$|^\\d{3}-?\\d{2}-?\\d{4}$";
+    // Regular expression to validate Social Security Numbers (SSNs).
+    // The regex allows:
+    // - 7 to 9 digits optionally followed by a decimal point and zero(s).
+    // - Properly formatted SSNs with optional dashes, ensuring:
+    // - The first three digits are not "000", "666", or in the range "900-999".
+    // - The middle two digits are not "00".
+    // - The last four digits are not "0000".
+    private static final String SSN_REGEX = "^\\d{7,9}(\\" + DECIMAL_SEPARATOR + "0*)?$" +
+            "|^(?!000|666|9\\d\\d)(\\d{3})-?(?!00)(\\d{2})-?(?!0000)(\\d{4})$";
 
     private static final Pattern DIGITS_ONLY_PATTERN = Pattern.compile("\\d+");
 
