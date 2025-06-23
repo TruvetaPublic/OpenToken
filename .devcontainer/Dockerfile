@@ -22,4 +22,7 @@ ENV NODE_OPTIONS=--use-openssl-ca
 ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 USER vscode
-RUN pipx install bump2version
+
+COPY python/requirements.txt /tmp/requirements.txt
+
+RUN pip install -r /tmp/requirements.txt --break-system-packages
