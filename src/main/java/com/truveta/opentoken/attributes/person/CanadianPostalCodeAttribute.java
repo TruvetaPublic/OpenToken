@@ -26,42 +26,42 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
 
     /**
      * Regular expression pattern for validating Canadian postal codes.
-     * <p>
-     * The pattern matches Canadian postal codes in the format "A1A 1A1" or
-     * "A1A1A1",
-     * where 'A' represents an uppercase or lowercase letter and '1' represents a
-     * digit.
-     * <ul>
-     * <li>^\\s* : Allows optional leading whitespace.</li>
-     * <li>[A-Za-z] : Matches a single letter (case-insensitive).</li>
-     * <li>\\d : Matches a single digit.</li>
-     * <li>[A-Za-z] : Matches a single letter (case-insensitive).</li>
-     * <li>\\s? : Allows an optional space between the two segments.</li>
-     * <li>\\d : Matches a single digit.</li>
-     * <li>[A-Za-z] : Matches a single letter (case-insensitive).</li>
-     * <li>\\d : Matches a single digit.</li>
-     * <li>\\s*$ : Allows optional trailing whitespace.</li>
-     * </ul>
+     *
+     * The pattern matches Canadian postal codes in the format "A1A 1A1" or "A1A1A1",
+     * where 'A' represents an uppercase or lowercase letter and '1' represents a digit.
+     *
+     * Breakdown:
+     *   ^\\s*        - Allows optional leading whitespace.
+     *   [A-Za-z]     - Matches a single letter (case-insensitive).
+     *   \\d          - Matches a single digit.
+     *   [A-Za-z]     - Matches a single letter (case-insensitive).
+     *   \\s?         - Allows an optional space between the two segments.
+     *   \\d          - Matches a single digit.
+     *   [A-Za-z]     - Matches a single letter (case-insensitive).
+     *   \\d          - Matches a single digit.
+     *   \\s*$        - Allows optional trailing whitespace.
+     *
      * This pattern ensures that the postal code follows the Canadian standard,
      * optionally surrounded by whitespace and with an optional space in the middle.
      */
     private static final String CANADIAN_POSTAL_REGEX = "^\\s*[A-Za-z]\\d[A-Za-z]\\s?\\d[A-Za-z]\\d\\s*$";
 
+    private static final Set<String> INVALID_ZIP_CODES = Set.of(
+            // Canadian postal code placeholders
+            "A1A 1A1",
+            "K1A 0A6", // Valid but used for Canadian government
+            "H0H 0H0", // Santa Claus postal code
+            "X0X 0X0",
+            "Y0Y 0Y0",
+            "Z0Z 0Z0",
+            "A0A 0A0",
+            "B1B 1B1",
+            "C2C 2C2");
+
     public CanadianPostalCodeAttribute() {
         super(List.of(
                 new RegexValidator(CANADIAN_POSTAL_REGEX),
-                new NotStartsWithValidator(
-                        Set.of(
-                                // Canadian postal code placeholders
-                                "A1A 1A1",
-                                "K1A 0A6", // Valid but used for Canadian government
-                                "H0H 0H0", // Santa Claus postal code
-                                "X0X 0X0",
-                                "Y0Y 0Y0",
-                                "Z0Z 0Z0",
-                                "A0A 0A0",
-                                "B1B 1B1",
-                                "C2C 2C2"))));
+                new NotStartsWithValidator(INVALID_ZIP_CODES)));
     }
 
     @Override

@@ -6,6 +6,7 @@
         " * Copyright (c) Truveta. All rights reserved.",
         " */"
     ],
+    "java.format.comments.enabled": false,
     "terminal.integrated.scrollback": 10000,
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
