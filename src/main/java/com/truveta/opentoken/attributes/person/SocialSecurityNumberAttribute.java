@@ -54,8 +54,8 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
      *   - The middle two digits are not "00".
      *   - The last four digits are not "0000".
      */
-    private static final String SSN_REGEX = "^\\d{7,9}(\\" + DECIMAL_SEPARATOR + "0*)?$" +
-            "|^(?!000|666|9\\d\\d)(\\d{3})-?(?!00)(\\d{2})-?(?!0000)(\\d{4})$";
+    private static final String SSN_REGEX = "^(?:\\d{7,9}(\\" + DECIMAL_SEPARATOR + "0*)?)" +
+            "|(?:^(?!000|666|9\\d\\d)(\\d{3})-?(?!00)(\\d{2})-?(?!0000)(\\d{4})$)";
 
     private static final Pattern DIGITS_ONLY_PATTERN = Pattern.compile("\\d+");
 
