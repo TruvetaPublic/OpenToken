@@ -141,7 +141,7 @@ public final class PersonAttributesProcessor {
         Map<String, String> metadata = new LinkedHashMap<>();
         metadata.put(Const.PLATFORM, Const.PLATFORM_JAVA);
         metadata.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
-        metadata.put(Const.OPENTOKEN_VERSION, "1.7.0");
+        metadata.put(Const.OPENTOKEN_VERSION, Const.getApplicationVersion());
         metadata.put(Const.TOTAL_ROWS, String.valueOf(totalRows));
         metadata.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(invalidAttributeCount));
         metadata.put(Const.INVALID_ATTRIBUTES_BY_TYPE, String.valueOf((invalidAttributesByType)));
