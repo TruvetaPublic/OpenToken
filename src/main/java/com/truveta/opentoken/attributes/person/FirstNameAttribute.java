@@ -24,10 +24,41 @@ public class FirstNameAttribute extends BaseAttribute {
 
     private static final String NAME = "FirstName";
     private static final String[] ALIASES = new String[] { NAME, "GivenName" };
+
+    /**
+     * Pattern to match and remove common titles and title abbreviations from first names.
+     *
+     * This pattern matches (case-insensitive):
+     *  - Common titles such as "Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", etc.
+     *  - Optional period after the title (e.g., "Dr.")
+     *  - One or more spaces following the title
+     *
+     * Breakdown of the regex:
+     *   (?i)                         Case-insensitive flag
+     *   ^                            Start of string
+     *   (mr|mrs|ms|miss|dr|prof|     List of supported titles
+     *    capt|sir|col|gen|cmdr|lt|   More supported titles
+     *    rabbi|father|brother|sister|
+     *    hon|honorable|reverend|rev|doctor)
+     *   \.?                         Optional period
+     *   \s+                         One or more spaces after the title
+     */
     private static final Pattern TITLE_PATTERN = Pattern.compile(
             "(?i)^(mr|mrs|ms|miss|dr|prof|capt|sir|col|gen|cmdr|lt|rabbi|father|brother|sister|hon|honorable|reverend|rev|doctor)\\.?\\s+");
 
-    // Pattern to match trailing periods and middle initials in names
+    /**
+     * Pattern to match trailing periods and middle initials in names.
+     *
+     * This pattern matches:
+     *  - A space, followed by a single non-space character (middle initial),
+     *    optionally followed by a period, at the end of the string.
+     *
+     * Breakdown of the regex:
+     *   \s           A space
+     *   [^\s]        Any single non-space character (middle initial)
+     *   \.?          Optional period
+     *   $            End of string
+     */
     private static final Pattern TRAILING_PERIOD_AND_INITIAL_PATTERN = Pattern.compile("\\s[^\\s]\\.?$");
 
     public FirstNameAttribute() {

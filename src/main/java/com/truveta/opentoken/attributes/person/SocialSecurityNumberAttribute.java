@@ -44,26 +44,36 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     private static final char DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance(Locale.getDefault())
             .getDecimalSeparator();
 
-    // Accepts SSNs in xxx-xx-xxxx or xxxxxxxxx format. Rejects: area 000/666/9xx,
-    // group 00, serial 0000
-    private static final String SSN_REGEX = "^(?!0{3})(?!6{3})[0-8]\\d{2}-?(?!0{2})\\d{2}-?(?!0{4})\\d{4}$";
+    /**
+     * Regular expression to validate Social Security Numbers (SSNs).
+     * 
+     * Allows:
+     * - 7 to 9 digits, optionally followed by a decimal separator and zero(s).
+     * - Properly formatted SSNs with or without dashes, ensuring:
+     *   - The first three digits are not "000", "666", or in the range "900-999".
+     *   - The middle two digits are not "00".
+     *   - The last four digits are not "0000".
+     */
+    private static final String SSN_REGEX = "^(?:\\d{7,9}(\\" + DECIMAL_SEPARATOR + "0*)?)" +
+            "|(?:^(?!000|666|9\\d\\d)(\\d{3})-?(?!00)(\\d{2})-?(?!0000)(\\d{4})$)";
 
     private static final Pattern DIGITS_ONLY_PATTERN = Pattern.compile("\\d+");
 
+    private static final Set<String> INVALID_SSNS = Set.of(
+            "111-11-1111",
+            "222-22-2222",
+            "333-33-3333",
+            "444-44-4444",
+            "555-55-5555",
+            "777-77-7777",
+            "888-88-8888",
+            // Common placeholder SSNs
+            "087-65-4321",
+            "098-76-5432");
+
     public SocialSecurityNumberAttribute() {
         super(List.of(
-                new NotInValidator(
-                        Set.of(
-                                "111-11-1111",
-                                "222-22-2222",
-                                "333-33-3333",
-                                "444-44-4444",
-                                "555-55-5555",
-                                "777-77-7777",
-                                "888-88-8888",
-                                // Common placeholder SSNs
-                                "087-65-4321",
-                                "098-76-5432")),
+                new NotInValidator(INVALID_SSNS),
                 new RegexValidator(SSN_REGEX)));
     }
 

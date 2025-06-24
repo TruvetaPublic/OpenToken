@@ -101,13 +101,19 @@ class SocialSecurityNumberAttributeTest {
         assertTrue(ssnAttribute.validate("123-45-6789"), "Valid SSN should be allowed");
         assertTrue(ssnAttribute.validate("123456789"), "Valid SSN without dashes should be allowed");
         assertTrue(ssnAttribute.validate("001-23-4567"), "Valid SSN with leading zeros should be allowed");
+        assertTrue(ssnAttribute.validate("1234567"), "7-digit SSN should be allowed");
+        assertTrue(ssnAttribute.validate("12345678"), "8-digit SSN should be allowed");
+        assertTrue(ssnAttribute.validate("123456789.0"), "SSN with decimal should be allowed");
+        assertTrue(ssnAttribute.validate("1234567.0"), "7-digit SSN with decimal should be allowed");
+        assertTrue(ssnAttribute.validate("12345678.00"), "8-digit SSN with decimal should be allowed");
     }
 
     @Test
     void validate_ShouldReturnFalseForInvalidSSNs() {
         assertFalse(ssnAttribute.validate(null), "Null value should not be allowed");
         assertFalse(ssnAttribute.validate(""), "Empty value should not be allowed");
-        assertFalse(ssnAttribute.validate("12345"), "Short SSN should not be allowed");
+        assertFalse(ssnAttribute.validate("12345"), "Short SSN (5 digits) should not be allowed");
+        assertFalse(ssnAttribute.validate("123456"), "Short SSN (6 digits) should not be allowed");
         assertFalse(ssnAttribute.validate("1234567890"), "Long SSN should not be allowed");
         assertFalse(ssnAttribute.validate("000-00-0000"), "Invalid sequence should not be allowed");
         assertFalse(ssnAttribute.validate("666-00-0000"), "SSN starting with 666 should not be allowed");
@@ -117,6 +123,10 @@ class SocialSecurityNumberAttributeTest {
         assertFalse(ssnAttribute.validate("900-45-6789"), "SSN starting with 900 should not be allowed");
         assertFalse(ssnAttribute.validate("999-45-6789"), "SSN starting with 999 should not be allowed");
         assertFalse(ssnAttribute.validate("ABCDEFGHI"), "Non-numeric should not be allowed");
+        assertFalse(ssnAttribute.validate("123-45-67AB"), "Mixed alphanumeric should not be allowed");
+        assertFalse(ssnAttribute.validate("123.456.789"), "Multiple decimals should not be allowed");
+        assertFalse(ssnAttribute.validate("123456789.123"),
+                "Decimal with non-zero fractional part should not be allowed");
     }
 
     @Test
