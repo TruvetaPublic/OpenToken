@@ -19,6 +19,7 @@ import com.truveta.opentoken.Const;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.io.MetadataWriter;
+import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.tokens.TokenDefinition;
@@ -144,6 +145,7 @@ public final class PersonAttributesProcessor {
         metadata.put(Const.TOTAL_ROWS, String.valueOf(totalRows));
         metadata.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(invalidAttributeCount));
         metadata.put(Const.INVALID_ATTRIBUTES_BY_TYPE, String.valueOf((invalidAttributesByType)));
-        MetadataWriter.writeMetadata(metadata);
+        MetadataWriter metadataWriter = new MetadataJsonWriter();
+        metadataWriter.writeMetadata(metadata);
     }
 }
