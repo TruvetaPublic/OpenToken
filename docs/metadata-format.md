@@ -28,5 +28,5 @@ The metadata is stored in JSON format with the extension `.metadata.json` and co
     "JavaVersion": "11.0.27",
     "TotalRows": "101",
     "TotalRowsWithInvalidAttributes": "9",
-    "InvalidAttributesByType": "{SocialSecurityNumber=2, FirstName=1, PostalCode=1, LastName=2, BirthDate=3}"
+    "InvalidAttributesByType": {"SocialSecurityNumber": 2, "FirstName": 1, "PostalCode": 1, "LastName": 2, "BirthDate": 3}
 }

@@ -5,8 +5,8 @@ package com.truveta.opentoken.processor;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,14 +15,15 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truveta.opentoken.Const;
 import com.truveta.opentoken.ApplicationVersion;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.io.MetadataWriter;
-import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
+import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.tokens.TokenDefinition;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokens.TokenGeneratorResult;
@@ -139,14 +140,21 @@ public final class PersonAttributesProcessor {
     }
     
     private static void writeMetaData(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
-        Map<String, String> metadata = new LinkedHashMap<>();
-        metadata.put(Const.PLATFORM, Const.PLATFORM_JAVA);
-        metadata.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
-        metadata.put(Const.OPENTOKEN_VERSION, ApplicationVersion.getApplicationVersion());
-        metadata.put(Const.TOTAL_ROWS, String.valueOf(totalRows));
-        metadata.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(invalidAttributeCount));
-        metadata.put(Const.INVALID_ATTRIBUTES_BY_TYPE, String.valueOf((invalidAttributesByType)));
-        MetadataWriter metadataWriter = new MetadataJsonWriter();
-        metadataWriter.writeMetadata(metadata);
+        try {
+            // LinkedHashMap to maintain insertion order
+            Map<String, String> metadata = new LinkedHashMap<>();
+            
+            metadata.put(Const.PLATFORM, Const.PLATFORM_JAVA);
+            metadata.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
+            metadata.put(Const.OPENTOKEN_VERSION, ApplicationVersion.getApplicationVersion());
+            metadata.put(Const.TOTAL_ROWS, String.valueOf(totalRows));
+            metadata.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(invalidAttributeCount));
+            metadata.put(Const.INVALID_ATTRIBUTES_BY_TYPE, new ObjectMapper().writeValueAsString(invalidAttributesByType));
+            
+            MetadataWriter metadataWriter = new MetadataJsonWriter();
+            metadataWriter.writeMetadata(metadata);
+        } catch (Exception e) {
+            logger.error("Error writing metadata", e);
+        }
     }
 }

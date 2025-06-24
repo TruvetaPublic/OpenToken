@@ -11,6 +11,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truveta.opentoken.Const;
 import com.truveta.opentoken.io.MetadataWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * A JSON implementation of the MetadataWriter interface.
@@ -33,9 +34,27 @@ public class MetadataJsonWriter implements MetadataWriter {
      */
     @Override
     public void writeMetadata(Map<String, String> metadataMap) throws IOException {
+        // Create a node tree that allows mixed types
+        ObjectNode root = objectMapper.createObjectNode();
+        
+        metadataMap.forEach((key, value) -> {
+            // Special handling for InvalidAttributesByType to prevent double escaping
+            if (Const.INVALID_ATTRIBUTES_BY_TYPE.equals(key) && value.startsWith("{")) {
+                try {
+                    // Parse the JSON string back to an object and add it directly
+                    root.set(key, objectMapper.readTree(value));
+                } catch (Exception e) {
+                    // Fallback if parsing fails
+                    root.put(key, value);
+                }
+            } else {
+                root.put(key, value);
+            }
+        });
 
+        // Write the properly structured JSON
         Files.write(
                 Paths.get(Const.METADATA_OUTPUT_FILE + Const.METADATA_FILE_EXTENSION),
-                objectMapper.writeValueAsBytes(metadataMap));
+                objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(root));
     }
 }
