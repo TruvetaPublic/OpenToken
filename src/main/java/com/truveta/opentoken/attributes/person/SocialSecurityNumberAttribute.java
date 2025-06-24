@@ -60,7 +60,10 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
                                 "444-44-4444",
                                 "555-55-5555",
                                 "777-77-7777",
-                                "888-88-8888")),
+                                "888-88-8888",
+                                // Common placeholder SSNs
+                                "087-65-4321",
+                                "098-76-5432")),
                 new RegexValidator(SSN_REGEX)));
     }
 
