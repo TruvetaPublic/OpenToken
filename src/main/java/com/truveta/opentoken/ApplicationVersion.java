@@ -3,7 +3,11 @@
  */
 package com.truveta.opentoken;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.jar.Manifest;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +35,30 @@ public class ApplicationVersion {
         } catch (Exception e) {
             logger.error("Failed to read version from MANIFEST.MF", e);
         }
-        return Const.DEFAULT_VERSION;
-    }   
+        return readVersionFromBumpversionConfig();
+    }
+    
+    /**
+     * Reads the current version from .bumpversion.cfg file
+     * @return The version string from the config file, or "0.0.0" if not found
+     */
+    private static String readVersionFromBumpversionConfig() {
+        String configPath = ".bumpversion.cfg";
+        try {
+            if (Files.exists(Paths.get(configPath))) {
+                try (Stream<String> lines = Files.lines(Paths.get(configPath))) {
+                    return lines
+                        .filter(line -> line.contains("current_version"))
+                        .findFirst()
+                        .map(line -> line.replaceAll(".*current_version\\s*=\\s*([0-9]+\\.[0-9]+\\.[0-9]+).*", "$1"))
+                        .orElse("0.0.0");
+                }
+            }
+            
+            logger.warn("Could not find .bumpversion.cfg file");
+        } catch (IOException e) {
+            logger.error("Error reading version from .bumpversion.cfg", e);
+        }
+        return "0.0.0";
+    }
 }

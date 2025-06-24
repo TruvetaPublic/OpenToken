@@ -27,7 +27,4 @@ public final class Const {
     public static final String OUTPUT_FORMAT_JSON = "JSON";
     public static final String OUTPUT_FORMAT_CSV = "CSV";
     public static final String OUTPUT_FORMAT_PARQUET = "Parquet";
-
-    // Default version
-    public static final String DEFAULT_VERSION = "1.7.0";
 }
