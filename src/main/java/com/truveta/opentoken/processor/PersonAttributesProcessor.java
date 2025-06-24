@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.Const;
+import com.truveta.opentoken.ApplicationVersion;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.io.MetadataWriter;
@@ -141,7 +142,7 @@ public final class PersonAttributesProcessor {
         Map<String, String> metadata = new LinkedHashMap<>();
         metadata.put(Const.PLATFORM, Const.PLATFORM_JAVA);
         metadata.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
-        metadata.put(Const.OPENTOKEN_VERSION, Const.getApplicationVersion());
+        metadata.put(Const.OPENTOKEN_VERSION, ApplicationVersion.getApplicationVersion());
         metadata.put(Const.TOTAL_ROWS, String.valueOf(totalRows));
         metadata.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(invalidAttributeCount));
         metadata.put(Const.INVALID_ATTRIBUTES_BY_TYPE, String.valueOf((invalidAttributesByType)));

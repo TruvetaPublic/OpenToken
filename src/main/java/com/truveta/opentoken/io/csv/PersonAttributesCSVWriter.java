@@ -24,7 +24,6 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
 
     private final BufferedWriter fileWriter;
     private final CSVPrinter csvPrinter;
-    private final String filePath;
     private boolean headerWritten = false;
 
     /**
@@ -34,7 +33,6 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
      * @throws IOException if an I/O error occurs
      */
     public PersonAttributesCSVWriter(String filePath) throws IOException {
-        this.filePath = filePath;
         fileWriter = new BufferedWriter(new FileWriter(filePath));
         csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
     }
