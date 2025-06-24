@@ -1,4 +1,4 @@
-RecordId,BirthDate,FirstName,LastName,PostalCode,Gender,SocialSecurityNumber
+RecordId,BirthDate,FirstName,LastName,PostalCode,Sex,SocialSecurityNumber
 98abe2b4-1076-43dc-aa6a-befab6140f39,1978-06-07,Lisa,Macias,81669,Male,513-17-6095
 ade7ef3b-c286-4f4d-8bb5-1227931f8204,1946-09-11,Barbara,Logan,61465,Male,329-87-6819
 e7e8bd37-93af-44e3-8f52-3a7a25560558,1976-08-17,Dustin,Burns,24684,Female,175-95-5971

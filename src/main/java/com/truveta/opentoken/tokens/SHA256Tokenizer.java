@@ -3,10 +3,8 @@
  */
 package com.truveta.opentoken.tokens;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
@@ -23,6 +21,13 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
  * 
  */
 public final class SHA256Tokenizer {
+
+    /**
+     * The empty token value.
+     * <p>
+     * This is the value returned when the token signature is <code>null</code> or
+     * blank.
+     */
     public static final String EMPTY = "0000000000000000000000000000000000000000000000000000000000000000";
     private final List<TokenTransformer> tokenTransformerList;
 
@@ -57,11 +62,12 @@ public final class SHA256Tokenizer {
      * @throws java.lang.Exception                    if an error is thrown by the
      *                                                transformer.
      */
-    public String tokenize(String value) throws UnsupportedEncodingException, NoSuchAlgorithmException, Exception {
+    public String tokenize(String value) throws Exception {
         if (value == null || value.isBlank()) {
             return EMPTY;
         }
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8.name());
+
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(bytes);
         String transformedToken = Hex.encodeHexString(hash);

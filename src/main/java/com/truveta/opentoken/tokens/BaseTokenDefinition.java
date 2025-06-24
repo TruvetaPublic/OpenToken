@@ -3,42 +3,15 @@
  */
 package com.truveta.opentoken.tokens;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+
+import com.truveta.opentoken.attributes.AttributeExpression;
 
 /**
  * A generic interface for the token definition.
  */
 public interface BaseTokenDefinition {
-    /**
-     * Person attribute name for the <b>First Name</b>.
-     */
-    String FIRST_NAME = "FirstName";
-
-    /**
-     * Person attribute name for the <b>Last Name</b>.
-     */
-    String LAST_NAME = "LastName";
-
-    /**
-     * Person attribute name for the <b>Gender</b>.
-     */
-    String GENDER = "Gender";
-
-    /**
-     * Person attribute name for the <b>Birth Date</b>.
-     */
-    String BIRTH_DATE = "BirthDate";
-
-    /**
-     * Person attribute name for the <b>Postal/Zip Code</b>.
-     */
-    String POSTAL_CODE = "PostalCode";
-
-    /**
-     * Person attribute name for the <b>SSN</b>.
-     */
-    String SOCIAL_SECURITY_NUMBER = "SocialSecurityNumber";
 
     /**
      * Get the version of the token definition.
@@ -65,5 +38,5 @@ public interface BaseTokenDefinition {
      * 
      * @return a list of token/rule definition.
      */
-    ArrayList<AttributeExpression> getTokenDefinition(String tokenId);
+    List<AttributeExpression> getTokenDefinition(String tokenId);
 }

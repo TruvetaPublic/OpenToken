@@ -1,8 +1,5 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
- * 
- * Represents a writer for person attributes.
- * This interface provides a method to write person attributes to a file.
  */
 package com.truveta.opentoken.io;
 

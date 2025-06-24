@@ -1,0 +1,51 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Force LF line endings for shell scripts
+*.sh text eol=lf
+
+# Force LF line endings for other Unix/Linux files
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+
+# Force CRLF line endings for Windows files
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Force LF line endings for configuration files
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+*.properties text eol=lf
+
+# Force LF line endings for Java source files
+*.java text eol=lf
+
+# Force LF line endings for Python files
+*.py text eol=lf
+
+# Force LF line endings for web files
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+
+# Force LF line endings for documentation
+*.md text eol=lf
+*.txt text eol=lf
+README text eol=lf
+LICENSE text eol=lf
+
+# Binary files should not be modified
+*.jar binary
+*.zip binary
+*.tar.gz binary
+*.parquet binary
+*.class binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
