@@ -213,6 +213,56 @@ class PersonAttributesProcessorIntegrationTest {
         assertEquals(oldOutput, newOutput);
     }
 
+    /**
+     * This test verifies that the metadata file is created alongside the output file
+     * with the correct extension and contains the expected metadata.
+     */
+    @Test
+    void testMetadataFileLocation() throws Exception {
+        // Set up the test
+        String inputCsvFile = "src/test/resources/mockdata/test_data.csv";
+        String outputCsvFile = "target/test_metadata_location_output.csv";
+
+        List<TokenTransformer> tokenTransformerList = new ArrayList<>();
+        tokenTransformerList.add(new NoOperationTokenTransformer());
+
+        // Delete output files if they exist
+        Files.deleteIfExists(Paths.get(outputCsvFile));
+        Files.deleteIfExists(Paths.get(outputCsvFile + Const.METADATA_FILE_EXTENSION));
+
+        // Process the input file
+        try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFile);
+             PersonAttributesWriter writer = new PersonAttributesCSVWriter(outputCsvFile)) {
+            
+            // Create initial metadata
+            Map<String, String> metadataMap = new HashMap<>();
+            metadataMap.put(Const.PLATFORM, Const.PLATFORM_JAVA);
+            metadataMap.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
+            metadataMap.put(Const.OUTPUT_FORMAT, Const.OUTPUT_FORMAT_CSV);
+            
+            // Process data and get updated metadata
+            Map<String, String> processedMetadata = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
+            
+            // Write the metadata to file
+            com.truveta.opentoken.io.MetadataWriter metadataWriter = new com.truveta.opentoken.io.json.MetadataJsonWriter(outputCsvFile);
+            metadataWriter.writeMetadata(processedMetadata);
+        }
+
+        // Verify that the output file exists
+        assertTrue(Files.exists(Paths.get(outputCsvFile)), "Output CSV file should exist");
+        
+        // Verify that the metadata file exists alongside the output file
+        String expectedMetadataFile = outputCsvFile + Const.METADATA_FILE_EXTENSION;
+        assertTrue(Files.exists(Paths.get(expectedMetadataFile)), "Metadata file should exist alongside the output file");
+        
+        // Verify that metadata file contains the expected data
+        String metadataContent = Files.readString(Paths.get(expectedMetadataFile));
+        assertTrue(metadataContent.contains(Const.PLATFORM_JAVA), "Metadata should contain platform information");
+        assertTrue(metadataContent.contains(Const.SYSTEM_JAVA_VERSION), "Metadata should contain Java version");
+        assertTrue(metadataContent.contains(Const.OUTPUT_FORMAT_CSV), "Metadata should contain output format");
+        assertTrue(metadataContent.contains(Const.TOTAL_ROWS), "Metadata should contain total rows processed");
+    }
+
     ArrayList<Map<String, String>> readCSV_fromPersonAttributesProcessor(String inputCsvFilePath,
             List<TokenTransformer> tokenTransformers) throws Exception {
 
