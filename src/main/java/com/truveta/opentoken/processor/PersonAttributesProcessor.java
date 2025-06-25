@@ -5,7 +5,6 @@ package com.truveta.opentoken.processor;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,13 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truveta.opentoken.Const;
-import com.truveta.opentoken.ApplicationVersion;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
-import com.truveta.opentoken.io.MetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
-import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.tokens.TokenDefinition;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokens.TokenGeneratorResult;
