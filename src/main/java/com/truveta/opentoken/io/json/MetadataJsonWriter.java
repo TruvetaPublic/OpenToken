@@ -20,13 +20,23 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class MetadataJsonWriter implements MetadataWriter {
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final String outputFilePath;
 
-    public MetadataJsonWriter() {}
+    /**
+     * Constructs a MetadataJsonWriter with a specified output path.
+     * The metadata file will be created with the same base name as the output path,
+     * but with the .metadata.json extension.
+     * 
+     * @param outputFilePath the base output file path to use for the metadata file
+     */
+    public MetadataJsonWriter(String outputFilePath) {
+        this.outputFilePath = outputFilePath;
+    }
 
     /**
      * Writes the provided metadata map to a JSON file.
-     * The file is saved at the path specified by Const.METADATA_OUTPUT_FILE with a
-     * .metadata.json extension.
+     * The file is saved at the path specified by the outputFilePath provided in the constructor
+     * with a .metadata.json extension.
      *
      * @param metadataMap a map containing metadata key-value pairs.
      * @throws IOException if an error occurs while writing the metadata to the
@@ -54,7 +64,7 @@ public class MetadataJsonWriter implements MetadataWriter {
 
         // Write the properly structured JSON
         Files.write(
-                Paths.get(Const.METADATA_OUTPUT_FILE + Const.METADATA_FILE_EXTENSION),
+                Paths.get(outputFilePath + Const.METADATA_FILE_EXTENSION),
                 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(root));
     }
 }

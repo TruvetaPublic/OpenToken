@@ -18,7 +18,6 @@ public final class Const {
     public static final String INVALID_ATTRIBUTES_BY_TYPE = "InvalidAttributesByType";
 
     // Metadata values
-    public static final String METADATA_OUTPUT_FILE = "target/output";
     public static final String PLATFORM_JAVA = "Java";
     public static final String METADATA_FILE_EXTENSION = ".metadata.json";
     public static final String SYSTEM_JAVA_VERSION = System.getProperty("java.version");

@@ -79,7 +79,7 @@ public class Main {
             Map<String, String> processedMetadata = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
             
             // Write the metadata to file
-            MetadataWriter metadataWriter = new MetadataJsonWriter();
+            MetadataWriter metadataWriter = new MetadataJsonWriter(outputPath);
             metadataWriter.writeMetadata(processedMetadata);
 
         } catch (Exception e) {
