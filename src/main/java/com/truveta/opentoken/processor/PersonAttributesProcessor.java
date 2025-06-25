@@ -62,8 +62,8 @@ public final class PersonAttributesProcessor {
      * @see com.truveta.opentoken.io.PersonAttributesWriter PersonAttributesWriter
      * @see com.truveta.opentoken.tokentransformer.TokenTransformer TokenTransformer
      */
-    public static void process(PersonAttributesReader reader, PersonAttributesWriter writer,
-            List<TokenTransformer> tokenTransformerList) throws IOException {
+    public static Map<String, String> process(PersonAttributesReader reader, PersonAttributesWriter writer,
+            List<TokenTransformer> tokenTransformerList, Map<String, String> metadataMap) throws IOException {
 
         // TokenGenerator code
         TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
@@ -99,8 +99,12 @@ public final class PersonAttributesProcessor {
         long rowIssueCounter = invalidAttributeCount.values().stream()
                 .collect(Collectors.summarizingLong(Long::longValue)).getSum();
 
-        writeMetaData(rowCounter, rowIssueCounter, invalidAttributeCount);
+        metadataMap.put(Const.TOTAL_ROWS, String.valueOf(rowCounter));
+        metadataMap.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(rowIssueCounter));
+        metadataMap.put(Const.INVALID_ATTRIBUTES_BY_TYPE, new ObjectMapper().writeValueAsString(invalidAttributeCount));
+
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
+        return metadataMap;
     }
 
     private static void writeTokens(PersonAttributesWriter writer, Map<Class<? extends Attribute>, String> row,
@@ -136,25 +140,6 @@ public final class PersonAttributesProcessor {
                     invalidAttributeCount.put(invalidAttribute, 1L);
                 }
             }
-        }
-    }
-    
-    private static void writeMetaData(int totalRows, Long invalidAttributeCount, Map<String, Long> invalidAttributesByType) throws IOException {
-        try {
-            // LinkedHashMap to maintain insertion order
-            Map<String, String> metadata = new LinkedHashMap<>();
-            
-            metadata.put(Const.PLATFORM, Const.PLATFORM_JAVA);
-            metadata.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
-            metadata.put(Const.OPENTOKEN_VERSION, ApplicationVersion.getApplicationVersion());
-            metadata.put(Const.TOTAL_ROWS, String.valueOf(totalRows));
-            metadata.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(invalidAttributeCount));
-            metadata.put(Const.INVALID_ATTRIBUTES_BY_TYPE, new ObjectMapper().writeValueAsString(invalidAttributesByType));
-            
-            MetadataWriter metadataWriter = new MetadataJsonWriter();
-            metadataWriter.writeMetadata(metadata);
-        } catch (Exception e) {
-            logger.error("Error writing metadata", e);
         }
     }
 }

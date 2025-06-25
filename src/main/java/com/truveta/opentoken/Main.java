@@ -5,18 +5,23 @@ package com.truveta.opentoken;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.beust.jcommander.JCommander;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
+import com.truveta.opentoken.io.MetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
+import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
@@ -67,7 +72,15 @@ public class Main {
         try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
                 PersonAttributesWriter writer = createPersonAttributesWriter(outputPath, outputType)) {
 
-            PersonAttributesProcessor.process(reader, writer, tokenTransformerList);
+            // Create initial metadata with system information
+            Map<String, String> metadataMap = writeMetaData();
+            
+            // Process data and get updated metadata
+            Map<String, String> processedMetadata = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
+            
+            // Write the metadata to file
+            MetadataWriter metadataWriter = new MetadataJsonWriter();
+            metadataWriter.writeMetadata(processedMetadata);
 
         } catch (Exception e) {
             logger.error("Error in processing the input file. Execution halted. ", e);
@@ -111,5 +124,32 @@ public class Main {
             return input;
         }
         return input.substring(0, 3) + "*".repeat(input.length() - 3);
+    }
+
+    private static Map<String, String> writeMetaData() throws IOException {
+        Map<String, String> metadata = new LinkedHashMap<>();
+        try {
+            // System information
+            Map<String, String> sysInfo = Map.of(
+                Const.PLATFORM, Const.PLATFORM_JAVA,
+                Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION,
+                Const.OPENTOKEN_VERSION, ApplicationVersion.getApplicationVersion()
+            );
+            metadata.putAll(sysInfo);
+            
+            // Initialize statistics with zeros
+            // These will be overwritten by the processor with actual values
+            Map<String, String> initialStats = Map.of(
+                Const.TOTAL_ROWS, "0",
+                Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, "0"
+            );
+            metadata.putAll(initialStats);
+            
+            // Initialize complex JSON value
+            metadata.put(Const.INVALID_ATTRIBUTES_BY_TYPE, new ObjectMapper().writeValueAsString(Map.of()));
+        } catch (Exception e) {
+            logger.error("Error creating metadata", e);
+        }
+        return metadata;
     }
 }
