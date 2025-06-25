@@ -4,6 +4,8 @@
 package com.truveta.opentoken.processor;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
@@ -16,12 +18,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import com.truveta.opentoken.Const;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;
@@ -55,10 +59,17 @@ class PersonAttributesProcessorTest {
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);
 
-        PersonAttributesProcessor.process(reader, writer, tokenTransformerList);
+        // Use a HashMap instead of null for metadata
+        Map<String, String> metadata = new HashMap<>();
+
+        Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadata);
 
         verify(reader).next();
         verify(writer, times(5)).writeAttributes(any());
+        
+        // Verify metadata was populated
+        assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
+        assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
     }
 
     @Test
@@ -73,11 +84,18 @@ class PersonAttributesProcessorTest {
         when(reader.next()).thenReturn(data);
 
         doThrow(new IOException("Test Exception")).when(writer).writeAttributes(any());
-
-        assertDoesNotThrow(() -> PersonAttributesProcessor.process(reader, writer,
-                tokenTransformerList));
+        
+        // Use a HashMap instead of null for metadata
+        Map<String, String> metadata = new HashMap<>();
+        
+        Map<String, String> result = assertDoesNotThrow(() -> PersonAttributesProcessor.process(reader, writer,
+                tokenTransformerList, metadata));
 
         verify(reader).next();
         verify(writer, atLeastOnce()).writeAttributes(any());
+        
+        // Verify metadata was populated
+        assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
+        assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
     }
 }

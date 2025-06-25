@@ -4,6 +4,7 @@
 package com.truveta.opentoken.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
@@ -27,6 +28,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.Test;
 
+import com.truveta.opentoken.Const;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
@@ -187,14 +189,22 @@ class PersonAttributesProcessorIntegrationTest {
                 newTmpInputFile);
                 PersonAttributesWriter writer = new PersonAttributesCSVWriter(newTmpOutputFile)) {
 
-            PersonAttributesProcessor.process(reader, writer, tokenTransformers);
+            Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformers, new HashMap<>());
+            
+            // Verify metadata was populated
+            assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
+            assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
         }
 
         try (PersonAttributesReader reader = new PersonAttributesCSVReader(
                 oldTmpInputFile);
                 PersonAttributesWriter writer = new PersonAttributesCSVWriter(oldTmpOutputFile)) {
 
-            PersonAttributesProcessor.process(reader, writer, tokenTransformers);
+            Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformers, new HashMap<>());
+            
+            // Verify metadata was populated
+            assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
+            assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
         }
 
         // read oldTmpOutputFile and newTmpOutputFile as strings and assert equality
@@ -211,7 +221,11 @@ class PersonAttributesProcessorIntegrationTest {
         try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFilePath);
                 PersonAttributesWriter writer = new PersonAttributesCSVWriter(tmpOutputFile)) {
 
-            PersonAttributesProcessor.process(reader, writer, tokenTransformers);
+            Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformers, new HashMap<>());
+            
+            // Verify metadata was populated
+            assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
+            assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
         }
 
         ArrayList<Map<String, String>> result = new ArrayList<>();
