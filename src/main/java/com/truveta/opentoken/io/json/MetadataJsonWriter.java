@@ -9,9 +9,8 @@ import java.util.Map;
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.truveta.opentoken.Const;
 import com.truveta.opentoken.io.MetadataWriter;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.truveta.opentoken.Metadata;
 
 /**
  * A JSON implementation of the MetadataWriter interface.
@@ -21,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class MetadataJsonWriter implements MetadataWriter {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private final String outputFilePath;
+    public static final String OUTPUT_FORMAT_JSON = "JSON";
 
     /**
      * Constructs a MetadataJsonWriter with a specified output path.
@@ -43,28 +43,10 @@ public class MetadataJsonWriter implements MetadataWriter {
      *                     file.
      */
     @Override
-    public void writeMetadata(Map<String, String> metadataMap) throws IOException {
-        // Create a node tree that allows mixed types
-        ObjectNode root = objectMapper.createObjectNode();
-        
-        metadataMap.forEach((key, value) -> {
-            // Special handling for InvalidAttributesByType to prevent double escaping
-            if (Const.INVALID_ATTRIBUTES_BY_TYPE.equals(key) && value.startsWith("{")) {
-                try {
-                    // Parse the JSON string back to an object and add it directly
-                    root.set(key, objectMapper.readTree(value));
-                } catch (Exception e) {
-                    // Fallback if parsing fails
-                    root.put(key, value);
-                }
-            } else {
-                root.put(key, value);
-            }
-        });
-
-        // Write the properly structured JSON
+    public void write(Map<String, Object> metadataMap) throws IOException {
+        // Write the metadata map directly as JSON
         Files.write(
-                Paths.get(outputFilePath + Const.METADATA_FILE_EXTENSION),
-                objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(root));
+                Paths.get(outputFilePath + Metadata.METADATA_FILE_EXTENSION),
+                objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metadataMap));
     }
 }

@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.truveta.opentoken.Const;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
@@ -38,6 +36,10 @@ public final class PersonAttributesProcessor {
     private static final String RULE_ID = "RuleId";
     private static final String RECORD_ID = "RecordId";
 
+    public static final String TOTAL_ROWS = "TotalRows";
+    public static final String TOTAL_ROWS_WITH_INVALID_ATTRIBUTES = "TotalRowsWithInvalidAttributes";
+    public static final String INVALID_ATTRIBUTES_BY_TYPE = "InvalidAttributesByType";
+
     private static final Logger logger = LoggerFactory.getLogger(PersonAttributesProcessor.class);
 
     PersonAttributesProcessor() {
@@ -58,8 +60,8 @@ public final class PersonAttributesProcessor {
      * @see com.truveta.opentoken.io.PersonAttributesWriter PersonAttributesWriter
      * @see com.truveta.opentoken.tokentransformer.TokenTransformer TokenTransformer
      */
-    public static Map<String, String> process(PersonAttributesReader reader, PersonAttributesWriter writer,
-            List<TokenTransformer> tokenTransformerList, Map<String, String> metadataMap) throws IOException {
+    public static void process(PersonAttributesReader reader, PersonAttributesWriter writer,
+            List<TokenTransformer> tokenTransformerList, Map<String, Object> metadataMap) throws IOException {
 
         // TokenGenerator code
         TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
@@ -95,12 +97,10 @@ public final class PersonAttributesProcessor {
         long rowIssueCounter = invalidAttributeCount.values().stream()
                 .collect(Collectors.summarizingLong(Long::longValue)).getSum();
 
-        metadataMap.put(Const.TOTAL_ROWS, String.valueOf(rowCounter));
-        metadataMap.put(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, String.valueOf(rowIssueCounter));
-        metadataMap.put(Const.INVALID_ATTRIBUTES_BY_TYPE, new ObjectMapper().writeValueAsString(invalidAttributeCount));
-
+        metadataMap.put(TOTAL_ROWS, rowCounter);
+        metadataMap.put(TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, rowIssueCounter);
+        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, invalidAttributeCount);
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
-        return metadataMap;
     }
 
     private static void writeTokens(PersonAttributesWriter writer, Map<Class<? extends Attribute>, String> row,
