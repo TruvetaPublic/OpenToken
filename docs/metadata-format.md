@@ -2,7 +2,7 @@
 
 ## Overview
 
-OpenToken generates metadata files alongside the output files to provide information about the processed data. These metadata files contain statistical information about the processed records like the invalid attributes, number of records processed and other system information.
+OpenToken generates metadata files alongside the output files to provide information about the processed data. These metadata files contain statistical information about the processed records like the invalid attributes, number of records processed and system/runtime information.
 
 ## Metadata Format
 
