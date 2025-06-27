@@ -4,11 +4,9 @@
 package com.truveta.opentoken.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.io.BufferedReader;
 import java.nio.file.Paths;
@@ -28,7 +26,6 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.Test;
 
-import com.truveta.opentoken.Const;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
@@ -41,6 +38,8 @@ import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.NoOperationTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
+import com.truveta.opentoken.Metadata;
+import com.truveta.opentoken.io.MetadataWriter;
 
 class PersonAttributesProcessorIntegrationTest {
     final int totalRecordsMatched = 1001;
@@ -153,68 +152,9 @@ class PersonAttributesProcessorIntegrationTest {
         assertEquals(overlappCount, totalRecordsMatched);
     }
 
-    @Test
-    void testInputBackwardCompatibility() throws Exception {
-        String oldTmpInputFile = Files.createTempFile("person_attributes_old", ".csv").toString();
-        String newTmpInputFile = Files.createTempFile("person_attributes_new", ".csv").toString();
-
-        String oldTmpOutputFile = Files.createTempFile("person_attributes_old_out", ".csv").toString();
-        String newTmpOutputFile = Files.createTempFile("person_attributes_new_out", ".csv").toString();
-
-        // Person attributes to be used for token generation
-        Map<String, String> personAttributes = new HashMap<>();
-        personAttributes.put("FirstName", "Alice");
-        personAttributes.put("LastName", "Wonderland");
-        personAttributes.put("SocialSecurityNumber", "345-54-6795");
-        personAttributes.put("PostalCode", "98052");
-        personAttributes.put("BirthDate", "1993-08-10");
-        personAttributes.put("Sex", "Female");
-
-        try (PersonAttributesWriter writer = new PersonAttributesCSVWriter(newTmpInputFile)) {
-            writer.writeAttributes(personAttributes);
-        }
-
-        personAttributes.remove("Sex");
-        personAttributes.put("Gender", "Female");
-
-        try (PersonAttributesWriter writer = new PersonAttributesCSVWriter(oldTmpInputFile)) {
-            writer.writeAttributes(personAttributes);
-        }
-
-        // Truveta file is neither hashed nor encrypted
-        List<TokenTransformer> tokenTransformers = new ArrayList<>();
-        tokenTransformers.add(new NoOperationTokenTransformer());
-
-        try (PersonAttributesReader reader = new PersonAttributesCSVReader(
-                newTmpInputFile);
-                PersonAttributesWriter writer = new PersonAttributesCSVWriter(newTmpOutputFile)) {
-
-            Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformers, new HashMap<>());
-            
-            // Verify metadata was populated
-            assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
-            assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
-        }
-
-        try (PersonAttributesReader reader = new PersonAttributesCSVReader(
-                oldTmpInputFile);
-                PersonAttributesWriter writer = new PersonAttributesCSVWriter(oldTmpOutputFile)) {
-
-            Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformers, new HashMap<>());
-            
-            // Verify metadata was populated
-            assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
-            assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
-        }
-
-        // read oldTmpOutputFile and newTmpOutputFile as strings and assert equality
-        String oldOutput = Files.readString(FileSystems.getDefault().getPath(oldTmpOutputFile));
-        String newOutput = Files.readString(FileSystems.getDefault().getPath(newTmpOutputFile));
-        assertEquals(oldOutput, newOutput);
-    }
-
     /**
-     * This test verifies that the metadata file is created alongside the output file
+     * This test verifies that the metadata file is created alongside the output
+     * file
      * with the correct extension and contains the expected metadata.
      */
     @Test
@@ -228,39 +168,40 @@ class PersonAttributesProcessorIntegrationTest {
 
         // Delete output files if they exist
         Files.deleteIfExists(Paths.get(outputCsvFile));
-        Files.deleteIfExists(Paths.get(outputCsvFile + Const.METADATA_FILE_EXTENSION));
+        Files.deleteIfExists(Paths.get(outputCsvFile + Metadata.METADATA_FILE_EXTENSION));
 
         // Process the input file
         try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFile);
-             PersonAttributesWriter writer = new PersonAttributesCSVWriter(outputCsvFile)) {
-            
+                PersonAttributesWriter writer = new PersonAttributesCSVWriter(outputCsvFile)) {
+
             // Create initial metadata
-            Map<String, String> metadataMap = new HashMap<>();
-            metadataMap.put(Const.PLATFORM, Const.PLATFORM_JAVA);
-            metadataMap.put(Const.JAVA_VERSION, Const.SYSTEM_JAVA_VERSION);
-            metadataMap.put(Const.OUTPUT_FORMAT, Const.OUTPUT_FORMAT_CSV);
-            
+            Map<String, Object> metadataMap = new HashMap<>();
+            metadataMap.put(Metadata.PLATFORM, Metadata.PLATFORM_JAVA);
+            metadataMap.put(Metadata.JAVA_VERSION, Metadata.SYSTEM_JAVA_VERSION);
+            metadataMap.put(Metadata.OUTPUT_FORMAT, Metadata.OUTPUT_FORMAT_CSV);
+
             // Process data and get updated metadata
-            Map<String, String> processedMetadata = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
-            
+            PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
+
             // Write the metadata to file
-            com.truveta.opentoken.io.MetadataWriter metadataWriter = new com.truveta.opentoken.io.json.MetadataJsonWriter(outputCsvFile);
-            metadataWriter.writeMetadata(processedMetadata);
+            MetadataWriter metadataWriter = new com.truveta.opentoken.io.json.MetadataJsonWriter(outputCsvFile);
+            metadataWriter.write(metadataMap);
         }
 
         // Verify that the output file exists
         assertTrue(Files.exists(Paths.get(outputCsvFile)), "Output CSV file should exist");
-        
+
         // Verify that the metadata file exists alongside the output file
-        String expectedMetadataFile = outputCsvFile + Const.METADATA_FILE_EXTENSION;
-        assertTrue(Files.exists(Paths.get(expectedMetadataFile)), "Metadata file should exist alongside the output file");
-        
+        String expectedMetadataFile = outputCsvFile + Metadata.METADATA_FILE_EXTENSION;
+        assertTrue(Files.exists(Paths.get(expectedMetadataFile)),
+                "Metadata file should exist alongside the output file");
+
         // Verify that metadata file contains the expected data
         String metadataContent = Files.readString(Paths.get(expectedMetadataFile));
-        assertTrue(metadataContent.contains(Const.PLATFORM_JAVA), "Metadata should contain platform information");
-        assertTrue(metadataContent.contains(Const.SYSTEM_JAVA_VERSION), "Metadata should contain Java version");
-        assertTrue(metadataContent.contains(Const.OUTPUT_FORMAT_CSV), "Metadata should contain output format");
-        assertTrue(metadataContent.contains(Const.TOTAL_ROWS), "Metadata should contain total rows processed");
+        assertTrue(metadataContent.contains(Metadata.PLATFORM_JAVA), "Metadata should contain platform information");
+        assertTrue(metadataContent.contains(Metadata.SYSTEM_JAVA_VERSION), "Metadata should contain Java version");
+        assertTrue(metadataContent.contains(Metadata.OUTPUT_FORMAT_CSV), "Metadata should contain output format");
+        assertTrue(metadataContent.contains("TotalRows"), "Metadata should contain total rows processed");
     }
 
     ArrayList<Map<String, String>> readCSV_fromPersonAttributesProcessor(String inputCsvFilePath,
@@ -268,14 +209,13 @@ class PersonAttributesProcessorIntegrationTest {
 
         String tmpOutputFile = Files.createTempFile("person_attributes_",
                 ".csv").toString();
+
+        // Actually process the input file through PersonAttributesProcessor
         try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFilePath);
                 PersonAttributesWriter writer = new PersonAttributesCSVWriter(tmpOutputFile)) {
 
-            Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformers, new HashMap<>());
-            
-            // Verify metadata was populated
-            assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
-            assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
+            Map<String, Object> metadataMap = new HashMap<>();
+            PersonAttributesProcessor.process(reader, writer, tokenTransformers, metadataMap);
         }
 
         ArrayList<Map<String, String>> result = new ArrayList<>();

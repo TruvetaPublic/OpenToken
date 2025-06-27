@@ -3,7 +3,6 @@
  */
 package com.truveta.opentoken.processor;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,14 +18,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import com.truveta.opentoken.Const;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;
@@ -36,6 +33,7 @@ import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
+import com.truveta.opentoken.Metadata;
 
 @ExtendWith(MockitoExtension.class)
 class PersonAttributesProcessorTest {
@@ -60,17 +58,15 @@ class PersonAttributesProcessorTest {
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);
 
-        // Use a HashMap instead of null for metadata
-        Map<String, String> metadata = new HashMap<>();
-
-        Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadata);
+        Map<String, Object> metadataMap = new Metadata().initializeMetadata();
+        PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
         verify(reader).next();
         verify(writer, times(5)).writeAttributes(any());
         
         // Verify metadata was populated
-        assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
-        assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
+        assertFalse(metadataMap.isEmpty(), "Metadata map should not be empty after processing");
+        assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS), "Metadata should contain totalRows key");
     }
 
     @Test
@@ -86,18 +82,16 @@ class PersonAttributesProcessorTest {
 
         doThrow(new IOException("Test Exception")).when(writer).writeAttributes(any());
         
-        // Use a HashMap instead of null for metadata
-        Map<String, String> metadata = new HashMap<>();
+        Map<String, Object> metadataMap = new Metadata().initializeMetadata();
         
-        Map<String, String> result = assertDoesNotThrow(() -> PersonAttributesProcessor.process(reader, writer,
-                tokenTransformerList, metadata));
+        PersonAttributesProcessor.process(reader, writer,tokenTransformerList, metadataMap);
 
         verify(reader).next();
         verify(writer, atLeastOnce()).writeAttributes(any());
         
         // Verify metadata was populated
-        assertFalse(result.isEmpty(), "Metadata map should not be empty after processing");
-        assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
+        assertFalse(metadataMap.isEmpty(), "Metadata map should not be empty after processing");
+        assertTrue(metadataMap.containsKey("TotalRows"), "Metadata should contain totalRows key");
     }
 
     @Test
@@ -110,25 +104,26 @@ class PersonAttributesProcessorTest {
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);
 
-        Map<String, String> metadata = new HashMap<>();
+        Map<String, Object> metadataMap = new Metadata().initializeMetadata();
 
-        Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadata);
+        PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
         // Check that the metadata map contains all expected keys with correct values
-        assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
-        assertTrue(result.containsKey(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES), 
+        assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS), "Metadata should contain totalRows key");
+        assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES), 
                 "Metadata should contain totalRowsWithInvalidAttributes key");
-        assertTrue(result.containsKey(Const.INVALID_ATTRIBUTES_BY_TYPE), 
+        assertTrue(metadataMap.containsKey(PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE), 
                 "Metadata should contain invalidAttributesByType key");
         
         // Verify values
-        assertEquals("1", result.get(Const.TOTAL_ROWS), "Total rows should be 1");
-        assertEquals("0", result.get(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES), 
+        assertEquals(1, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), "Total rows should be 1");
+        assertEquals(0L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES), 
                 "Total rows with invalid attributes should be 0");
         
-        // The invalid attributes map should be an empty JSON object
-        assertEquals("{}", result.get(Const.INVALID_ATTRIBUTES_BY_TYPE), 
-                "Invalid attributes map should be empty");
+        // The invalid attributes map should be an empty Map object
+        @SuppressWarnings("unchecked")
+        Map<String, Long> invalidAttributesMap = (Map<String, Long>) metadataMap.get(PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE);
+        assertTrue(invalidAttributesMap.isEmpty(), "Invalid attributes map should be empty");
     }
 
     @Test
@@ -150,14 +145,14 @@ class PersonAttributesProcessorTest {
                 FirstNameAttribute.class, "Alex",
                 LastNameAttribute.class, "Smith"));
 
-        Map<String, String> metadata = new HashMap<>();
+        Map<String, Object> metadataMap = new Metadata().initializeMetadata();
 
         // Execute
-        Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadata);
+        PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
         // Verify
-        assertEquals("3", result.get(Const.TOTAL_ROWS), "Total rows should be 3");
-        assertEquals("0", result.get(Const.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES), 
+        assertEquals(3, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), "Total rows should be 3");
+        assertEquals(0L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES), 
                 "Total rows with invalid attributes should be 0");
     }
 
@@ -171,19 +166,19 @@ class PersonAttributesProcessorTest {
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);
 
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("ExistingKey1", "ExistingValue1");
-        metadata.put("ExistingKey2", "ExistingValue2");
+        Map<String, Object> metadataMap = new Metadata().initializeMetadata();
+        metadataMap.put("ExistingKey1", "ExistingValue1");
+        metadataMap.put("ExistingKey2", "ExistingValue2");
 
-        Map<String, String> result = PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadata);
+        PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
         // Verify original entries are preserved
-        assertTrue(result.containsKey("ExistingKey1"), "Metadata should preserve existing key1");
-        assertTrue(result.containsKey("ExistingKey2"), "Metadata should preserve existing key2");
-        assertEquals("ExistingValue1", result.get("ExistingKey1"), "Value for existing key1 should be preserved");
-        assertEquals("ExistingValue2", result.get("ExistingKey2"), "Value for existing key2 should be preserved");
+        assertTrue(metadataMap.containsKey("ExistingKey1"), "Metadata should preserve existing key1");
+        assertTrue(metadataMap.containsKey("ExistingKey2"), "Metadata should preserve existing key2");
+        assertEquals("ExistingValue1", metadataMap.get("ExistingKey1"), "Value for existing key1 should be preserved");
+        assertEquals("ExistingValue2", metadataMap.get("ExistingKey2"), "Value for existing key2 should be preserved");
         
         // And new entries are added
-        assertTrue(result.containsKey(Const.TOTAL_ROWS), "Metadata should contain totalRows key");
+        assertTrue(metadataMap.containsKey("TotalRows"), "Metadata should contain totalRows key");
     }
 }
