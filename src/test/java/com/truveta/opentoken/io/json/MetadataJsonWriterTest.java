@@ -84,7 +84,12 @@ class MetadataJsonWriterTest {
     void testWriteMetadata_NestedJsonValues() throws IOException {
         Map<String, Object> metadataMap = new HashMap<>();
         metadataMap.put("simpleKey", "simpleValue");
-        metadataMap.put("InvalidAttributesByType", "{\"attr1\":10,\"attr2\":20}");
+        
+        // Create a nested Map object instead of JSON string
+        Map<String, Long> invalidAttributesMap = new HashMap<>();
+        invalidAttributesMap.put("attr1", 10L);
+        invalidAttributesMap.put("attr2", 20L);
+        metadataMap.put("InvalidAttributesByType", invalidAttributesMap);
 
         defaultWriter.write(metadataMap);
 
@@ -98,17 +103,24 @@ class MetadataJsonWriterTest {
         // Verify simple key-value was correctly written
         assertEquals("simpleValue", root.get("simpleKey").asText());
 
-        // Verify nested JSON string was stored as a string (not parsed as object)
+        // Verify nested Map was written as a proper JSON object
         JsonNode nestedJson = root.get("InvalidAttributesByType");
-        assertTrue(nestedJson.isTextual(), "JSON string should be stored as text");
-        assertEquals("{\"attr1\":10,\"attr2\":20}", nestedJson.asText(), "JSON string should be preserved as-is");
+        assertTrue(nestedJson.isObject(), "Map should be stored as JSON object");
+        assertEquals(10, nestedJson.get("attr1").asLong(), "attr1 should be 10");
+        assertEquals(20, nestedJson.get("attr2").asLong(), "attr2 should be 20");
     }
 
     @Test
-    void testWriteMetadata_MalformedJsonValue() throws IOException {
-        // Create a metadata map with malformed JSON string
+    void testWriteMetadata_MapObjectValue() throws IOException {
+        // Create a metadata map with a Map object value
         Map<String, Object> metadataMap = new HashMap<>();
-        metadataMap.put("InvalidAttributesByType", "{malformed json}");
+        
+        Map<String, Long> nestedMap = new HashMap<>();
+        nestedMap.put("validAttribute", 5L);
+        nestedMap.put("anotherAttribute", 15L);
+        
+        metadataMap.put("InvalidAttributesByType", nestedMap);
+        metadataMap.put("TotalRows", 100);
 
         // Write the metadata - should not throw exception
         assertDoesNotThrow(() -> defaultWriter.write(metadataMap));
@@ -117,14 +129,17 @@ class MetadataJsonWriterTest {
         File outputFile = new File(defaultMetadataFilePath);
         assertTrue(outputFile.exists(), "Metadata file should have been created");
 
-        // Read the JSON file and verify the malformed JSON was handled correctly
+        // Read the JSON file and verify the Map was handled correctly
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode root = objectMapper.readTree(outputFile);
 
-        // Verify the malformed JSON was stored as a string
-        assertTrue(root.has("InvalidAttributesByType"), "The malformed JSON key should exist in the output");
-        assertEquals("{malformed json}", root.get("InvalidAttributesByType").asText(),
-                "Malformed JSON should be stored as a string");
+        // Verify the Map was stored as a proper JSON object
+        assertTrue(root.has("InvalidAttributesByType"), "The Map key should exist in the output");
+        JsonNode invalidAttrs = root.get("InvalidAttributesByType");
+        assertTrue(invalidAttrs.isObject(), "Map should be stored as JSON object");
+        assertEquals(5, invalidAttrs.get("validAttribute").asLong());
+        assertEquals(15, invalidAttrs.get("anotherAttribute").asLong());
+        assertEquals(100, root.get("TotalRows").asInt());
     }
 
     @Test
