@@ -204,6 +204,119 @@ class PersonAttributesProcessorIntegrationTest {
         assertTrue(metadataContent.contains("TotalRows"), "Metadata should contain total rows processed");
     }
 
+    /**
+     * This test verifies backward compatibility by ensuring that tokens
+     * generated for the same input data remain consistent across different
+     * processing runs and configurations.
+     */
+    @Test
+    void testInputBackwardCompatibility() throws Exception {
+        String oldTmpInputFile = Files.createTempFile("person_attributes_old", ".csv").toString();
+        String newTmpInputFile = Files.createTempFile("person_attributes_new", ".csv").toString();
+
+        String oldTmpOutputFile = Files.createTempFile("person_attributes_old_out", ".csv").toString();
+        String newTmpOutputFile = Files.createTempFile("person_attributes_new_out", ".csv").toString();
+
+        // Person attributes to be used for token generation
+        Map<String, String> personAttributes = new HashMap<>();
+        personAttributes.put("FirstName", "Alice");
+        personAttributes.put("LastName", "Wonderland");
+        personAttributes.put("SocialSecurityNumber", "345-54-6795");
+        personAttributes.put("PostalCode", "98052");
+        personAttributes.put("BirthDate", "1993-08-10");
+        personAttributes.put("Sex", "Female");
+
+        try {
+            // Create identical CSV files for both old and new processing
+            createTestCSVFile(oldTmpInputFile, personAttributes);
+            createTestCSVFile(newTmpInputFile, personAttributes);
+
+            // Use consistent transformers for backward compatibility testing
+            List<TokenTransformer> tokenTransformerList = new ArrayList<>();
+            tokenTransformerList.add(new HashTokenTransformer(hashKey));
+            tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
+
+            // Process both files with the same configuration
+            ArrayList<Map<String, String>> oldResults = readCSV_fromPersonAttributesProcessor(
+                    oldTmpInputFile, tokenTransformerList);
+            ArrayList<Map<String, String>> newResults = readCSV_fromPersonAttributesProcessor(
+                    newTmpInputFile, tokenTransformerList);
+
+            // Verify that both processing runs produce the same number of tokens
+            assertEquals(oldResults.size(), newResults.size(), 
+                    "Both processing runs should produce the same number of tokens for backward compatibility");
+
+            // Verify that tokens are identical for the same input data
+            for (int i = 0; i < oldResults.size(); i++) {
+                Map<String, String> oldToken = oldResults.get(i);
+                Map<String, String> newToken = newResults.get(i);
+
+                assertEquals(oldToken.get("RecordId"), newToken.get("RecordId"), 
+                        "RecordId should be identical for backward compatibility");
+                assertEquals(oldToken.get("RuleId"), newToken.get("RuleId"), 
+                        "RuleId should be identical for backward compatibility");
+                
+                // Decrypt and compare the actual token values
+                String oldDecryptedToken = decryptToken(oldToken.get("Token"));
+                String newDecryptedToken = decryptToken(newToken.get("Token"));
+                assertEquals(oldDecryptedToken, newDecryptedToken, 
+                        "Decrypted tokens should be identical for backward compatibility");
+            }
+
+            // Verify that exactly 5 tokens are generated per record (T1-T5)
+            assertEquals(5, oldResults.size(), 
+                    "Should generate exactly 5 tokens per record for backward compatibility");
+
+            // Verify token structure consistency
+            for (Map<String, String> token : oldResults) {
+                assertTrue(token.containsKey("RecordId"), "Token must contain RecordId");
+                assertTrue(token.containsKey("RuleId"), "Token must contain RuleId");
+                assertTrue(token.containsKey("Token"), "Token must contain Token");
+                
+                String ruleId = token.get("RuleId");
+                assertTrue(ruleId.matches("T[1-5]"), 
+                        "RuleId should follow T1-T5 pattern, but got: " + ruleId);
+            }
+
+            // Test metadata consistency
+            Map<String, Object> metadataMap = new HashMap<>();
+            try (PersonAttributesReader reader = new PersonAttributesCSVReader(oldTmpInputFile);
+                    PersonAttributesWriter writer = new PersonAttributesCSVWriter(oldTmpOutputFile)) {
+                
+                PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
+            }
+
+            // Verify essential metadata fields for backward compatibility
+            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS), 
+                    "Metadata must contain TotalRows for backward compatibility");
+            assertEquals(1, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), 
+                    "TotalRows should be 1 for single record");
+            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES), 
+                    "Metadata must contain TotalRowsWithInvalidAttributes for backward compatibility");
+            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE), 
+                    "Metadata must contain InvalidAttributesByType for backward compatibility");
+
+        } finally {
+            // Clean up temporary files
+            Files.deleteIfExists(Paths.get(oldTmpInputFile));
+            Files.deleteIfExists(Paths.get(newTmpInputFile));
+            Files.deleteIfExists(Paths.get(oldTmpOutputFile));
+            Files.deleteIfExists(Paths.get(newTmpOutputFile));
+        }
+    }
+
+    /**
+     * Helper method to create a test CSV file with specified person attributes
+     */
+    private void createTestCSVFile(String filePath, Map<String, String> personAttributes) throws Exception {
+        try (PersonAttributesWriter writer = new PersonAttributesCSVWriter(filePath)) {
+            Map<String, String> record = new HashMap<>();
+            record.put("RecordId", "TEST_RECORD_001");
+            record.putAll(personAttributes);
+            writer.writeAttributes(record);
+        }
+    }
+
     ArrayList<Map<String, String>> readCSV_fromPersonAttributesProcessor(String inputCsvFilePath,
             List<TokenTransformer> tokenTransformers) throws Exception {
 
