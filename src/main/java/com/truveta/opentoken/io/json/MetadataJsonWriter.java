@@ -20,7 +20,6 @@ import com.truveta.opentoken.Metadata;
 public class MetadataJsonWriter implements MetadataWriter {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private final String outputFilePath;
-    public static final String OUTPUT_FORMAT_JSON = "JSON";
 
     /**
      * Constructs a MetadataJsonWriter with a specified output path.

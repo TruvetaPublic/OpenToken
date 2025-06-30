@@ -10,7 +10,7 @@ import java.util.Map;
  * Interface for writing metadata to a specified output format.
  * Implementations of this interface should handle the specifics of writing
  * metadata in the desired format, such as JSON, CSV, or Parquet.
- * This is for one time use only. A new instantiation override the write method
+ * Each call to write will generate a new metadata file based on the input given.
  */
 public interface MetadataWriter {
 
