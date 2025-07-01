@@ -1,12 +1,12 @@
-# Open token
+# OpenToken
 
 ## Introduction
 
-Truveta’s approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
+OpenToken is an open-source library for generating privacy-preserving, cryptographically secure tokens derived from deterministic personal data. These tokens enable reliable person matching across disparate datasets without exposing sensitive attributes. OpenToken is designed to standardize token-based matching, improving interoperability, privacy, and data integration across healthcare, research, and other privacy-sensitive domains.
 
 ## Token generation strategy
 
-Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Truveta uses multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
+Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. OpenToken uses multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
 
 ### Sample token generation rules
 
@@ -52,7 +52,7 @@ The token generation rules above generate the following token signatures:
 
 **Note:** The tokens in the example above have been generated using the hash key `HashingKey` and encryption key `Secret-Encryption-Key-Goes-Here.`
 
-### Open token data flow
+### OpenToken data flow
 
 ![open-token-data-flow](./open-token-data-flow.jpg)
 
@@ -72,7 +72,7 @@ The person attributes are validated before normalization. The validation rules a
 
 All attribute values get normalized as part of their processing. The normalization process includes:
 
-**First Name normalization:**
+**FirstName normalization:**
 
 - Removes titles (e.g., "Dr. John" → "John")
 - Removes middle initials (e.g., "John J" → "John")
@@ -81,7 +81,7 @@ All attribute values get normalized as part of their processing. The normalizati
 - Removes non-alphabetic characters (e.g., "Anne-Marie" → "AnneMarie")
 - Normalizes diacritics (e.g., "José" → "Jose")
 
-**Last Name normalization:**
+**LastName normalization:**
 
 - Removes generational suffixes (e.g., "Warner IV" → "Warner")
 - Removes non-alphabetic characters (e.g., "O'Keefe" → "OKeefe")
@@ -97,7 +97,7 @@ All attribute values get normalized as part of their processing. The normalizati
 | `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31) |
 | `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)      |
 
-## Open token overview
+## OpenToken overview
 
 This library focuses primarily on token generation. Even though the person matching process is beyond the scope of this library, this document discusses how these tokens work in a person matching system.
 
@@ -131,7 +131,7 @@ A driver is provided so that the library code can be executed easily.
 
 ### Execution
 
-#### Via Shell
+#### Via shell
 
 The driver code could be invoked using:
 
@@ -290,7 +290,7 @@ while (reader.hasNext()) {
 // result has tokens for all persons now.
 ```
 
-## Test Data
+## Test data
 
 In order to test, you have the option to generate mock person data in the expected format.
 
@@ -321,11 +321,11 @@ Truveta encourages contributions in the form of features, bug fixes, documentati
 1. The library currently provides `csv` reader and writer. See `com.truveta.opentoken.io`. Readers/writers for `parquet` file is highly desired.
 2. More test coverage.
 
-## Development Environment
+## Development environment
 
 This project includes a [Development Container](https://containers.dev/) configuration that provides a consistent and isolated development environment for working with OpenToken. The Dev Container includes all necessary tools and dependencies pre-configured, making it easy to start contributing right away.
 
-### Getting Started with the Dev Container
+### Getting started with the Dev Container
 
 For detailed instructions on how to use the development container, please refer to the [Dev Container README](./.devcontainer/README.md).
 
