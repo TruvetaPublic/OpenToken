@@ -21,7 +21,8 @@
         <jersey.version>3.1.1</jersey.version>
         <jetty.version>11.0.16</jetty.version>
         <junit.jupiter.version>5.13.2</junit.jupiter.version>
-        <surefire.plugin.version>3.5.2</surefire.plugin.version>
+        <surefire.plugin.version>3.5.3</surefire.plugin.version>
+        <mockito.version>5.18.0</mockito.version>
     </properties>
 
     <dependencies>
@@ -84,7 +85,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.13.0</version>
+            <version>1.14.0</version>
         </dependency>
         <!-- Parquet -->
         <dependency>
@@ -166,26 +167,33 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.15.2</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- Mockito JUnit dependency -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.15.2</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
+            <version>2.0.17</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.24.3</version>
+        </dependency>
+
+        <!-- Security Update: https://github.com/TruvetaPublic/OpenToken/security/dependabot/12 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>[2.15.0,)</version>
         </dependency>
     </dependencies>
 
