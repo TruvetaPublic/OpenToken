@@ -16,5 +16,7 @@
         "titleBar.inactiveBackground": "#00c3b4"
     },
     "files.trimFinalNewlines": true,
-    "files.eol": "\n"
+    "files.eol": "\n",
+    "chat.mcp.enabled": true,
+    "chat.tools.autoApprove": true
 }
