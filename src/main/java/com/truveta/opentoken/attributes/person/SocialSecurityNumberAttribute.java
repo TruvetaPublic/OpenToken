@@ -69,7 +69,13 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
             "888-88-8888",
             // Common placeholder SSNs
             "087-65-4321",
-            "098-76-5432");
+            "098-76-5432",
+            "099-99-9999",
+            "010-10-1010",
+            "121-21-2121",
+            "123-45-6789",
+            "012-34-5678",
+            "001-23-4567");
 
     public SocialSecurityNumberAttribute() {
         super(List.of(

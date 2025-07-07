@@ -98,14 +98,14 @@ class SocialSecurityNumberAttributeTest {
 
     @Test
     void validate_ShouldReturnTrueForValidSSNs() {
-        assertTrue(ssnAttribute.validate("123-45-6789"), "Valid SSN should be allowed");
-        assertTrue(ssnAttribute.validate("123456789"), "Valid SSN without dashes should be allowed");
-        assertTrue(ssnAttribute.validate("001-23-4567"), "Valid SSN with leading zeros should be allowed");
-        assertTrue(ssnAttribute.validate("1234567"), "7-digit SSN should be allowed");
-        assertTrue(ssnAttribute.validate("12345678"), "8-digit SSN should be allowed");
-        assertTrue(ssnAttribute.validate("123456789.0"), "SSN with decimal should be allowed");
-        assertTrue(ssnAttribute.validate("1234567.0"), "7-digit SSN with decimal should be allowed");
-        assertTrue(ssnAttribute.validate("12345678.00"), "8-digit SSN with decimal should be allowed");
+        assertTrue(ssnAttribute.validate("223-45-6789"), "Valid SSN should be allowed");
+        assertTrue(ssnAttribute.validate("223456789"), "Valid SSN without dashes should be allowed");
+        assertTrue(ssnAttribute.validate("002-23-4567"), "Valid SSN with leading zeros should be allowed");
+        assertTrue(ssnAttribute.validate("2234567"), "7-digit SSN should be allowed");
+        assertTrue(ssnAttribute.validate("22345678"), "8-digit SSN should be allowed");
+        assertTrue(ssnAttribute.validate("223456789.0"), "SSN with decimal should be allowed");
+        assertTrue(ssnAttribute.validate("2234567.0"), "7-digit SSN with decimal should be allowed");
+        assertTrue(ssnAttribute.validate("22345678.00"), "8-digit SSN with decimal should be allowed");
     }
 
     @Test
