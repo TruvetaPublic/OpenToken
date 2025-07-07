@@ -24,7 +24,7 @@ RUN mkdir /app
 
 RUN addgroup --system appuser && adduser --system --no-create-home --ingroup appuser appuser
 
-ARG VERSION=1.8.0
+ARG VERSION=1.8.1
 COPY --from=build /app/target/open-token-${VERSION}.jar /usr/local/lib/open-token.jar
 
 WORKDIR /app
