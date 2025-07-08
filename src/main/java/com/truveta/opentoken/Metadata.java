@@ -44,30 +44,21 @@ public class Metadata {
      * @param encryptionKey the encryption key (optional)
      * @return the initialized metadata map
      */
-    public Map<String, Object> initializeMetadata(String hashingSecret, String encryptionKey) {
+    public Map<String, Object> initialize(String hashingSecret, String encryptionKey) {
         metadataMap.put(JAVA_VERSION, SYSTEM_JAVA_VERSION);
         metadataMap.put(PLATFORM, PLATFORM_JAVA);
         metadataMap.put(OPENTOKEN_VERSION, DEFAULT_VERSION);
-        
+
         // Add secure hashes of secrets if provided
         if (hashingSecret != null && !hashingSecret.isEmpty()) {
             metadataMap.put(HASHING_SECRET_HASH, calculateSecureHash(hashingSecret));
         }
-        
+
         if (encryptionKey != null && !encryptionKey.isEmpty()) {
             metadataMap.put(ENCRYPTION_SECRET_HASH, calculateSecureHash(encryptionKey));
         }
-        
-        return metadataMap;
-    }
 
-    /**
-     * Initializes metadata with system information only (backward compatibility).
-     *
-     * @return the initialized metadata map
-     */
-    public Map<String, Object> initializeMetadata() {
-        return initializeMetadata(null, null);
+        return metadataMap;
     }
 
     /**
@@ -82,11 +73,11 @@ public class Metadata {
         if (input == null || input.isEmpty()) {
             return null;
         }
-        
+
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            
+
             // Convert bytes to hexadecimal string
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
@@ -97,7 +88,7 @@ public class Metadata {
                 hexString.append(hex);
             }
             return hexString.toString();
-            
+
         } catch (NoSuchAlgorithmException e) {
             throw new HashCalculationException("SHA-256 algorithm not available", e);
         }
