@@ -47,3 +47,6 @@ buildNumber.properties
 # Ignore DER files generated during conversion
 .devcontainer/scripts/zscaler_root.pem.der
 core
+
+# Ignore Python cache files
+__pycache__/

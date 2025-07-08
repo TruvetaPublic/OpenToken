@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y ca-certificates openssl python3.11 pyth
     # Make the script executable and run it
     chmod +x /tmp/detect_zscaler.sh && \
     /tmp/detect_zscaler.sh && \
+    # Register python as a synonym for python3
+    ln -s /usr/bin/python3 /usr/bin/python && \
     # Clean up temporary files
     echo "===> Cleaning up temporary files" && \
     rm -rf /tmp/detect_zscaler.sh /tmp/zscaler_certs /tmp/host_zscaler_cert.pem && \
