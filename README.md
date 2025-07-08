@@ -195,6 +195,19 @@ The output file (in csv format) contains the following columns:
 - TokenId
 - Token
 
+## Metadata
+
+The library generates a metadata file containing information about the token generation process, including processing statistics, system information, and secure hashes of the secrets used. The metadata file is written to the same directory as the output file with the suffix `.metadata.json`.
+
+The metadata includes key fields such as:
+
+- Processing statistics (total records, valid/invalid counts)
+- System information (Java version, library version, timestamp)
+- Security hashes (SHA-256 hashes of the hashing secret and encryption key)
+- Input/output file paths
+
+For complete details about all metadata fields, examples, and security considerations, see the [Metadata Format Documentation](./docs/metadata-format.md).
+
 ### Building
 
 #### With Maven
@@ -254,13 +267,13 @@ To use `open-token` in your project, follow these steps:
 </dependency>
 ```
 
-2. Import `open-token` in your Java code using the following import statement:
+1. Import `open-token` in your Java code using the following import statement:
 
 ```java
 import com.truveta.opentoken.tokens.*;
 ```
 
-3. Start using the utilities, models, and services provided by `open-token` in your project. For example, you can use the `TokenGenerator` class to perform token generation operations:
+1. Start using the utilities, models, and services provided by `open-token` in your project. For example, you can use the `TokenGenerator` class to perform token generation operations:
 
 ```java
 ArrayList<Map<String, String>> result = new ArrayList<>();
