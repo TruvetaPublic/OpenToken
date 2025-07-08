@@ -45,6 +45,7 @@ public class Metadata {
      * @return the initialized metadata map
      */
     public Map<String, Object> initialize(String hashingSecret, String encryptionKey) {
+        metadataMap.clear();
         metadataMap.put(JAVA_VERSION, SYSTEM_JAVA_VERSION);
         metadataMap.put(PLATFORM, PLATFORM_JAVA);
         metadataMap.put(OPENTOKEN_VERSION, DEFAULT_VERSION);
