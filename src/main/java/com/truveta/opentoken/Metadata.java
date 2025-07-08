@@ -68,7 +68,7 @@ public class Metadata {
      *
      * @param input the input string to hash
      * @return the SHA-256 hash as a hexadecimal string
-     * @throws RuntimeException if SHA-256 algorithm is not available
+     * @throws HashCalculationException if SHA-256 algorithm is not available
      */
     public static String calculateSecureHash(String input) {
         if (input == null || input.isEmpty()) {
