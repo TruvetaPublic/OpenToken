@@ -72,7 +72,7 @@ public class Main {
 
             // Create initial metadata with system information and secret hashes
             Metadata metadata = new Metadata();
-            Map<String, Object> metadataMap = metadata.initializeMetadata(hashingSecret, encryptionKey);
+            Map<String, Object> metadataMap = metadata.initialize(hashingSecret, encryptionKey);
 
             // Process data and get updated metadata
             PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
