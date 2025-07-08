@@ -160,11 +160,7 @@ public final class PersonAttributesProcessor {
                     tokenGeneratorResult.getBlankTokensByRule());
 
             for (String ruleId : tokenGeneratorResult.getBlankTokensByRule()) {
-                if (blankTokensByRuleCount.containsKey(ruleId)) {
-                    blankTokensByRuleCount.put(ruleId, blankTokensByRuleCount.get(ruleId) + 1);
-                } else {
-                    blankTokensByRuleCount.put(ruleId, 1L);
-                }
+                blankTokensByRuleCount.merge(ruleId, 1L, Long::sum);
             }
         }
     }
