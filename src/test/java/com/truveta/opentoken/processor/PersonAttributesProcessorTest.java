@@ -59,7 +59,7 @@ class PersonAttributesProcessorTest {
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);
 
-        Map<String, Object> metadataMap = new Metadata().initialize(null, null);
+        Map<String, Object> metadataMap = new Metadata().initialize();
         PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
         verify(reader).next();
@@ -84,7 +84,7 @@ class PersonAttributesProcessorTest {
 
         doThrow(new IOException("Test Exception")).when(writer).writeAttributes(any());
 
-        Map<String, Object> metadataMap = new Metadata().initialize(null, null);
+        Map<String, Object> metadataMap = new Metadata().initialize();
 
         PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
@@ -107,7 +107,7 @@ class PersonAttributesProcessorTest {
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);
 
-        Map<String, Object> metadataMap = new Metadata().initialize(null, null);
+        Map<String, Object> metadataMap = new Metadata().initialize();
 
         PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
@@ -151,7 +151,7 @@ class PersonAttributesProcessorTest {
                         FirstNameAttribute.class, "Alex",
                         LastNameAttribute.class, "Smith"));
 
-        Map<String, Object> metadataMap = new Metadata().initialize(null, null);
+        Map<String, Object> metadataMap = new Metadata().initialize();
 
         // Execute
         PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
@@ -173,7 +173,7 @@ class PersonAttributesProcessorTest {
         when(reader.hasNext()).thenReturn(true, false);
         when(reader.next()).thenReturn(data);
 
-        Map<String, Object> metadataMap = new Metadata().initialize(null, null);
+        Map<String, Object> metadataMap = new Metadata().initialize();
         metadataMap.put("ExistingKey1", "ExistingValue1");
         metadataMap.put("ExistingKey2", "ExistingValue2");
 

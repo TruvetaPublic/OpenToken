@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Test;
 class MetadataTest {
 
     @Test
-    void testInitializeWithoutSecrets() {
+    void testInitializeOnly() {
         Metadata metadata = new Metadata();
-        Map<String, Object> result = metadata.initialize(null, null);
+        Map<String, Object> result = metadata.initialize();
 
         assertTrue(result.containsKey(Metadata.JAVA_VERSION));
         assertTrue(result.containsKey(Metadata.PLATFORM));
@@ -33,16 +33,44 @@ class MetadataTest {
     }
 
     @Test
-    void testInitializeWithSecrets() {
+    void testAddHashedSecretWithHashingSecret() {
         Metadata metadata = new Metadata();
+        metadata.initialize();
+
+        String hashingSecret = "test-hashing-secret";
+        Map<String, Object> result = metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
+
+        assertTrue(result.containsKey(Metadata.HASHING_SECRET_HASH));
+        assertFalse(result.containsKey(Metadata.ENCRYPTION_SECRET_HASH));
+        assertNotNull(result.get(Metadata.HASHING_SECRET_HASH));
+    }
+
+    @Test
+    void testAddHashedSecretWithEncryptionKey() {
+        Metadata metadata = new Metadata();
+        metadata.initialize();
+
+        String encryptionKey = "test-encryption-key";
+        Map<String, Object> result = metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
+
+        assertFalse(result.containsKey(Metadata.HASHING_SECRET_HASH));
+        assertTrue(result.containsKey(Metadata.ENCRYPTION_SECRET_HASH));
+        assertNotNull(result.get(Metadata.ENCRYPTION_SECRET_HASH));
+    }
+
+    @Test
+    void testAddHashedSecretWithBothSecrets() {
+        Metadata metadata = new Metadata();
+        metadata.initialize();
+
         String hashingSecret = "test-hashing-secret";
         String encryptionKey = "test-encryption-key";
 
-        Map<String, Object> result = metadata.initialize(hashingSecret, encryptionKey);
+        metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
+        Map<String, Object> result = metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
 
         assertTrue(result.containsKey(Metadata.HASHING_SECRET_HASH));
         assertTrue(result.containsKey(Metadata.ENCRYPTION_SECRET_HASH));
-
         assertNotNull(result.get(Metadata.HASHING_SECRET_HASH));
         assertNotNull(result.get(Metadata.ENCRYPTION_SECRET_HASH));
 
@@ -52,39 +80,41 @@ class MetadataTest {
     }
 
     @Test
-    void testInitializeWithOnlyHashingSecret() {
+    void testAddHashedSecretWithNullSecrets() {
         Metadata metadata = new Metadata();
-        String hashingSecret = "test-hashing-secret";
+        metadata.initialize();
 
-        Map<String, Object> result = metadata.initialize(hashingSecret, null);
-
-        assertTrue(result.containsKey(Metadata.HASHING_SECRET_HASH));
-        assertFalse(result.containsKey(Metadata.ENCRYPTION_SECRET_HASH));
-
-        assertNotNull(result.get(Metadata.HASHING_SECRET_HASH));
-    }
-
-    @Test
-    void testInitializeWithOnlyEncryptionKey() {
-        Metadata metadata = new Metadata();
-        String encryptionKey = "test-encryption-key";
-
-        Map<String, Object> result = metadata.initialize(null, encryptionKey);
-
-        assertFalse(result.containsKey(Metadata.HASHING_SECRET_HASH));
-        assertTrue(result.containsKey(Metadata.ENCRYPTION_SECRET_HASH));
-
-        assertNotNull(result.get(Metadata.ENCRYPTION_SECRET_HASH));
-    }
-
-    @Test
-    void testInitializeWithEmptySecrets() {
-        Metadata metadata = new Metadata();
-
-        Map<String, Object> result = metadata.initialize("", "");
+        metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, null);
+        Map<String, Object> result = metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, null);
 
         assertFalse(result.containsKey(Metadata.HASHING_SECRET_HASH));
         assertFalse(result.containsKey(Metadata.ENCRYPTION_SECRET_HASH));
+    }
+
+    @Test
+    void testAddHashedSecretWithEmptySecrets() {
+        Metadata metadata = new Metadata();
+        metadata.initialize();
+
+        metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, "");
+        Map<String, Object> result = metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, "");
+
+        assertFalse(result.containsKey(Metadata.HASHING_SECRET_HASH));
+        assertFalse(result.containsKey(Metadata.ENCRYPTION_SECRET_HASH));
+    }
+
+    @Test
+    void testAddHashedSecretWithCustomKey() {
+        Metadata metadata = new Metadata();
+        metadata.initialize();
+
+        String customKey = "CustomSecretHash";
+        String customSecret = "my-custom-secret";
+        Map<String, Object> result = metadata.addHashedSecret(customKey, customSecret);
+
+        assertTrue(result.containsKey(customKey));
+        assertNotNull(result.get(customKey));
+        assertEquals(Metadata.calculateSecureHash(customSecret), result.get(customKey));
     }
 
     @Test
