@@ -28,4 +28,5 @@ public interface PersonAttributesWriter extends AutoCloseable {
      *                             data source.
      */
     void writeAttributes(Map<String, String> data) throws IOException;
+
 }

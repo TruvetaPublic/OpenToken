@@ -251,6 +251,14 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.truveta.opentoken.Main</mainClass>
+                                    <manifestEntries>
+                                        <Implementation-Version>${revision}</Implementation-Version>
+                                        <Specification-Version>${revision}</Specification-Version>
+                                        <Implementation-Title>${project.name}</Implementation-Title>
+                                        <Implementation-Vendor>Truveta</Implementation-Vendor>
+                                        <Built-By>Truveta</Built-By>
+                                        <Package-Version>${revision}</Package-Version>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                             <filters>

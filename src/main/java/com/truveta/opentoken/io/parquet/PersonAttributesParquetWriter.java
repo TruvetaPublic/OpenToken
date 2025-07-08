@@ -27,7 +27,7 @@ import java.util.Map;
 public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private ParquetWriter<Group> writer;
     private MessageType schema;
-    private final String filepath;
+    private final String filePath;
     private final Configuration conf;
     private boolean initialized = false;
 
@@ -38,7 +38,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
      * @throws IOException if an I/O error occurs
      */
     public PersonAttributesParquetWriter(String filepath) throws IOException {
-        this.filepath = filepath;
+        this.filePath = filepath;
         this.conf = new Configuration();
     }
 
@@ -79,7 +79,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
         this.schema = MessageTypeParser.parseMessageType(schemaBuilder.toString());
         GroupWriteSupport.setSchema(schema, conf);
-        Path path = new Path(filepath);
+        Path path = new Path(filePath);
 
         writer = ExampleParquetWriter.builder(path)
                 .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)

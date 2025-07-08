@@ -36,6 +36,10 @@ public final class PersonAttributesProcessor {
     private static final String RULE_ID = "RuleId";
     private static final String RECORD_ID = "RecordId";
 
+    public static final String TOTAL_ROWS = "TotalRows";
+    public static final String TOTAL_ROWS_WITH_INVALID_ATTRIBUTES = "TotalRowsWithInvalidAttributes";
+    public static final String INVALID_ATTRIBUTES_BY_TYPE = "InvalidAttributesByType";
+
     private static final Logger logger = LoggerFactory.getLogger(PersonAttributesProcessor.class);
 
     PersonAttributesProcessor() {
@@ -57,7 +61,7 @@ public final class PersonAttributesProcessor {
      * @see com.truveta.opentoken.tokentransformer.TokenTransformer TokenTransformer
      */
     public static void process(PersonAttributesReader reader, PersonAttributesWriter writer,
-            List<TokenTransformer> tokenTransformerList) {
+            List<TokenTransformer> tokenTransformerList, Map<String, Object> metadataMap) throws IOException {
 
         // TokenGenerator code
         TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
@@ -92,6 +96,10 @@ public final class PersonAttributesProcessor {
                         .info(String.format("Total invalid Attribute count for [%s]: %,d", key, value)));
         long rowIssueCounter = invalidAttributeCount.values().stream()
                 .collect(Collectors.summarizingLong(Long::longValue)).getSum();
+
+        metadataMap.put(TOTAL_ROWS, rowCounter);
+        metadataMap.put(TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, rowIssueCounter);
+        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, invalidAttributeCount);
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
     }
 

@@ -59,5 +59,4 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
         this.csvPrinter.close();
         this.fileWriter.close();
     }
-
 }

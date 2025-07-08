@@ -6,6 +6,7 @@ package com.truveta.opentoken;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +14,12 @@ import com.beust.jcommander.JCommander;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
+import com.truveta.opentoken.io.MetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
+import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
@@ -67,7 +70,16 @@ public class Main {
         try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
                 PersonAttributesWriter writer = createPersonAttributesWriter(outputPath, outputType)) {
 
-            PersonAttributesProcessor.process(reader, writer, tokenTransformerList);
+            // Create initial metadata with system information
+            Metadata metadata = new Metadata();
+            Map<String, Object> metadataMap = metadata.initializeMetadata();
+
+            // Process data and get updated metadata
+            PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
+
+            // Write the metadata to file
+            MetadataWriter metadataWriter = new MetadataJsonWriter(outputPath);
+            metadataWriter.write(metadataMap);
 
         } catch (Exception e) {
             logger.error("Error in processing the input file. Execution halted. ", e);
