@@ -35,8 +35,8 @@ class BirthDateAttributeTest {
     }
 
     @Test
-    void getAliases_ShouldReturnBirthDateAlias() {
-        assertArrayEquals(new String[] { "BirthDate" }, birthDateAttribute.getAliases());
+    void getAliases_ShouldReturnBirthDateAndDateOfBirthAliases() {
+        assertArrayEquals(new String[] { "BirthDate", "DateOfBirth" }, birthDateAttribute.getAliases());
     }
 
     @Test

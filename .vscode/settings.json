@@ -5,5 +5,18 @@
         "/**",
         " * Copyright (c) Truveta. All rights reserved.",
         " */"
-    ]
+    ],
+    "java.format.comments.enabled": false,
+    "terminal.integrated.scrollback": 10000,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "workbench.colorCustomizations": {
+        "titleBar.activeBackground": "#00c3b4",
+        "titleBar.inactiveBackground": "#00c3b4"
+    },
+    "files.trimFinalNewlines": true,
+    "files.eol": "\n",
+    "chat.mcp.enabled": true,
+    "chat.tools.autoApprove": true
 }

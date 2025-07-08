@@ -44,8 +44,18 @@ class PostalCodeAttributeTest {
 
     @Test
     void normalize_ShouldReturnFirst5Digits() {
-        assertEquals("12345", postalCodeAttribute.normalize("12345-6789"));
-        assertEquals("12345", postalCodeAttribute.normalize("12345"));
+        assertEquals("10001", postalCodeAttribute.normalize("10001-6789"));
+        assertEquals("10001", postalCodeAttribute.normalize("10001"));
+    }
+
+    @Test
+    void normalize_ShouldHandleCanadianPostalCodes() {
+        assertEquals("K1A 0A6", postalCodeAttribute.normalize("K1A0A6"));
+        assertEquals("K1A 0A6", postalCodeAttribute.normalize("k1a0a6"));
+        assertEquals("K1A 0A6", postalCodeAttribute.normalize("K1A 0A6"));
+        assertEquals("M5V 3L9", postalCodeAttribute.normalize("m5v3l9"));
+        assertEquals("H3Z 2Y7", postalCodeAttribute.normalize("H3Z2Y7"));
+        assertEquals("T2X 1V4", postalCodeAttribute.normalize("t2x1v4"));
     }
 
     @Test
@@ -58,19 +68,41 @@ class PostalCodeAttributeTest {
     }
 
     @Test
+    void validate_ShouldReturnTrueForValidCanadianPostalCodes() {
+        assertTrue(postalCodeAttribute.validate("K1A 0A7"));
+        assertTrue(postalCodeAttribute.validate("K1A0A7"));
+        assertTrue(postalCodeAttribute.validate("k1a 0a7"));
+        assertTrue(postalCodeAttribute.validate("k1a0a7"));
+        assertTrue(postalCodeAttribute.validate("M5V 3L9"));
+        assertTrue(postalCodeAttribute.validate("H3Z 2Y7"));
+        assertTrue(postalCodeAttribute.validate("T2X 1V4"));
+        assertTrue(postalCodeAttribute.validate(" K1A 0A7 "));
+        assertTrue(postalCodeAttribute.validate("  K1A0A7  "));
+    }
+
+    @Test
     void normalize_ShouldHandleWhitespace() {
         PostalCodeAttribute attribute = new PostalCodeAttribute();
 
         // Test different types of whitespace
-        assertEquals("12345", attribute.normalize("12345"), "No whitespace");
-        assertEquals("12345", attribute.normalize(" 12345"), "Leading space");
-        assertEquals("12345", attribute.normalize("12345 "), "Trailing space");
-        assertEquals("12345", attribute.normalize(" 12345 "), "Leading and trailing spaces");
-        assertEquals("12345", attribute.normalize("1 2 3 4 5"), "Spaces between digits");
-        assertEquals("12345", attribute.normalize("12\t345"), "Tab character");
-        assertEquals("12345", attribute.normalize("12\n345"), "Newline character");
-        assertEquals("12345", attribute.normalize("12\r\n345"), "Carriage return and newline");
-        assertEquals("12345", attribute.normalize("  12   345  "), "Multiple spaces");
+        assertEquals("10001", attribute.normalize("10001"), "No whitespace");
+        assertEquals("10001", attribute.normalize(" 10001"), "Leading space");
+        assertEquals("10001", attribute.normalize("10001 "), "Trailing space");
+        assertEquals("10001", attribute.normalize(" 10001 "), "Leading and trailing spaces");
+        assertEquals("10   001", attribute.normalize("  10   001  "), "Multiple spaces");
+    }
+
+    @Test
+    void normalize_ShouldNotHandleInnerWhitespace() {
+        PostalCodeAttribute attribute = new PostalCodeAttribute();
+
+        // Test inner whitespace
+        assertEquals("1 0 0 0 1", attribute.normalize("1 0 0 0 1"), "Spaces between digits");
+        assertEquals("10\t001", attribute.normalize("10\t001"), "Tab character");
+        assertEquals("10\n001", attribute.normalize("10\n001"), "Newline character");
+        assertEquals("10\r\n001", attribute.normalize("10\r\n001"), "Carriage return and newline");
+        assertEquals("K1A  0A7", attribute.normalize("K1A  0A7"),
+                "Inner space should not be normalized for Canadian postal code");
     }
 
     @Test
@@ -83,6 +115,17 @@ class PostalCodeAttributeTest {
         assertFalse(postalCodeAttribute.validate("123456"), "Long postal code should not be allowed");
         assertFalse(postalCodeAttribute.validate("1234-5678"), "Invalid format should not be allowed");
         assertFalse(postalCodeAttribute.validate("abcde"), "Non-numeric should not be allowed");
+
+        // Invalid Canadian postal code formats
+        assertFalse(postalCodeAttribute.validate("K1A"), "Incomplete Canadian postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K1A 0A"), "Incomplete Canadian postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K1A 0A67"), "Too long Canadian postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K11 0A6"),
+                "Invalid Canadian postal code format should not be allowed");
+        assertFalse(postalCodeAttribute.validate("KAA 0A6"),
+                "Invalid Canadian postal code format should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K1A 0AA"),
+                "Invalid Canadian postal code format should not be allowed");
     }
 
     @Test
@@ -92,7 +135,7 @@ class PostalCodeAttributeTest {
         final CountDownLatch finishLatch = new CountDownLatch(threadCount);
         final CyclicBarrier barrier = new CyclicBarrier(threadCount);
         final List<String> results = Collections.synchronizedList(new ArrayList<>());
-        final String testPostalCode = "12345-6789";
+        final String testPostalCode = "10001-6789";
 
         for (int i = 0; i < threadCount; i++) {
             Thread thread = new Thread(() -> {
@@ -118,7 +161,7 @@ class PostalCodeAttributeTest {
         // Verify all threads got the same result
         assertEquals(threadCount, results.size());
         for (String result : results) {
-            assertEquals("12345", result);
+            assertEquals("10001", result);
         }
     }
 
@@ -135,14 +178,12 @@ class PostalCodeAttributeTest {
         assertEquals("", postalCodeAttribute.normalize(""));
 
         // Test exactly 5 characters
-        assertEquals("12345", postalCodeAttribute.normalize("12345"));
+        assertEquals("10001", postalCodeAttribute.normalize("10001"));
 
-        assertEquals("12345", postalCodeAttribute.normalize(" 12345"));
+        assertEquals("10001", postalCodeAttribute.normalize(" 10001"));
 
-        // Test more than 5 characters
-        assertEquals("12345", postalCodeAttribute.normalize("123456"));
-        assertEquals("12345", postalCodeAttribute.normalize("12345-6789"));
-        assertEquals("12345", postalCodeAttribute.normalize("123456789"));
+        assertEquals("10001", postalCodeAttribute.normalize("10001-6789"));
+        assertEquals("10001", postalCodeAttribute.normalize("100016789"));
     }
 
     @Test
@@ -162,13 +203,15 @@ class PostalCodeAttributeTest {
         // Test various postal code values with both original and deserialized
         // attributes
         String[] testValues = {
-                "12345",
-                "12345-6789",
-                "01234-6789",
-                "98765",
-                "00000-0000",
-                "99999",
-                "54321-9876"
+                "10001",
+                "10001-6789",
+                "90210-1234",
+                "30301",
+                "60601-2345",
+                "K1A 0A7",
+                "k1a0a7",
+                "M5V 3L9",
+                "H3Z2Y7"
         };
 
         for (String value : testValues) {

@@ -1,0 +1,53 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/java
+{
+    "name": "OpenToken",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "JAVA_VERSION": "11"
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "configureZshAsDefaultShell": true
+        },
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "11.0.26",
+            "additionalVersions": "17.0.14",
+            "installMaven": "true",
+            "mavenVersion": "3.8.7",
+            "installGradle": "false"
+        },
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/devcontainers/features/git-lfs:1": {},
+        "ghcr.io/devcontainers/features/node:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "streetsidesoftware.code-spell-checker",
+                "esbenp.prettier-vscode",
+                "DavidAnson.vscode-markdownlint",
+                "redhat.java",
+                "vscjava.vscode-java-pack",
+                "DotJoshJohnson.xml",
+                "yzhang.markdown-all-in-one",
+                "SonarSource.sonarlint-vscode",
+                "AdamViola.parquet-explorer",
+                "GitHub.vscode-pull-request-github",
+                "shengchen.vscode-checkstyle",
+                "GitHub.vscode-github-actions",
+                "GitHub.copilot-chat"
+            ],
+            "settings": {
+                "sonarlint.ls.javaHome": "/usr/local/sdkman/candidates/java/17.0.14-ms"
+            }
+        }
+    },
+    "mounts": [],
+    "containerEnv": {},
+    "postCreateCommand": {},
+    "postStartCommand": {}
+}

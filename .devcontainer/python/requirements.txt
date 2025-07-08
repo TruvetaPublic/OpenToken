@@ -1,0 +1,4 @@
+bump2version
+csv2parquet
+pandas
+pyarrow
