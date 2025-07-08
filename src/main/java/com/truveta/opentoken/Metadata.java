@@ -18,6 +18,7 @@ public class Metadata {
     public static final String OUTPUT_FORMAT = "OutputFormat";
     public static final String ENCRYPTION_SECRET_HASH = "EncryptionSecretHash";
     public static final String HASHING_SECRET_HASH = "HashingSecretHash";
+    public static final String BLANK_TOKENS_BY_RULE = "BlankTokensByRule";
 
     // Metadata values
     public static final String PLATFORM_JAVA = "Java";
