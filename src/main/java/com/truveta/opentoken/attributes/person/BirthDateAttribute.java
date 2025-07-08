@@ -21,8 +21,8 @@ import com.truveta.opentoken.attributes.validation.RegexValidator;
  * Represents the birth date attribute.
  * 
  * This class extends BaseAttribute and provides functionality for working with
- * birth date fields. It recognizes "BirthDate" as a valid alias for this
- * attribute type.
+ * birth date fields. It recognizes "BirthDate" and "DateOfBirth" as valid aliases 
+ * for this attribute type.
  * 
  * The attribute performs normalization on input values, converting them to a
  * standard format (yyyy-MM-dd).
@@ -38,7 +38,7 @@ import com.truveta.opentoken.attributes.validation.RegexValidator;
 public class BirthDateAttribute extends BaseAttribute {
 
     private static final String NAME = "BirthDate";
-    private static final String[] ALIASES = new String[] { NAME };
+    private static final String[] ALIASES = new String[] { NAME, "DateOfBirth" };
 
     /**
      * Regular expression pattern for validating birth date formats.
