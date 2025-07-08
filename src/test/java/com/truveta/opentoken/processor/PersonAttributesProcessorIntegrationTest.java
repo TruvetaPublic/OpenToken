@@ -168,7 +168,11 @@ class PersonAttributesProcessorIntegrationTest {
 
         // Delete output files if they exist
         Files.deleteIfExists(Paths.get(outputCsvFile));
-        Files.deleteIfExists(Paths.get(outputCsvFile + Metadata.METADATA_FILE_EXTENSION));
+        // Calculate correct metadata file path (same logic as MetadataJsonWriter)
+        int dotIndex = outputCsvFile.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? outputCsvFile.substring(0, dotIndex) : outputCsvFile;
+        String metadataFilePath = baseName + Metadata.METADATA_FILE_EXTENSION;
+        Files.deleteIfExists(Paths.get(metadataFilePath));
 
         // Process the input file
         try (PersonAttributesReader reader = new PersonAttributesCSVReader(inputCsvFile);
@@ -192,7 +196,10 @@ class PersonAttributesProcessorIntegrationTest {
         assertTrue(Files.exists(Paths.get(outputCsvFile)), "Output CSV file should exist");
 
         // Verify that the metadata file exists alongside the output file
-        String expectedMetadataFile = outputCsvFile + Metadata.METADATA_FILE_EXTENSION;
+        // Handle files with or without extensions (same logic as MetadataJsonWriter)
+        int lastDotIndex = outputCsvFile.lastIndexOf('.');
+        String basePath = lastDotIndex > 0 ? outputCsvFile.substring(0, lastDotIndex) : outputCsvFile;
+        String expectedMetadataFile = basePath + Metadata.METADATA_FILE_EXTENSION;
         assertTrue(Files.exists(Paths.get(expectedMetadataFile)),
                 "Metadata file should exist alongside the output file");
 
@@ -243,7 +250,7 @@ class PersonAttributesProcessorIntegrationTest {
                     newTmpInputFile, tokenTransformerList);
 
             // Verify that both processing runs produce the same number of tokens
-            assertEquals(oldResults.size(), newResults.size(), 
+            assertEquals(oldResults.size(), newResults.size(),
                     "Both processing runs should produce the same number of tokens for backward compatibility");
 
             // Verify that tokens are identical for the same input data
@@ -251,20 +258,20 @@ class PersonAttributesProcessorIntegrationTest {
                 Map<String, String> oldToken = oldResults.get(i);
                 Map<String, String> newToken = newResults.get(i);
 
-                assertEquals(oldToken.get("RecordId"), newToken.get("RecordId"), 
+                assertEquals(oldToken.get("RecordId"), newToken.get("RecordId"),
                         "RecordId should be identical for backward compatibility");
-                assertEquals(oldToken.get("RuleId"), newToken.get("RuleId"), 
+                assertEquals(oldToken.get("RuleId"), newToken.get("RuleId"),
                         "RuleId should be identical for backward compatibility");
-                
+
                 // Decrypt and compare the actual token values
                 String oldDecryptedToken = decryptToken(oldToken.get("Token"));
                 String newDecryptedToken = decryptToken(newToken.get("Token"));
-                assertEquals(oldDecryptedToken, newDecryptedToken, 
+                assertEquals(oldDecryptedToken, newDecryptedToken,
                         "Decrypted tokens should be identical for backward compatibility");
             }
 
             // Verify that exactly 5 tokens are generated per record (T1-T5)
-            assertEquals(5, oldResults.size(), 
+            assertEquals(5, oldResults.size(),
                     "Should generate exactly 5 tokens per record for backward compatibility");
 
             // Verify token structure consistency
@@ -272,9 +279,9 @@ class PersonAttributesProcessorIntegrationTest {
                 assertTrue(token.containsKey("RecordId"), "Token must contain RecordId");
                 assertTrue(token.containsKey("RuleId"), "Token must contain RuleId");
                 assertTrue(token.containsKey("Token"), "Token must contain Token");
-                
+
                 String ruleId = token.get("RuleId");
-                assertTrue(ruleId.matches("T[1-5]"), 
+                assertTrue(ruleId.matches("T[1-5]"),
                         "RuleId should follow T1-T5 pattern, but got: " + ruleId);
             }
 
@@ -282,18 +289,18 @@ class PersonAttributesProcessorIntegrationTest {
             Map<String, Object> metadataMap = new HashMap<>();
             try (PersonAttributesReader reader = new PersonAttributesCSVReader(oldTmpInputFile);
                     PersonAttributesWriter writer = new PersonAttributesCSVWriter(oldTmpOutputFile)) {
-                
+
                 PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
             }
 
             // Verify essential metadata fields for backward compatibility
-            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS), 
+            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS),
                     "Metadata must contain TotalRows for backward compatibility");
-            assertEquals(1, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), 
+            assertEquals(1, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS),
                     "TotalRows should be 1 for single record");
-            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES), 
+            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES),
                     "Metadata must contain TotalRowsWithInvalidAttributes for backward compatibility");
-            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE), 
+            assertTrue(metadataMap.containsKey(PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE),
                     "Metadata must contain InvalidAttributesByType for backward compatibility");
 
         } finally {

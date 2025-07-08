@@ -44,8 +44,10 @@ public class MetadataJsonWriter implements MetadataWriter {
     @Override
     public void write(Map<String, Object> metadataMap) throws IOException {
         // Write the metadata map directly as JSON
+        int lastDotIndex = outputFilePath.lastIndexOf('.');
+        String basePath = lastDotIndex > 0 ? outputFilePath.substring(0, lastDotIndex) : outputFilePath;
         Files.write(
-                Paths.get(outputFilePath + Metadata.METADATA_FILE_EXTENSION),
+                Paths.get(basePath + Metadata.METADATA_FILE_EXTENSION),
                 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metadataMap));
     }
 }
