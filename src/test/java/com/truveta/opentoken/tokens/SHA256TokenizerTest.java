@@ -47,13 +47,13 @@ class SHA256TokenizerTest {
     @Test
     void testTokenize_NullOrEmptyInput_ReturnsEmptyString() throws Exception {
         String resultNull = tokenizer.tokenize(null); // Test for null input
-        assertEquals(SHA256Tokenizer.EMPTY, resultNull);
+        assertEquals(Token.BLANK, resultNull);
 
         String resultEmpty = tokenizer.tokenize(""); // Test for empty string input
-        assertEquals(SHA256Tokenizer.EMPTY, resultEmpty);
+        assertEquals(Token.BLANK, resultEmpty);
 
         String resultBlank = tokenizer.tokenize("   "); // Test for input with only whitespace
-        assertEquals(SHA256Tokenizer.EMPTY, resultBlank);
+        assertEquals(Token.BLANK, resultBlank);
     }
 
     @Test

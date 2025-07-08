@@ -150,7 +150,7 @@ public class TokenGenerator {
         try {
             String token = tokenizer.tokenize(signature);
             // Track blank tokens by rule
-            if (SHA256Tokenizer.EMPTY.equals(token)) {
+            if (Token.BLANK.equals(token)) {
                 result.getBlankTokensByRule().add(tokenId);
             }
             return token;

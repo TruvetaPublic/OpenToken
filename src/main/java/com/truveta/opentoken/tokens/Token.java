@@ -14,6 +14,13 @@ import com.truveta.opentoken.attributes.AttributeExpression;
 public interface Token {
 
     /**
+     * Represents the value for tokens with invalid or missing data.
+     * This constant is a placeholder for cases where a token is either
+     * not provided or contains invalid information.
+     */
+    public static final String BLANK = "0000000000000000000000000000000000000000000000000000000000000000";
+
+    /**
      * Get the unique identifier for the token.
      * 
      * @return the unique identifier for the token

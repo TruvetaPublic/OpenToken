@@ -56,8 +56,8 @@ class TokenGeneratorBlankTokensTest {
         Set<String> blankTokensByRule = result.getBlankTokensByRule();
         assertTrue(blankTokensByRule.contains("T2"), "T2 should generate blank token due to missing postal code");
 
-        // Verify that the blank token is the expected EMPTY value
-        assertEquals(SHA256Tokenizer.EMPTY, result.getTokens().get("T2"));
+        // Verify that the blank token is the expected BLANK value
+        assertEquals(Token.BLANK, result.getTokens().get("T2"));
     }
 
     @Test
@@ -81,8 +81,8 @@ class TokenGeneratorBlankTokensTest {
         Set<String> blankTokensByRule = result.getBlankTokensByRule();
         assertTrue(blankTokensByRule.contains("T4"), "T4 should generate blank token due to invalid SSN");
 
-        // Verify that the blank token is the expected EMPTY value
-        assertEquals(SHA256Tokenizer.EMPTY, result.getTokens().get("T4"));
+        // Verify that the blank token is the expected BLANK value
+        assertEquals(Token.BLANK, result.getTokens().get("T4"));
     }
 
     @Test
@@ -106,9 +106,9 @@ class TokenGeneratorBlankTokensTest {
         Set<String> blankTokensByRule = result.getBlankTokensByRule();
         assertTrue(blankTokensByRule.isEmpty(), "No blank tokens should be generated with valid data");
 
-        // Verify that no tokens have the EMPTY value
+        // Verify that no tokens have the BLANK value
         for (String token : result.getTokens().values()) {
-            assertNotEquals(SHA256Tokenizer.EMPTY, token, "No token should be empty with valid data");
+            assertNotEquals(Token.BLANK, token, "No token should be empty with valid data");
         }
     }
 
