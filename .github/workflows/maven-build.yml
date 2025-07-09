@@ -18,6 +18,8 @@ jobs:
       checks: write
       pull-requests: write
       statuses: write
+      actions: read
+      security-events: write
 
     steps:
       - uses: actions/checkout@v4
