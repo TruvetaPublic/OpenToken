@@ -18,6 +18,7 @@ public class Metadata {
     public static final String OUTPUT_FORMAT = "OutputFormat";
     public static final String ENCRYPTION_SECRET_HASH = "EncryptionSecretHash";
     public static final String HASHING_SECRET_HASH = "HashingSecretHash";
+    public static final String BLANK_TOKENS_BY_RULE = "BlankTokensByRule";
 
     // Metadata values
     public static final String PLATFORM_JAVA = "Java";
@@ -38,27 +39,30 @@ public class Metadata {
     }
 
     /**
-     * Initializes metadata with system information and secret hashes if provided.
+     * Initializes metadata with system information only.
+     * Secret hashes must be set separately using setHashingSecret() and setEncryptionKey().
      *
-     * @param hashingSecret the hashing secret (optional)
-     * @param encryptionKey the encryption key (optional)
      * @return the initialized metadata map
      */
-    public Map<String, Object> initialize(String hashingSecret, String encryptionKey) {
+    public Map<String, Object> initialize() {
         metadataMap.clear();
         metadataMap.put(JAVA_VERSION, SYSTEM_JAVA_VERSION);
         metadataMap.put(PLATFORM, PLATFORM_JAVA);
         metadataMap.put(OPENTOKEN_VERSION, DEFAULT_VERSION);
 
-        // Add secure hashes of secrets if provided
-        if (hashingSecret != null && !hashingSecret.isEmpty()) {
-            metadataMap.put(HASHING_SECRET_HASH, calculateSecureHash(hashingSecret));
-        }
+        return metadataMap;
+    }
 
-        if (encryptionKey != null && !encryptionKey.isEmpty()) {
-            metadataMap.put(ENCRYPTION_SECRET_HASH, calculateSecureHash(encryptionKey));
+    /**
+     * Sets the hashing secret and adds its hash to the metadata.
+     * 
+     * @param secretToHash the secret to hash
+     * @return the metadata map for method chaining
+     */
+    public Map<String, Object> addHashedSecret(String secretKey, String secretToHash) {
+        if (secretToHash != null && !secretToHash.isEmpty()) {
+            metadataMap.put(secretKey, calculateSecureHash(secretToHash));
         }
-
         return metadataMap;
     }
 

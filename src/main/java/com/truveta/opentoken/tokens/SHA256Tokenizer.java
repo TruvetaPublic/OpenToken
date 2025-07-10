@@ -28,7 +28,7 @@ public final class SHA256Tokenizer {
      * This is the value returned when the token signature is <code>null</code> or
      * blank.
      */
-    public static final String EMPTY = "0000000000000000000000000000000000000000000000000000000000000000";
+    public static final String EMPTY = Token.BLANK;
     private final List<TokenTransformer> tokenTransformerList;
 
     /**

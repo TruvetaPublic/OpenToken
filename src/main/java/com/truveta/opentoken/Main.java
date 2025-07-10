@@ -70,9 +70,13 @@ public class Main {
         try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
                 PersonAttributesWriter writer = createPersonAttributesWriter(outputPath, outputType)) {
 
-            // Create initial metadata with system information and secret hashes
+            // Create initial metadata with system information
             Metadata metadata = new Metadata();
-            Map<String, Object> metadataMap = metadata.initialize(hashingSecret, encryptionKey);
+            Map<String, Object> metadataMap = metadata.initialize();
+
+            // Set secrets separately
+            metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
+            metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
 
             // Process data and get updated metadata
             PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);

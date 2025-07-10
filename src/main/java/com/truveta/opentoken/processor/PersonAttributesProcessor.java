@@ -39,6 +39,7 @@ public final class PersonAttributesProcessor {
     public static final String TOTAL_ROWS = "TotalRows";
     public static final String TOTAL_ROWS_WITH_INVALID_ATTRIBUTES = "TotalRowsWithInvalidAttributes";
     public static final String INVALID_ATTRIBUTES_BY_TYPE = "InvalidAttributesByType";
+    public static final String BLANK_TOKENS_BY_RULE = "BlankTokensByRule";
 
     private static final Logger logger = LoggerFactory.getLogger(PersonAttributesProcessor.class);
 
@@ -71,6 +72,7 @@ public final class PersonAttributesProcessor {
 
         int rowCounter = 0;
         Map<String, Long> invalidAttributeCount = new HashMap<>();
+        Map<String, Long> blankTokensByRuleCount = new HashMap<>();
 
         while (reader.hasNext()) {
             row = reader.next();
@@ -81,6 +83,9 @@ public final class PersonAttributesProcessor {
 
             keepTrackOfInvalidAttributes(tokenGeneratorResult, rowCounter,
                     invalidAttributeCount);
+
+            keepTrackOfBlankTokens(tokenGeneratorResult, rowCounter,
+                    blankTokensByRuleCount);
 
             writeTokens(writer, row, rowCounter, tokenGeneratorResult);
 
@@ -100,7 +105,15 @@ public final class PersonAttributesProcessor {
         metadataMap.put(TOTAL_ROWS, rowCounter);
         metadataMap.put(TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, rowIssueCounter);
         metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, invalidAttributeCount);
+        metadataMap.put(BLANK_TOKENS_BY_RULE, blankTokensByRuleCount);
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
+
+        blankTokensByRuleCount
+                .forEach((key, value) -> logger
+                        .info(String.format("Total blank tokens for rule [%s]: %,d", key, value)));
+        long blankTokensTotal = blankTokensByRuleCount.values().stream()
+                .collect(Collectors.summarizingLong(Long::longValue)).getSum();
+        logger.info(String.format("Total blank tokens generated: %,d", blankTokensTotal));
     }
 
     private static void writeTokens(PersonAttributesWriter writer, Map<Class<? extends Attribute>, String> row,
@@ -135,6 +148,19 @@ public final class PersonAttributesProcessor {
                 } else {
                     invalidAttributeCount.put(invalidAttribute, 1L);
                 }
+            }
+        }
+    }
+
+    private static void keepTrackOfBlankTokens(TokenGeneratorResult tokenGeneratorResult, int rowCounter,
+            Map<String, Long> blankTokensByRuleCount) {
+
+        if (!tokenGeneratorResult.getBlankTokensByRule().isEmpty()) {
+            logger.debug("Blank tokens for row {}: {}", String.format("%,d", rowCounter),
+                    tokenGeneratorResult.getBlankTokensByRule());
+
+            for (String ruleId : tokenGeneratorResult.getBlankTokensByRule()) {
+                blankTokensByRuleCount.merge(ruleId, 1L, Long::sum);
             }
         }
     }

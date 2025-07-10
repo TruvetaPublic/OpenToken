@@ -148,7 +148,12 @@ public class TokenGenerator {
         var signature = getTokenSignature(tokenId, personAttributes, result);
         logger.debug("Token signature for token id {}: {}", tokenId, signature);
         try {
-            return tokenizer.tokenize(signature);
+            String token = tokenizer.tokenize(signature);
+            // Track blank tokens by rule
+            if (Token.BLANK.equals(token)) {
+                result.getBlankTokensByRule().add(tokenId);
+            }
+            return token;
         } catch (Exception e) {
             logger.error("Error generating token for token id: " + tokenId, e);
             throw new TokenGenerationException("Error generating token", e);
