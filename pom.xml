@@ -12,6 +12,14 @@
     <name>open-token</name>
     <url>http://www.truveta.com</url>
 
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/TruvetaPublic/OpenToken</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <revision>1.9.1</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -104,6 +112,10 @@
                 <exclusion>
                     <groupId>org.eclipse.jetty</groupId>
                     <artifactId>jetty-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.nimbusds</groupId>
+                    <artifactId>nimbus-jose-jwt</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
