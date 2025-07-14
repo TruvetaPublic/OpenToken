@@ -6,11 +6,11 @@
 version: 2
 updates:
   - package-ecosystem: "maven"
-    directory: "/work/OpenToken"
+    directory: "/"
     schedule:
       interval: "weekly"
 
   - package-ecosystem: "docker"
-    directory: "/work/OpenToken"
+    directory: "/"
     schedule:
       interval: "weekly"
