@@ -12,8 +12,16 @@
     <name>open-token</name>
     <url>http://www.truveta.com</url>
 
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/TruvetaPublic/OpenToken</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
-        <revision>1.9.1</revision>
+        <revision>1.9.2</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
@@ -106,6 +114,12 @@
                     <artifactId>jetty-server</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- Sec Finding Override for hadoop-common: -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>10.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
