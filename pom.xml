@@ -346,6 +346,104 @@
                     <excludePackageNames>com.truveta.opentoken</excludePackageNames>
                 </configuration>
             </plugin>
+            <!-- Sanity Check Plugin - Run integration tests with CSV and Parquet -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>sanity-check-csv</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="Running CSV sanity check..." />
+                                <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="csv.output">
+                                    <arg value="-jar" />
+                                    <arg value="${project.build.directory}/open-token-${revision}.jar" />
+                                    <arg value="-i" />
+                                    <arg value="src/test/resources/sample.csv" />
+                                    <arg value="-t" />
+                                    <arg value="csv" />
+                                    <arg value="-o" />
+                                    <arg value="${project.build.directory}/sanity-check-output.csv" />
+                                    <arg value="-ot" />
+                                    <arg value="csv" />
+                                    <arg value="-h" />
+                                    <arg value="HashingKey" />
+                                    <arg value="-e" />
+                                    <arg value="Secret-Encryption-Key-Goes-Here." />
+                                </exec>
+                                <echo message="CSV output: ${csv.output}" />
+                                <fail message="CSV sanity check failed: output does not contain 'Total number of records'">
+                                    <condition>
+                                        <not>
+                                            <contains string="${csv.output}" substring="Total number of records" />
+                                        </not>
+                                    </condition>
+                                </fail>
+                                <echo message="CSV sanity check completed successfully." />
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>sanity-check-parquet</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="Running Parquet sanity check..." />
+                                <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="parquet.output">
+                                    <arg value="-jar" />
+                                    <arg value="${project.build.directory}/open-token-${revision}.jar" />
+                                    <arg value="-i" />
+                                    <arg value="src/test/resources/sample.parquet" />
+                                    <arg value="-t" />
+                                    <arg value="parquet" />
+                                    <arg value="-o" />
+                                    <arg value="${project.build.directory}/sanity-check-output.parquet" />
+                                    <arg value="-ot" />
+                                    <arg value="parquet" />
+                                    <arg value="-h" />
+                                    <arg value="HashingKey" />
+                                    <arg value="-e" />
+                                    <arg value="Secret-Encryption-Key-Goes-Here." />
+                                </exec>
+                                <echo message="Parquet output: ${parquet.output}" />
+                                <fail message="Parquet sanity check failed: output does not contain 'Total number of records'">
+                                    <condition>
+                                        <not>
+                                            <contains string="${parquet.output}" substring="Total number of records" />
+                                        </not>
+                                    </condition>
+                                </fail>
+                                <echo message="Parquet sanity check completed successfully." />
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>cleanup-sanity-check-files</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="Cleaning up sanity check output files..." />
+                                <delete includeemptydirs="true" failonerror="false">
+                                    <fileset dir="${project.build.directory}" includes="*sanity-check-output*" />
+                                </delete>
+                                <echo message="Cleanup completed." />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>

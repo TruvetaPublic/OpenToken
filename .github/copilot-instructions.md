@@ -2,21 +2,7 @@ We use Java for our development, and we follow the Java coding conventions. Plea
 We use JUnit for unit testing. Please write unit tests for any new features or bug fixes you implement.
 We use Maven for dependency management and project structure. Ensure that your code is compatible with Maven.
 
-Before creating a pull request, please run `mvn clean install` and then run local execution tests with both file formats to ensure that everything works as expected:
-
-**CSV Testing:**
-
-```bash
-java -jar target/open-token-*.jar -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
-
-**Parquet Testing:**
-
-```bash
-java -jar target/open-token-*.jar -i src/test/resources/sample.parquet -t parquet -o target/output.parquet -ot parquet -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
-
-Both commands should execute successfully and generate the respective output files without errors.
+Before creating a pull request, please run `mvn clean install` to ensure that everything works as expected.
 
 When creating new branches, follow the naming convention `dev/<username>/<feature>` where `<username>` is your GitHub username and `<feature>` is a brief description of the feature or bug fix you are working on.
 

@@ -1,10 +1,8 @@
 name: Docker Publish
 
 on:
-  push:
-    branches: ["main"]
-    # Publish semver tags as releases.
-    tags: ["v*.*.*"]
+  release:
+    types: [created]
   pull_request:
     branches: ["main"]
 
