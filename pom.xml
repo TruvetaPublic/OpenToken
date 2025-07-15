@@ -361,7 +361,7 @@
                         <configuration>
                             <target>
                                 <echo message="Running CSV sanity check..." />
-                                <exec executable="java" dir="${basedir}" failonerror="true">
+                                <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="csv.output">
                                     <arg value="-jar" />
                                     <arg value="${project.build.directory}/open-token-${revision}.jar" />
                                     <arg value="-i" />
@@ -377,6 +377,14 @@
                                     <arg value="-e" />
                                     <arg value="Secret-Encryption-Key-Goes-Here." />
                                 </exec>
+                                <echo message="CSV output: ${csv.output}" />
+                                <fail message="CSV sanity check failed: output does not contain 'Total number of records'">
+                                    <condition>
+                                        <not>
+                                            <contains string="${csv.output}" substring="Total number of records" />
+                                        </not>
+                                    </condition>
+                                </fail>
                                 <echo message="CSV sanity check completed successfully." />
                             </target>
                         </configuration>
@@ -390,7 +398,7 @@
                         <configuration>
                             <target>
                                 <echo message="Running Parquet sanity check..." />
-                                <exec executable="java" dir="${basedir}" failonerror="true">
+                                <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="parquet.output">
                                     <arg value="-jar" />
                                     <arg value="${project.build.directory}/open-token-${revision}.jar" />
                                     <arg value="-i" />
@@ -406,6 +414,14 @@
                                     <arg value="-e" />
                                     <arg value="Secret-Encryption-Key-Goes-Here." />
                                 </exec>
+                                <echo message="Parquet output: ${parquet.output}" />
+                                <fail message="Parquet sanity check failed: output does not contain 'Total number of records'">
+                                    <condition>
+                                        <not>
+                                            <contains string="${parquet.output}" substring="Total number of records" />
+                                        </not>
+                                    </condition>
+                                </fail>
                                 <echo message="Parquet sanity check completed successfully." />
                             </target>
                         </configuration>
