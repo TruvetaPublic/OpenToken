@@ -2,11 +2,11 @@
 
 ## Introduction
 
-Truveta’s approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
+Our approach to person matching focuses on creating a set of matching tokens (or token signatures) for each individual, derived from deterministic person data. These tokens are designed to preserve privacy through the use of cryptographically secure hashing algorithms.
 
 ## Token generation strategy
 
-Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Truveta uses multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
+Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Multiple distinct token generation rules are used to define a set of person attributes and which parts of those attributes to use for token generation.
 
 ### Sample token generation rules
 
@@ -329,7 +329,7 @@ python data_generator.py 100 0.05 test_data.csv
 
 ## Contribute
 
-Truveta encourages contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key needs of improvements are:
+We encourage contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key needs of improvements are:
 
 1. The library currently provides `csv` reader and writer. See `com.truveta.opentoken.io`. Readers/writers for `parquet` file is highly desired.
 2. More test coverage.
