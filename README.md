@@ -1,14 +1,25 @@
-# Open token
+# Open Token
 
 ## Introduction
 
-Our approach to person matching focuses on creating a set of matching tokens (or token signatures) for each individual, derived from deterministic person data. These tokens are designed to preserve privacy through the use of cryptographically secure hashing algorithms.
+Our approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
 
-## Token generation strategy
+## Highlights
 
-Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Multiple distinct token generation rules are used to define a set of person attributes and which parts of those attributes to use for token generation.
+- Multi-language Support
+- Cryptographically Secure encryption that prevents re-identification
+- Enables straightforward person-matching by comparing 5 deterministic and unique tokens, providing a high degree of confidence in matches
 
-### Sample token generation rules
+## Overview
+
+### Library 
+This project, `open-token`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
+
+### Token Generation
+
+Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Truveta uses multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
+
+### Sample Token Generation Rules
 
 | Rule ID | Rule Definition                                          |
 | ------- | -------------------------------------------------------- |
@@ -52,9 +63,9 @@ The token generation rules above generate the following token signatures:
 
 **Note:** The tokens in the example above have been generated using the hash key `HashingKey` and encryption key `Secret-Encryption-Key-Goes-Here.`
 
-### Open token data flow
+### OpenToken data flow
 
-![open-token-data-flow](./open-token-data-flow.jpg)
+![open-token-data-flow](./images/open-token-data-flow.jpg)
 
 ### Validation of person attribute values prior to normalization
 
@@ -72,7 +83,7 @@ The person attributes are validated before normalization. The validation rules a
 
 All attribute values get normalized as part of their processing. The normalization process includes:
 
-**First Name normalization:**
+**FirstName normalization:**
 
 - Removes titles (e.g., "Dr. John" → "John")
 - Removes middle initials (e.g., "John J" → "John")
@@ -81,7 +92,7 @@ All attribute values get normalized as part of their processing. The normalizati
 - Removes non-alphabetic characters (e.g., "Anne-Marie" → "AnneMarie")
 - Normalizes diacritics (e.g., "José" → "Jose")
 
-**Last Name normalization:**
+**LastName normalization:**
 
 - Removes generational suffixes (e.g., "Warner IV" → "Warner")
 - Removes non-alphabetic characters (e.g., "O'Keefe" → "OKeefe")
@@ -97,7 +108,7 @@ All attribute values get normalized as part of their processing. The normalizati
 | `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31) |
 | `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)      |
 
-## Open token overview
+## OpenToken overview
 
 This library focuses primarily on token generation. Even though the person matching process is beyond the scope of this library, this document discusses how these tokens work in a person matching system.
 
@@ -123,35 +134,9 @@ As noted above, N distinct tokens are generated for each person using this libra
 
 If tokens are generated for persons from multiple data sources, person matching systems can identify a person match if the tokens for a person from one data source matches tokens for another person from a different data source. In the picture below, all tokens for **r3** and **r4** match, and as such r3 and r4 are considered a match.
 
-![open-token-system](./open-token-system.jpg)
+![open-token-system](./images/open-token-system.jpg)
 
-## Library driver
-
-A driver is provided so that the library code can be executed easily.
-
-### Execution
-
-#### Via Shell
-
-The driver code could be invoked using:
-
-```shell
-java -jar open-token-<version>.jar -i <input-file> -t <input-type> -o <output-file> -ot <output-type> -h "xb7...98a" -e "b32...q1r"
-```
-
-Example:
-`java -jar target/open-token-1.9.3.jar -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
-
-#### Via Docker
-
-Please run the following command in the same folder as the source CSV file:
-
-```shell
-docker run -v "$(pwd)":/app open-token -i <input-file> -t <input-type> -o <output-file> -ot <output-type> -h "xb7...98a" -e "b32...q1r"
-```
-
-Example:
-`docker run -v "$(pwd)":/app open-token -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
+## Usage
 
 ### Arguments
 
@@ -208,100 +193,24 @@ The metadata includes key fields such as:
 
 For complete details about all metadata fields, examples, and security considerations, see the [Metadata Format Documentation](./docs/metadata-format.md).
 
-### Building
+## Project Structure
 
-#### With Maven
-
-Prerequisites:
-
-- Java 11 SDK
-- Maven 3.8.7
-
-Run the following:
-
-```shell
-mvn clean install
+```
+lib/
+├── java/        # Java implementation (Maven)
+├── python/      # Python implementation (pip)
+tools/           # Utility scripts and tools
+docs/            # Documentation
+.devcontainer/   # Development container configuration
 ```
 
-The compiled jar can be found under ./target
+For language-specific setup and usage instructions, see:
+- [Java README](lib/java/README.md)
+- [Python README](lib/python/README.md)
 
-#### With Docker
+## Getting Started
 
-Prerequisites:
-
-- Docker
-
-Run the following:
-
-```shell
-docker build . -t open-token
-```
-
-This will build a local Docker image called `open-token`.
-
-#### Generating `javadoc`
-
-The `javadoc` for the library can be generated as following:
-
-```shell
-mvn clean javadoc:javadoc
-```
-
-The Java documentation is created in `./target/reports/apidocs`. Invoke by opening `./target/reports/apidocs/index.html` in your favorite browser.
-
-## Overview of the library
-
-This project, `open-token`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
-
-## Getting started
-
-To use `open-token` in your project, follow these steps:
-
-1. Add it as a dependency in your build configuration file. For Maven, add the following code to your `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>com.truveta.opentoken</groupId>
-    <artifactId>open-token</artifactId>
-    <version>1.9.3</version>
-</dependency>
-```
-
-1. Import `open-token` in your Java code using the following import statement:
-
-```java
-import com.truveta.opentoken.tokens.*;
-```
-
-1. Start using the utilities, models, and services provided by `open-token` in your project. For example, you can use the `TokenGenerator` class to perform token generation operations:
-
-```java
-ArrayList<Map<String, String>> result = new ArrayList<>();
-
-Map<Class<? extends Attribute>, String> row;
-
-/* process person record one by one */
-while (reader.hasNext()) {
-    row = reader.next();
-
-    /* generate all tokens for one person */
-    Map<String, String> tokens = tokenGenerator.getAllTokens(row).getTokens();
-    logger.info("Tokens: {}", tokens);
-
-    Set<String> tokenIds = new TreeSet<>(tokens.keySet());
-
-    /* add all the token for the person in result */
-    for (String tokenId : tokenIds) {
-        var rowResult = new HashMap<String, String>();
-        rowResult.put("RecordId", row.get(RecordIdAttribute.class));
-        rowResult.put("RuleId", tokenId);
-        rowResult.put("Token", tokens.get(tokenId));
-        result.add(rowResult);
-    }
-};
-
-// result has tokens for all persons now.
-```
+For language-specific setup and information, visit the `lib/` directory, select the desired language folder, and refer  to its README file.
 
 ## Test Data
 
@@ -327,18 +236,58 @@ You can modify the parameters when running the script directly. The script will 
 python data_generator.py 100 0.05 test_data.csv
 ```
 
-## Contribute
+## Building
 
-We encourage contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key needs of improvements are:
+### With Maven (Java)
 
-1. The library currently provides `csv` reader and writer. See `com.truveta.opentoken.io`. Readers/writers for `parquet` file is highly desired.
+Prerequisites:
+- Java 11 SDK
+- Maven 3.8.7
+
+```shell
+cd lib/java
+mvn clean install
+```
+
+### With Docker
+
+Prerequisites:
+- Docker
+
+```shell
+docker build . -t open-token
+```
+
+This will build a local Docker image called `open-token`.
+
+## Examples
+
+### Via Java JAR
+
+```shell
+java -jar lib/java/target/open-token-<version>.jar -i input.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+### Via Docker
+
+```shell
+docker run -v "$(pwd)":/app open-token -i input.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+## Contribution
+
+We encourage contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key need of improvements are:
+
+1. The library currently provides `csv` reader and writer. Readers/writers for additional file formats are highly desired.
 2. More test coverage.
+3. Additional language implementations.
 
-## Development Environment
+## Development environment
 
 This project includes a [Development Container](https://containers.dev/) configuration that provides a consistent and isolated development environment for working with OpenToken. The Dev Container includes all necessary tools and dependencies pre-configured, making it easy to start contributing right away.
 
-### Getting Started with the Dev Container
+
+### Getting started with the Dev Container
 
 For detailed instructions on how to use the development container, please refer to the [Dev Container README](./.devcontainer/README.md).
 
