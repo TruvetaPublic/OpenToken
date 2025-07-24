@@ -1,0 +1,85 @@
+Proposed OpenToken Project Structure (Apache Thrift-style)
+========================================================
+
+Root Directory: /workspaces/OpenToken/
+├── lib/                                 # All language implementations
+│   ├── java/                            # Java Maven module
+│   │   ├── pom.xml                      # Maven project configuration
+│   │   └── src/
+│   │       ├── main/
+│   │       │   ├── java/com/truveta/opentoken/
+│   │       │   │   ├── Main.java
+│   │       │   │   ├── CommandLineArguments.java
+│   │       │   │   ├── Metadata.java
+│   │       │   │   ├── attributes/
+│   │       │   │   ├── io/
+│   │       │   │   ├── processor/
+│   │       │   │   │   └── PersonAttributesProcessor.java
+│   │       │   │   ├── tokens/
+│   │       │   │   │   └── definitions/
+│   │       │   │   └── tokentransformer/
+│   │       │   └── resources/
+│   │       │       └── log4j2.properties
+│   │       └── test/
+│   │           ├── java/com/truveta/opentoken/
+│   │           │   ├── MetadataTest.java
+│   │           │   ├── attributes/
+│   │           │   ├── io/
+│   │           │   ├── processor/
+│   │           │   ├── tokens/
+│   │           │   └── tokentransformer/
+│   │           └── resources/
+│   │               └── (test resources)
+│   ├── python/                          # Python implementation
+│   │   ├── setup.py
+│   │   ├── requirements.txt
+│   │   └── opentoken/
+│   │       ├── __init__.py
+│   │       ├── core/
+│   │       ├── io/
+│   │       ├── cli/
+│   │       ├── attributes/
+│   │       ├── tokens/
+│   │       └── transform/
+│   ├── csharp/                              # CSharp implementation (optional)
+│   │   └── ...
+│   └── ...                              # Other languages as needed
+│
+├── docs/                                # Documentation
+│   ├── README.md
+│   ├── open-token-data-flow.jpg
+│   ├── open-token-system.jpg
+│   └── metadata-format.md
+│
+├── tools/                               # Utilities and scripts
+│   ├── hash_calculator.py
+│   ├── test_hash_calculator.py
+│   ├── decryptor/
+│   └── mockdata/
+│
+├── .devcontainer/                       # Dev container configuration
+│   ├── devcontainer.json
+│   ├── Dockerfile
+│   ├── python/requirements.txt
+│   └── scripts/
+│
+├── .vscode/                             # VS Code configuration
+│   └── launch.json
+│
+├── .github/workflows/                   # CI/CD pipelines
+│   └── maven-build.yml
+│
+├── LICENSE
+└── target/                              # Build output (Java)
+    ├── classes/
+    ├── test-classes/
+    ├── surefire-reports/
+    ├── checkstyle-result.xml
+    └── jacoco.exec
+
+Notes:
+------
+- Java follows the standard Maven layout: `src/main/java`, `src/main/resources`, `src/test/java`, `src/test/resources`.
+- Python and other languages follow their own conventions inside their respective folders.
+- Documentation, tools, and dev environment files remain at the top level for easy access.
+- This structure is inspired by Apache Thrift and is suitable for multi-language projects.

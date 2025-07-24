@@ -18,5 +18,11 @@
     "files.trimFinalNewlines": true,
     "files.eol": "\n",
     "chat.mcp.enabled": true,
-    "chat.tools.autoApprove": true
+    "chat.tools.autoApprove": true,
+    "cSpell.words": [
+        "antrun",
+        "opentoken",
+        "tokentransformer",
+        "truveta"
+    ]
 }

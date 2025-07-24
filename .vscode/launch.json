@@ -10,7 +10,30 @@
             "request": "launch",
             "mainClass": "com.truveta.opentoken.Main",
             "projectName": "open-token",
-            "args": "-i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h \"HashingKey\" -e \"Secret-Encryption-Key-Goes-Here.\""
+            "args": "-i lib/java/src/test/resources/sample.csv -t csv -o lib/java/target/output.csv -ot csv -h \"HashingKey\" -e \"Secret-Encryption-Key-Goes-Here.\""
+        },
+        {
+            "name": "Run main.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/lib/python/src/main/opentoken/main.py",
+            "env": {
+                "PYTHONPATH": "lib/python/src/main"
+            },
+            "args": [
+                "-i",
+                "lib/python/src/test/resources/sample.csv",
+                "-t",
+                "csv",
+                "-o",
+                "lib/python/target/output.csv",
+                "-ot",
+                "csv",
+                "-h",
+                "HashingKey",
+                "-e",
+                "Secret-Encryption-Key-Goes-Here."
+            ]
         }
     ]
 }
