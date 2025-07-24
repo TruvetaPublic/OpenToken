@@ -1,5 +1,5 @@
 ARG JAVA_VERSION=11
-FROM mcr.microsoft.com/devcontainers/java:1-${JAVA_VERSION}-bookworm
+FROM eclipse-temurin:${JAVA_VERSION}-jdk
 
 # Check for Zscaler certificates and install if found using external script
 COPY scripts/detect_zscaler.sh /tmp/
