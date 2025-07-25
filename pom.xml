@@ -28,7 +28,7 @@
             <plugins>
             </plugins>
         </pluginManagement>
-        
+
         <plugins>
             <!-- Skip exec:java in parent POM -->
             <plugin>
@@ -60,7 +60,7 @@
                 </executions>
             </plugin>
         </plugins>
-        
+
     </build>
 
     <!-- Profiles -->
