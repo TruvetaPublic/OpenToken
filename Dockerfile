@@ -10,9 +10,6 @@ RUN mkdir /app
 WORKDIR /app
 COPY . /app
 
-COPY src /app/src
-COPY pom.xml /app/pom.xml
-
 RUN mvn clean package
 
 #############################################
