@@ -316,7 +316,7 @@ python data_generator.py 100 0.05 test_data.csv
 
 ## Contribute
 
-Truveta encourages contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key needs of improvements are:
+We encourage contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key needs of improvements are:
 
 1. The library currently provides `csv` reader and writer. See `com.truveta.opentoken.io`. Readers/writers for `parquet` file is highly desired.
 2. More test coverage.
