@@ -130,6 +130,12 @@ class SocialSecurityNumberAttributeTest {
     }
 
     @Test
+    void validate_ShouldReturnFalseForSpecificInvalidSSNs() {
+        assertFalse(ssnAttribute.validate("111-22-3333"), "Invalid SSN 111-22-3333 should not be allowed");
+        assertFalse(ssnAttribute.validate("111223333"), "Invalid SSN 111223333 (without dashes) should not be allowed");
+    }
+
+    @Test
     void normalize_ThreadSafety() throws InterruptedException {
         final int threadCount = 100;
         final CountDownLatch startLatch = new CountDownLatch(1);

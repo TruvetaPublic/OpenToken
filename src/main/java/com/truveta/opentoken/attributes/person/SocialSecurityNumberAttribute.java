@@ -67,6 +67,7 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
             "555-55-5555",
             "777-77-7777",
             "888-88-8888",
+
             // Common placeholder SSNs sorted
             "001-23-4567",
             "010-10-1010",
@@ -74,6 +75,7 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
             "087-65-4321",
             "098-76-5432",
             "099-99-9999",
+            "111-22-3333",
             "121-21-2121",
             "123-45-6789");
 
@@ -91,6 +93,16 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     @Override
     public String[] getAliases() {
         return ALIASES;
+    }
+
+    /**
+     * Validates the social security number value.
+     * This method overrides the validate method from BaseAttribute
+     * to ensure that the value is normalized before validation.
+     */
+    @Override
+    public boolean validate(String value) {
+        return super.validate(normalize(value)); // Validate normalized SSN
     }
 
     /**
