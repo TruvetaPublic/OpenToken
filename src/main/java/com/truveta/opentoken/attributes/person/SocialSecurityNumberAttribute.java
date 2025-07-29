@@ -61,38 +61,23 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
 
     private static final Set<String> INVALID_SSNS = Set.of(
             "111-11-1111",
-            "111111111",
-            "111-22-3333",
-            "111223333",
             "222-22-2222",
-            "222222222",
             "333-33-3333",
-            "333333333",
             "444-44-4444",
-            "444444444",
             "555-55-5555",
-            "555555555",
             "777-77-7777",
-            "777777777",
             "888-88-8888",
-            "888888888",
+
             // Common placeholder SSNs sorted
             "001-23-4567",
-            "001234567",
             "010-10-1010",
-            "010101010",
             "012-34-5678",
-            "012345678",
             "087-65-4321",
-            "087654321",
             "098-76-5432",
-            "098765432",
             "099-99-9999",
-            "099999999",
+            "111-22-3333",
             "121-21-2121",
-            "121212121",
-            "123-45-6789",
-            "123456789");
+            "123-45-6789");
 
     public SocialSecurityNumberAttribute() {
         super(List.of(
@@ -108,6 +93,16 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
     @Override
     public String[] getAliases() {
         return ALIASES;
+    }
+
+    /**
+     * Validates the social security number value.
+     * This method overrides the validate method from BaseAttribute
+     * to ensure that the value is normalized before validation.
+     */
+    @Override
+    public boolean validate(String value) {
+        return super.validate(normalize(value)); // Valid SSN
     }
 
     /**
