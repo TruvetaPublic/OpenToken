@@ -102,7 +102,7 @@ public class SocialSecurityNumberAttribute extends BaseAttribute {
      */
     @Override
     public boolean validate(String value) {
-        return super.validate(normalize(value)); // Valid SSN
+        return super.validate(normalize(value)); // Validate normalized SSN
     }
 
     /**
