@@ -44,7 +44,7 @@ class TestPersonAttributesProcessorIntegration:
         The goal is to ensure that the records with repeated data still generate
         the same tokens.
         """
-        input_csv_file = "lib/python/src/test/resources/mockdata/test_data.csv"
+        input_csv_file = "src/test/resources/mockdata/test_data.csv"
         ssn_to_record_ids_map = self.group_records_ids_with_same_ssn(input_csv_file)
 
         token_transformer_list = [
@@ -96,13 +96,13 @@ class TestPersonAttributesProcessorIntegration:
             EncryptTokenTransformer(self.encryption_key)
         ]
         result_from_person_attributes_processor1 = self.read_csv_from_person_attributes_processor(
-            "lib/python/src/test/resources/mockdata/test_overlap1.csv", token_transformer_list
+            "src/test/resources/mockdata/test_overlap1.csv", token_transformer_list
         )
 
         # Truveta file is neither hashed nor encrypted
         token_transformer_list = [NoOperationTokenTransformer()]
         result_from_person_attributes_processor2 = self.read_csv_from_person_attributes_processor(
-            "lib/python/src/test/resources/mockdata/test_overlap2.csv", token_transformer_list
+            "src/test/resources/mockdata/test_overlap2.csv", token_transformer_list
         )
 
         record_id_to_token_map1 = {}
@@ -134,7 +134,7 @@ class TestPersonAttributesProcessorIntegration:
         file with the correct extension and contains the expected metadata.
         """
         # Set up the test
-        input_csv_file = "lib/python/src/test/resources/mockdata/test_data.csv"
+        input_csv_file = "src/test/resources/mockdata/test_data.csv"
         output_csv_file = "target/test_metadata_location_output.csv"
 
         token_transformer_list = [NoOperationTokenTransformer()]
