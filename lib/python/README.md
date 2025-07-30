@@ -95,21 +95,6 @@ src/
     └── resources/           # Test data
 ```
 
-### Code Style
-
-This project follows PEP 8 style guidelines. Use:
-
-```shell
-# Format code
-black src/
-
-# Check style
-flake8 src/
-
-# Type checking
-mypy src/
-```
-
 ### Virtual Environment
 
 It's recommended to use a virtual environment:
