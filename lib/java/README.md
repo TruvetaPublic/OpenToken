@@ -26,7 +26,7 @@ Add this to your `pom.xml`:
 <dependency>
     <groupId>com.truveta.opentoken</groupId>
     <artifactId>open-token</artifactId>
-    <version>1.9.2</version>
+    <version>1.9.3</version>
 </dependency>
 ```
 
@@ -48,7 +48,7 @@ java -jar target/open-token-<version>.jar [OPTIONS]
 
 **Example:**
 ```shell
-java -jar target/open-token-1.9.2.jar \
+java -jar target/open-token-1.9.3.jar \
   -i src/test/resources/sample.csv \
   -t csv \
   -o target/output.csv \
