@@ -9,14 +9,21 @@ This is the Java implementation of the OpenToken library
 
 ## Installation
 
-### Building from Source
+### Building
 
+From Root:
 ```shell
 # From the java directory
 cd lib/java && mvn clean install
 ```
 
-The compiled JAR will be available in `target/open-token-<version>.jar`
+From lib/java:
+```shell
+# From the java directory
+mvn clean install
+```
+
+The compiled JAR will be available in `lib/java/target/open-token-<version>.jar`
 
 ### Maven Dependency
 
@@ -34,6 +41,12 @@ Add this to your `pom.xml`:
 
 ### Command Line Interface
 
+From Root:
+```shell
+cd lib/java && java -jar target/open-token-<version>.jar [OPTIONS]
+```
+
+From lib/java:
 ```shell
 java -jar target/open-token-<version>.jar [OPTIONS]
 ```
@@ -79,6 +92,7 @@ try (PersonAttributesReader reader = new PersonAttributesCSVReader("input.csv");
 
 ## Testing
 
+### From lib/java
 Run all tests:
 ```shell
 mvn test
@@ -110,19 +124,19 @@ src/
 
 ### Code Style
 
-This project uses Checkstyle for code formatting. Run:
+This project uses Checkstyle for code formatting. Run the followin in lib/java:
 ```shell
 mvn checkstyle:check
 ```
 
 ### Generating Documentation
 
-Generate Javadoc:
+Generate Javadoc. Run the followin in lib/java:
 ```shell
 mvn clean javadoc:javadoc
 ```
 
-Documentation will be available in `target/site/apidocs/index.html`.
+Documentation will be available in `lib/java/target/site/apidocs/index.html`.
 
 ## Supported Input Formats
 
