@@ -13,7 +13,7 @@ This is the Java implementation of the OpenToken library
 
 ```shell
 # From the java directory
-mvn clean install
+cd lib/java && mvn clean install
 ```
 
 The compiled JAR will be available in `target/open-token-<version>.jar`
@@ -48,7 +48,7 @@ java -jar target/open-token-<version>.jar [OPTIONS]
 
 **Example:**
 ```shell
-java -jar target/open-token-1.9.3.jar \
+cd lib/java && java -jar target/open-token-1.9.3.jar \
   -i src/test/resources/sample.csv \
   -t csv \
   -o target/output.csv \
