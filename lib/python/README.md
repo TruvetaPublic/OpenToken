@@ -4,7 +4,7 @@ This is the Python implementation of the OpenToken library
 
 ## Prerequisites
 
-- Python 3.11 or higher
+- Python 3.9 or higher
 - pip (Python package installer)
 
 ## Installation

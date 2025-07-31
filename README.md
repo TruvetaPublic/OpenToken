@@ -17,7 +17,7 @@ This project, `open-token`, provides common utilities, models, and services used
 
 ### Token Generation
 
-Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Truveta uses multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
+Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. We use multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
 
 ### Sample Token Generation Rules
 
@@ -65,7 +65,7 @@ The token generation rules above generate the following token signatures:
 
 ### OpenToken data flow
 
-![open-token-data-flow](./images/open-token-data-flow.jpg)
+![open-token-data-flow](./docs/images/open-token-data-flow.jpg)
 
 ### Validation of person attribute values prior to normalization
 
@@ -134,7 +134,7 @@ As noted above, N distinct tokens are generated for each person using this libra
 
 If tokens are generated for persons from multiple data sources, person matching systems can identify a person match if the tokens for a person from one data source matches tokens for another person from a different data source. In the picture below, all tokens for **r3** and **r4** match, and as such r3 and r4 are considered a match.
 
-![open-token-system](./images/open-token-system.jpg)
+![open-token-system](./docs/images/open-token-system.jpg)
 
 ## Usage
 
@@ -266,12 +266,6 @@ This will build a local Docker image called `open-token`.
 
 ```shell
 java -jar lib/java/target/open-token-<version>.jar -i input.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
-
-### Via Docker
-
-```shell
-docker run -v "$(pwd)":/app open-token -i input.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 ## Contribution
