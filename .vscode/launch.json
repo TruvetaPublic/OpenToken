@@ -5,8 +5,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "java",
             "name": "OpenToken-Java",
+            "type": "java",
             "request": "launch",
             "mainClass": "com.truveta.opentoken.Main",
             "projectName": "open-token",

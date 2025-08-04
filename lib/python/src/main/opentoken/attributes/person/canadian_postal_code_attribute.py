@@ -26,8 +26,15 @@ class CanadianPostalCodeAttribute(BaseAttribute):
     
     INVALID_ZIP_CODES = {
         # Canadian postal code placeholders
-        "A1A 1A1", "K1A 0A6", "H0H 0H0", "X0X 0X0",
-        "Y0Y 0Y0", "Z0Z 0Z0", "A0A 0A0", "B1B 1B1", "C2C 2C2"
+        "A1A 1A1",
+        "K1A 0A6",
+        "H0H 0H0",
+        "X0X 0X0",
+        "Y0Y 0Y0",
+        "Z0Z 0Z0",
+        "A0A 0A0",
+        "B1B 1B1",
+        "C2C 2C2"
     }
     
     def __init__(self):

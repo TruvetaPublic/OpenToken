@@ -55,9 +55,11 @@ class BirthDateAttribute(BaseAttribute):
         
         # Try different date formats
         date_formats = [
-            "%Y-%m-%d", "%Y/%m/%d",  # yyyy-MM-dd, yyyy/MM/dd
-            "%m/%d/%Y", "%m-%d-%Y",  # MM/dd/yyyy, MM-dd-yyyy  
-            "%d.%m.%Y"               # dd.MM.yyyy
+            "%Y-%m-%d",  # yyyy-MM-dd
+            "%Y/%m/%d",  # yyyy/MM/dd
+            "%m/%d/%Y",  # MM/dd/yyyy
+            "%m-%d-%Y",  # MM-dd-yyyy
+            "%d.%m.%Y"   # dd.MM.yyyy
         ]
         
         for format in date_formats:

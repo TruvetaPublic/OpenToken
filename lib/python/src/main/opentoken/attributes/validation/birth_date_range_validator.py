@@ -21,8 +21,11 @@ class BirthDateRangeValidator(SerializableAttributeValidator):
     
     # Supported date formats for parsing
     POSSIBLE_INPUT_FORMATS = [
-        "%Y-%m-%d", "%Y/%m/%d", "%m/%d/%Y",
-        "%m-%d-%Y", "%d.%m.%Y"
+        "%Y-%m-%d",
+        "%Y/%m/%d",
+        "%m/%d/%Y",
+        "%m-%d-%Y",
+        "%d.%m.%Y"
     ]
     
     def __init__(self):
