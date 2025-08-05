@@ -57,7 +57,7 @@ class PersonAttributesProcessorIntegrationTest {
      */
     @Test
     void testInputWithDuplicates() throws Exception {
-        String inputCsvFile = "src/test/resources/mockdata/test_data.csv";
+        String inputCsvFile = "../../resources/mockdata/test_data.csv";
         Map<String, List<String>> ssnToRecordIdsMap = groupRecordsIdsWithSameSsn(inputCsvFile);
 
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
@@ -115,13 +115,13 @@ class PersonAttributesProcessorIntegrationTest {
         tokenTransformerList.add(new HashTokenTransformer(hashKey));
         tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
         ArrayList<Map<String, String>> resultFromPersonAttributesProcessor1 = readCSV_fromPersonAttributesProcessor(
-                "src/test/resources/mockdata/test_overlap1.csv", tokenTransformerList);
+                "../../resources/mockdata/test_overlap1.csv", tokenTransformerList);
 
         // Truveta file is neither hashed nor encrypted
         tokenTransformerList = new ArrayList<>();
         tokenTransformerList.add(new NoOperationTokenTransformer());
         ArrayList<Map<String, String>> resultFromPersonAttributesProcessor2 = readCSV_fromPersonAttributesProcessor(
-                "src/test/resources/mockdata/test_overlap2.csv", tokenTransformerList);
+                "../../resources/mockdata/test_overlap2.csv", tokenTransformerList);
 
         Map<String, String> recordIdToTokenMap1 = new HashMap<>();
         // tokens from incoming file are hashed and encrypted. This needs decryption
@@ -160,7 +160,7 @@ class PersonAttributesProcessorIntegrationTest {
     @Test
     void testMetadataFileLocation() throws Exception {
         // Set up the test
-        String inputCsvFile = "src/test/resources/mockdata/test_data.csv";
+        String inputCsvFile = "../../resources/mockdata/test_data.csv";
         String outputCsvFile = "target/test_metadata_location_output.csv";
 
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
