@@ -41,7 +41,7 @@ class MetadataJsonWriter(MetadataWriter):
             
             # Write metadata as JSON with pretty formatting
             with open(self.metadata_file_path, 'w', encoding='utf-8') as f:
-                json.dump(metadata_map, f, indent=2, ensure_ascii=False, sort_keys=True)
+                json.dump(metadata_map, f, indent=2, ensure_ascii=False)
                 
         except Exception as e:
             raise IOError(f"Failed to write metadata to {self.metadata_file_path}: {e}")
