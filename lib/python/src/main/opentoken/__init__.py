@@ -7,6 +7,5 @@ This package provides utilities for tokenizing and processing person attributes
 using various cryptographic transformations.
 """
 
-__version__ = "0.1.0"
+__version__ = "1.9.3"
 __author__ = "Truveta"
-__email__ = "info@truveta.com"
