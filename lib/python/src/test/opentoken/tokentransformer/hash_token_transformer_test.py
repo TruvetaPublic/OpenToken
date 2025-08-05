@@ -10,7 +10,6 @@ import pickle
 import pytest
 
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
-from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
 class TestHashTokenTransformer:
@@ -26,13 +25,13 @@ class TestHashTokenTransformer:
     def test_serializable(self):
         """Test that HashTokenTransformer is serializable and deserializable."""
         encrypt_token_transformer = HashTokenTransformer(self.VALID_SECRET)
-        
+
         # Serialize the transformer
         serialized = pickle.dumps(encrypt_token_transformer)
-        
+
         # Deserialize the transformer
         deserialized = pickle.loads(serialized)
-        
+
         # Transform a token using the deserialized transformer
         hashed_token = deserialized.transform(self.VALID_TOKEN)
 
@@ -57,65 +56,65 @@ class TestHashTokenTransformer:
         """Test that transforming a null token throws ValueError."""
         with pytest.raises(ValueError) as exc_info:
             self.transformer.transform(None)
-        
+
         assert "Invalid Argument. Token can't be None or blank." == str(exc_info.value)
 
     def test_transform_blank_token_throws_value_error(self):
         """Test that transforming a blank token throws ValueError."""
         with pytest.raises(ValueError) as exc_info:
             self.transformer.transform("")
-        
+
         assert "Invalid Argument. Token can't be None or blank." == str(exc_info.value)
 
     def test_transform_whitespace_token_throws_value_error(self):
         """Test that transforming a whitespace-only token throws ValueError."""
         with pytest.raises(ValueError) as exc_info:
             self.transformer.transform("   ")
-        
+
         assert "Invalid Argument. Token can't be None or blank." == str(exc_info.value)
 
     def test_constructor_null_secret_initializes_with_null_mac(self):
         """Test that constructor with null secret creates unusable transformer."""
         null_secret_transformer = HashTokenTransformer(None)
-        
+
         with pytest.raises(RuntimeError) as exc_info:
             null_secret_transformer.transform(self.VALID_TOKEN)
-        
+
         assert "HMAC is not properly initialized due to empty hashing secret." == str(exc_info.value)
 
     def test_constructor_blank_secret_initializes_with_null_mac(self):
         """Test that constructor with blank secret creates unusable transformer."""
         blank_secret_transformer = HashTokenTransformer("")
-        
+
         with pytest.raises(RuntimeError) as exc_info:
             blank_secret_transformer.transform(self.VALID_TOKEN)
-        
+
         assert "HMAC is not properly initialized due to empty hashing secret." == str(exc_info.value)
 
     def test_constructor_whitespace_secret_initializes_with_null_mac(self):
         """Test that constructor with whitespace-only secret creates unusable transformer."""
         whitespace_secret_transformer = HashTokenTransformer("   ")
-        
+
         with pytest.raises(RuntimeError) as exc_info:
             whitespace_secret_transformer.transform(self.VALID_TOKEN)
-        
+
         assert "HMAC is not properly initialized due to empty hashing secret." == str(exc_info.value)
 
     def test_transform_valid_token_multiple_times_returns_consistent_hash(self):
         """Test that transforming the same token multiple times returns consistent results."""
         hash1 = self.transformer.transform(self.VALID_TOKEN)
         hash2 = self.transformer.transform(self.VALID_TOKEN)
-        
+
         assert hash1 == hash2  # The hashed value should be consistent
 
     def _calculate_expected_hash(self, secret: str, token: str) -> str:
         """
         Calculate the expected HMAC-SHA256 hash for validation.
-        
+
         Args:
             secret: The secret key.
             token: The token to hash.
-            
+
         Returns:
             The base64-encoded HMAC-SHA256 hash.
         """

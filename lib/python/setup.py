@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Setup script for OpenToken Python package."""
 
-from setuptools import setup, find_packages
+from setuptools import setup
 import os
 
 # Read the contents of README file

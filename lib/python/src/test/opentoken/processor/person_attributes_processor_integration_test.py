@@ -8,7 +8,6 @@ import hashlib
 import hmac
 import os
 import tempfile
-from collections import defaultdict
 from typing import Dict, List
 
 from cryptography.hazmat.backends import default_backend
@@ -28,7 +27,7 @@ from opentoken.tokentransformer.no_operation_token_transformer import NoOperatio
 
 
 class TestPersonAttributesProcessorIntegration:
-    
+
     def setup_method(self):
         """Set up test fixtures."""
         self.total_records_matched = 1001
@@ -63,7 +62,7 @@ class TestPersonAttributesProcessorIntegration:
 
             for record_token in result_from_person_attributes_processor:
                 record_id = record_token.get("RecordId")
-                
+
                 # This code block checks that for multiple recordIds with same SSN
                 # the 5 tokens generated (for each recordId) are always the same
                 if record_id in record_ids:
@@ -142,7 +141,7 @@ class TestPersonAttributesProcessorIntegration:
         # Delete output files if they exist
         if os.path.exists(output_csv_file):
             os.remove(output_csv_file)
-        
+
         # Calculate correct metadata file path (same logic as MetadataJsonWriter)
         dot_index = output_csv_file.rfind('.')
         base_name = output_csv_file[:dot_index] if dot_index > 0 else output_csv_file
@@ -181,7 +180,7 @@ class TestPersonAttributesProcessorIntegration:
         # Verify that metadata file contains the expected data
         with open(expected_metadata_file, 'r') as f:
             metadata_content = f.read()
-        
+
         assert Metadata.PLATFORM_PYTHON in metadata_content, "Metadata should contain platform information"
         assert Metadata.SYSTEM_PYTHON_VERSION in metadata_content, "Metadata should contain Python version"
         assert Metadata.OUTPUT_FORMAT_CSV in metadata_content, "Metadata should contain output format"
@@ -298,7 +297,7 @@ class TestPersonAttributesProcessorIntegration:
             record.update(person_attributes)
             writer.write_attributes(record)
 
-    def read_csv_from_person_attributes_processor(self, input_csv_file_path: str, 
+    def read_csv_from_person_attributes_processor(self, input_csv_file_path: str,
                                                  token_transformers: List) -> List[Dict[str, str]]:
         """Read CSV file through PersonAttributesProcessor and return results."""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as temp_file:
@@ -332,7 +331,7 @@ class TestPersonAttributesProcessorIntegration:
             for row in reader:
                 ssn = row.get(SocialSecurityNumberAttribute)
                 record_id = row.get(RecordIdAttribute)
-                
+
                 if ssn not in ssn_to_record_ids_map:
                     ssn_to_record_ids_map[ssn] = []
                 ssn_to_record_ids_map[ssn].append(record_id)
