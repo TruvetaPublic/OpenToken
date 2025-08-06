@@ -50,11 +50,4 @@ jobs:
     
     - name: Test with pytest
       run: |
-        cd lib/python
-        PYTHONPATH=src/main python -m pytest src/test --cov=src/main --cov-report=xml
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./lib/python/coverage.xml
-        fail_ci_if_error: false
+        PYTHONPATH=lib/python/src/main pytest lib/python/src/test
