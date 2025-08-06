@@ -100,7 +100,7 @@ class TestPersonAttributesCSVReader:
 
         reader = PersonAttributesCSVReader(self.temp_file_path)
         reader.close()
-        
+
         # After closing, next should raise StopIteration
         with pytest.raises(ValueError):
             next(reader)

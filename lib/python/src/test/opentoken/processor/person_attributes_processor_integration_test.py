@@ -138,6 +138,10 @@ class TestPersonAttributesProcessorIntegration:
 
         token_transformer_list = [NoOperationTokenTransformer()]
 
+        # Ensure the output directory exists
+        output_dir = os.path.dirname(output_csv_file)
+        os.makedirs(output_dir, exist_ok=True)
+        
         # Delete output files if they exist
         if os.path.exists(output_csv_file):
             os.remove(output_csv_file)
