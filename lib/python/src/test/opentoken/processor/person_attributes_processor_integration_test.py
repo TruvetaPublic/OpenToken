@@ -71,7 +71,7 @@ class TestPersonAttributesProcessorIntegration:
                     if len(token_generated) < 5:
                         token_generated.append(token)
                     # for RecordId with same SSN, tokens should match as in the list
-                    elif len(token_generated) == 5:  # assertion to check existing tokens match for duplicate records
+                    elif len(token_generated) == 5:  # check existing tokens match for duplicate records
                         assert token in token_generated
                     count += 1
 
@@ -123,7 +123,8 @@ class TestPersonAttributesProcessorIntegration:
             token1 = record_id_to_token_map1[record_id1]
             if record_id1 in record_id_to_token_map2:
                 overlapp_count += 1
-                assert record_id_to_token_map2[record_id1] == token1, "For same RecordIds the tokens must match"
+                assert record_id_to_token_map2[record_id1] == token1, \
+                    "For same RecordIds the tokens must match"
 
         assert overlapp_count == self.total_records_matched
 
@@ -257,7 +258,8 @@ class TestPersonAttributesProcessorIntegration:
                     "Decrypted tokens should be identical for backward compatibility"
 
             # Verify that exactly 5 tokens are generated per record (T1-T5)
-            assert len(old_results) == 5, "Should generate exactly 5 tokens per record for backward compatibility"
+            assert len(old_results) == 5, \
+                "Should generate exactly 5 tokens per record for backward compatibility"
 
             # Verify token structure consistency
             for token in old_results:
@@ -278,7 +280,8 @@ class TestPersonAttributesProcessorIntegration:
             # Verify essential metadata fields for backward compatibility
             assert PersonAttributesProcessor.TOTAL_ROWS in metadata_map, \
                 "Metadata must contain TotalRows for backward compatibility"
-            assert metadata_map[PersonAttributesProcessor.TOTAL_ROWS] == 1, "TotalRows should be 1 for single record"
+            assert metadata_map[PersonAttributesProcessor.TOTAL_ROWS] == 1, \
+                "TotalRows should be 1 for single record"
             assert PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES in metadata_map, \
                 "Metadata must contain TotalRowsWithInvalidAttributes for backward compatibility"
             assert PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE in metadata_map, \
@@ -286,7 +289,13 @@ class TestPersonAttributesProcessorIntegration:
 
         finally:
             # Clean up temporary files
-            for temp_file in [old_tmp_input_file, new_tmp_input_file, old_tmp_output_file, new_tmp_output_file]:
+            temp_files = [
+                old_tmp_input_file,
+                new_tmp_input_file,
+                old_tmp_output_file,
+                new_tmp_output_file
+            ]
+            for temp_file in temp_files:
                 if temp_file and os.path.exists(temp_file):
                     os.remove(temp_file)
 
@@ -298,7 +307,7 @@ class TestPersonAttributesProcessorIntegration:
             writer.write_attributes(record)
 
     def read_csv_from_person_attributes_processor(self, input_csv_file_path: str,
-                                                 token_transformers: List) -> List[Dict[str, str]]:
+                                                  token_transformers: List) -> List[Dict[str, str]]:
         """Read CSV file through PersonAttributesProcessor and return results."""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as temp_file:
             tmp_output_file = temp_file.name

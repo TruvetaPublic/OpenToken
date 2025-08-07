@@ -4,6 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 
 import csv
 import logging
+import os
 from typing import Dict
 from opentoken.io.person_attributes_writer import PersonAttributesWriter
 
@@ -29,6 +30,10 @@ class PersonAttributesCSVWriter(PersonAttributesWriter):
             IOError: If an I/O error occurs.
         """
         self.file_path = file_path
+
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
         self.file_handle = open(file_path, 'w', newline='', encoding='utf-8')
         self.csv_writer = csv.writer(self.file_handle)
         self.header_written = False

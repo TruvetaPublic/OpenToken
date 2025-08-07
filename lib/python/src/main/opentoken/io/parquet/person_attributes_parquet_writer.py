@@ -3,6 +3,7 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 import logging
+import os
 from typing import Dict, Optional
 try:
     import pyarrow as pa
@@ -34,6 +35,10 @@ class PersonAttributesParquetWriter(PersonAttributesWriter):
             IOError: If an I/O error occurs.
         """
         self.file_path = file_path
+
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
         self.schema: Optional[pa.Schema] = None
         self.writer: Optional[pq.ParquetWriter] = None
         self.initialized = False
