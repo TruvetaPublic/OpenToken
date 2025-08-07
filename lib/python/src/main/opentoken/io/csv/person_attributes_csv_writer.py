@@ -21,10 +21,10 @@ class PersonAttributesCSVWriter(PersonAttributesWriter):
     def __init__(self, file_path: str):
         """
         Initialize the class with the output file in CSV format.
-        
+
         Args:
             file_path: The output file path.
-            
+
         Raises:
             IOError: If an I/O error occurs.
         """
@@ -36,7 +36,7 @@ class PersonAttributesCSVWriter(PersonAttributesWriter):
     def write_attributes(self, data: Dict[str, str]) -> None:
         """
         Write attributes to the CSV file.
-        
+
         Args:
             data: A map of person attributes.
         """
