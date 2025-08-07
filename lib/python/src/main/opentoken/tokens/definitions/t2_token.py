@@ -11,12 +11,11 @@ from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribut
 from opentoken.tokens.token import Token
 
 
-
 class T2Token(Token):
     """
     Represents the token definition for token T2.
-    
-    It is a collection of attribute expressions that are concatenated together 
+
+    It is a collection of attribute expressions that are concatenated together
     to get the token signature. The token signature is as follows:
     U(last-name)|U(first-name)|birth-date|postal-code-3
     """

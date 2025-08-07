@@ -3,10 +3,9 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 import logging
-from typing import Dict, Type, Set, Iterator, Optional
+from typing import Dict, Type, Set
 try:
     import pyarrow.parquet as pq
-    import pyarrow as pa
 except ImportError:
     raise ImportError("pyarrow is required for Parquet support. Install with: pip install pyarrow")
 
@@ -27,10 +26,10 @@ class PersonAttributesParquetReader(PersonAttributesReader):
     def __init__(self, file_path: str):
         """
         Initialize the class with the input file in Parquet format.
-        
+
         Args:
             file_path: The input file path.
-            
+
         Raises:
             IOError: If an I/O error occurs.
         """
@@ -62,44 +61,44 @@ class PersonAttributesParquetReader(PersonAttributesReader):
     def has_next(self) -> bool:
         """
         Check if there are more records to read.
-        
+
         Returns:
             True if there are more records, False otherwise.
-            
+
         Raises:
             StopIteration: If the reader is closed.
         """
         if self.closed:
             raise StopIteration("Reader is closed")
-        
+
         if not self.has_next_called:
             self.has_next_result = self.current_row < self.total_rows
             self.has_next_called = True
-        
+
         return self.has_next_result
 
     def __next__(self) -> Dict[Type[Attribute], str]:
         """
         Get the next record from the Parquet file.
-        
+
         Returns:
             A person attributes map.
-            
+
         Raises:
             StopIteration: When there are no more records or reader is closed.
         """
         if self.closed:
             raise StopIteration("Reader is closed")
-        
+
         if not self.has_next_called:
             if not self.has_next():
                 raise StopIteration
-        
+
         if not self.has_next_result:
             raise StopIteration
-        
+
         self.has_next_called = False
-        
+
         # Get the current row as a dictionary
         row_dict = {}
         for i, column_name in enumerate(self.table.schema.names):

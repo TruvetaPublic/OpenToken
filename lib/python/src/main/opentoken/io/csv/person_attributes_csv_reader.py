@@ -22,10 +22,10 @@ class PersonAttributesCSVReader(PersonAttributesReader):
     def __init__(self, file_path: str):
         """
         Initialize the class with the input file in CSV format.
-        
+
         Args:
             file_path: The input file path.
-            
+
         Raises:
             IOError: If an I/O error occurs.
         """
@@ -56,19 +56,19 @@ class PersonAttributesCSVReader(PersonAttributesReader):
     def __next__(self) -> Dict[Type[Attribute], str]:
         """
         Get the next record from the CSV file.
-        
+
         Returns:
             A person attributes map.
         """
         record = next(self.iterator)
-        
+
         person_attributes: Dict[Type[Attribute], str] = {}
         for key, value in record.items():
             attribute = self.attribute_map.get(key)
             if attribute is not None:
                 person_attributes[type(attribute)] = value
             # else ignore attribute as it's not supported
-            
+
         return person_attributes
 
     def close(self) -> None:

@@ -9,7 +9,7 @@ class TokenGenerationException(Exception):
     def __init__(self, message: str, cause: Exception = None):
         """
         Initialize the exception.
-        
+
         Args:
             message: The error message.
             cause: The underlying cause of the exception.

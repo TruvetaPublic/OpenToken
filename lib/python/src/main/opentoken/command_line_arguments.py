@@ -25,10 +25,10 @@ class CommandLineArguments:
     def parse_args(cls, args: Optional[list] = None) -> 'CommandLineArguments':
         """
         Parse command line arguments and return a CommandLineArguments instance.
-        
+
         Args:
             args: List of command line arguments. If None, uses sys.argv.
-            
+
         Returns:
             CommandLineArguments instance with parsed values.
         """
@@ -36,7 +36,7 @@ class CommandLineArguments:
             description="OpenToken command line tool",
             add_help=False
             )
-        
+
         parser.add_argument(
             "-h", "--hashingsecret",
             dest="hashing_secret",
@@ -44,36 +44,36 @@ class CommandLineArguments:
             required=False,
             default=None
         )
-        
+
         parser.add_argument(
             "-e", "--encryptionkey",
-            dest="encryption_key", 
+            dest="encryption_key",
             help="Encryption key to encrypt tokens with.",
             required=False,
             default=None
         )
-        
+
         parser.add_argument(
             "-i", "--input",
             dest="input_path",
             help="Input file path.",
             required=True
         )
-        
+
         parser.add_argument(
             "-t", "--type",
             dest="input_type",
             help="Input file type.",
             required=True
         )
-        
+
         parser.add_argument(
             "-o", "--output",
             dest="output_path",
             help="Output file path.",
             required=True
         )
-        
+
         parser.add_argument(
             "-ot", "--output-type",
             dest="output_type",
@@ -81,9 +81,9 @@ class CommandLineArguments:
             required=False,
             default=""
         )
-        
+
         parsed_args = parser.parse_args(args)
-        
+
         # Create instance and populate with parsed values
         instance = cls()
         instance.hashing_secret = parsed_args.hashing_secret
@@ -92,7 +92,7 @@ class CommandLineArguments:
         instance.input_type = parsed_args.input_type
         instance.output_path = parsed_args.output_path
         instance.output_type = parsed_args.output_type
-        
+
         return instance
 
     # Property accessors for compatibility with Java-style getters

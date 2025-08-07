@@ -26,10 +26,10 @@ class PersonAttributesParquetWriter(PersonAttributesWriter):
     def __init__(self, file_path: str):
         """
         Initialize the class with the output file in Parquet format.
-        
+
         Args:
             file_path: The output file path.
-            
+
         Raises:
             IOError: If an I/O error occurs.
         """
@@ -41,10 +41,10 @@ class PersonAttributesParquetWriter(PersonAttributesWriter):
     def write_attributes(self, attributes: Dict[str, str]) -> None:
         """
         Write attributes to the Parquet file.
-        
+
         Args:
             attributes: A map of person attributes.
-            
+
         Raises:
             IOError: If an I/O error occurs.
         """
@@ -54,7 +54,7 @@ class PersonAttributesParquetWriter(PersonAttributesWriter):
         # Create a record batch from the attributes
         arrays = []
         field_names = []
-        
+
         for field in self.schema:
             field_name = field.name
             field_names.append(field_name)
@@ -75,10 +75,10 @@ class PersonAttributesParquetWriter(PersonAttributesWriter):
     def _initialize_writer(self, first_record: Dict[str, str]) -> None:
         """
         Initialize the Parquet writer with schema based on the first record.
-        
+
         Args:
             first_record: The first record to determine schema.
-            
+
         Raises:
             IOError: If an I/O error occurs.
         """
@@ -89,7 +89,7 @@ class PersonAttributesParquetWriter(PersonAttributesWriter):
                 fields.append(pa.field(key, pa.string()))
 
         self.schema = pa.schema(fields)
-        
+
         # Initialize the Parquet writer
         self.writer = pq.ParquetWriter(self.file_path, self.schema)
         self.initialized = True

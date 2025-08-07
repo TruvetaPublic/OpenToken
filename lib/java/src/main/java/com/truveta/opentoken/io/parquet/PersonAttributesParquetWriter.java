@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * The PersonAttributeParquetWriter class is responsible for writing person
  * attributes to a Parquet file.
- * It implements the {@link PersonAttributesWriter} interface.
+ * It implements the {@link PersonAttributeWriter} interface.
  */
 public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     private ParquetWriter<Group> writer;
@@ -34,7 +34,7 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
     /**
      * Initialize the class with the output file in Parquet format.
      * 
-     * @param filepath the output file path
+     * @param filePath the output file path
      * @throws IOException if an I/O error occurs
      */
     public PersonAttributesParquetWriter(String filepath) throws IOException {

@@ -14,12 +14,12 @@ class NoOperationTokenTransformer(TokenTransformer):
     def transform(self, token: str) -> str:
         """
         No operation token transformer.
-        
+
         Does not transform the token in any ways.
-        
+
         Args:
             token: The token to be transformed.
-            
+
         Returns:
             The unchanged token.
         """

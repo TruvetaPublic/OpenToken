@@ -14,8 +14,8 @@ from opentoken.tokens.token import Token
 class T3Token(Token):
     """
     Represents the token definition for token T3.
-    
-    It is a collection of attribute expressions that are concatenated together 
+
+    It is a collection of attribute expressions that are concatenated together
     to get the token signature. The token signature is as follows:
     U(last-name)|U(first-name)|U(gender)|birth-date
     """

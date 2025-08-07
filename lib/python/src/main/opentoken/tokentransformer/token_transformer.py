@@ -12,13 +12,13 @@ class TokenTransformer(ABC):
     def transform(self, token: str) -> str:
         """
         Transforms the token using a token transformation rule/strategy.
-        
+
         Args:
             token: The token to be transformed.
-            
+
         Returns:
             The transformed token.
-            
+
         Raises:
             Exception: Error encountered while transforming the token.
         """

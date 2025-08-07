@@ -16,7 +16,7 @@ class PersonAttributesReader(ABC, Iterator[Dict[Type[Attribute], str]]):
     def __next__(self) -> Dict[Type[Attribute], str]:
         """
         Retrieve the next set of person attributes from an input source.
-        
+
         Example person attribute map:
         {
             RecordIdAttribute: "2ea45fee-90c3-494a-a503-36022c9e1281",
@@ -27,7 +27,7 @@ class PersonAttributesReader(ABC, Iterator[Dict[Type[Attribute], str]]):
             PostalCodeAttribute: "54321",
             SocialSecurityNumberAttribute: "123-45-6789"
         }
-        
+
         Returns:
             A person attributes map.
         """

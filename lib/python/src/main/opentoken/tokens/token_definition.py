@@ -13,12 +13,12 @@ from opentoken.tokens.token import Token
 class TokenDefinition(BaseTokenDefinition):
     """
     Encapsulates the token definitions.
-    
+
     The tokens are generated using some token generation rules. This class
     encapsulates the definition of those rules. Together, they are commonly
     referred to as token definitions or rule definitions.
-    
-    Each token/rule definition is a collection of AttributeExpression that are 
+
+    Each token/rule definition is a collection of AttributeExpression that are
     concatenated together to get the token signature.
     """
 
@@ -32,22 +32,21 @@ class TokenDefinition(BaseTokenDefinition):
         # Import the definitions module to ensure all token classes are loaded
         try:
             definitions_module = importlib.import_module('opentoken.tokens.definitions')
-            
+
             # Walk through all modules in the definitions package
             for importer, modname, ispkg in pkgutil.iter_modules(definitions_module.__path__):
                 if not ispkg:
                     full_module_name = f'opentoken.tokens.definitions.{modname}'
                     module = importlib.import_module(full_module_name)
-                    
+
                     # Look for Token implementations in the module
                     for item_name in dir(module):
                         item = getattr(module, item_name)
-                        if (isinstance(item, type) and 
-                            issubclass(item, Token) and 
-                            item is not Token):
+                        if (isinstance(item, type) and issubclass(item, Token) and item is not Token):
                             try:
                                 token_instance = item()
-                                self.definitions[token_instance.get_identifier()] = token_instance.get_definition()
+                                token_id = token_instance.get_identifier()
+                                self.definitions[token_id] = token_instance.get_definition()
                             except Exception as e:
                                 raise RuntimeError(f"Failed to instantiate token {item_name}") from e
         except ImportError:
@@ -57,7 +56,7 @@ class TokenDefinition(BaseTokenDefinition):
             from opentoken.tokens.definitions.t3_token import T3Token
             from opentoken.tokens.definitions.t4_token import T4Token
             from opentoken.tokens.definitions.t5_token import T5Token
-            
+
             token_classes = [T1Token, T2Token, T3Token, T4Token, T5Token]
             for token_class in token_classes:
                 try:

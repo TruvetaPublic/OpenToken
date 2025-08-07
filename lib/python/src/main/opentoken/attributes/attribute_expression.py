@@ -109,7 +109,7 @@ class AttributeExpression:
             args = matcher.group("args").strip().split(",")
 
         expr_upper = expr.upper()
-        
+
         if expr_upper == "U":
             return value.upper()
         elif expr_upper == "T":
@@ -169,7 +169,7 @@ class AttributeExpression:
         """
         if len(args) != 2:
             raise cls._eval_error(value, expression)
-        
+
         if len(args[0]) < 2 or len(args[1]) < 2:
             raise cls._eval_error(value, expression, ValueError("Arguments must be quoted strings."))
 
@@ -208,7 +208,7 @@ class AttributeExpression:
     def _date(cls, value: str, expression: str) -> str:
         """
         Date expression D.
-        
+
         Supported date formats, and will be changed to "yyyy-MM-dd".
         If the date is not in the supported formats, an exception will be thrown.
 
@@ -223,13 +223,13 @@ class AttributeExpression:
         possible_formats = [
             "%Y-%m-%d"
         ]
-        
+
         for fmt in possible_formats:
             try:
                 date = datetime.strptime(value, fmt)
                 return date.strftime("%Y-%m-%d")
             except ValueError:
                 continue
-        
+
         # If no format worked, raise an error
         raise cls._eval_error(value, expression)

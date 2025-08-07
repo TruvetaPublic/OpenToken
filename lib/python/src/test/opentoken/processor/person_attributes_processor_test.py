@@ -2,12 +2,8 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-from typing import Dict, List, Type
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
-import pytest
-
-from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
 from opentoken.attributes.person.last_name_attribute import LastNameAttribute
@@ -50,7 +46,7 @@ class TestPersonAttributesProcessor:
         token_transformer_list = [Mock(spec=TokenTransformer)]
         data = {
             RecordIdAttribute: "TestRecordId",
-            FirstNameAttribute: "John", 
+            FirstNameAttribute: "John",
             LastNameAttribute: "Spencer"
         }
 
@@ -90,13 +86,17 @@ class TestPersonAttributesProcessor:
         PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
 
         # Check that the metadata map contains all expected keys with correct values
-        assert PersonAttributesProcessor.TOTAL_ROWS in metadata_map, "Metadata should contain totalRows key"
-        assert PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES in metadata_map, "Metadata should contain totalRowsWithInvalidAttributes key"
-        assert PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE in metadata_map, "Metadata should contain invalidAttributesByType key"
+        assert PersonAttributesProcessor.TOTAL_ROWS in metadata_map, \
+            "Metadata should contain totalRows key"
+        assert PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES in metadata_map, \
+            "Metadata should contain totalRowsWithInvalidAttributes key"
+        assert PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE in metadata_map, \
+            "Metadata should contain invalidAttributesByType key"
 
         # Verify values
         assert metadata_map[PersonAttributesProcessor.TOTAL_ROWS] == 1, "Total rows should be 1"
-        assert metadata_map[PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES] == 0, "Total rows with invalid attributes should be 0"
+        assert metadata_map[PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES] == 0, \
+            "Total rows with invalid attributes should be 0"
 
         # The invalid attributes map should be an empty Map object
         invalid_attributes_map = metadata_map[PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE]
@@ -134,7 +134,8 @@ class TestPersonAttributesProcessor:
 
         # Verify
         assert metadata_map[PersonAttributesProcessor.TOTAL_ROWS] == 3, "Total rows should be 3"
-        assert metadata_map[PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES] == 0, "Total rows with invalid attributes should be 0"
+        assert metadata_map[PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES] == 0, \
+            "Total rows with invalid attributes should be 0"
 
     def test_metadata_map_preserves_existing_entries(self):
         """Test metadata map preserves existing entries."""

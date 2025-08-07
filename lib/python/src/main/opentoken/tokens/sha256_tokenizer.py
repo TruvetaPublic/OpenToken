@@ -20,14 +20,14 @@ class SHA256Tokenizer:
     EMPTY = Token.BLANK
     """
     The empty token value.
-    
+
     This is the value returned when the token signature is None or blank.
     """
 
     def __init__(self, token_transformer_list: List[TokenTransformer]):
         """
         Initialize the tokenizer.
-        
+
         Args:
             token_transformer_list: A list of token transformers.
         """
@@ -36,18 +36,18 @@ class SHA256Tokenizer:
     def tokenize(self, value: str) -> str:
         """
         Generate the token for the given token signature.
-        
+
         Token = Hex(Sha256(token-signature))
-        
+
         The token is optionally transformed with one or more transformers.
-        
+
         Args:
             value: The token signature value.
-            
+
         Returns:
             The token. If the token signature value is None or blank,
             EMPTY is returned.
-            
+
         Raises:
             Exception: If an error is thrown by the transformer.
         """

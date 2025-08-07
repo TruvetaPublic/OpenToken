@@ -17,7 +17,7 @@ import com.truveta.opentoken.io.PersonAttributesWriter;
 /**
  * The PersonAttributeCSVWriter class is responsible for writing person
  * attributes to a CSV file.
- * It implements the {@link PersonAttributesWriter} interface.
+ * It implements the {@link PersonAttributeWriter} interface.
  */
 public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     private static final Logger logger = LoggerFactory.getLogger(PersonAttributesCSVWriter.class);

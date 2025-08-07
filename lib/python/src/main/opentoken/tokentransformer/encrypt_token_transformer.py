@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class EncryptTokenTransformer(TokenTransformer):
     """
     Transforms the token using AES-256 symmetric encryption.
-    
+
     See: https://datatracker.ietf.org/doc/html/rfc3826 (AES)
     """
 
@@ -29,10 +29,10 @@ class EncryptTokenTransformer(TokenTransformer):
     def __init__(self, encryption_key: str):
         """
         Initializes the underlying cipher (AES) with the encryption secret.
-        
+
         Args:
             encryption_key: The encryption key. The key must be 32 characters long.
-            
+
         Raises:
             ValueError: If the encryption key is not 32 characters long.
         """
@@ -45,15 +45,15 @@ class EncryptTokenTransformer(TokenTransformer):
     def transform(self, token: str) -> str:
         """
         Encryption token transformer.
-        
+
         Encrypts the token using AES-256 symmetric encryption algorithm.
-        
+
         Args:
             token: The token to be encrypted.
-            
+
         Returns:
             The encrypted token in base64 format.
-            
+
         Raises:
             Exception: If encryption fails due to various cryptographic errors.
         """

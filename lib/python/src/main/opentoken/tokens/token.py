@@ -12,7 +12,7 @@ class Token(ABC):
     A token is a collection of attribute expressions that are concatenated
     together to get the token signature and a unique identifier.
     """
-    
+
     # Represents the value for tokens with invalid or missing data.
     # This constant is a placeholder for cases where a token is either
     # not provided or contains invalid information.
@@ -22,7 +22,7 @@ class Token(ABC):
     def get_identifier(self) -> str:
         """
         Get the unique identifier for the token.
-        
+
         Returns:
             The unique identifier for the token.
         """
@@ -32,7 +32,7 @@ class Token(ABC):
     def get_definition(self) -> List[AttributeExpression]:
         """
         Get the list of attribute expressions that define the token.
-        
+
         Returns:
             The list of attribute expressions that define the token.
         """

@@ -7,7 +7,6 @@ import hashlib
 import hmac
 import logging
 import threading
-from typing import Optional
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
@@ -18,23 +17,23 @@ class HashTokenTransformer(TokenTransformer):
     """
     Transforms the token using a cryptographic hash function with
     a secret key.
-    
+
     See: https://datatracker.ietf.org/doc/html/rfc4868 (HMACSHA256)
     """
 
     def __init__(self, hashing_secret: str):
         """
         Initializes the underlying MAC with the secret key.
-        
+
         Args:
             hashing_secret: The cryptographic secret key.
-            
+
         Raises:
             ValueError: If the hashing secret is None or empty.
         """
         self.hashing_secret = hashing_secret
         self._lock = threading.Lock()
-        
+
         if not hashing_secret or hashing_secret.strip() == "":
             self._mac_available = False
         else:
@@ -43,15 +42,15 @@ class HashTokenTransformer(TokenTransformer):
     def transform(self, token: str) -> str:
         """
         Hash token transformer.
-        
+
         The token is transformed using HMAC SHA256 algorithm.
-        
+
         Args:
             token: The token to be transformed.
-            
+
         Returns:
             Hashed token in base64 format.
-            
+
         Raises:
             ValueError: If token is None or blank.
             RuntimeError: If the HMAC is not initialized properly.
@@ -70,7 +69,7 @@ class HashTokenTransformer(TokenTransformer):
                 token.encode('utf-8'),
                 hashlib.sha256
             )
-            
+
             # Get the digest and encode to base64
             digest = mac.digest()
             return base64.b64encode(digest).decode('utf-8')

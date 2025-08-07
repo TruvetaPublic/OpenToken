@@ -1,4 +1,3 @@
-# src/opentoken/attributes/attribute_loader.py
 from typing import Set
 from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
@@ -9,9 +8,10 @@ from opentoken.attributes.person.social_security_number_attribute import SocialS
 from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 
+
 class AttributeLoader:
     """Loads all available attribute implementations."""
-    
+
     @staticmethod
     def load() -> Set[Attribute]:
         """Load all attribute implementations."""
@@ -19,7 +19,7 @@ class AttributeLoader:
             RecordIdAttribute(),
             FirstNameAttribute(),
             LastNameAttribute(),
-            BirthDateAttribute(), 
+            BirthDateAttribute(),
             SexAttribute(),
             SocialSecurityNumberAttribute(),
             PostalCodeAttribute()

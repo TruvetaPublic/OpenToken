@@ -1,4 +1,3 @@
-# src/opentoken/attributes/attribute.py
 from abc import ABC, abstractmethod
 from typing import List
 
