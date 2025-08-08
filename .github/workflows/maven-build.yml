@@ -74,5 +74,9 @@ jobs:
           fail-emoji: ":red_circle:"
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
+      # Updated to point to the correct directory containing pom.xml
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@v3
+        with:
+          directory: ${{ github.workspace }}/lib/java
+          maven-args: "-B -DskipTests"
