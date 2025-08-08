@@ -10,7 +10,7 @@ RUN mkdir /app
 WORKDIR /app
 COPY . /app
 
-RUN mvn clean package
+RUN cd lib/java && mvn clean package
 
 #############################################
 # Stage 2: Create the image to run the application
