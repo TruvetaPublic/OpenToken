@@ -31,36 +31,41 @@ jobs:
           distribution: "corretto"
           cache: maven
 
+      # Temporarily added lib/java
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: cd lib/java && mvn -B package --file pom.xml
 
       - name: Publish Test Report
         if: success() || failure()
         uses: scacap/action-surefire-report@v1
 
+      # Temporarily added lib/java
       - name: Publish Test Results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: |
-            target/surefire-reports/*.xml
+            lib/java/target/surefire-reports/*.xml
 
+      # Temporarily added lib/java
       - name: Generate JaCoCo report
-        run: mvn jacoco:report
+        run: cd lib/java && mvn jacoco:report
 
+      # Temporarily added lib/java
       - name: Upload JaCoCo Report
         uses: actions/upload-artifact@v4.3.1
         with:
           name: code-coverage-report
           path: |
-            ${{ github.workspace }}/**/target/site/jacoco/*
+            ${{ github.workspace }}/**/lib/java/target/site/jacoco/*
 
+      # Temporarily added lib/java
       - name: Add Code Coverage to PR
         id: jacoco
         uses: madrapps/jacoco-report@v1.7.1
         with:
           paths: |
-            ${{ github.workspace }}/**/target/site/jacoco/jacoco.xml
+            ${{ github.workspace }}/**/lib/java/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           title: Code Coverage
           min-coverage-overall: ${{ env.MIN_COVERAGE_OVERALL }}
