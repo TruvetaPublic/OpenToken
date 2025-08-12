@@ -1,6 +1,6 @@
-#############################################
+##################################################
 # Stage 1: Build the application
-#############################################
+##################################################
 ARG JAVA_VERSION=11
 ARG MAVEN_VERSION=3.8.7
 
@@ -15,16 +15,16 @@ COPY pom.xml /app/pom.xml
 
 RUN mvn clean package
 
-#############################################
+##################################################
 # Stage 2: Create the image to run the application
-#############################################
+##################################################
 FROM amazoncorretto:11-alpine AS final
 
 RUN mkdir /app
 
 RUN addgroup --system appuser && adduser --system --no-create-home --ingroup appuser appuser
 
-ARG VERSION=1.9.3
+ARG VERSION=1.9.4
 COPY --from=build /app/target/open-token-${VERSION}.jar /usr/local/lib/open-token.jar
 
 WORKDIR /app
