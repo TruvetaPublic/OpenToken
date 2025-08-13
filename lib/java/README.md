@@ -13,6 +13,7 @@ This is the Java implementation of the OpenToken library
 
 From Root:
 ```shell
+# temporary commit for testing
 # From the java directory
 cd lib/java && mvn clean install
 ```
