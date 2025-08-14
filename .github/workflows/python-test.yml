@@ -55,4 +55,4 @@ jobs:
     - name: Run main.py
       run: |
         cd lib/python
-        PYTHONPATH=src/main python3 src/main/opentoken/main.py -i src/test/resources/sample.csv -t csv -o target/output.csv -h "HashingKey"  -e "Secret-Encryption-Key-Goes-Here."
+        PYTHONPATH=src/main python3 src/main/opentoken/main.py -i ../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey"  -e "Secret-Encryption-Key-Goes-Here."
