@@ -264,8 +264,17 @@ This will build a local Docker image called `open-token`.
 
 ### Via Java JAR
 
+After running:
+
 ```shell
-java -jar lib/java/target/open-token-<version>.jar -i input.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+cd lib/java
+mvn clean install
+```
+
+Run the following in the lib/java directory:
+
+```shell
+java -jar target/open-token-<version>.jar -i input.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 ## Contribution
