@@ -152,7 +152,7 @@ The driver accepts multiple command line arguments:
 
 - `-h | --hashingsecret`: This argument is used to specify the hashing secret for the `HMAC-SHA256` digest. The generated tokens are hashed using this digest.
 
-- `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokes are encrypted using this key.
+- `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key.
 
 The encryption logic is: Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))
 
@@ -210,20 +210,25 @@ For language-specific setup and usage instructions, see:
 
 ## Getting Started
 
-For language-specific setup and information, visit the `lib/` directory, select the desired language folder, and refer  to its README file.
+Choose your preferred programming language and follow the setup instructions:
+
+- **Java**: See [Java README](lib/java/README.md) for Maven-based setup
+- **Python**: See [Python README](lib/python/README.md) for pip-based setup
+
+Each implementation provides identical functionality and token generation results.
 
 ## Test Data
 
-In order to test, you have the option to generate mock person data in the expected format.
+You can generate mock person data in the expected format for testing purposes.
 
 ### Prerequisites
 
 - Python3
 - [faker](https://pypi.org/project/Faker/)
 
-### Generating mock data
+### Generating Mock Data
 
-Under `src/test/resources/mockdata` you can find a python script that allows to generate fake random person data. You can run it as follows with pre-configured defaults:
+Navigate to `tools/mockdata/` to find the data generation script. Run it with pre-configured defaults:
 
 ```shell
 ./generate.sh 
@@ -235,6 +240,8 @@ You can modify the parameters when running the script directly. The script will 
 # python data_generator.py <number of records> <percentage of repeated records> <output file name>
 python data_generator.py 100 0.05 test_data.csv
 ```
+
+The script generates fake person data and optionally repeats a percentage of records with different record IDs to simulate duplicate persons.
 
 ## Building
 
@@ -277,22 +284,30 @@ Run the following in the lib/java directory:
 java -jar target/open-token-<version>.jar -i input.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-## Contribution
+## Contributing
 
-We encourage contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key need of improvements are:
+We welcome contributions including features, bug fixes, documentation updates, and more. Key areas for improvement include:
 
-1. The library currently provides `csv` reader and writer. Readers/writers for additional file formats are highly desired.
-2. More test coverage.
-3. Additional language implementations.
+1. **File Format Support**: The library currently supports CSV and Parquet. Additional readers/writers for other formats are highly desired.
+2. **Test Coverage**: Expanding unit tests and integration tests.
+3. **Language Implementations**: Adding support for additional programming languages.
 
-## Development environment
+### Before Contributing
 
-This project includes a [Development Container](https://containers.dev/) configuration that provides a consistent and isolated development environment for working with OpenToken. The Dev Container includes all necessary tools and dependencies pre-configured, making it easy to start contributing right away.
+Please ensure you follow the project's coding standards:
+- **Java**: Follow Checkstyle rules and add Javadoc for public APIs
+- **Version Bumping**: Use `bump2version` for all PRs (required)
+- **Testing**: Run `mvn clean install` to ensure everything works
 
+See the [contribution guidelines](.github/copilot-instructions.md) for detailed requirements.
 
-### Getting started with the Dev Container
+## Development Environment
 
-For detailed instructions on how to use the development container, please refer to the [Dev Container README](./.devcontainer/README.md).
+This project includes a [Development Container](https://containers.dev/) configuration that provides a consistent development environment for working with OpenToken. The Dev Container includes all necessary tools and dependencies pre-configured, making it easy to start contributing immediately.
+
+### Getting Started with Dev Container
+
+For detailed instructions on using the development container, see the [Dev Container README](./.devcontainer/README.md).
 
 The Dev Container provides:
 

@@ -28,8 +28,11 @@ pip install -e .
 ### Command Line Interface
 
 ```shell
-python src/main/main.py [OPTIONS]
+cd lib/python && python3 src/main/opentoken/main.py [OPTIONS]
 ```
+
+**Note:**
+- Set the PYTHONPATH environment variable to `lib/python/src/main` (from project root) or `src/main` (from lib/python directory)
 
 **Arguments:**
 - `-i, --input <path>`: Input file path
@@ -39,15 +42,16 @@ python src/main/main.py [OPTIONS]
 - `-h, --hashingsecret <secret>`: Hashing secret for HMAC-SHA256
 - `-e, --encryptionkey <key>`: Encryption key for AES-256
 
-**Example:**
-From Root
-```shell
-PYTHONPATH=lib/python/src/main  python3 lib/python/src/main/opentoken/main.py -i lib/python/src/test/resources/sample.csv -t csv -o lib/python/target/output.csv -h "HashingKey"  -e "Secret-Encryption-Key-Goes-Here."
-```
-From lib/python
+**Examples:**
 
+**From project root:**
 ```shell
-$ PYTHONPATH=src/main python3 src/main/opentoken/main.py -i src/test/resources/sample.csv -t csv -o target/output.csv -h "HashingKey"  -e "Secret-Encryption-Key-Goes-Here." 
+PYTHONPATH=lib/python/src/main python3 lib/python/src/main/opentoken/main.py -i lib/python/src/test/resources/sample.csv -t csv -o lib/python/target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+**From lib/python directory:**
+```shell
+PYTHONPATH=src/main python3 src/main/opentoken/main.py -i src/test/resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 ### Programmatic API
@@ -72,7 +76,7 @@ with PersonAttributesCSVReader("input.csv") as reader, \
 
 ## Testing
 
-Running all tests from lib/python
+**To run tests from the lib/python directory:**
 ```shell
 PYTHONPATH=src/main pytest src/test
 ```
@@ -137,7 +141,7 @@ The Python implementation produces identical tokens to the Java version when usi
 ## Support
 
 For Python-specific issues, please check:
-1. Python version compatibility (3.11+)
+1. Python version compatibility (3.9+)
 2. Virtual environment setup
 3. Dependency versions in requirements.txt
 
