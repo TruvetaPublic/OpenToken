@@ -56,3 +56,30 @@ jobs:
       run: |
         cd lib/python
         PYTHONPATH=src/main python3 src/main/opentoken/main.py -i ../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey"  -e "Secret-Encryption-Key-Goes-Here."
+
+    - name: Validate Output Files Exist
+      run: |
+        cd lib/python
+        # Check if output files were created
+        if [ ! -f "target/output.csv" ]; then
+          echo "❌ Error: output.csv not created"
+          exit 1
+        fi
+        
+        if [ ! -f "target/output.metadata.json" ]; then
+          echo "❌ Error: metadata file not created"
+          exit 1
+        fi
+        
+        echo "✅ Output files created successfully"
+
+    - name: Validate Output Content
+      run: |
+        cd lib/python
+        # Check if output CSV has content (more than just headers)
+        line_count=$(wc -l < target/output.csv)
+        if [ "$line_count" -le 1 ]; then
+          echo "❌ Error: Output CSV appears to be empty or only contains headers"
+          exit 1
+        fi
+        echo "✅ Output CSV contains $line_count lines"
