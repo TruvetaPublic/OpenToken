@@ -8,10 +8,9 @@ FROM maven:${MAVEN_VERSION}-amazoncorretto-${JAVA_VERSION} AS build
 
 RUN mkdir /app
 WORKDIR /app
-COPY . /app
 
-COPY src /app/src
-COPY pom.xml /app/pom.xml
+COPY lib/java /app
+COPY resources /resources
 
 RUN mvn clean package
 
