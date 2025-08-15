@@ -10,6 +10,7 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY lib/java /app
+COPY resources /resources
 
 RUN mvn clean package
 
