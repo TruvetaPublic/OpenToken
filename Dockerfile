@@ -8,7 +8,6 @@ FROM maven:${MAVEN_VERSION}-amazoncorretto-${JAVA_VERSION} AS build
 
 RUN mkdir /app
 WORKDIR /app
-COPY . /app
 
 # Copy the Java project files
 COPY lib/java/src /app/src
