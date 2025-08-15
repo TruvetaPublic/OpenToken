@@ -10,8 +10,9 @@ RUN mkdir /app
 WORKDIR /app
 COPY . /app
 
-COPY src /app/src
-COPY pom.xml /app/pom.xml
+# Copy the Java project files
+COPY lib/java/src /app/src
+COPY lib/java/pom.xml /app/pom.xml
 
 RUN mvn clean package
 
