@@ -12,6 +12,7 @@ WORKDIR /app
 # Copy the Java project files
 COPY lib/java/src /app/src
 COPY lib/java/pom.xml /app/pom.xml
+COPY lib/java/checkstyle.xml /app/checkstyle.xml
 
 RUN mvn clean package
 
