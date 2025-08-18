@@ -1,5 +1,7 @@
-csv2parquet
+# Data processing
 pandas
 pyarrow
+csv2parquet
+
+# Cryptography
 cryptography
-pytest

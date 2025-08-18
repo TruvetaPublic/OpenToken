@@ -25,6 +25,7 @@ ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 USER vscode
 
-COPY python/requirements.txt /tmp/requirements.txt
+COPY ../lib/python/dev-requirements.txt /tmp/dev-requirements.txt
+COPY ../lib/python/requirements.txt /tmp/requirements.txt
 
-RUN pip install -r /tmp/requirements.txt --break-system-packages
+RUN pip install -r /tmp/dev-requirements.txt --break-system-packages
