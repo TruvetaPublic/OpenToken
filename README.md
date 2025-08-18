@@ -13,7 +13,7 @@ Our approach to person matching relies on building a set of matching tokens (or 
 ## Overview
 
 ### Library 
-This project, `open-token`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
+This project, `OpenToken`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
 
 ### Token Generation
 
