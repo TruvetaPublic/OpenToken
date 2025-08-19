@@ -5,12 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "OpenToken-Java",
             "type": "java",
-            "name": "open-token",
             "request": "launch",
             "mainClass": "com.truveta.opentoken.Main",
             "projectName": "open-token",
-            "args": "-i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h \"HashingKey\" -e \"Secret-Encryption-Key-Goes-Here.\""
+            "args": "-i lib/java/src/test/resources/sample.csv -t csv -o lib/java/target/output.csv -ot csv -h \"HashingKey\" -e \"Secret-Encryption-Key-Goes-Here.\""
+        },
+        {
+            "name": "OpenToken-Python",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/lib/python/src/main/opentoken/main.py",
+            "env": {
+                "PYTHONPATH": "lib/python/src/main"
+            },
+            "args": [
+                "-i",
+                "lib/python/src/test/resources/sample.csv",
+                "-t",
+                "csv",
+                "-o",
+                "lib/python/target/output.csv",
+                "-ot",
+                "csv",
+                "-h",
+                "HashingKey",
+                "-e",
+                "Secret-Encryption-Key-Goes-Here."
+            ]
         }
     ]
 }

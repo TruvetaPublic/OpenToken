@@ -46,7 +46,7 @@ jobs:
           - language: actions
             build-mode: none
           - language: java-kotlin
-            build-mode: autobuild # Changed from 'none' to 'autobuild' for proper Java analysis
+            build-mode: manual # Changed from 'autobuild' to 'manual' to provide explicit build steps
           - language: python
             build-mode: none
         # CodeQL supports the following values keywords for 'language': 'actions', 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'rust', 'swift'
@@ -97,14 +97,24 @@ jobs:
       - if: matrix.build-mode == 'manual'
         shell: bash
         run: |
-          echo 'If you are using a "manual" build mode for one or more of the' \
-            'languages you are analyzing, replace this with the commands to build' \
-            'your code, for example:'
-          echo '  make bootstrap'
-          echo '  make release'
-          exit 1
+          # Build Java code from the lib/java directory
+          if [[ "${{ matrix.language }}" == "java-kotlin" ]]; then
+            cd lib/java
+            mvn clean package -DskipTests
+            cd ../..
+          else
+            echo "Manual build mode set for ${{ matrix.language }} but no build commands specified"
+            exit 1
+          fi
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
+
+      # Remove this action if it continues to cause issues
+      # - name: Update dependency graph
+      #   uses: advanced-security/maven-dependency-submission-action@v3
+      #   with:
+      #     directory: ${{ github.workspace }}/lib/java
+      #     maven-args: "-B -DskipTests"

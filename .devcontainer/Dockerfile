@@ -7,7 +7,7 @@ COPY scripts/detect_zscaler.sh /tmp/
 # Copy host-provided certificate if it exists (will be skipped if file doesn't exist)
 COPY scripts/zscaler_root.pem* /tmp/host_zscaler_cert.pem
 
-RUN apt-get update && apt-get install -y ca-certificates openssl python3.11 python3-pip pipx curl && \
+RUN apt-get update && apt-get install -y ca-certificates openssl python3 python3-pip pipx curl && \
     # Make the script executable and run it
     chmod +x /tmp/detect_zscaler.sh && \
     /tmp/detect_zscaler.sh && \
@@ -25,6 +25,7 @@ ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 USER vscode
 
-COPY python/requirements.txt /tmp/requirements.txt
+COPY ../lib/python/dev-requirements.txt /tmp/dev-requirements.txt
+COPY ../lib/python/requirements.txt /tmp/requirements.txt
 
-RUN pip install -r /tmp/requirements.txt --break-system-packages
+RUN pip install -r /tmp/dev-requirements.txt --break-system-packages
