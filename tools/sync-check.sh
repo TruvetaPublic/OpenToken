@@ -153,11 +153,11 @@ fi
 # Show progress indicator unless quiet
 if [[ $QUIET != true ]]; then
     if [[ $SINCE_COMMIT == "HEAD~1" ]]; then
-        echo "🔍 Checking for sync requirements since last commit..."
+        echo "Checking for sync requirements since last commit..."
     elif [[ $SINCE_COMMIT == *"main"* ]]; then
-        echo "🔍 Checking for sync requirements in current PR..."
+        echo "Checking for sync requirements in current PR..."
     else
-        echo "🔍 Checking for sync requirements since: $SINCE_COMMIT"
+        echo "Checking for sync requirements since: $SINCE_COMMIT"
     fi
     echo ""
 fi

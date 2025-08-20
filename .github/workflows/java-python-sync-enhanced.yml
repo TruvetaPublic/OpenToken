@@ -10,6 +10,10 @@ on:
 jobs:
   sync-check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      packages: write
     
     steps:
     - name: Checkout code
