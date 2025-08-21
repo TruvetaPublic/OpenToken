@@ -80,7 +80,7 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const syncReport = `${{ steps.sync-check.outputs.SYNC_REPORT }}`;
+          const syncReport = JSON.parse(`${{ toJSON(steps.sync-check.outputs.SYNC_REPORT) }}`);
           const completionStatus = `${{ steps.sync-check.outputs.COMPLETION_STATUS }}`;
           const isComplete = `${{ steps.sync-check.outputs.SYNC_COMPLETE }}` === 'true';
           const completed = `${{ steps.sync-check.outputs.COMPLETED }}` || '0';
