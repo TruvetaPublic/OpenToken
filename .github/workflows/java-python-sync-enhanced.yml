@@ -13,7 +13,6 @@ jobs:
     permissions:
       contents: read
       actions: read
-      packages: write
     
     steps:
     - name: Checkout code
@@ -35,7 +34,7 @@ jobs:
         git fetch origin ${{ github.event.pull_request.base.ref }}
         
         BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-        echo "🔍 Checking sync requirements against base branch: origin/$BASE_BRANCH"
+        echo "Checking sync requirements against base branch: origin/$BASE_BRANCH"
         
         # Generate sync report with completion tracking using full PR context
         SYNC_REPORT=$(python3 tools/java_python_syncer.py \
@@ -75,7 +74,7 @@ jobs:
         # Always exit 0 for workflow to continue to comment step
         exit 0
     
-    - name: Update or create PR comment with progress tracking
+    - name: Create PR comment with progress tracking
       uses: actions/github-script@v7
       with:
         script: |
@@ -88,69 +87,46 @@ jobs:
           let commentBody;
           
           if (isComplete || syncReport.includes('All Java changes appear to be in sync')) {
-            commentBody = `## ✅ Java-Python Sync Status: Complete!
+            let finalStatusLine = '';
+            if (completed > 0) {
+              finalStatusLine = `🎉 **Final Status**: ${completionStatus}`;
+            }
             
-All Java changes in this PR are properly synchronized with Python implementations.
-
-${completed > 0 ? `🎉 **Final Status**: ${completionStatus}` : ''}
-
----
-*This comment is automatically updated by the Java-Python sync checker as you make commits.*`;
+            commentBody = `## ✅ Java-Python Sync Status: Complete!
+            All Java changes in this PR are properly synchronized with Python implementations.
+            ` + finalStatusLine + `
+            ---
+            *This comment is automatically updated by the Java-Python sync checker as you make commits.*`;
           } else {
-            const progressBar = '█'.repeat(Math.floor(completed * 20 / total)) + 
-                              '░'.repeat(20 - Math.floor(completed * 20 / total));
+            const progressPercent = Math.round(completed * 100 / total);
+            const filledBlocks = Math.floor(completed * 20 / total);
+            const emptyBlocks = 20 - filledBlocks;
+            const progressBar = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
             
             commentBody = `## 🔄 Java-Python Sync Progress ${completionStatus}
-
-**Progress**: ${progressBar} ${Math.round(completed * 100 / total)}%
-
-${syncReport}
-
-### 📋 How to use this checklist:
-- **✓🔄** = File exists and was recently updated ✅ **COMPLETED**
-- **✓⏳** = File exists but needs updates ⏳ **PENDING** 
-- **✗⏳** = File missing and needs to be created ⏳ **PENDING**
-
-### 🚀 Multi-commit workflow support:
-This sync tracker monitors your progress across **all commits in this PR**. As you update Python files, they'll automatically show as 🔄 completed in subsequent workflow runs!
-
-**Next steps**: Update the ⏳ pending files to complete the sync.
-
----
-*This comment is automatically updated by the Java-Python sync checker.*`;
+            **Progress**: ${progressBar} ${progressPercent}%
+            ${syncReport}
+            ### 📋 How to use this checklist:
+            - **✓🔄** = File exists and was recently updated ✅ **COMPLETED**
+            - **✓⏳** = File exists but needs updates ⏳ **PENDING** 
+            - **✗⏳** = File missing and needs to be created ⏳ **PENDING**
+            
+            ### Multi-commit workflow support:
+            This sync tracker monitors your progress across **all commits in this PR**. As you update Python files, they'll automatically show as 🔄 completed in subsequent workflow runs!
+            **Next steps**: Update the ⏳ pending files to complete the sync.
+            
+            ---
+            *This comment is automatically updated by the Java-Python sync checker.*`;
           }
           
-          // Find existing sync comment
-          const comments = await github.rest.issues.listComments({
+          // Always create new comment
+          await github.rest.issues.createComment({
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number,
+            body: commentBody
           });
-          
-          const botComment = comments.data.find(comment => 
-            comment.user.type === 'Bot' && 
-            (comment.body.includes('Java-Python Sync') || comment.body.includes('Sync Status'))
-          );
-          
-          if (botComment) {
-            // Update existing comment
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: botComment.id,
-              body: commentBody
-            });
-            console.log('✅ Updated existing sync comment');
-          } else {
-            // Create new comment
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: commentBody
-            });
-            console.log('✅ Created new sync comment');
-          }
+          console.log('✅ Created new sync comment');
     
     - name: Set workflow status
       if: steps.sync-check.outputs.SYNC_COMPLETE != 'true'
