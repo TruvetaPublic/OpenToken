@@ -96,17 +96,9 @@ jobs:
             
             commentBody = `## ✅ Java-Python Sync Status: Complete!
             All Java changes in this PR are properly synchronized with Python implementations.
-            ` + finalStatusLine + `
-            ---
-            *This comment is automatically updated by the Java-Python sync checker as you make commits.*`;
-          } else {
-            const progressPercent = Math.round(completed * 100 / total);
-            const filledBlocks = Math.floor(completed * 20 / total);
-            const emptyBlocks = 20 - filledBlocks;
-            const progressBar = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
-            
+            ` + finalStatusLine;
+          } else {            
             commentBody = `## 🔄 Java-Python Sync Progress ${completionStatus}
-            **Progress**: ${progressBar} ${progressPercent}%
             ${syncReport}
             ### 📋 How to use this checklist:
             - **✓🔄** = File exists and was recently updated ✅ **COMPLETED**
@@ -118,7 +110,33 @@ jobs:
             **Next steps**: Update the ⏳ pending files to complete the sync.`;
           }
           
-          // Always create new comment
+          // Find and delete previous sync comments to keep history clean
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const syncComments = comments.data.filter(comment => 
+            comment.user.type === 'Bot' && 
+            (comment.body.includes('Java-Python Sync') || comment.body.includes('Sync Status') || comment.body.includes('Sync Progress'))
+          );
+          
+          // Delete all previous sync comments
+          for (const comment of syncComments) {
+            try {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment.id,
+              });
+              console.log(`Deleted previous sync comment: ${comment.id}`);
+            } catch (error) {
+              console.log(`Problem deleting comment ${comment.id}: ${error.message}`);
+            }
+          }
+          
+          // Create new comment
           await github.rest.issues.createComment({
             owner: context.repo.owner,
             repo: context.repo.repo,
