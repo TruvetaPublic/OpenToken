@@ -86,17 +86,6 @@ class JavaPythonSyncer:
             for issue in issues:
                 print(f"   - {issue}")
         
-        # Check for orphaned files
-        orphaned = self.find_orphaned_files()
-        if orphaned:
-            print(f"\n⚠️  Found {len(orphaned)} potentially orphaned files:")
-            for file in orphaned[:10]:  # Show first 10
-                print(f"   - {file}")
-            if len(orphaned) > 10:
-                print(f"   ... and {len(orphaned) - 10} more")
-        else:
-            print("\n✅ No orphaned files detected")
-        
         # Statistics
         print(f"\nMapping Statistics:")
         critical_count = len(self.mappings.get('critical_files', {}))
@@ -108,28 +97,6 @@ class JavaPythonSyncer:
         print(f"   - Ignore patterns: {ignore_count}")
         
         return len(issues) == 0
-    
-    def find_orphaned_files(self):
-        """Find Python files that don't have corresponding Java files"""
-        orphaned = []
-        
-        python_src = self.root_dir / "lib/python/src/main"
-        if not python_src.exists():
-            return orphaned
-        
-        for python_file in python_src.rglob("*.py"):
-            if python_file.name == "__init__.py":
-                continue
-                
-            # Convert Python path back to potential Java path
-            relative_path = python_file.relative_to(python_src)
-            potential_java_path = self._convert_python_to_java_path(str(relative_path))
-            
-            java_file = self.root_dir / "lib/java/src/main/java" / potential_java_path
-            if not java_file.exists():
-                orphaned.append(str(python_file.relative_to(self.root_dir)))
-        
-        return orphaned
     
     def _convert_python_to_java_path(self, python_path):
         """Convert Python file path back to Java path format"""
@@ -158,7 +125,7 @@ class JavaPythonSyncer:
         return '/'.join(path_parts)
 
     def get_java_changes(self, since_commit="HEAD~1"):
-        """Get list of changed Java files since specified commit"""
+        """Get list of changed Java files since specified commit with timestamps"""
         try:
             # For PR workflows, compare against the base branch
             if since_commit == "HEAD~1":
@@ -186,6 +153,39 @@ class JavaPythonSyncer:
             return []
         except subprocess.CalledProcessError:
             return []
+
+    def get_file_last_modified_commit(self, file_path, since_commit="HEAD~1"):
+        """Get the most recent commit that modified a specific file"""
+        try:
+            result = subprocess.run([
+                'git', 'log', '-1', '--format=%H %ct', f'{since_commit}..HEAD', '--', file_path
+            ], capture_output=True, text=True, cwd=self.root_dir)
+            
+            if result.returncode == 0 and result.stdout.strip():
+                commit_hash, timestamp = result.stdout.strip().split()
+                return {
+                    'commit': commit_hash,
+                    'timestamp': int(timestamp)
+                }
+            return None
+        except subprocess.CalledProcessError:
+            return None
+
+    def is_python_file_up_to_date(self, java_file, python_file, since_commit="HEAD~1"):
+        """Check if Python file is up-to-date relative to Java file changes"""
+        java_last_modified = self.get_file_last_modified_commit(java_file, since_commit)
+        python_last_modified = self.get_file_last_modified_commit(python_file, since_commit)
+        
+        # If Java file wasn't modified in this PR, no sync needed
+        if not java_last_modified:
+            return True
+            
+        # If Python file wasn't modified in this PR, it's out of date
+        if not python_last_modified:
+            return False
+            
+        # Python is up-to-date if it was modified after the Java file
+        return python_last_modified['timestamp'] >= java_last_modified['timestamp']
 
     def _filter_ignored_files(self, files):
         """Filter out files that match ignore patterns"""
@@ -360,26 +360,36 @@ class JavaPythonSyncer:
                     'python_files': python_files
                 })
 
-        return self.format_output(mappings, python_changes, output_format)
+        return self.format_output(mappings, python_changes, output_format, since_commit)
 
-    def format_output(self, mappings, python_changes, output_format="console"):
+    def format_output(self, mappings, python_changes, output_format="console", since_commit="HEAD~1"):
         """Format the output based on the specified format"""
         if output_format == "github-checklist":
-            return self.format_github_checklist(mappings, python_changes)
+            return self.format_github_checklist(mappings, python_changes, since_commit)
         elif output_format == "json":
+            # Update JSON format to also use timestamp-based logic
+            total_items = 0
+            completed_items = 0
+            for mapping in mappings:
+                java_file = mapping['java_file']
+                for python_file in mapping['python_files']:
+                    total_items += 1
+                    if self.is_python_file_up_to_date(java_file, python_file, since_commit):
+                        completed_items += 1
+            
             return json.dumps({
                 "mappings": mappings,
                 "python_changes": python_changes,
-                "total_items": sum(len(m['python_files']) for m in mappings),
-                "completed_items": sum(1 for m in mappings for p in m['python_files'] if p in python_changes)
+                "total_items": total_items,
+                "completed_items": completed_items
             }, indent=2)
         else:
-            # Enhanced console format with completion tracking
+            # Enhanced console format with timestamp-based completion tracking
             output = f"Java changes detected ({len(mappings)} Java files):\n"
             output += "=" * 60 + "\n"
             
-            total_items = sum(len(m['python_files']) for m in mappings)
-            completed_items = sum(1 for m in mappings for p in m['python_files'] if p in python_changes)
+            total_items = 0
+            completed_items = 0
             
             for mapping in mappings:
                 java_file = mapping['java_file']
@@ -387,9 +397,17 @@ class JavaPythonSyncer:
                 
                 output += f"\n📁 {java_file}:\n"
                 for python_file in python_files:
+                    total_items += 1
                     exists = "✅" if self.check_python_file_exists(python_file) else "❌"
-                    recently_modified = "🔄" if python_file in python_changes else "⏳"
-                    output += f"   {exists} {recently_modified} {python_file}\n"
+                    is_up_to_date = self.is_python_file_up_to_date(java_file, python_file, since_commit)
+                    
+                    if is_up_to_date:
+                        status_icon = "🔄"
+                        completed_items += 1
+                    else:
+                        status_icon = "⏳"
+                    
+                    output += f"   {exists} {status_icon} {python_file}\n"
                 output += "-" * 40 + "\n"
             
             # Summary section
@@ -401,22 +419,22 @@ class JavaPythonSyncer:
             # Legend
             output += "\nLEGEND:\n"
             output += "  ✅ = File exists, ❌ = File missing\n"
-            output += "  🔄 = Recently modified, ⏳ = Needs update\n"
+            output += "  🔄 = Up-to-date (Python modified after Java), ⏳ = Out-of-date (needs update)\n"
             
             print(output)
             
             # Save enhanced report
             self.save_enhanced_report(mappings, python_changes, total_items, completed_items)
 
-    def format_github_checklist(self, mappings, python_changes):
-        """Format as GitHub checklist with completion status"""
+    def format_github_checklist(self, mappings, python_changes, since_commit="HEAD~1"):
+        """Format as GitHub checklist with completion status using timestamp-based sync checking"""
         if not mappings:
             return "✅ All Java changes appear to be in sync with Python!"
         
-        total_items = sum(len(m['python_files']) for m in mappings)
-        completed_items = sum(1 for m in mappings for p in m['python_files'] if p in python_changes)
+        total_items = 0
+        completed_items = 0
         
-        output = f"## Java to Python Sync Required ({completed_items}/{total_items} completed)\n\n"
+        output = f"## Java to Python Sync Required\n\n"
         
         for mapping in mappings:
             java_file = mapping['java_file']
@@ -424,12 +442,14 @@ class JavaPythonSyncer:
             
             output += f"### 📁 `{java_file}`\n"
             for python_file in python_files:
+                total_items += 1
                 exists = self.check_python_file_exists(python_file)
-                recently_modified = python_file in python_changes
+                is_up_to_date = self.is_python_file_up_to_date(java_file, python_file, since_commit)
                 
-                if recently_modified:
+                if is_up_to_date:
                     checkbox = "- [x]"
                     status = "🔄 UPDATED"
+                    completed_items += 1
                 elif exists:
                     checkbox = "- [ ]"
                     status = "⏳ NEEDS UPDATE"
@@ -439,6 +459,12 @@ class JavaPythonSyncer:
                 
                 output += f"{checkbox} **{status}**: `{python_file}`\n"
             output += "\n"
+        
+        # Update the header with completion count
+        output = output.replace(
+            "## Java to Python Sync Required\n\n",
+            f"## Java to Python Sync Required ({completed_items}/{total_items} completed)\n\n"
+        )
         
         if completed_items > 0:
             output += f"\n✅ **Progress**: {completed_items} of {total_items} items completed\n"
@@ -541,7 +567,7 @@ def main():
 Examples:
   %(prog)s --format console --since origin/main
   %(prog)s --health-check
-  %(prog)s --interactive
+  %(prog)s --validate-only
         """
     )
     
@@ -551,8 +577,6 @@ Examples:
                         help='Compare changes since this commit/branch')
     parser.add_argument('--health-check', action='store_true',
                         help='Perform comprehensive health check')
-    parser.add_argument('--interactive', action='store_true',
-                        help='Run in interactive mode')
     parser.add_argument('--validate-only', action='store_true',
                         help='Only validate configuration, don\'t check changes')
     parser.add_argument('--fix-mappings', action='store_true',
@@ -577,65 +601,11 @@ Examples:
             print("✅ Configuration validation passed")
             return 0
     
-    if args.interactive:
-        return run_interactive_mode(syncer)
-    
     # Default: generate sync report
     result = syncer.generate_sync_report(output_format=args.format, since_commit=args.since)
     
     if args.format == "github-checklist":
         print(result)
-    
-    return 0
-
-def run_interactive_mode(syncer):
-    """Run the tool in interactive mode"""
-    print("🔧 Java-Python Sync Tool - Interactive Mode")
-    print("=" * 50)
-    
-    while True:
-        print("\nAvailable commands:")
-        print("1. Check sync status")
-        print("2. Health check")
-        print("3. Validate configuration")
-        print("4. Find orphaned files")
-        print("5. Exit")
-        
-        choice = input("\nEnter your choice (1-5): ").strip()
-        
-        if choice == "1":
-            since = input("Compare since (default: HEAD~1): ").strip() or "HEAD~1"
-            syncer.generate_sync_report(since_commit=since)
-        
-        elif choice == "2":
-            syncer.health_check()
-        
-        elif choice == "3":
-            issues = syncer.validate_configuration()
-            if issues:
-                print("❌ Issues found:")
-                for issue in issues:
-                    print(f"   - {issue}")
-            else:
-                print("✅ Configuration is valid")
-        
-        elif choice == "4":
-            orphaned = syncer.find_orphaned_files()
-            if orphaned:
-                print(f"Found {len(orphaned)} orphaned files:")
-                for f in orphaned[:10]:
-                    print(f"   - {f}")
-                if len(orphaned) > 10:
-                    print(f"   ... and {len(orphaned)-10} more")
-            else:
-                print("No orphaned files found")
-        
-        elif choice == "5":
-            print("Goodbye!")
-            break
-        
-        else:
-            print("Invalid choice. Please try again.")
     
     return 0
 
