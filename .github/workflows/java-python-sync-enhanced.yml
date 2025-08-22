@@ -116,9 +116,6 @@ jobs:
             ### Multi-commit workflow support:
             This sync tracker monitors your progress across **all commits in this PR**. As you update Python files, they'll automatically show as 🔄 completed in subsequent workflow runs!
             **Next steps**: Update the ⏳ pending files to complete the sync.
-            
-            ---
-            *This comment is automatically updated by the Java-Python sync checker.*`;
           }
           
           // Always create new comment
