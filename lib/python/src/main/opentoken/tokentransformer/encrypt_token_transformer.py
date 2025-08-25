@@ -1,7 +1,6 @@
 """
 Copyright (c) Truveta. All rights reserved.
 """
-""" Temp comment"""
 import base64
 import logging
 import secrets
