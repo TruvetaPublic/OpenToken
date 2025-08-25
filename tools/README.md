@@ -166,14 +166,6 @@ The enhanced workflow (`.github/workflows/java-python-sync-enhanced.yml`) provid
 2. **Progress Tracking**: Tracks completion across multiple commits
 3. **Comment Management**: Maintains clean PR history by replacing previous comments
 4. **Status Reporting**: Provides both workflow logs and PR comments
-5. **Error Handling**: Graceful handling of edge cases and failures
-
-#### Workflow Steps
-1. **Checkout**: Full history fetch for proper base comparison
-2. **Python Setup**: Python 3.9 environment
-3. **Sync Check**: Run sync tool and extract progress metrics
-4. **Comment Update**: Create/update PR comment with current status
-5. **Status Summary**: Log final status without failing the workflow
 
 ### Related Files
 - `tools/java_python_syncer.py` - Main tool implementation
