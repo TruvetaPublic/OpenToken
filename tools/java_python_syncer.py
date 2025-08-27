@@ -36,7 +36,14 @@ class JavaPythonSyncer:
             self.mappings = self.FALLBACK_MAPPINGS.copy()
 
     def validate_configuration(self):
-        """Validate the mapping configuration and repository state"""
+        """Validate the mapping configuration and repository state
+        
+        Args:
+            None
+            
+        Returns:
+            list: A list of validation issues found.
+        """
         issues = []
         
         # Check if mapping file exists
@@ -65,6 +72,7 @@ class JavaPythonSyncer:
         try:
             result = subprocess.run(['git', 'status', '--porcelain'], 
                                   capture_output=True, text=True, cwd=self.root_dir)
+            # Check if there are any uncommitted changes
             if result.stdout.strip():
                 issues.append("Working directory has uncommitted changes")
         except subprocess.CalledProcessError:
@@ -73,7 +81,9 @@ class JavaPythonSyncer:
         return issues
     
     def health_check(self):
-        """Perform a comprehensive health check of the sync system"""
+        """Perform a comprehensive health check of the sync system.
+            Prints the health check results.
+        """
         print("🔍 Performing Java-Python sync health check...")
         print("=" * 50)
         
@@ -99,8 +109,13 @@ class JavaPythonSyncer:
         return len(issues) == 0
     
     def _convert_python_to_java_path(self, python_path):
-        """Convert Python file path back to Java path format"""
-        # This is a reverse of the earlier conversion logic
+        """Convert Python file path back to Java path format
+        Args:
+            python_path (string): The Python file path to convert.
+
+        Returns:
+            The corresponding Java file path.
+        """
         # Implementation would depend on your naming conventions
         import re
         
@@ -125,7 +140,14 @@ class JavaPythonSyncer:
         return '/'.join(path_parts)
 
     def get_java_changes(self, since_commit="HEAD~1"):
-        """Get list of changed Java files since specified commit with timestamps"""
+        """Get list of changed Java files since specified commit with timestamps
+
+        Args:
+            since_commit: The commit to compare against (default: HEAD~1)
+
+        Returns:
+            A list of changed Java files with their last modified timestamps
+        """
         try:
             # For PR workflows, compare against the base branch
             if since_commit == "HEAD~1":
@@ -155,7 +177,16 @@ class JavaPythonSyncer:
             return []
 
     def get_file_last_modified_commit(self, file_path, since_commit="HEAD~1"):
-        """Get the most recent commit that modified a specific file"""
+        """Get the most recent commit that modified a specific file
+        
+        Args:
+            file_path: The path to the file to check.
+            since_commit: The commit after which we would like to check file_path's status (default: HEAD~1)
+
+        Returns:
+            A dictionary containing the commit hash and timestamp of the last modification,
+            or None if the file was not modified.
+        """
         try:
             result = subprocess.run([
                 'git', 'log', '-1', '--format=%H %ct', f'{since_commit}..HEAD', '--', file_path
@@ -172,15 +203,25 @@ class JavaPythonSyncer:
             return None
 
     def is_python_file_up_to_date(self, java_file, python_file, since_commit="HEAD~1"):
-        """Check if Python file is up-to-date relative to Java file changes"""
+        """Check if Python file is up-to-date relative to Java file changes
+        
+        Args:
+            java_file: The path to the Java file.
+            python_file: The path to the Python file.
+            since_commit: The commit after which we would like to check file modifications 
+                (default: HEAD~1 will check against base of the branch).
+
+        Returns:
+            bool: True if the Python file is up-to-date, False otherwise.
+        """
         java_last_modified = self.get_file_last_modified_commit(java_file, since_commit)
         python_last_modified = self.get_file_last_modified_commit(python_file, since_commit)
         
-        # If Java file wasn't modified in this PR, no sync needed
+        # If Java file wasn't modified at all in this PR, no sync needed
         if not java_last_modified:
             return True
             
-        # If Python file wasn't modified in this PR, it's out of date
+        # If Python file wasn't modified at all in this PR, it's out of date
         if not python_last_modified:
             return False
             
@@ -188,7 +229,14 @@ class JavaPythonSyncer:
         return python_last_modified['timestamp'] >= java_last_modified['timestamp']
 
     def _filter_ignored_files(self, files):
-        """Filter out files that match ignore patterns"""
+        """Filter out files that match ignore patterns
+
+        Args:
+            files: A list of file paths to filter.
+
+        Returns:
+            A list of file paths that do not match any ignore patterns.
+        """
         import fnmatch
         
         ignore_patterns = self.mappings.get("ignore_patterns", [])
@@ -207,7 +255,14 @@ class JavaPythonSyncer:
         return filtered_files
 
     def map_java_to_python(self, java_file):
-        """Map a Java file to its Python equivalent using enhanced strategy."""
+        """Map a Java file to its Python equivalent using enhanced strategy.
+        
+        Args:
+            java_file (string): The path to the Java file.
+            
+        Returns:
+            A mapping of the Python file path and its sync metadata, or None if no mapping is found.
+        """
         # First check critical files (exact matches)
         if "critical_files" in self.mappings:
             for java_path, mapping in self.mappings["critical_files"].items():
@@ -243,7 +298,14 @@ class JavaPythonSyncer:
         return None
 
     def _convert_to_python_naming(self, java_file_path):
-        """Convert Java file path to Python naming conventions."""
+        """Convert Java file path to Python naming conventions.
+        
+        Args:
+            java_file_path: The path to the Java file.
+        
+        Returns:
+            A string representing the Python file path.
+        """
         # Convert CamelCase to snake_case for file names
         import re
 
@@ -276,7 +338,14 @@ class JavaPythonSyncer:
         return java_file_path
 
     def _auto_generate_mapping(self, java_file):
-        """Auto-generate Python mapping for unmapped Java files."""
+        """Auto-generate Python mapping for unmapped Java files.
+        
+        Args:
+            java_file: The path to the Java file.
+        
+        Returns:
+            A mapping of the Python file path and its sync metadata, or None if no mapping is found.
+        """
         # Convert directory paths for both main and test files
         python_file = java_file
         
@@ -304,7 +373,14 @@ class JavaPythonSyncer:
         }
 
     def get_python_changes(self, since_commit="HEAD~1"):
-        """Get list of changed Python files since specified commit"""
+        """Get list of changed Python files since specified commit
+        
+        Args:
+            since_commit: The commit to compare since.
+
+        Returns:
+            A list of changed Python file paths.
+        """
         try:
             # Use same logic as Java changes for PR base comparison
             if since_commit == "HEAD~1":
@@ -329,12 +405,27 @@ class JavaPythonSyncer:
             return []
 
     def check_python_file_exists(self, python_file):
-        """Check if the corresponding Python file exists"""
+        """Check if the corresponding Python file exists
+        
+        Args:
+            python_file: The path to the Python file.
+            
+        Returns:
+            True if the file exists, False otherwise.
+        """
         python_path = self.root_dir / python_file
         return python_path.exists()
 
     def generate_sync_report(self, output_format="console", since_commit="HEAD~1"):
-        """Generate a report of files that need syncing"""
+        """Generate a report of files that need syncing
+        
+        Args:
+            output_format: The format for the output report.
+            since_commit: The commit to compare since.
+        
+        Returns:
+            A report of files that need syncing.
+        """
         changed_files = self.get_java_changes(since_commit)
         python_changes = self.get_python_changes(since_commit)
 
@@ -363,7 +454,17 @@ class JavaPythonSyncer:
         return self.format_output(mappings, python_changes, output_format, since_commit)
 
     def format_output(self, mappings, python_changes, output_format="console", since_commit="HEAD~1"):
-        """Format the output based on the specified format"""
+        """Format the output based on the specified format
+        
+        Args:
+            mappings: The mapping information between Java and Python files.
+            python_changes: The list of changed Python files.
+            output_format: The format for the output report.
+            since_commit: The commit to compare since.
+            
+        Returns:
+            A formatted output based on the specified format.
+        """
         if output_format == "github-checklist":
             return self.format_github_checklist(mappings, python_changes, since_commit)
         elif output_format == "json":
@@ -427,7 +528,16 @@ class JavaPythonSyncer:
             self.save_enhanced_report(mappings, python_changes, total_items, completed_items)
 
     def format_github_checklist(self, mappings, python_changes, since_commit="HEAD~1"):
-        """Format as GitHub checklist with completion status using timestamp-based sync checking"""
+        """Format as GitHub checklist with completion status using timestamp-based sync checking
+        
+        Args:
+            mappings: The mapping information between Java and Python files.
+            python_changes: The list of changed Python files.
+            since_commit: The commit to compare since.
+            
+        Returns:
+            A formatted GitHub checklist.
+        """
         if not mappings:
             return "✅ All Java changes appear to be in sync with Python!"
         
@@ -472,7 +582,17 @@ class JavaPythonSyncer:
         return output
 
     def save_enhanced_report(self, mappings, python_changes, total_items, completed_items):
-        """Save enhanced report with completion tracking"""
+        """Save enhanced report with completion tracking
+        
+        Args:
+            mappings: The mapping information between Java and Python files.
+            python_changes: The list of changed Python files.
+            total_items: The total number of sync items.
+            completed_items: The number of completed sync items.
+            
+        Returns:
+            None
+        """
         report_data = {
             "timestamp": datetime.now().isoformat(),
             "summary": {
@@ -507,7 +627,14 @@ class JavaPythonSyncer:
         print(f"\nDetailed report saved to: {report_file}")
 
     def get_mapping_for_file(self, java_file):
-        """Get the mapping configuration for a specific Java file"""
+        """Get the mapping configuration for a specific Java file
+        
+        Args:
+            java_file: The Java file path to get the mapping for.
+            
+        Returns:
+            A mapping configuration for the Java file, or None if not found.
+        """
         # First check exact matches in critical files
         if "critical_files" in self.mappings:
             for exact_file, mapping in self.mappings["critical_files"].items():
@@ -551,7 +678,14 @@ class JavaPythonSyncer:
         return None
 
     def _to_snake_case(self, camel_str):
-        """Convert CamelCase to snake_case"""
+        """Convert CamelCase to snake_case
+        
+        Args:
+            camel_str: camel case string to convert to snake case
+            
+        Returns:
+            snake_case string representation of camel_str
+        """
         import re
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', camel_str)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
@@ -579,8 +713,6 @@ Examples:
                         help='Perform comprehensive health check')
     parser.add_argument('--validate-only', action='store_true',
                         help='Only validate configuration, don\'t check changes')
-    parser.add_argument('--fix-mappings', action='store_true',
-                        help='Attempt to automatically fix mapping issues')
     
     args = parser.parse_args()
     
