@@ -2,8 +2,6 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-# comment for demo
-
 import logging
 import sys
 from typing import List
