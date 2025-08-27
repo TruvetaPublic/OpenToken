@@ -1,0 +1,57 @@
+{
+  "timestamp": "2025-08-27T09:32:57.252018",
+  "summary": {
+    "total_java_files": 3,
+    "total_sync_items": 3,
+    "completed_items": 0,
+    "completion_percentage": 0.0
+  },
+  "mappings": [
+    {
+      "java_file": "lib/java/src/main/java/com/truveta/opentoken/Main.java",
+      "python_files": [
+        "lib/python/src/main/opentoken/main.py"
+      ]
+    },
+    {
+      "java_file": "lib/java/src/main/java/com/truveta/opentoken/io/csv/PersonAttributesCSVReader.java",
+      "python_files": [
+        "lib/python/src/main/opentoken/io/csv/person_attributes_csv_reader.py"
+      ]
+    },
+    {
+      "java_file": "lib/java/src/main/java/com/truveta/opentoken/processor/PersonAttributesProcessor.java",
+      "python_files": [
+        "lib/python/src/main/opentoken/processor/person_attributes_processor.py"
+      ]
+    }
+  ],
+  "python_changes": [
+    "lib/python/src/main/opentoken/__init__.py",
+    "lib/python/src/main/opentoken/metadata.py",
+    "lib/python/src/main/opentoken/tokentransformer/encrypt_token_transformer.py"
+  ],
+  "details": [
+    {
+      "java_file": "lib/java/src/main/java/com/truveta/opentoken/Main.java",
+      "python_file": "lib/python/src/main/opentoken/main.py",
+      "exists": true,
+      "recently_modified": false,
+      "status": "pending"
+    },
+    {
+      "java_file": "lib/java/src/main/java/com/truveta/opentoken/io/csv/PersonAttributesCSVReader.java",
+      "python_file": "lib/python/src/main/opentoken/io/csv/person_attributes_csv_reader.py",
+      "exists": true,
+      "recently_modified": false,
+      "status": "pending"
+    },
+    {
+      "java_file": "lib/java/src/main/java/com/truveta/opentoken/processor/PersonAttributesProcessor.java",
+      "python_file": "lib/python/src/main/opentoken/processor/person_attributes_processor.py",
+      "exists": true,
+      "recently_modified": false,
+      "status": "pending"
+    }
+  ]
+}

@@ -67,7 +67,7 @@
         },
         "auto_generate_tests": true,
         "test_directory_mapping": "lib/java/src/test/java/com/truveta/opentoken/ -> lib/python/src/test/opentoken/",
-        "test_naming_pattern": "TestClass.java -> test_class_test.py"
+        "test_naming_pattern": "ClassTest.java -> class_test.py"
     },
     "ignore_patterns": [
         "**/package-info.java",
