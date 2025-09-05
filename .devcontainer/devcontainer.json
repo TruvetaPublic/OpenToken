@@ -3,6 +3,7 @@
 {
     "name": "OpenToken",
     "build": {
+        "context": "..",
         "dockerfile": "Dockerfile",
         "args": {
             "JAVA_VERSION": "11"

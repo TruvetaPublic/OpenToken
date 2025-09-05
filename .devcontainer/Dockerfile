@@ -2,10 +2,10 @@ ARG JAVA_VERSION=11
 FROM mcr.microsoft.com/devcontainers/java:1-${JAVA_VERSION}-bookworm
 
 # Check for Zscaler certificates and install if found using external script
-COPY scripts/detect_zscaler.sh /tmp/
+COPY .devcontainer/scripts/detect_zscaler.sh /tmp/
 
 # Copy host-provided certificate if it exists (will be skipped if file doesn't exist)
-COPY scripts/zscaler_root.pem* /tmp/host_zscaler_cert.pem
+COPY .devcontainer/scripts/zscaler_root.pem* /tmp/host_zscaler_cert.pem
 
 RUN apt-get update && apt-get install -y ca-certificates openssl python3 python3-pip pipx curl && \
     # Make the script executable and run it
@@ -25,7 +25,7 @@ ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 USER vscode
 
-COPY ../lib/python/dev-requirements.txt /tmp/dev-requirements.txt
-COPY ../lib/python/requirements.txt /tmp/requirements.txt
+COPY lib/python/dev-requirements.txt /tmp/dev-requirements.txt
+COPY lib/python/requirements.txt /tmp/requirements.txt
 
 RUN pip install -r /tmp/dev-requirements.txt --break-system-packages
