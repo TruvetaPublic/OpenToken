@@ -101,6 +101,8 @@
             <version>1.79</version>
         </dependency>
         <!-- Parquet -->
+        <!-- Sec Finding Override for hadoop-common: -->
+        <!-- this package is explicitly added to override the vulnerable version consumed by org.apache.hadoop:hadoop-common@3.4.1 -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
@@ -120,8 +122,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- Sec Finding Override for hadoop-common: -->
-        <!-- this package is explicitly added to override the vulnerable version consumed by org.apache.hadoop:hadoop-common@3.4.1 -->
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
