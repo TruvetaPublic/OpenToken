@@ -115,17 +115,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- this package is explicitly added to override the vulnerable version consumed by org.apache.hadoop:hadoop-common@3.4.1 -->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.79</version>
-        </dependency>
         <!-- Sec Finding Override for hadoop-common: -->
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>10.4.2</version>
+        </dependency>
+        <!-- this package is explicitly added to override the vulnerable version consumed by org.apache.hadoop:hadoop-common@3.4.1 -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.79</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
