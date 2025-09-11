@@ -59,7 +59,7 @@ java -jar target/open-token-<version>.jar [OPTIONS]
 
 **Example:**
 ```shell
-cd lib/java && java -jar target/open-token-1.9.3.jar \
+cd lib/java && java -jar target/open-token-1.9.4.jar \
   -i src/test/resources/sample.csv \
   -t csv \
   -o target/output.csv \

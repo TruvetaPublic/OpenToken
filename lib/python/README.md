@@ -46,12 +46,12 @@ cd lib/python && python3 src/main/opentoken/main.py [OPTIONS]
 
 **From project root:**
 ```shell
-PYTHONPATH=lib/python/src/main python3 lib/python/src/main/opentoken/main.py -i lib/python/src/test/resources/sample.csv -t csv -o lib/python/target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+PYTHONPATH=lib/python/src/main python3 lib/python/src/main/opentoken/main.py -i resources/sample.csv -t csv -o lib/python/target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 **From lib/python directory:**
 ```shell
-PYTHONPATH=src/main python3 src/main/opentoken/main.py -i src/test/resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+PYTHONPATH=src/main python3 src/main/opentoken/main.py -i ../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 ### Programmatic API
