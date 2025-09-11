@@ -278,6 +278,7 @@
                                         <Implementation-Vendor>Truveta</Implementation-Vendor>
                                         <Built-By>Truveta</Built-By>
                                         <Package-Version>${revision}</Package-Version>
+                                        <Multi-Release>true</Multi-Release>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
