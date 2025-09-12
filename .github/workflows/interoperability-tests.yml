@@ -1,19 +1,13 @@
 name: Interoperability Tests
 
 on:
-  # Trigger when both Java and Python test workflows complete successfully
-  workflow_run:
-    workflows: ["Java CI with Maven", "Python CI"]
-    types:
-      - completed
-    branches:
-      - main
-      - "dev/**"
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   interoperability-tests:
-    # Only run if the triggering workflow succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
