@@ -3,7 +3,7 @@ name: Interoperability Tests
 on:
   # Trigger when both Java and Python test workflows complete successfully
   workflow_run:
-    workflows: ["Java Tests", "Python Tests"]
+    workflows: ["Java CI with Maven", "Python CI"]
     types:
       - completed
     branches:
@@ -66,7 +66,7 @@ jobs:
           echo "Python Version: $(python --version)"
 
           cd tools/interoperability
-          python test_compatibility.py
+          python java_python_interoperability_test.py
           echo "✅ Interoperability tests completed successfully"
         env:
           PYTHONPATH: ${{ github.workspace }}/lib/python/src/main
