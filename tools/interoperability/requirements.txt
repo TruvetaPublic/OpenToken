@@ -1,0 +1,11 @@
+# Interoperability Test Requirements
+
+# For calling Java processes from Python
+subprocess32
+
+# File format handling
+pyarrow # For Parquet files
+
+# Utilities
+pathlib2; python_version<"3.4"
+tempfile36; python_version<"3.6"
