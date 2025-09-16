@@ -2,6 +2,13 @@
 
 This directory contains tests that validate compatibility and consistency between the Java and Python implementations of OpenToken.
 
+## Prerequisites
+
+- Python 3.9 or higher
+- pip (Python package installer)
+
+- Java 11 SDK or higher
+
 ## Test Categories
 
 - **Token Generation Compatibility**: Verify both implementations generate identical tokens for the same input
