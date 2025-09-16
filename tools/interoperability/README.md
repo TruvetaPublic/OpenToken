@@ -24,8 +24,8 @@ These tests require both Java and Python environments to be properly configured.
 # Run all interoperability tests
 python -m pytest tools/interoperability/ -v
 
-# Run specific test categories
-python -m pytest tools/interoperability/test_token_compatibility.py -v
+# Run the java_python_interoperability_test.py file, which will run all tests
+python3 tools/interoperability/java_python_interoperability_test.py
 ```
 
 ## Test Data
