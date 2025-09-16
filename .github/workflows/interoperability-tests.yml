@@ -51,17 +51,18 @@ jobs:
         run: |
           cd lib/java
           mvn clean package -DskipTests
-          echo "✅ Java JAR built successfully"
+          echo "Java JAR built successfully"
 
       - name: Run Interoperability Tests
+        id: run-tests
         run: |
-          echo "🔄 Running Interoperability Tests..."
+          echo "Running Interoperability Tests..."
           echo "Java Version: $(java -version 2>&1 | head -1)"
           echo "Python Version: $(python --version)"
 
           cd tools/interoperability
           python java_python_interoperability_test.py
-          echo "✅ Interoperability tests completed successfully"
+          echo "Interoperability tests completed"
         env:
           PYTHONPATH: ${{ github.workspace }}/lib/python/src/main
 
@@ -79,18 +80,16 @@ jobs:
       - name: Report Results
         if: always()
         run: |
-          if [ $? -eq 0 ]; then
-            echo "## ✅ Interoperability Tests Passed! 🎉" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.run-tests.outcome }}" == "success" ]; then
+            echo "## Interoperability Tests Passed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Key Validations Completed:**" >> $GITHUB_STEP_SUMMARY
-            echo "- ✅ Java implementation generates tokens successfully" >> $GITHUB_STEP_SUMMARY
-            echo "- ✅ Python implementation generates tokens successfully" >> $GITHUB_STEP_SUMMARY
-            echo "- ✅ Both implementations produce identical encrypted tokens" >> $GITHUB_STEP_SUMMARY
-            echo "- ✅ Decrypted tokens are identical between implementations" >> $GITHUB_STEP_SUMMARY
+            echo " Both implementations produce identical encrypted tokens" >> $GITHUB_STEP_SUMMARY
+            echo " Decrypted tokens are identical between implementations" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Environment:** Java 11 + Python 3.9 on Ubuntu Latest" >> $GITHUB_STEP_SUMMARY
           else
-            echo "## ❌ Interoperability Tests Failed" >> $GITHUB_STEP_SUMMARY
+            echo "## Interoperability Tests Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "The Java and Python implementations are not producing identical results." >> $GITHUB_STEP_SUMMARY
             echo "Check the job logs and uploaded artifacts for detailed comparison results." >> $GITHUB_STEP_SUMMARY
