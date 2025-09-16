@@ -22,10 +22,10 @@ These tests require both Java and Python environments to be properly configured.
 
 ```bash
 # Run all interoperability tests
-python -m pytest tests/interoperability/ -v
+python -m pytest tools/interoperability/ -v
 
 # Run specific test categories
-python -m pytest tests/interoperability/test_token_compatibility.py -v
+python -m pytest tools/interoperability/test_token_compatibility.py -v
 ```
 
 ## Test Data
