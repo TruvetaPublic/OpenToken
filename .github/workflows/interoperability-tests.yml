@@ -25,10 +25,10 @@ jobs:
           java-version: "11"
           cache: maven
 
-      - name: Set up Python 3.9
+      - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache: pip
 
       - name: Install Python Dependencies
@@ -87,7 +87,7 @@ jobs:
             echo " Both implementations produce identical encrypted tokens" >> $GITHUB_STEP_SUMMARY
             echo " Decrypted tokens are identical between implementations" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Environment:** Java 11 + Python 3.9 on Ubuntu Latest" >> $GITHUB_STEP_SUMMARY
+            echo "**Environment:** Java 11 + Python 3.10 on Ubuntu Latest" >> $GITHUB_STEP_SUMMARY
           else
             echo "## Interoperability Tests Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY

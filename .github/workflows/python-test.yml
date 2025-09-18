@@ -21,7 +21,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        python-version: [3.9, "3.10", 3.11]
+        python-version: ["3.10", 3.11]
 
     steps:
     - uses: actions/checkout@v3
@@ -62,16 +62,16 @@ jobs:
         cd lib/python
         # Check if output files were created
         if [ ! -f "target/output.csv" ]; then
-          echo "❌ Error: output.csv not created"
+          echo "Error: output.csv not created"
           exit 1
         fi
         
         if [ ! -f "target/output.metadata.json" ]; then
-          echo "❌ Error: metadata file not created"
+          echo "Error: metadata file not created"
           exit 1
         fi
         
-        echo "✅ Output files created successfully"
+        echo "Output files created successfully"
 
     - name: Validate Output Content
       run: |
@@ -79,7 +79,7 @@ jobs:
         # Check if output CSV has content (more than just headers)
         line_count=$(wc -l < target/output.csv)
         if [ "$line_count" -le 1 ]; then
-          echo "❌ Error: Output CSV appears to be empty or only contains headers"
+          echo "Error: Output CSV appears to be empty or only contains headers"
           exit 1
         fi
-        echo "✅ Output CSV contains $line_count lines"
+        echo "Output CSV contains $line_count lines"

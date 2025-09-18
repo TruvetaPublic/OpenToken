@@ -25,14 +25,15 @@ setup(
         "Source": "https://github.com/Truveta/OpenToken",
         "Documentation": "https://github.com/Truveta/OpenToken/blob/main/README.md",
     },
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     install_requires=requirements,
     extras_require={
         "dev": [
             "csv2parquet",
             "pandas",
             "pyarrow",
-            "cryptography"
+            "cryptography",
+            "pycryptodome",
         ],
         "test": [
             "pytest"

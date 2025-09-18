@@ -4,7 +4,7 @@ This is the Python implementation of the OpenToken library
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip (Python package installer)
 
 ## Installation
@@ -141,7 +141,7 @@ The Python implementation produces identical tokens to the Java version when usi
 ## Support
 
 For Python-specific issues, please check:
-1. Python version compatibility (3.9+)
+1. Python version compatibility (3.10+)
 2. Virtual environment setup
 3. Dependency versions in requirements.txt
 
