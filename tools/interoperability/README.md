@@ -4,7 +4,7 @@ This directory contains tests that validate compatibility and consistency betwee
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip (Python package installer)
 
 - Java 11 SDK or higher
