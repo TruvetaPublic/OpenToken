@@ -9,3 +9,5 @@ bump2version
 
 # Include production requirements
 -r requirements.txt
+
+pycryptodome
