@@ -2,7 +2,7 @@
 # Stage 1: Build the application
 ##################################################
 ARG JAVA_VERSION=11
-ARG MAVEN_VERSION=3.8.7
+ARG MAVEN_VERSION=3.8.8
 
 FROM maven:${MAVEN_VERSION}-amazoncorretto-${JAVA_VERSION} AS build
 

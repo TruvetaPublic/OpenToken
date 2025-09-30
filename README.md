@@ -249,7 +249,7 @@ The script generates fake person data and optionally repeats a percentage of rec
 
 Prerequisites:
 - Java 11 SDK
-- Maven 3.8.7
+- Maven 3.8.8
 
 ```shell
 cd lib/java
@@ -312,7 +312,7 @@ For detailed instructions on using the development container, see the [Dev Conta
 The Dev Container provides:
 
 - Java 11 SDK pre-installed
-- Maven 3.8.7 pre-installed
+- Maven 3.8.8 pre-installed
 - All necessary dependencies configured
 - Git and other development tools
 - SSL certificate handling for corporate environments

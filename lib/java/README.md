@@ -5,7 +5,7 @@ This is the Java implementation of the OpenToken library
 ## Prerequisites
 
 - Java 11 SDK or higher
-- Maven 3.8.7 or higher
+- Maven 3.8.8 or higher
 
 ## Installation
 
