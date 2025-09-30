@@ -1,3 +1,7 @@
+"""
+Copyright (c) Truveta. All rights reserved.
+"""
+
 from typing import Set
 from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
@@ -8,19 +12,22 @@ from opentoken.attributes.person.social_security_number_attribute import SocialS
 from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 
-
 class AttributeLoader:
-    """Loads all available attribute implementations."""
+    """
+    Loads all available attribute implementations.
+    """
+    def __init__(self):
+        raise RuntimeError("AttributeLoader should not be instantiated.")
 
     @staticmethod
     def load() -> Set[Attribute]:
         """Load all attribute implementations."""
-        return {
-            RecordIdAttribute(),
-            FirstNameAttribute(),
-            LastNameAttribute(),
-            BirthDateAttribute(),
-            SexAttribute(),
-            SocialSecurityNumberAttribute(),
-            PostalCodeAttribute()
-        }
+        attributes: Set[Attribute] = set()
+        attributes.add(RecordIdAttribute())
+        attributes.add(FirstNameAttribute())
+        attributes.add(LastNameAttribute())
+        attributes.add(BirthDateAttribute())
+        attributes.add(SexAttribute())
+        attributes.add(SocialSecurityNumberAttribute())
+        attributes.add(PostalCodeAttribute())
+        return attributes
