@@ -2,23 +2,33 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
+import pkgutil
+import importlib
+import pathlib
 from typing import Dict, List
 from opentoken.attributes.attribute_expression import AttributeExpression
-from opentoken.tokens.definitions.t1_token import T1Token
-from opentoken.tokens.definitions.t2_token import T2Token
-from opentoken.tokens.definitions.t3_token import T3Token
-from opentoken.tokens.definitions.t4_token import T4Token
-from opentoken.tokens.definitions.t5_token import T5Token
+from opentoken.tokens.token import Token
+
 
 class TokenRegistry:
-    """
-    Loads all implementations of Token and returns their definitions.
-    """
     @staticmethod
     def load_all_tokens() -> Dict[str, List[AttributeExpression]]:
         definitions: Dict[str, List[AttributeExpression]] = {}
-        token_classes = [T1Token, T2Token, T3Token, T4Token, T5Token]
-        for token_class in token_classes:
-            token = token_class()
-            definitions[token.get_identifier()] = token.get_definition()
+
+        # package name for import
+        package = "opentoken.tokens.definitions"
+
+        # real filesystem path (relative to this file)
+        package_path = str(pathlib.Path(__file__).parent / "definitions")
+
+        # iterate over modules in the definitions package
+        for _, modname, _ in pkgutil.iter_modules([package_path]):
+            module = importlib.import_module(f"{package}.{modname}")
+
+            # scan for Token subclasses
+            for obj in module.__dict__.values():
+                if isinstance(obj, type) and issubclass(obj, Token) and obj is not Token:
+                    token = obj()
+                    definitions[token.get_identifier()] = token.get_definition()
+
         return definitions
