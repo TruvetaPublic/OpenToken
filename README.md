@@ -204,18 +204,40 @@ docs/            # Documentation
 .devcontainer/   # Development container configuration
 ```
 
-For language-specific setup and usage instructions, see:
-- [Java README](lib/java/README.md)
-- [Python README](lib/python/README.md)
 
-## Getting Started
+## Development & Documentation
 
-Choose your preferred programming language and follow the setup instructions:
+Central reference: [Development Guide](docs/dev-guide-development.md) (setup, build, testing, versioning, dev container, registration, contribution checklist).
 
-- **Java**: See [Java README](lib/java/README.md) for Maven-based setup
-- **Python**: See [Python README](lib/python/README.md) for pip-based setup
+Key anchors in the guide:
 
-Each implementation provides identical functionality and token generation results.
+- Language Development: [Java & Python](docs/dev-guide-development.md#3-language-development-java--python)
+- Registration: [Token & Attribute Registration](docs/dev-guide-development.md#4-token--attribute-registration)
+
+Quick parity note: Java and Python implementations produce identical tokens for the same normalized input values.
+
+### Quick Start
+
+#### Java
+
+```shell
+cd lib/java
+mvn clean install
+java -jar target/open-token-<version>.jar \
+  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+#### Python
+
+```shell
+cd lib/python
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt -r dev-requirements.txt -e .
+PYTHONPATH=src/main python src/main/opentoken/main.py \
+  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
 
 ## Test Data
 
@@ -245,44 +267,7 @@ The script generates fake person data and optionally repeats a percentage of rec
 
 ## Building
 
-### With Maven (Java)
-
-Prerequisites:
-- Java 11 SDK
-- Maven 3.8.8
-
-```shell
-cd lib/java
-mvn clean install
-```
-
-### With Docker
-
-Prerequisites:
-- Docker
-
-```shell
-docker build . -t open-token
-```
-
-This will build a local Docker image called `open-token`.
-
-## Examples
-
-### Via Java JAR
-
-After running:
-
-```shell
-cd lib/java
-mvn clean install
-```
-
-Run the following in the lib/java directory:
-
-```shell
-java -jar target/open-token-<version>.jar -i input.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
+See the [Development Guide](docs/dev-guide-development.md#5-building--testing) for full multi-language and Docker build instructions.
 
 ## Contributing
 
@@ -295,6 +280,7 @@ We welcome contributions including features, bug fixes, documentation updates, a
 ### Before Contributing
 
 Please ensure you follow the project's coding standards:
+
 - **Java**: Follow Checkstyle rules and add Javadoc for public APIs
 - **Version Bumping**: Use `bump2version` for all PRs (required)
 - **Testing**: Run `mvn clean install` to ensure everything works
@@ -303,18 +289,4 @@ See the [contribution guidelines](.github/copilot-instructions.md) for detailed 
 
 ## Development Environment
 
-This project includes a [Development Container](https://containers.dev/) configuration that provides a consistent development environment for working with OpenToken. The Dev Container includes all necessary tools and dependencies pre-configured, making it easy to start contributing immediately.
-
-### Getting Started with Dev Container
-
-For detailed instructions on using the development container, see the [Dev Container README](./.devcontainer/README.md).
-
-The Dev Container provides:
-
-- Java 11 SDK pre-installed
-- Maven 3.8.8 pre-installed
-- All necessary dependencies configured
-- Git and other development tools
-- SSL certificate handling for corporate environments
-
-Using the Dev Container ensures all contributors work with the same environment, avoiding "works on my machine" issues and making the development experience more consistent and reproducible.
+Use the Dev Container for a reproducible setup (Java, Maven, Python). See the [Development Guide](docs/dev-guide-development.md#7-development-container) for details.

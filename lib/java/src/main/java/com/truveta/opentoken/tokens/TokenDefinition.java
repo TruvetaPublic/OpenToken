@@ -3,12 +3,9 @@
  */
 package com.truveta.opentoken.tokens;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.reflections.Reflections;
 
 import com.truveta.opentoken.attributes.AttributeExpression;
 
@@ -36,19 +33,7 @@ public class TokenDefinition implements BaseTokenDefinition {
      */
     public TokenDefinition() {
         // load all implementations of Token interface and store in definitions
-        definitions = new HashMap<>();
-
-        Reflections reflections = new Reflections(TokenDefinition.class.getPackageName());
-        Set<Class<? extends Token>> tokenClasses = reflections.getSubTypesOf(Token.class);
-
-        for (Class<? extends Token> tokenClass : tokenClasses) {
-            try {
-                Token token = tokenClass.getDeclaredConstructor().newInstance();
-                definitions.put(token.getIdentifier(), token.getDefinition());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
+        this.definitions = TokenRegistry.loadAllTokens();
     }
 
     @Override
