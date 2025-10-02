@@ -11,19 +11,34 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ## Contents
 
-1. Prerequisites
-2. Project Layout
-3. Language Development (Java & Python)
-4. Token & Attribute Registration
-5. Building & Testing
-6. Running the Tool (CLI)
-7. Development Container
-8. Version Bumping Policy
-9. Contributing Checklist
-10. Troubleshooting
+- [OpenToken Development Guide](#opentoken-development-guide)
+  - [At a Glance](#at-a-glance)
+  - [Contents](#contents)
+  - [Prerequisites](#prerequisites)
+  - [Project Layout](#project-layout)
+  - [Language Development (Java \& Python)](#language-development-java--python)
+    - [Java](#java)
+    - [Python](#python)
+    - [Cross-language Tips](#cross-language-tips)
+  - [Token \& Attribute Registration](#token--attribute-registration)
+    - [When to Use](#when-to-use)
+    - [Java Registration (ServiceLoader SPI)](#java-registration-serviceloader-spi)
+    - [Python Registration](#python-registration)
+    - [Cross-language Parity Checklist](#cross-language-parity-checklist)
+    - [Version Bump Reminder](#version-bump-reminder)
+    - [Quick Reference](#quick-reference)
+  - [Building \& Testing](#building--testing)
+    - [Full Multi-language Build](#full-multi-language-build)
+    - [Docker Image](#docker-image)
+  - [Running the Tool (CLI)](#running-the-tool-cli)
+  - [Development Container](#development-container)
+  - [Version Bumping Policy](#version-bumping-policy)
+  - [Contributing Checklist](#contributing-checklist)
+  - [Troubleshooting](#troubleshooting)
 
 ---
-## 1. Prerequisites
+
+## Prerequisites
 
 | Tool | Recommended Version | Notes |
 | ---- | ------------------- | ----- |
@@ -33,7 +48,7 @@ This guide centralizes contributor-facing information. It covers local setup, la
 | pip / venv | Latest | Manage Python dependencies |
 | Docker (optional) | Latest | Build container image |
 
-## 2. Project Layout
+## Project Layout
 
 ```text
 lib/
@@ -47,7 +62,7 @@ Key Docs:
 
 - Development processes below
 
-## 3. Language Development (Java & Python)
+## Language Development (Java & Python)
 
 This section combines the previous standalone Java and Python development sections for easier cross-language parity review.
 
@@ -220,7 +235,7 @@ Contributing notes:
 
 Maintain the same functional behavior and normalization between languages.
 
-## 4. Token & Attribute Registration
+## Token & Attribute Registration
 
 This section unifies Java and Python guidance for adding new Tokens and Attributes.
 
@@ -300,7 +315,7 @@ Adding or modifying Tokens / Attributes requires a version bump (`bump2version m
 
 Maintain tests to guard consistency between languages.
 
-## 5. Building & Testing
+## Building & Testing
 
 ### Full Multi-language Build
 
@@ -320,7 +335,7 @@ Maintain tests to guard consistency between languages.
 docker build . -t open-token
 ```
 
-## 6. Running the Tool (CLI)
+## Running the Tool (CLI)
 
 Minimum required arguments:
 
@@ -339,7 +354,7 @@ Arguments:
 | `-h, --hashingsecret` | Hashing secret for HMAC-SHA256 |
 | `-e, --encryptionkey` | AES-256 encryption key |
 
-## 7. Development Container
+## Development Container
 
 A Dev Container configuration provides a reproducible environment with:
 
@@ -349,7 +364,7 @@ A Dev Container configuration provides a reproducible environment with:
 
 Open the repository in VS Code and select: "Reopen in Container".
 
-## 8. Version Bumping Policy
+## Version Bumping Policy
 
 All PRs MUST bump the version via `bump2version` (never edit versions manually):
 
@@ -359,7 +374,7 @@ All PRs MUST bump the version via `bump2version` (never edit versions manually):
 
 Ensure the working tree is clean before running the command.
 
-## 9. Contributing Checklist
+## Contributing Checklist
 
 Before opening a PR:
 
@@ -370,7 +385,7 @@ Before opening a PR:
 - [ ] Added registration entries (Java SPI files) or loader entries (Python) if new Token/Attribute
 - [ ] Bumped version with `bump2version`
 
-## 10. Troubleshooting
+## Troubleshooting
 
 | Issue | Hint |
 | ----- | ---- |
