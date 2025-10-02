@@ -83,14 +83,14 @@ Or from `lib/java` directly:
 ```shell
 mvn clean install
 ```
-Resulting JAR: `lib/java/target/open-token-<version>.jar`.
+Resulting JAR: `lib/java/target/opentoken-<version>.jar`.
 
 Using as a Maven dependency:
 
 ```xml
 <dependency>
   <groupId>com.truveta.opentoken</groupId>
-  <artifactId>open-token</artifactId>
+  <artifactId>opentoken</artifactId>
   <version>${opentoken.version}</version>
 </dependency>
 ```
@@ -98,7 +98,7 @@ Using as a Maven dependency:
 CLI usage:
 
 ```shell
-cd lib/java && java -jar target/open-token-<version>.jar [OPTIONS]
+cd lib/java && java -jar target/opentoken-<version>.jar [OPTIONS]
 ```
 Arguments:
 
@@ -112,7 +112,7 @@ Arguments:
 Example:
 
 ```shell
-cd lib/java && java -jar target/open-token-<version>.jar \
+cd lib/java && java -jar target/opentoken-<version>.jar \
   -i src/test/resources/sample.csv -t csv -o target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
@@ -229,7 +229,7 @@ Contributing notes:
 | Build / Package | `mvn clean install` | `pip install -e .` |
 | Run Tests | `mvn test` | `pytest src/test` |
 | Lint / Style | `mvn checkstyle:check` | (pep8 / flake8 if configured) |
-| Run CLI | `java -jar target/open-token-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
+| Run CLI | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
 | Add Token | SPI entry & class | new module in `tokens/definitions` |
 | Add Attribute | SPI entry & class | class + loader import |
 
@@ -332,7 +332,7 @@ Maintain tests to guard consistency between languages.
 ### Docker Image
 
 ```shell
-docker build . -t open-token
+docker build . -t opentoken
 ```
 
 ## Running the Tool (CLI)
@@ -340,7 +340,7 @@ docker build . -t open-token
 Minimum required arguments:
 
 ```shell
-java -jar target/open-token-<version>.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+java -jar target/opentoken-<version>.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
 ```
 
 Arguments:
