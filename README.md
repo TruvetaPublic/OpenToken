@@ -204,9 +204,15 @@ docs/            # Documentation
 .devcontainer/   # Development container configuration
 ```
 
+
+## Documentation
+
 For language-specific setup and usage instructions, see:
 - [Java README](lib/java/README.md)
 - [Python README](lib/python/README.md)
+
+For instructions on adding and registering new Token and Attribute classes, see:
+- [Token & Attribute Registration Guide](docs/dev-guide-token-attribute-registration.md)
 
 ## Getting Started
 

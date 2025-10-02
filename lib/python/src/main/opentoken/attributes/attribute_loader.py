@@ -22,12 +22,12 @@ class AttributeLoader:
     @staticmethod
     def load() -> Set[Attribute]:
         """Load all attribute implementations."""
-        attributes: Set[Attribute] = set()
-        attributes.add(RecordIdAttribute())
-        attributes.add(FirstNameAttribute())
-        attributes.add(LastNameAttribute())
-        attributes.add(BirthDateAttribute())
-        attributes.add(SexAttribute())
-        attributes.add(SocialSecurityNumberAttribute())
-        attributes.add(PostalCodeAttribute())
-        return attributes
+        return {
+            RecordIdAttribute(),
+            FirstNameAttribute(),
+            LastNameAttribute(),
+            BirthDateAttribute(),
+            SexAttribute(),
+            SocialSecurityNumberAttribute(),
+            PostalCodeAttribute()
+        }
