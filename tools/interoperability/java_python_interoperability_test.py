@@ -27,7 +27,7 @@ class OpenTokenCLI:
     def __init__(self):
         self.project_root = Path(__file__).parent.parent.parent
         java_jar_dir = self.project_root / "lib/java/target"
-    jar_files = list(java_jar_dir.glob("opentoken-*.jar"))
+        jar_files = list(java_jar_dir.glob("opentoken-*.jar"))
         if not jar_files:
             raise FileNotFoundError(f"No OpenToken JAR found in {java_jar_dir}")
         self.java_jar_path = jar_files[0]
