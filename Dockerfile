@@ -23,12 +23,12 @@ RUN mkdir /app
 
 RUN addgroup --system appuser && adduser --system --no-create-home --ingroup appuser appuser
 
-ARG VERSION=1.9.4
-COPY --from=build /app/target/open-token-${VERSION}.jar /usr/local/lib/open-token.jar
+ARG VERSION=1.9.5
+COPY --from=build /app/target/opentoken-${VERSION}.jar /usr/local/lib/opentoken.jar
 
 WORKDIR /app
 
 RUN chown -R appuser:appuser /app
 USER appuser
 
-ENTRYPOINT ["java", "-jar", "/usr/local/lib/open-token.jar"]
+ENTRYPOINT ["java", "-jar", "/usr/local/lib/opentoken.jar"]

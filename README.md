@@ -223,7 +223,7 @@ Quick parity note: Java and Python implementations produce identical tokens for 
 ```shell
 cd lib/java
 mvn clean install
-java -jar target/open-token-<version>.jar \
+java -jar target/opentoken-*.jar \
   -i ../../resources/sample.csv -t csv -o target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```

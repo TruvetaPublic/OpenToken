@@ -4,12 +4,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.truveta.opentoken</groupId>
-    <artifactId>open-token</artifactId>
+    <groupId>com.truveta</groupId>
+    <artifactId>opentoken</artifactId>
     <packaging>jar</packaging>
     <version>${revision}</version>
 
-    <name>open-token</name>
+    <name>opentoken</name>
     <url>http://www.truveta.com</url>
 
     <distributionManagement>
@@ -21,7 +21,7 @@
     </distributionManagement>
 
     <properties>
-        <revision>1.9.4</revision>
+        <revision>1.9.5</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
@@ -370,7 +370,7 @@
                                 <echo message="Running CSV sanity check..." />
                                 <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="csv.output">
                                     <arg value="-jar" />
-                                    <arg value="${project.build.directory}/open-token-${revision}.jar" />
+                                    <arg value="${project.build.directory}/opentoken-${revision}.jar" />
                                     <arg value="-i" />
                                     <arg value="../../resources/sample.csv" />
                                     <arg value="-t" />
@@ -407,7 +407,7 @@
                                 <echo message="Running Parquet sanity check..." />
                                 <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="parquet.output">
                                     <arg value="-jar" />
-                                    <arg value="${project.build.directory}/open-token-${revision}.jar" />
+                                    <arg value="${project.build.directory}/opentoken-${revision}.jar" />
                                     <arg value="-i" />
                                     <arg value="../../resources/sample.parquet" />
                                     <arg value="-t" />
