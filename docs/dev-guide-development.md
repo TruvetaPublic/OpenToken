@@ -83,13 +83,13 @@ Or from `lib/java` directly:
 ```shell
 mvn clean install
 ```
-Resulting JAR: `lib/java/target/opentoken-<version>.jar`.
+Resulting JAR: `lib/java/target/opentoken-*.jar`.
 
 Using as a Maven dependency:
 
 ```xml
 <dependency>
-  <groupId>com.truveta.opentoken</groupId>
+  <groupId>com.truveta</groupId>
   <artifactId>opentoken</artifactId>
   <version>${opentoken.version}</version>
 </dependency>
@@ -98,7 +98,7 @@ Using as a Maven dependency:
 CLI usage:
 
 ```shell
-cd lib/java && java -jar target/opentoken-<version>.jar [OPTIONS]
+cd lib/java && java -jar target/opentoken-*.jar [OPTIONS]
 ```
 Arguments:
 
@@ -112,7 +112,7 @@ Arguments:
 Example:
 
 ```shell
-cd lib/java && java -jar target/opentoken-<version>.jar \
+cd lib/java && java -jar target/opentoken-*.jar \
   -i src/test/resources/sample.csv -t csv -o target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
@@ -340,7 +340,7 @@ docker build . -t opentoken
 Minimum required arguments:
 
 ```shell
-java -jar target/opentoken-<version>.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+java -jar target/opentoken-*.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
 ```
 
 Arguments:
