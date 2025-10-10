@@ -163,7 +163,8 @@ The driver accepts multiple command line arguments:
 
 - `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key.
 
-The encryption logic is: Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))
+The encryption logic is: 
+> $Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))$
 
 ### Accepted input  <!-- omit in toc -->
 
