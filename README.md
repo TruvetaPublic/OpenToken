@@ -1,38 +1,20 @@
-# OpenToken
-
-- [OpenToken](#opentoken)
-  - [Introduction](#introduction)
-  - [Highlights](#highlights)
-  - [Overview](#overview)
-    - [Library](#library)
-    - [Token Generation](#token-generation)
-    - [Sample Token Generation Rules](#sample-token-generation-rules)
-    - [Rules for token generation](#rules-for-token-generation)
-    - [Example](#example)
-    - [OpenToken data flow](#opentoken-data-flow)
-    - [Validation of person attribute values prior to normalization](#validation-of-person-attribute-values-prior-to-normalization)
-    - [Normalized person attributes for token generation](#normalized-person-attributes-for-token-generation)
-  - [OpenToken overview](#opentoken-overview)
-  - [Usage](#usage)
-    - [Arguments](#arguments)
-    - [Accepted input](#accepted-input)
-  - [Metadata](#metadata)
-  - [Project Structure](#project-structure)
-  - [Development \& Documentation](#development--documentation)
-    - [Quick Start](#quick-start)
-      - [Java](#java)
-      - [Python](#python)
-  - [Test Data](#test-data)
-    - [Prerequisites](#prerequisites)
-    - [Generating Mock Data](#generating-mock-data)
-  - [Building](#building)
-  - [Contributing](#contributing)
-    - [Before Contributing](#before-contributing)
-  - [Development Environment](#development-environment)
+# OpenToken  <!-- omit in toc -->
 
 ## Introduction
 
 Our approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
+
+- [Introduction](#introduction)
+- [Highlights](#highlights)
+- [Overview](#overview)
+- [Usage](#usage)
+- [Metadata](#metadata)
+- [Project Structure](#project-structure)
+- [Development \& Documentation](#development--documentation)
+- [Test Data](#test-data)
+- [Building](#building)
+- [Contributing](#contributing)
+- [Development Environment](#development-environment)
 
 ## Highlights
 
@@ -42,15 +24,15 @@ Our approach to person matching relies on building a set of matching tokens (or 
 
 ## Overview
 
-### Library
+### Library <!-- omit in toc -->
 
 This project, `OpenToken`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
 
-### Token Generation
+### Token Generation <!-- omit in toc -->
 
 Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. We use multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
 
-### Sample Token Generation Rules
+### Sample Token Generation Rules <!-- omit in toc -->
 
 | Rule ID | Rule Definition                                          |
 | ------- | -------------------------------------------------------- |
@@ -63,14 +45,15 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 > U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
 
-### Rules for token generation
+### Rules for token generation <!-- omit in toc -->
 
 A token signature is generated first for every token generation rule. The token signature is then cryptographically hashed and hex encoded to generate the token.
 
 > $Token(R) = Hex(Sha256(TokenSignature(R)))$ where R is the rule ID.<br>
-> The token is then transformed further using the formula below:<br> > $Base64(AESEncrypt(Base64(HMACSHA256(Token(R)))))$<br>
+> The token is then transformed further using the formula below:<br> 
+> $Base64(AESEncrypt(Base64(HMACSHA256(Token(R)))))$<br>
 
-### Example
+### Example <!-- omit in toc -->
 
 Given a person with the following attributes:
 
@@ -93,11 +76,11 @@ The token generation rules above generate the following token signatures:
 
 **Note:** The tokens in the example above have been generated using the hash key `HashingKey` and encryption key `Secret-Encryption-Key-Goes-Here.`
 
-### OpenToken data flow
+### Data Flow  <!-- omit in toc -->
 
 ![open-token-data-flow](./docs/images/open-token-data-flow.jpg)
 
-### Validation of person attribute values prior to normalization
+### Validation of person attribute values prior to normalization  <!-- omit in toc -->
 
 The person attributes are validated before normalization. The validation rules are as follows:
 
@@ -109,7 +92,7 @@ The person attributes are validated before normalization. The validation rules a
 | `PostalCode`           | Must be a valid US ZIP code (5 or 9 digits) or Canadian postal code. US ZIP codes: `ddddd` or `ddddd-dddd`. Canadian postal codes: `AdA dAd` format (letter-digit-letter space digit-letter-digit). Cannot be common placeholder values like `00000`, `11111`, `12345`, `54321`, `98765` for US or `A1A 1A1`, `K1A 0A6`, `H0H 0H0` for Canadian codes. |
 | `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.                                                                                                    |
 
-### Normalized person attributes for token generation
+### Normalized person attributes for token generation  <!-- omit in toc -->
 
 All attribute values get normalized as part of their processing. The normalization process includes:
 
@@ -136,9 +119,9 @@ All attribute values get normalized as part of their processing. The normalizati
 | `postal-code`            | US: `ddddd` where `d` is a numeric digit (0-9). Canadian: `AdA dAd` where `A` is a letter and `d` is a digit |
 | `sex`                    | `Male\|Female`                                                                                               |
 | `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31)                                                          |
-| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)                                                               |
+| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9) |
 
-## OpenToken overview
+### How Token Matching Works  <!-- omit in toc -->
 
 This library focuses primarily on token generation. Even though the person matching process is beyond the scope of this library, this document discusses how these tokens work in a person matching system.
 
@@ -168,7 +151,7 @@ If tokens are generated for persons from multiple data sources, person matching 
 
 ## Usage
 
-### Arguments
+### Arguments  <!-- omit in toc -->
 
 The driver accepts multiple command line arguments:
 
@@ -186,7 +169,7 @@ The driver accepts multiple command line arguments:
 
 The encryption logic is: Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))
 
-### Accepted input
+### Accepted input  <!-- omit in toc -->
 
 The input file (in csv format) must contain at least the following columns and values (one each):
 
@@ -245,9 +228,9 @@ Key anchors in the guide:
 
 Quick parity note: Java and Python implementations produce identical tokens for the same normalized input values.
 
-### Quick Start
+### Quick Start  <!-- omit in toc -->
 
-#### Java
+#### Java  <!-- omit in toc -->
 
 ```shell
 cd lib/java
@@ -257,7 +240,7 @@ java -jar target/opentoken-*.jar \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-#### Python
+#### Python  <!-- omit in toc -->
 
 ```shell
 cd lib/python
@@ -272,12 +255,12 @@ PYTHONPATH=src/main python src/main/opentoken/main.py \
 
 You can generate mock person data in the expected format for testing purposes.
 
-### Prerequisites
+### Prerequisites  <!-- omit in toc -->
 
 - Python3
 - [faker](https://pypi.org/project/Faker/)
 
-### Generating Mock Data
+### Generating Mock Data  <!-- omit in toc -->
 
 Navigate to `tools/mockdata/` to find the data generation script. Run it with pre-configured defaults:
 
@@ -306,7 +289,7 @@ We welcome contributions including features, bug fixes, documentation updates, a
 2. **Test Coverage**: Expanding unit tests and integration tests.
 3. **Language Implementations**: Adding support for additional programming languages.
 
-### Before Contributing
+### Before Contributing  <!-- omit in toc -->
 
 Please ensure you follow the project's coding standards:
 
