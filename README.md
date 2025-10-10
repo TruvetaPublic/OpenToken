@@ -41,7 +41,7 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 > U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
 
-### Rules for token generation <!-- omit in toc -->
+### Token Encryption Process <!-- omit in toc -->
 
 A token signature is generated first for every token generation rule. The token signature is then cryptographically hashed and hex encoded to generate the token.
 
@@ -76,7 +76,7 @@ The token generation rules above generate the following token signatures:
 
 ![open-token-data-flow](./docs/images/open-token-data-flow.jpg)
 
-### Validation of person attribute values prior to normalization  <!-- omit in toc -->
+### Validation of Person Attributes  <!-- omit in toc -->
 
 The person attributes are validated before normalization. The validation rules are as follows:
 
@@ -88,9 +88,9 @@ The person attributes are validated before normalization. The validation rules a
 | `PostalCode`           | Must be a valid US ZIP code (5 or 9 digits) or Canadian postal code. US ZIP codes: `ddddd` or `ddddd-dddd`. Canadian postal codes: `AdA dAd` format (letter-digit-letter space digit-letter-digit). Cannot be common placeholder values like `00000`, `11111`, `12345`, `54321`, `98765` for US or `A1A 1A1`, `K1A 0A6`, `H0H 0H0` for Canadian codes. |
 | `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.                                                                                                    |
 
-### Normalized person attributes for token generation  <!-- omit in toc -->
+### Normalization of Person Attributes  <!-- omit in toc -->
 
-All attribute values get normalized as part of their processing. The normalization process includes:
+All attribute values get normalized as part of their processing after validation. The normalization process includes:
 
 **FirstName normalization:**
 
