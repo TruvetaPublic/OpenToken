@@ -8,13 +8,9 @@ Our approach to person matching relies on building a set of matching tokens (or 
 - [Highlights](#highlights)
 - [Overview](#overview)
 - [Usage](#usage)
-- [Metadata](#metadata)
-- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
 - [Development \& Documentation](#development--documentation)
-- [Test Data](#test-data)
-- [Building](#building)
 - [Contributing](#contributing)
-- [Development Environment](#development-environment)
 
 ## Highlights
 
@@ -193,7 +189,7 @@ The output file (in csv format) contains the following columns:
 - TokenId
 - Token
 
-## Metadata
+### Metadata  <!-- omit in toc -->
 
 The library generates a metadata file containing information about the token generation process, including processing statistics, system information, and secure hashes of the secrets used. The metadata file is written to the same directory as the output file with the suffix `.metadata.json`.
 
@@ -206,15 +202,27 @@ The metadata includes key fields such as:
 
 For complete details about all metadata fields, examples, and security considerations, see the [Metadata Format Documentation](./docs/metadata-format.md).
 
-## Project Structure
+## Quick Start
 
+### Java  <!-- omit in toc -->
+
+```shell
+cd lib/java
+mvn clean install
+java -jar target/opentoken-*.jar \
+  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
-lib/
-├── java/        # Java implementation (Maven)
-├── python/      # Python implementation (pip)
-tools/           # Utility scripts and tools
-docs/            # Documentation
-.devcontainer/   # Development container configuration
+
+### Python  <!-- omit in toc -->
+
+```shell
+cd lib/python
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt -r dev-requirements.txt -e .
+PYTHONPATH=src/main python src/main/opentoken/main.py \
+  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 ## Development & Documentation
@@ -228,39 +236,31 @@ Key anchors in the guide:
 
 Quick parity note: Java and Python implementations produce identical tokens for the same normalized input values.
 
-### Quick Start  <!-- omit in toc -->
+### Project Structure <!-- omit in toc -->
 
-#### Java  <!-- omit in toc -->
-
-```shell
-cd lib/java
-mvn clean install
-java -jar target/opentoken-*.jar \
-  -i ../../resources/sample.csv -t csv -o target/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+lib/
+├── java/        # Java implementation (Maven)
+├── python/      # Python implementation (pip)
+tools/           # Utility scripts and tools
+docs/            # Documentation
+.devcontainer/   # Development container configuration
 ```
 
-#### Python  <!-- omit in toc -->
+### Development Environment  <!-- omit in toc -->
 
-```shell
-cd lib/python
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt -r dev-requirements.txt -e .
-PYTHONPATH=src/main python src/main/opentoken/main.py \
-  -i ../../resources/sample.csv -t csv -o target/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
+Use the Dev Container for a reproducible setup (Java, Maven, Python). See the [Development Guide](docs/dev-guide-development.md#7-development-container) for details.
 
-## Test Data
+### Test Data  <!-- omit in toc -->
 
 You can generate mock person data in the expected format for testing purposes.
 
-### Prerequisites  <!-- omit in toc -->
+#### Prerequisites  <!-- omit in toc -->
 
 - Python3
 - [faker](https://pypi.org/project/Faker/)
 
-### Generating Mock Data  <!-- omit in toc -->
+#### Generating Mock Data  <!-- omit in toc -->
 
 Navigate to `tools/mockdata/` to find the data generation script. Run it with pre-configured defaults:
 
@@ -276,10 +276,6 @@ python data_generator.py 100 0.05 test_data.csv
 ```
 
 The script generates fake person data and optionally repeats a percentage of records with different record IDs to simulate duplicate persons.
-
-## Building
-
-See the [Development Guide](docs/dev-guide-development.md#5-building--testing) for full multi-language and Docker build instructions.
 
 ## Contributing
 
@@ -298,7 +294,3 @@ Please ensure you follow the project's coding standards:
 - **Testing**: Run `mvn clean install` to ensure everything works
 
 See the [contribution guidelines](.github/copilot-instructions.md) for detailed requirements.
-
-## Development Environment
-
-Use the Dev Container for a reproducible setup (Java, Maven, Python). See the [Development Guide](docs/dev-guide-development.md#7-development-container) for details.
