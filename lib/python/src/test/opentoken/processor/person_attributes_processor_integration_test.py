@@ -8,6 +8,7 @@ import hashlib
 import hmac
 import os
 import tempfile
+from pathlib import Path
 from typing import Dict, List
 
 from cryptography.hazmat.backends import default_backend
@@ -24,6 +25,11 @@ from opentoken.tokens.token import Token
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 from opentoken.tokentransformer.no_operation_token_transformer import NoOperationTokenTransformer
+
+
+# Get repository root (goes up from lib/python/src/test/opentoken/processor/ to repo root)
+REPO_ROOT = Path(__file__).parent.parent.parent.parent.parent.parent.parent
+RESOURCES_DIR = REPO_ROOT / "resources" / "mockdata"
 
 
 class TestPersonAttributesProcessorIntegration:
@@ -43,7 +49,7 @@ class TestPersonAttributesProcessorIntegration:
         The goal is to ensure that the records with repeated data still generate
         the same tokens.
         """
-        input_csv_file = "resources/mockdata/test_data.csv"
+        input_csv_file = str(RESOURCES_DIR / "test_data.csv")
         ssn_to_record_ids_map = self.group_records_ids_with_same_ssn(input_csv_file)
 
         token_transformer_list = [
@@ -95,13 +101,13 @@ class TestPersonAttributesProcessorIntegration:
             EncryptTokenTransformer(self.encryption_key)
         ]
         result_from_person_attributes_processor1 = self.read_csv_from_person_attributes_processor(
-            "resources/mockdata/test_overlap1.csv", token_transformer_list
+            str(RESOURCES_DIR / "test_overlap1.csv"), token_transformer_list
         )
 
         # Truveta file is neither hashed nor encrypted
         token_transformer_list = [NoOperationTokenTransformer()]
         result_from_person_attributes_processor2 = self.read_csv_from_person_attributes_processor(
-            "resources/mockdata/test_overlap2.csv", token_transformer_list
+            str(RESOURCES_DIR / "test_overlap2.csv"), token_transformer_list
         )
 
         record_id_to_token_map1 = {}
@@ -134,7 +140,7 @@ class TestPersonAttributesProcessorIntegration:
         file with the correct extension and contains the expected metadata.
         """
         # Set up the test
-        input_csv_file = "resources/mockdata/test_data.csv"
+        input_csv_file = str(RESOURCES_DIR / "test_data.csv")
         output_csv_file = "lib/python/target/test_metadata_location_output.csv"
 
         token_transformer_list = [NoOperationTokenTransformer()]

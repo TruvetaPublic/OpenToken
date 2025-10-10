@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Setup script for OpenToken Python package."""
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 # Read the contents of the project README file.
@@ -31,6 +31,8 @@ setup(
         "Source": "https://github.com/Truveta/OpenToken",
         "Documentation": "https://github.com/Truveta/OpenToken/blob/main/README.md",
     },
+    package_dir={"": "src/main"},
+    packages=find_packages(where="src/main"),
     python_requires=">=3.10",
     install_requires=requirements,
     extras_require={
