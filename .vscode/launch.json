@@ -9,8 +9,21 @@
             "type": "java",
             "request": "launch",
             "mainClass": "com.truveta.opentoken.Main",
-            "projectName": "open-token",
-            "args": "-i lib/java/src/test/resources/sample.csv -t csv -o lib/java/target/output.csv -ot csv -h \"HashingKey\" -e \"Secret-Encryption-Key-Goes-Here.\""
+            "projectName": "opentoken",
+            "args": [
+                "-i",
+                "resources/sample.${input:inputType}",
+                "-t",
+                "${input:inputType}",
+                "-o",
+                "lib/java/target/output.${input:outputType}",
+                "-ot",
+                "${input:outputType}",
+                "-h",
+                "HashingKey",
+                "-e",
+                "Secret-Encryption-Key-Goes-Here."
+            ]
         },
         {
             "name": "OpenToken-Python",
@@ -22,18 +35,40 @@
             },
             "args": [
                 "-i",
-                "lib/python/src/test/resources/sample.csv",
+                "resources/sample.${input:inputType}",
                 "-t",
-                "csv",
+                "${input:inputType}",
                 "-o",
-                "lib/python/target/output.csv",
+                "lib/python/target/output.${input:outputType}",
                 "-ot",
-                "csv",
+                "${input:outputType}",
                 "-h",
                 "HashingKey",
                 "-e",
                 "Secret-Encryption-Key-Goes-Here."
             ]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "inputType",
+            "type": "pickString",
+            "description": "Select input type",
+            "options": [
+                "csv",
+                "parquet"
+            ],
+            "default": "csv"
+        },
+        {
+            "id": "outputType",
+            "type": "pickString",
+            "description": "Select output type",
+            "options": [
+                "csv",
+                "parquet"
+            ],
+            "default": "csv"
         }
     ]
 }

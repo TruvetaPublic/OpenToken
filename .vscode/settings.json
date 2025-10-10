@@ -17,6 +17,6 @@
     },
     "files.trimFinalNewlines": true,
     "files.eol": "\n",
-    "chat.mcp.enabled": true,
-    "chat.tools.autoApprove": true
+    "chat.tools.autoApprove": true,
+    "chat.mcp.access": "all"
 }
