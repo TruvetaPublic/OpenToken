@@ -50,7 +50,7 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 A token signature is generated first for every token generation rule. The token signature is then cryptographically hashed and hex encoded to generate the token.
 
 > $Token(R) = Hex(Sha256(TokenSignature(R)))$ where R is the rule ID.<br>
-> The token is then transformed further using the formula below:<br> 
+> The token is then transformed further using the formula below:<br>
 > $Base64(AESEncrypt(Base64(HMACSHA256(Token(R)))))$<br>
 
 ### Example <!-- omit in toc -->
