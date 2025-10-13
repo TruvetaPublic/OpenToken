@@ -5,7 +5,7 @@ on:
     branches: ["main"]
   release:
     types: [created, published, released]
-  # Removed pull_request trigger - only build/publish on releases
+  # Added pull_request trigger - pull requests now trigger builds for validation
 
 env:
   # Use docker.io for Docker Hub if empty
