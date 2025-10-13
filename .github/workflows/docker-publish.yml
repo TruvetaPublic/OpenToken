@@ -35,9 +35,10 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Detected version: ${VERSION}"
 
-      # Install the cosign tool for signing images
+      # Install the cosign tool for signing images (only needed for releases)
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
+        if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
         with:
           cosign-release: "v2.2.4"
@@ -60,12 +61,6 @@ jobs:
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
-      - name: Debug - Show version and event
-        run: |
-          echo "Event name: ${{ github.event_name }}"
-          echo "Release tag: ${{ github.event.release.tag_name }}"
-          echo "Detected VERSION: ${{ env.VERSION }}"
-
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
