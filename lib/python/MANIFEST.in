@@ -1,12 +1,10 @@
-# Include the root README
-include ../../README.md
-
-# Include license file
-include ../../LICENSE
-
-# Include requirements files
+# Include requirements files (must be in same directory as setup.py)
 include requirements.txt
 include dev-requirements.txt
+
+# Try to include root README and LICENSE
+include ../../README.md
+include ../../LICENSE
 
 # Include all Python source files
 recursive-include src *.py
