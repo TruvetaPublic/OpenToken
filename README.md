@@ -1,8 +1,16 @@
-# OpenToken
+# OpenToken  <!-- omit in toc -->
 
 ## Introduction
 
 Our approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
+
+- [Introduction](#introduction)
+- [Highlights](#highlights)
+- [Overview](#overview)
+- [Usage](#usage)
+- [Quick Start](#quick-start)
+- [Development \& Documentation](#development--documentation)
+- [Contributing](#contributing)
 
 ## Highlights
 
@@ -12,14 +20,15 @@ Our approach to person matching relies on building a set of matching tokens (or 
 
 ## Overview
 
-### Library 
+### Library <!-- omit in toc -->
+
 This project, `OpenToken`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
 
-### Token Generation
+### Token Generation <!-- omit in toc -->
 
 Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. We use multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
 
-### Sample Token Generation Rules
+### Sample Token Generation Rules <!-- omit in toc -->
 
 | Rule ID | Rule Definition                                          |
 | ------- | -------------------------------------------------------- |
@@ -32,7 +41,7 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 > U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
 
-### Rules for token generation
+### Token Encryption Process <!-- omit in toc -->
 
 A token signature is generated first for every token generation rule. The token signature is then cryptographically hashed and hex encoded to generate the token.
 
@@ -40,7 +49,7 @@ A token signature is generated first for every token generation rule. The token 
 > The token is then transformed further using the formula below:<br>
 > $Base64(AESEncrypt(Base64(HMACSHA256(Token(R)))))$<br>
 
-### Example
+### Example <!-- omit in toc -->
 
 Given a person with the following attributes:
 
@@ -63,25 +72,25 @@ The token generation rules above generate the following token signatures:
 
 **Note:** The tokens in the example above have been generated using the hash key `HashingKey` and encryption key `Secret-Encryption-Key-Goes-Here.`
 
-### OpenToken data flow
+### Data Flow  <!-- omit in toc -->
 
 ![open-token-data-flow](./docs/images/open-token-data-flow.jpg)
 
-### Validation of person attribute values prior to normalization
+### Validation of Person Attributes  <!-- omit in toc -->
 
 The person attributes are validated before normalization. The validation rules are as follows:
 
-| Attribute Name         | Validation Rule                                                                                                                                                                                                                                                 |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `FirstName`            | Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                        |
-| `LastName`             | Must be at least 2 characters long. For 2-character names, must contain at least one vowel or be "Ng". Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty. |
-| `BirthDate`            | Must be after January 1, 1910. Cannot be in the future (after today's date). Must be in a valid date format.                                                                                                                                                 |
+| Attribute Name         | Validation Rule                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `FirstName`            | Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                                                                                                                 |
+| `LastName`             | Must be at least 2 characters long. For 2-character names, must contain at least one vowel or be "Ng". Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                          |
+| `BirthDate`            | Must be after January 1, 1910. Cannot be in the future (after today's date). Must be in a valid date format.                                                                                                                                                                                                                                           |
 | `PostalCode`           | Must be a valid US ZIP code (5 or 9 digits) or Canadian postal code. US ZIP codes: `ddddd` or `ddddd-dddd`. Canadian postal codes: `AdA dAd` format (letter-digit-letter space digit-letter-digit). Cannot be common placeholder values like `00000`, `11111`, `12345`, `54321`, `98765` for US or `A1A 1A1`, `K1A 0A6`, `H0H 0H0` for Canadian codes. |
-| `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.             |
+| `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.                                                                                                    |
 
-### Normalized person attributes for token generation
+### Normalization of Person Attributes  <!-- omit in toc -->
 
-All attribute values get normalized as part of their processing. The normalization process includes:
+All attribute values get normalized as part of their processing after validation. The normalization process includes:
 
 **FirstName normalization:**
 
@@ -98,17 +107,17 @@ All attribute values get normalized as part of their processing. The normalizati
 - Removes non-alphabetic characters (e.g., "O'Keefe" → "OKeefe")
 - Normalizes diacritics (e.g., "García" → "Garcia")
 
-| Attribute Name           | Normalized Format                                   |
-| ------------------------ | --------------------------------------------------- |
-| `record-id`              | Any unique string identifier                        |
-| `first-name`             | Any string (after normalization as described above) |
-| `last-name`              | Any string (after normalization as described above) |
+| Attribute Name           | Normalized Format                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `record-id`              | Any unique string identifier                                                                                 |
+| `first-name`             | Any string (after normalization as described above)                                                          |
+| `last-name`              | Any string (after normalization as described above)                                                          |
 | `postal-code`            | US: `ddddd` where `d` is a numeric digit (0-9). Canadian: `AdA dAd` where `A` is a letter and `d` is a digit |
-| `sex`                    | `Male\|Female`                                      |
-| `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31) |
-| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)      |
+| `sex`                    | `Male\|Female`                                                                                               |
+| `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31)                                                          |
+| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9) |
 
-## OpenToken overview
+### How Token Matching Works  <!-- omit in toc -->
 
 This library focuses primarily on token generation. Even though the person matching process is beyond the scope of this library, this document discusses how these tokens work in a person matching system.
 
@@ -138,7 +147,7 @@ If tokens are generated for persons from multiple data sources, person matching 
 
 ## Usage
 
-### Arguments
+### Arguments  <!-- omit in toc -->
 
 The driver accepts multiple command line arguments:
 
@@ -154,21 +163,22 @@ The driver accepts multiple command line arguments:
 
 - `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key.
 
-The encryption logic is: Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))
+The encryption logic is: 
+> $Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))$
 
-### Accepted input
+### Accepted input  <!-- omit in toc -->
 
 The input file (in csv format) must contain at least the following columns and values (one each):
 
-| Accepted Column Names                              | Accepted Values                                                                |
-| -------------------------------------------------- | ------------------------------------------------------------------------------ |
-| RecordId, Id                                       | Any unique string identifier                                                   |
-| FirstName, GivenName                               | Any string value                                                               |
-| LastName, Surname                                  | Any string value                                                               |
+| Accepted Column Names                              | Accepted Values                                                                                                       |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| RecordId, Id                                       | Any unique string identifier                                                                                          |
+| FirstName, GivenName                               | Any string value                                                                                                      |
+| LastName, Surname                                  | Any string value                                                                                                      |
 | PostalCode, ZipCode                                | US: 5 or 9 digit ZIP code `ddddd` or `ddddd-dddd`. Canadian: 6 character postal code `AdAdAd` (with or without space) |
-| Sex, Gender                                        | `Male`, `M`, `Female`, `F`                                                     |
-| BirthDate, DateOfBirth                             | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy` |
-| SocialSecurityNumber, NationalIdentificationNumber | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                     |
+| Sex, Gender                                        | `Male`, `M`, `Female`, `F`                                                                                            |
+| BirthDate, DateOfBirth                             | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                        |
+| SocialSecurityNumber, NationalIdentificationNumber | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                            |
 
 **Note 1:** No attribute values can be empty to be considered valid.
 
@@ -180,7 +190,7 @@ The output file (in csv format) contains the following columns:
 - TokenId
 - Token
 
-## Metadata
+### Metadata  <!-- omit in toc -->
 
 The library generates a metadata file containing information about the token generation process, including processing statistics, system information, and secure hashes of the secrets used. The metadata file is written to the same directory as the output file with the suffix `.metadata.json`.
 
@@ -193,17 +203,28 @@ The metadata includes key fields such as:
 
 For complete details about all metadata fields, examples, and security considerations, see the [Metadata Format Documentation](./docs/metadata-format.md).
 
-## Project Structure
+## Quick Start
 
-```
-lib/
-├── java/        # Java implementation (Maven)
-├── python/      # Python implementation (pip)
-tools/           # Utility scripts and tools
-docs/            # Documentation
-.devcontainer/   # Development container configuration
+### Java  <!-- omit in toc -->
+
+```shell
+cd lib/java
+mvn clean install
+java -jar target/opentoken-*.jar \
+  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
+### Python  <!-- omit in toc -->
+
+```shell
+cd lib/python
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt -r dev-requirements.txt -e .
+PYTHONPATH=src/main python src/main/opentoken/main.py \
+  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
 
 ## Development & Documentation
 
@@ -216,44 +237,36 @@ Key anchors in the guide:
 
 Quick parity note: Java and Python implementations produce identical tokens for the same normalized input values.
 
-### Quick Start
+### Project Structure <!-- omit in toc -->
 
-#### Java
-
-```shell
-cd lib/java
-mvn clean install
-java -jar target/opentoken-*.jar \
-  -i ../../resources/sample.csv -t csv -o target/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+lib/
+├── java/        # Java implementation (Maven)
+├── python/      # Python implementation (pip)
+tools/           # Utility scripts and tools
+docs/            # Documentation
+.devcontainer/   # Development container configuration
 ```
 
-#### Python
+### Development Environment  <!-- omit in toc -->
 
-```shell
-cd lib/python
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt -r dev-requirements.txt -e .
-PYTHONPATH=src/main python src/main/opentoken/main.py \
-  -i ../../resources/sample.csv -t csv -o target/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
+Use the Dev Container for a reproducible setup (Java, Maven, Python). See the [Development Guide](docs/dev-guide-development.md#7-development-container) for details.
 
-## Test Data
+### Test Data  <!-- omit in toc -->
 
 You can generate mock person data in the expected format for testing purposes.
 
-### Prerequisites
+#### Prerequisites  <!-- omit in toc -->
 
 - Python3
 - [faker](https://pypi.org/project/Faker/)
 
-### Generating Mock Data
+#### Generating Mock Data  <!-- omit in toc -->
 
 Navigate to `tools/mockdata/` to find the data generation script. Run it with pre-configured defaults:
 
 ```shell
-./generate.sh 
+./generate.sh
 ```
 
 You can modify the parameters when running the script directly. The script will repeat a percentage of the record values using a different record ID.
@@ -265,10 +278,6 @@ python data_generator.py 100 0.05 test_data.csv
 
 The script generates fake person data and optionally repeats a percentage of records with different record IDs to simulate duplicate persons.
 
-## Building
-
-See the [Development Guide](docs/dev-guide-development.md#5-building--testing) for full multi-language and Docker build instructions.
-
 ## Contributing
 
 We welcome contributions including features, bug fixes, documentation updates, and more. Key areas for improvement include:
@@ -277,7 +286,7 @@ We welcome contributions including features, bug fixes, documentation updates, a
 2. **Test Coverage**: Expanding unit tests and integration tests.
 3. **Language Implementations**: Adding support for additional programming languages.
 
-### Before Contributing
+### Before Contributing  <!-- omit in toc -->
 
 Please ensure you follow the project's coding standards:
 
@@ -286,7 +295,3 @@ Please ensure you follow the project's coding standards:
 - **Testing**: Run `mvn clean install` to ensure everything works
 
 See the [contribution guidelines](.github/copilot-instructions.md) for detailed requirements.
-
-## Development Environment
-
-Use the Dev Container for a reproducible setup (Java, Maven, Python). See the [Development Guide](docs/dev-guide-development.md#7-development-container) for details.
