@@ -1,4 +1,6 @@
+com.truveta.opentoken.attributes.person.AgeAttribute
 com.truveta.opentoken.attributes.person.BirthDateAttribute
+com.truveta.opentoken.attributes.person.BirthYearAttribute
 com.truveta.opentoken.attributes.person.CanadianPostalCodeAttribute
 com.truveta.opentoken.attributes.person.FirstNameAttribute
 com.truveta.opentoken.attributes.person.LastNameAttribute
@@ -6,4 +8,7 @@ com.truveta.opentoken.attributes.person.PostalCodeAttribute
 com.truveta.opentoken.attributes.person.SexAttribute
 com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute
 com.truveta.opentoken.attributes.person.USPostalCodeAttribute
+com.truveta.opentoken.attributes.general.DateAttribute
 com.truveta.opentoken.attributes.general.RecordIdAttribute
+com.truveta.opentoken.attributes.general.StringAttribute
+com.truveta.opentoken.attributes.general.YearAttribute

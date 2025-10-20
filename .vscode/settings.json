@@ -18,5 +18,7 @@
     "files.trimFinalNewlines": true,
     "files.eol": "\n",
     "chat.tools.autoApprove": true,
-    "chat.mcp.access": "all"
+    "chat.mcp.access": "all",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": true
 }

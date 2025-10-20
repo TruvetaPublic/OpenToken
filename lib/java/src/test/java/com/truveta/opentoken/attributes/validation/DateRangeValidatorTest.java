@@ -16,13 +16,14 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class BirthDateRangeValidatorTest {
+class DateRangeValidatorTest {
 
-    private BirthDateRangeValidator validator;
+    private DateRangeValidator validator;
 
     @BeforeEach
     void setUp() {
-        validator = new BirthDateRangeValidator();
+        // Create a validator with the same range as the old BirthDateRangeValidator (1910-01-01 to today)
+        validator = new DateRangeValidator(LocalDate.of(1910, 1, 1), true);
     }
 
     @Test
@@ -118,7 +119,7 @@ class BirthDateRangeValidatorTest {
         // Deserialize the validator
         ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
         ObjectInputStream in = new ObjectInputStream(byteIn);
-        BirthDateRangeValidator deserializedValidator = (BirthDateRangeValidator) in.readObject();
+        DateRangeValidator deserializedValidator = (DateRangeValidator) in.readObject();
         in.close();
 
         // Test that both validators behave identically
@@ -153,5 +154,68 @@ class BirthDateRangeValidatorTest {
         assertTrue(validator.eval(yesterday.toString())); // Yesterday should be valid
         assertTrue(validator.eval(minDate.toString())); // Minimum date should be valid
         assertFalse(validator.eval(dayBeforeMinDate.toString())); // Day before minimum should be invalid
+    }
+
+    @Test
+    void customRange_WithFixedMinAndMax_ShouldValidateCorrectly() {
+        // Test with a fixed date range
+        LocalDate minDate = LocalDate.of(2020, 1, 1);
+        LocalDate maxDate = LocalDate.of(2023, 12, 31);
+        DateRangeValidator customValidator = new DateRangeValidator(minDate, maxDate);
+
+        // Valid dates within range
+        assertTrue(customValidator.eval("2020-01-01"));
+        assertTrue(customValidator.eval("2021-06-15"));
+        assertTrue(customValidator.eval("2023-12-31"));
+
+        // Invalid dates outside range
+        assertFalse(customValidator.eval("2019-12-31"));
+        assertFalse(customValidator.eval("2024-01-01"));
+    }
+
+    @Test
+    void customRange_WithOnlyMinDate_ShouldValidateCorrectly() {
+        // Test with only a minimum date (no maximum)
+        LocalDate minDate = LocalDate.of(2000, 1, 1);
+        DateRangeValidator customValidator = new DateRangeValidator(minDate, null);
+
+        // Valid dates after minimum
+        assertTrue(customValidator.eval("2000-01-01"));
+        assertTrue(customValidator.eval("2020-06-15"));
+        assertTrue(customValidator.eval("2030-12-31")); // Future dates should be valid
+
+        // Invalid dates before minimum
+        assertFalse(customValidator.eval("1999-12-31"));
+    }
+
+    @Test
+    void customRange_WithOnlyMaxDate_ShouldValidateCorrectly() {
+        // Test with only a maximum date (no minimum)
+        LocalDate maxDate = LocalDate.of(2020, 12, 31);
+        DateRangeValidator customValidator = new DateRangeValidator(null, maxDate);
+
+        // Valid dates before maximum
+        assertTrue(customValidator.eval("1900-01-01")); // Very old dates should be valid
+        assertTrue(customValidator.eval("2020-06-15"));
+        assertTrue(customValidator.eval("2020-12-31"));
+
+        // Invalid dates after maximum
+        assertFalse(customValidator.eval("2021-01-01"));
+    }
+
+    @Test
+    void customRange_WithNoBounds_ShouldOnlyValidateParseable() {
+        // Test with no bounds (only validates parseability)
+        DateRangeValidator customValidator = new DateRangeValidator();
+
+        // Valid parseable dates (any date)
+        assertTrue(customValidator.eval("1800-01-01"));
+        assertTrue(customValidator.eval("2050-12-31"));
+        assertTrue(customValidator.eval("1950-06-15"));
+
+        // Invalid unparseable dates
+        assertFalse(customValidator.eval("invalid-date"));
+        assertFalse(customValidator.eval("2023-13-01"));
+        assertFalse(customValidator.eval(null));
     }
 }

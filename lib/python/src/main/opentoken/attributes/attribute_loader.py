@@ -10,7 +10,12 @@ from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
 from opentoken.attributes.person.sex_attribute import SexAttribute
 from opentoken.attributes.person.social_security_number_attribute import SocialSecurityNumberAttribute
 from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
+from opentoken.attributes.person.age_attribute import AgeAttribute
+from opentoken.attributes.person.birth_year_attribute import BirthYearAttribute
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
+from opentoken.attributes.general.string_attribute import StringAttribute
+from opentoken.attributes.general.date_attribute import DateAttribute
+from opentoken.attributes.general.year_attribute import YearAttribute
 
 class AttributeLoader:
     """
@@ -24,9 +29,14 @@ class AttributeLoader:
         """Load all attribute implementations."""
         return {
             RecordIdAttribute(),
+            StringAttribute(),
+            DateAttribute(),
+            YearAttribute(),
             FirstNameAttribute(),
             LastNameAttribute(),
             BirthDateAttribute(),
+            AgeAttribute(),
+            BirthYearAttribute(),
             SexAttribute(),
             SocialSecurityNumberAttribute(),
             PostalCodeAttribute()
