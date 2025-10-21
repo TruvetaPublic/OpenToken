@@ -1,0 +1,2 @@
+[console_scripts]
+opentoken = opentoken.main:main
