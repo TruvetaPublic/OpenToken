@@ -6,3 +6,5 @@ from opentoken.attributes.person.social_security_number_attribute import SocialS
 from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
 from opentoken.attributes.person.us_postal_code_attribute import USPostalCodeAttribute
 from opentoken.attributes.person.canadian_postal_code_attribute import CanadianPostalCodeAttribute
+from opentoken.attributes.person.age_attribute import AgeAttribute
+from opentoken.attributes.person.birth_year_attribute import BirthYearAttribute

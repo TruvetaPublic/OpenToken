@@ -2,4 +2,6 @@ from opentoken.attributes.validation.serializable_attribute_validator import Ser
 from opentoken.attributes.validation.not_null_or_empty_validator import NotNullOrEmptyValidator
 from opentoken.attributes.validation.regex_validator import RegexValidator
 from opentoken.attributes.validation.not_in_validator import NotInValidator
-from opentoken.attributes.validation.birth_date_range_validator import BirthDateRangeValidator
+from opentoken.attributes.validation.date_range_validator import DateRangeValidator
+from opentoken.attributes.validation.age_range_validator import AgeRangeValidator
+from opentoken.attributes.validation.year_range_validator import YearRangeValidator
