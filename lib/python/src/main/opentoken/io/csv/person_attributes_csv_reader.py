@@ -4,10 +4,12 @@ Copyright (c) Truveta. All rights reserved.
 
 import csv
 import logging
+import uuid
 from typing import Dict, Type, Set
 from opentoken.io.person_attributes_reader import PersonAttributesReader
 from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.attribute_loader import AttributeLoader
+from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,7 @@ class PersonAttributesCSVReader(PersonAttributesReader):
             self.csv_reader = csv.DictReader(self.file_handle)
             self.iterator = iter(self.csv_reader)
             self.attribute_map: Dict[str, Attribute] = {}
+            self.has_record_id = False
 
             # Load attributes and build the mapping
             attributes: Set[Attribute] = AttributeLoader.load()
@@ -43,6 +46,8 @@ class PersonAttributesCSVReader(PersonAttributesReader):
                     for alias in attribute.get_aliases():
                         if header_name.lower() == alias.lower():
                             self.attribute_map[header_name] = attribute
+                            if isinstance(attribute, RecordIdAttribute):
+                                self.has_record_id = True
                             break
 
         except IOError as e:
@@ -68,6 +73,10 @@ class PersonAttributesCSVReader(PersonAttributesReader):
             if attribute is not None:
                 person_attributes[type(attribute)] = value
             # else ignore attribute as it's not supported
+
+        # Generate UUID for RecordId if not present in the input
+        if not self.has_record_id:
+            person_attributes[RecordIdAttribute] = str(uuid.uuid4())
 
         return person_attributes
 

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeLoader;
+import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 
 /**
  * Reads person attributes from a CSV file.
@@ -33,6 +35,7 @@ public class PersonAttributesCSVReader implements PersonAttributesReader {
     private final CSVParser csvParser;
     private Iterator<CSVRecord> iterator;
     private Map<String, Attribute> attributeMap = new HashMap<>();
+    private boolean hasRecordId = false;
 
     /**
      * Initialize the class with the input file in CSV format.
@@ -53,6 +56,9 @@ public class PersonAttributesCSVReader implements PersonAttributesReader {
                     for (String alias : attribute.getAliases()) {
                         if (headerName.equalsIgnoreCase(alias)) {
                             attributeMap.put(headerName, attribute);
+                            if (attribute instanceof RecordIdAttribute) {
+                                hasRecordId = true;
+                            }
                         }
                     }
                 }
@@ -86,6 +92,11 @@ public class PersonAttributesCSVReader implements PersonAttributesReader {
             }
             // else ignore attribute as it's not supported
         });
+
+        // Generate UUID for RecordId if not present in the input
+        if (!hasRecordId) {
+            personAttributes.put(RecordIdAttribute.class, UUID.randomUUID().toString());
+        }
 
         return personAttributes;
     }

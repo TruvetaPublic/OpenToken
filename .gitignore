@@ -50,3 +50,8 @@ core
 
 # Ignore Python cache files
 __pycache__/
+
+# Python virtual environment
+.venv/
+venv/
+*.egg-info/

@@ -178,4 +178,46 @@ class PersonAttributesParquetReaderTest {
         String invalidtempFilePath = "non_existent_file.parquet";
         assertThrows(IOException.class, () -> new PersonAttributesParquetReader(invalidtempFilePath));
     }
+
+    @Test
+    void testParquetWithoutRecordIdGeneratesUUID() throws Exception {
+        try (PersonAttributesParquetWriter writer = new PersonAttributesParquetWriter(tempFilePath)) {
+            // Write records without RecordId
+            Map<String, String> record1 = new HashMap<>();
+            record1.put("SocialSecurityNumber", "123-45-6789");
+            record1.put("FirstName", "John");
+            writer.writeAttributes(record1);
+
+            Map<String, String> record2 = new HashMap<>();
+            record2.put("SocialSecurityNumber", "987-65-4321");
+            record2.put("FirstName", "Jane");
+            writer.writeAttributes(record2);
+        }
+
+        try (PersonAttributesParquetReader reader = new PersonAttributesParquetReader(tempFilePath)) {
+            assertTrue(reader.hasNext());
+
+            Map<Class<? extends Attribute>, String> firstRecord = reader.next();
+            assertNotNull(firstRecord.get(RecordIdAttribute.class));
+            String firstRecordId = firstRecord.get(RecordIdAttribute.class);
+            assertTrue(firstRecordId.length() > 0);
+            // Verify it looks like a UUID (has 4 dashes)
+            assertEquals(4, firstRecordId.split("-").length - 1);
+            assertEquals("John", firstRecord.get(FirstNameAttribute.class));
+
+            assertTrue(reader.hasNext());
+
+            Map<Class<? extends Attribute>, String> secondRecord = reader.next();
+            assertNotNull(secondRecord.get(RecordIdAttribute.class));
+            String secondRecordId = secondRecord.get(RecordIdAttribute.class);
+            assertTrue(secondRecordId.length() > 0);
+            assertEquals(4, secondRecordId.split("-").length - 1);
+            assertEquals("Jane", secondRecord.get(FirstNameAttribute.class));
+
+            // Verify UUIDs are unique
+            assertFalse(firstRecordId.equals(secondRecordId));
+
+            assertFalse(reader.hasNext());
+        }
+    }
 }

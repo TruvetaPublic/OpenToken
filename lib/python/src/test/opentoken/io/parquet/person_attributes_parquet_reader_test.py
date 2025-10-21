@@ -145,3 +145,48 @@ class TestPersonAttributesParquetReader:
         invalid_file_path = "non_existent_file.parquet"
         with pytest.raises(IOError):
             PersonAttributesParquetReader(invalid_file_path)
+
+    def test_parquet_without_record_id_generates_uuid(self):
+        """Test Parquet file without RecordId column generates unique UUIDs."""
+        # Create a Parquet file without RecordId
+        schema = pa.schema([
+            ('FirstName', pa.string()),
+            ('LastName', pa.string()),
+            ('SocialSecurityNumber', pa.string())
+        ])
+        
+        data = [
+            pa.array(['John', 'Jane']),
+            pa.array(['Doe', 'Smith']),
+            pa.array(['123-45-6789', '987-65-4321'])
+        ]
+        
+        table = pa.table(data, schema=schema)
+        pq.write_table(table, self.temp_file_path)
+
+        with PersonAttributesParquetReader(self.temp_file_path) as reader:
+            # Test first record
+            first_record = next(reader)
+            assert RecordIdAttribute in first_record
+            first_record_id = first_record[RecordIdAttribute]
+            assert first_record_id is not None
+            assert len(first_record_id) > 0
+            # Verify it looks like a UUID (has dashes in the right places)
+            assert first_record_id.count('-') == 4
+            assert first_record[FirstNameAttribute] == "John"
+
+            # Test second record
+            second_record = next(reader)
+            assert RecordIdAttribute in second_record
+            second_record_id = second_record[RecordIdAttribute]
+            assert second_record_id is not None
+            assert len(second_record_id) > 0
+            assert second_record_id.count('-') == 4
+            assert second_record[FirstNameAttribute] == "Jane"
+
+            # Verify UUIDs are unique
+            assert first_record_id != second_record_id
+
+            # Test no more records
+            with pytest.raises(StopIteration):
+                next(reader)
