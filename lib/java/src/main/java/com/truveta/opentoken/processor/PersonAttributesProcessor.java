@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -121,9 +122,15 @@ public final class PersonAttributesProcessor {
 
         Set<String> tokenIds = new TreeSet<>(tokenGeneratorResult.getTokens().keySet());
 
+        // Generate a UUID for RecordId if it's not present in the input data
+        String recordId = row.get(RecordIdAttribute.class);
+        if (recordId == null || recordId.isEmpty()) {
+            recordId = UUID.randomUUID().toString();
+        }
+
         for (String tokenId : tokenIds) {
             var rowResult = new HashMap<String, String>();
-            rowResult.put(RECORD_ID, row.get(RecordIdAttribute.class));
+            rowResult.put(RECORD_ID, recordId);
             rowResult.put(RULE_ID, tokenId);
             rowResult.put(TOKEN, tokenGeneratorResult.getTokens().get(tokenId));
 

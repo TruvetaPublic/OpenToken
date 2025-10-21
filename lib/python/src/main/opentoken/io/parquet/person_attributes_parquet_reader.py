@@ -3,7 +3,6 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 import logging
-import uuid
 from typing import Dict, Type, Set
 try:
     import pyarrow.parquet as pq
@@ -12,7 +11,6 @@ except ImportError:
 
 from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.attribute_loader import AttributeLoader
-from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.io.person_attributes_reader import PersonAttributesReader
 
 
@@ -45,21 +43,12 @@ class PersonAttributesParquetReader(PersonAttributesReader):
             self.has_next_called = False
             self.has_next_result = False
             self.attribute_map: Dict[str, Attribute] = {}
-            self.has_record_id = False
 
             # Load attributes and build the mapping
             attributes: Set[Attribute] = AttributeLoader.load()
             for attribute in attributes:
                 for alias in attribute.get_aliases():
                     self.attribute_map[alias.lower()] = attribute
-                    
-            # Check if RecordId column exists in the parquet file
-            for column_name in self.table.schema.names:
-                if column_name.lower() in self.attribute_map:
-                    attribute = self.attribute_map[column_name.lower()]
-                    if isinstance(attribute, RecordIdAttribute):
-                        self.has_record_id = True
-                        break
 
         except Exception as e:
             logger.error(f"Error in reading Parquet file: {e}")
@@ -127,10 +116,6 @@ class PersonAttributesParquetReader(PersonAttributesReader):
                 attribute_class = type(attribute)
                 field_value_str = str(field_value) if field_value is not None else None
                 attributes[attribute_class] = field_value_str
-
-        # Generate UUID for RecordId if not present in the input
-        if not self.has_record_id:
-            attributes[RecordIdAttribute] = str(uuid.uuid4())
 
         return attributes
 

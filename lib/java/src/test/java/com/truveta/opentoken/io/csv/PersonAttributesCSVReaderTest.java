@@ -130,41 +130,4 @@ class PersonAttributesCSVReaderTest {
         String invalidFilePath = "non_existent_file.csv";
         assertThrows(IOException.class, () -> new PersonAttributesCSVReader(invalidFilePath));
     }
-
-    @Test
-    void testCSVWithoutRecordIdGeneratesUUID() throws Exception {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
-            writer.write("FirstName,LastName,SocialSecurityNumber\n");
-            writer.write("John,Doe,123-45-6789\n");
-            writer.write("Jane,Smith,987-65-4321\n");
-        }
-
-        try (PersonAttributesCSVReader reader = new PersonAttributesCSVReader(tempFile.getAbsolutePath())) {
-            assertTrue(reader.hasNext());
-
-            Map<Class<? extends Attribute>, String> firstRecord = reader.next();
-            assertNotNull(firstRecord.get(RecordIdAttribute.class));
-            String firstRecordId = firstRecord.get(RecordIdAttribute.class);
-            assertTrue(firstRecordId.length() > 0);
-            // Verify it looks like a UUID (has 4 dashes)
-            assertEquals(4, firstRecordId.split("-").length - 1);
-            assertEquals("John", firstRecord.get(FirstNameAttribute.class));
-            assertEquals("Doe", firstRecord.get(LastNameAttribute.class));
-
-            assertTrue(reader.hasNext());
-
-            Map<Class<? extends Attribute>, String> secondRecord = reader.next();
-            assertNotNull(secondRecord.get(RecordIdAttribute.class));
-            String secondRecordId = secondRecord.get(RecordIdAttribute.class);
-            assertTrue(secondRecordId.length() > 0);
-            assertEquals(4, secondRecordId.split("-").length - 1);
-            assertEquals("Jane", secondRecord.get(FirstNameAttribute.class));
-            assertEquals("Smith", secondRecord.get(LastNameAttribute.class));
-
-            // Verify UUIDs are unique
-            assertFalse(firstRecordId.equals(secondRecordId));
-
-            assertFalse(reader.hasNext());
-        }
-    }
 }

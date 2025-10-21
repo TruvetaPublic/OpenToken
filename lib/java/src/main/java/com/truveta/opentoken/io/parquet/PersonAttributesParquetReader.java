@@ -12,7 +12,6 @@ import org.apache.hadoop.conf.Configuration;
 
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeLoader;
-import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 
 import org.apache.hadoop.fs.Path;
@@ -23,7 +22,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.UUID;
 import java.io.Closeable;
 
 /**
@@ -36,7 +34,6 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
     private Iterator<Group> iterator;
     private boolean closed = false;
     private boolean hasNextCalled = false;
-    private boolean hasRecordId = false;
 
     private Map<String, Attribute> attributeMap = new HashMap<>();
 
@@ -62,34 +59,12 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
 
         this.reader = ParquetReader.builder(readSupport, path).withConf(conf).build();
 
-        // Read first group to check schema for RecordId
-        Group firstGroup = reader.read();
-        if (firstGroup != null) {
-            GroupType schema = firstGroup.getType();
-            for (Type field : schema.getFields()) {
-                String fieldName = field.getName();
-                Attribute attribute = attributeMap.get(fieldName.toLowerCase());
-                if (attribute instanceof RecordIdAttribute) {
-                    hasRecordId = true;
-                    break;
-                }
-            }
-            
-            // Store the first group for iteration
-            currentGroup = firstGroup;
-        }
-
         this.iterator = new Iterator<Group>() {
-            private Group nextGroup = currentGroup;
-
             @Override
             public boolean hasNext() {
-                if (nextGroup != null) {
-                    return true;
-                }
                 try {
-                    nextGroup = reader.read();
-                    return nextGroup != null;
+                    currentGroup = reader.read();
+                    return currentGroup != null;
                 } catch (IOException e) {
                     return false;
                 }
@@ -97,17 +72,7 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
 
             @Override
             public Group next() {
-                if (nextGroup != null) {
-                    Group result = nextGroup;
-                    nextGroup = null;
-                    return result;
-                }
-                try {
-                    currentGroup = reader.read();
-                    return currentGroup;
-                } catch (IOException e) {
-                    throw new NoSuchElementException();
-                }
+                return currentGroup;
             }
         };
     }
@@ -147,11 +112,6 @@ public class PersonAttributesParquetReader implements PersonAttributesReader, Cl
                 fieldValue = group.getValueToString(fieldIndex, 0);
             }
             attributes.put(attributeClass, fieldValue);
-        }
-
-        // Generate UUID for RecordId if not present in the input
-        if (!hasRecordId) {
-            attributes.put(RecordIdAttribute.class, UUID.randomUUID().toString());
         }
 
         return attributes;

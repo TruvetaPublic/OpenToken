@@ -110,39 +110,3 @@ class TestPersonAttributesCSVReader:
         invalid_file_path = "non_existent_file.csv"
         with pytest.raises(IOError):
             PersonAttributesCSVReader(invalid_file_path)
-
-    def test_csv_without_record_id_generates_uuid(self):
-        """Test CSV file without RecordId column generates unique UUIDs."""
-        with open(self.temp_file_path, 'w', encoding='utf-8') as f:
-            f.write("FirstName,LastName,SocialSecurityNumber\n")
-            f.write("John,Doe,123-45-6789\n")
-            f.write("Jane,Smith,987-65-4321\n")
-
-        with PersonAttributesCSVReader(self.temp_file_path) as reader:
-            # Test first record
-            first_record = next(reader)
-            assert RecordIdAttribute in first_record
-            first_record_id = first_record[RecordIdAttribute]
-            assert first_record_id is not None
-            assert len(first_record_id) > 0
-            # Verify it looks like a UUID (has dashes in the right places)
-            assert first_record_id.count('-') == 4
-            assert first_record[FirstNameAttribute] == "John"
-            assert first_record[LastNameAttribute] == "Doe"
-
-            # Test second record
-            second_record = next(reader)
-            assert RecordIdAttribute in second_record
-            second_record_id = second_record[RecordIdAttribute]
-            assert second_record_id is not None
-            assert len(second_record_id) > 0
-            assert second_record_id.count('-') == 4
-            assert second_record[FirstNameAttribute] == "Jane"
-            assert second_record[LastNameAttribute] == "Smith"
-
-            # Verify UUIDs are unique
-            assert first_record_id != second_record_id
-
-            # Test no more records
-            with pytest.raises(StopIteration):
-                next(reader)
