@@ -22,7 +22,7 @@ class DateRangeValidatorTest {
 
     @BeforeEach
     void setUp() {
-        // Create a validator with the same range as the old BirthDateRangeValidator (1910-01-01 to today)
+        // Create a validator with the minimum date set to 1910-01-01 (previously used as the lower bound for birth dates)
         validator = new DateRangeValidator(LocalDate.of(1910, 1, 1), true);
     }
 
