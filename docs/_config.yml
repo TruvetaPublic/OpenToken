@@ -1,0 +1,24 @@
+title: OpenToken Documentation
+description: Privacy-preserving person matching using cryptographically secure token generation
+theme: jekyll-theme-cayman
+baseurl: "/OpenToken"
+url: "https://mattwise-42.github.io"
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Development Guide
+    url: /dev-guide-development
+  - title: Metadata Format
+    url: /metadata-format
+
+# Exclude from processing
+exclude:
+  - README.md

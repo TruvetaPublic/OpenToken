@@ -1,3 +1,8 @@
+---
+layout: default
+title: Development Guide
+---
+
 # OpenToken Development Guide
 
 This guide centralizes contributor-facing information. It covers local setup, language-specific build instructions, development environment, versioning, and key contribution workflows.

@@ -1,3 +1,8 @@
+---
+layout: default
+title: Metadata Format
+---
+
 # OpenToken Metadata Format Documentation
 
 ## Overview
