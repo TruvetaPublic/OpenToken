@@ -180,7 +180,7 @@ The input file (in csv format) must contain at least the following columns and v
 | BirthDate, DateOfBirth                             | Required | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                        |
 | SocialSecurityNumber, NationalIdentificationNumber | Required | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                            |
 
-**Note 1:** RecordId is optional. When not provided in the input file, the system automatically generates a unique UUID for each record in the output.
+**Note 1:** RecordId is optional. When not provided in the input file, the system automatically generates a unique UUID for each record in the output. Auto-generated UUIDs are suitable for initial overlap analysis, but for linkage of actual data records, providing real RecordIds from your source data is recommended.
 
 **Note 2:** No attribute values (other than RecordId) can be empty to be considered valid.
 
