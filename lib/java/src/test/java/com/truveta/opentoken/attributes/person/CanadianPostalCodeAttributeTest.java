@@ -44,9 +44,9 @@ class CanadianPostalCodeAttributeTest {
 
     @Test
     void normalize_ShouldHandleCanadianPostalCodes() {
-        assertEquals("K1A 0A6", canadianPostalCodeAttribute.normalize("K1A0A6"));
-        assertEquals("K1A 0A6", canadianPostalCodeAttribute.normalize("k1a0a6"));
-        assertEquals("K1A 0A6", canadianPostalCodeAttribute.normalize("K1A 0A6"));
+        assertEquals("K1B 0A6", canadianPostalCodeAttribute.normalize("K1B0A6"));
+        assertEquals("K1B 0A6", canadianPostalCodeAttribute.normalize("k1b0a6"));
+        assertEquals("K1B 0A6", canadianPostalCodeAttribute.normalize("K1B 0A6"));
         assertEquals("M5V 3L9", canadianPostalCodeAttribute.normalize("m5v3l9"));
         assertEquals("H3Z 2Y7", canadianPostalCodeAttribute.normalize("H3Z2Y7"));
         assertEquals("T2X 1V4", canadianPostalCodeAttribute.normalize("t2x1v4"));
@@ -56,15 +56,15 @@ class CanadianPostalCodeAttributeTest {
 
     @Test
     void validate_ShouldReturnTrueForValidCanadianPostalCodes() {
-        assertTrue(canadianPostalCodeAttribute.validate("K1A 0A7"));
-        assertTrue(canadianPostalCodeAttribute.validate("K1A0A7"));
-        assertTrue(canadianPostalCodeAttribute.validate("k1a 0a7"));
-        assertTrue(canadianPostalCodeAttribute.validate("k1a0a7"));
+        assertTrue(canadianPostalCodeAttribute.validate("K1B 0A7"));
+        assertTrue(canadianPostalCodeAttribute.validate("K1B0A7"));
+        assertTrue(canadianPostalCodeAttribute.validate("k1b 0a7"));
+        assertTrue(canadianPostalCodeAttribute.validate("k1b0a7"));
         assertTrue(canadianPostalCodeAttribute.validate("M5V 3L9"));
         assertTrue(canadianPostalCodeAttribute.validate("H3Z 2Y7"));
         assertTrue(canadianPostalCodeAttribute.validate("T2X 1V4"));
-        assertTrue(canadianPostalCodeAttribute.validate(" K1A 0A7 "));
-        assertTrue(canadianPostalCodeAttribute.validate("  K1A0A7  "));
+        assertTrue(canadianPostalCodeAttribute.validate(" K1B 0A7 "));
+        assertTrue(canadianPostalCodeAttribute.validate("  K1B0A7  "));
         assertTrue(canadianPostalCodeAttribute.validate("V6B 1A1"));
         assertTrue(canadianPostalCodeAttribute.validate("N2L 3G1"));
     }
@@ -75,16 +75,16 @@ class CanadianPostalCodeAttributeTest {
         assertFalse(canadianPostalCodeAttribute.validate(""), "Empty value should not be allowed");
 
         // Invalid Canadian postal code formats
-        // Note: "K1A" is now VALID - it will be padded to "K1A 000"
-        assertFalse(canadianPostalCodeAttribute.validate("K1A 0A"),
+        // Note: Using K1B instead of K1A for testing incomplete formats (K1A is now an invalid prefix)
+        assertFalse(canadianPostalCodeAttribute.validate("K1B 0A"),
                 "Incomplete Canadian postal code should not be allowed");
-        assertFalse(canadianPostalCodeAttribute.validate("K1A 0A67"),
+        assertFalse(canadianPostalCodeAttribute.validate("K1B 0A67"),
                 "Too long Canadian postal code should not be allowed");
         assertFalse(canadianPostalCodeAttribute.validate("K11 0A6"),
                 "Invalid Canadian postal code format should not be allowed");
         assertFalse(canadianPostalCodeAttribute.validate("KAA 0A6"),
                 "Invalid Canadian postal code format should not be allowed");
-        assertFalse(canadianPostalCodeAttribute.validate("K1A 0AA"),
+        assertFalse(canadianPostalCodeAttribute.validate("K1B 0AA"),
                 "Invalid Canadian postal code format should not be allowed");
 
         // Invalid placeholder values
@@ -106,14 +106,14 @@ class CanadianPostalCodeAttributeTest {
     @Test
     void normalize_ShouldHandleWhitespace() {
         // Test different types of whitespace for Canadian postal codes
-        assertEquals("K1A 0A7", canadianPostalCodeAttribute.normalize("K1A0A7"), "No space");
-        assertEquals("K1A 0A7", canadianPostalCodeAttribute.normalize(" K1A0A7"), "Leading space");
-        assertEquals("K1A 0A7", canadianPostalCodeAttribute.normalize("K1A0A7 "), "Trailing space");
-        assertEquals("K1A 0A7", canadianPostalCodeAttribute.normalize(" K1A 0A7 "), "Leading and trailing spaces");
-        assertEquals("K1A 0A7", canadianPostalCodeAttribute.normalize("K1A\t0A7"), "Tab character");
-        assertEquals("K1A 0A7", canadianPostalCodeAttribute.normalize("K1A\n0A7"), "Newline character");
-        assertEquals("K1A 0A7", canadianPostalCodeAttribute.normalize("K1A\r\n0A7"), "Carriage return and newline");
-        assertEquals("K1A 0A7", canadianPostalCodeAttribute.normalize("  K1A   0A7  "), "Multiple spaces");
+        assertEquals("K1B 0A7", canadianPostalCodeAttribute.normalize("K1B0A7"), "No space");
+        assertEquals("K1B 0A7", canadianPostalCodeAttribute.normalize(" K1B0A7"), "Leading space");
+        assertEquals("K1B 0A7", canadianPostalCodeAttribute.normalize("K1B0A7 "), "Trailing space");
+        assertEquals("K1B 0A7", canadianPostalCodeAttribute.normalize(" K1B 0A7 "), "Leading and trailing spaces");
+        assertEquals("K1B 0A7", canadianPostalCodeAttribute.normalize("K1B\t0A7"), "Tab character");
+        assertEquals("K1B 0A7", canadianPostalCodeAttribute.normalize("K1B\n0A7"), "Newline character");
+        assertEquals("K1B 0A7", canadianPostalCodeAttribute.normalize("K1B\r\n0A7"), "Carriage return and newline");
+        assertEquals("K1B 0A7", canadianPostalCodeAttribute.normalize("  K1B   0A7  "), "Multiple spaces");
     }
 
     @Test
@@ -123,7 +123,7 @@ class CanadianPostalCodeAttributeTest {
         final CountDownLatch finishLatch = new CountDownLatch(threadCount);
         final CyclicBarrier barrier = new CyclicBarrier(threadCount);
         final List<String> results = Collections.synchronizedList(new ArrayList<>());
-        final String testPostalCode = "k1a0a7";
+        final String testPostalCode = "k1b0a7";
 
         for (int i = 0; i < threadCount; i++) {
             Thread thread = new Thread(() -> {
@@ -147,7 +147,7 @@ class CanadianPostalCodeAttributeTest {
 
         assertEquals(threadCount, results.size());
         for (String result : results) {
-            assertEquals("K1A 0A7", result);
+            assertEquals("K1B 0A7", result);
         }
     }
 
@@ -203,19 +203,20 @@ class CanadianPostalCodeAttributeTest {
     }
 
     @Test
-    void validate_ShouldAcceptValidZip3EvenIfFullVersionIsInvalid() {
-        // These ZIP-3 codes are VALID even though their full versions might be invalid
-        // They pad to "XXX 000" which is different from the invalid full postal codes
-        // For example, "A1A" pads to "A1A 000", not "A1A 1A1"
-        assertTrue(canadianPostalCodeAttribute.validate("A1A"), "A1A pads to A1A 000 which is valid");
-        assertTrue(canadianPostalCodeAttribute.validate("H0H"), "H0H pads to H0H 000 which is valid");
-        assertTrue(canadianPostalCodeAttribute.validate("K1A"), "K1A pads to K1A 000 which is valid");
-        assertTrue(canadianPostalCodeAttribute.validate("X0X"), "X0X pads to X0X 000 which is valid");
-        assertTrue(canadianPostalCodeAttribute.validate("Y0Y"), "Y0Y pads to Y0Y 000 which is valid");
-        assertTrue(canadianPostalCodeAttribute.validate("Z0Z"), "Z0Z pads to Z0Z 000 which is valid");
-        assertTrue(canadianPostalCodeAttribute.validate("A0A"), "A0A pads to A0A 000 which is valid");
-        assertTrue(canadianPostalCodeAttribute.validate("B1B"), "B1B pads to B1B 000 which is valid");
-        assertTrue(canadianPostalCodeAttribute.validate("C2C"), "C2C pads to C2C 000 which is valid");
+    void validate_ShouldReturnFalseForInvalidZip3() {
+        // These ZIP-3 codes are invalid as per requirements
+        assertFalse(canadianPostalCodeAttribute.validate("K1A"), "K1A should be invalid");
+        assertFalse(canadianPostalCodeAttribute.validate("M7A"), "M7A should be invalid");
+        assertFalse(canadianPostalCodeAttribute.validate("H0H"), "H0H should be invalid");
+        
+        // These ZIP-3 codes are VALID - they are not in the invalid list
+        assertTrue(canadianPostalCodeAttribute.validate("A1A"), "A1A should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("X0X"), "X0X should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("Y0Y"), "Y0Y should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("Z0Z"), "Z0Z should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("A0A"), "A0A should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("B1B"), "B1B should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("C2C"), "C2C should be valid");
     }
 
     @Test
@@ -235,8 +236,8 @@ class CanadianPostalCodeAttributeTest {
         // Test various Canadian postal code values with both original and deserialized
         // attributes
         String[] testValues = {
-                "K1A 0A7",
-                "k1a0a7",
+                "K1B 0A7",
+                "k1b0a7",
                 "M5V 3L9",
                 "H3Z2Y7",
                 "T2X 1V4",

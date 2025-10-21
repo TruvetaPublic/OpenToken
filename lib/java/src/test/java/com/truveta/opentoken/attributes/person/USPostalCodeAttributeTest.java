@@ -202,17 +202,16 @@ class USPostalCodeAttributeTest {
 
     @Test
     void validate_ShouldReturnFalseForInvalidZip3ThatWouldBeInvalid() {
-        // Only "000" is invalid because it pads to "00000" which is in the invalid list
-        assertFalse(usPostalCodeAttribute.validate("000"), "000 pads to 00000 which is invalid");
+        // These ZIP-3 codes are invalid as per requirements
+        assertFalse(usPostalCodeAttribute.validate("000"), "000 should be invalid");
+        assertFalse(usPostalCodeAttribute.validate("555"), "555 should be invalid");
+        assertFalse(usPostalCodeAttribute.validate("888"), "888 should be invalid");
         
-        // These ZIP-3 codes are VALID because they pad to different codes than the invalid ones
-        // "111" pads to "11100", not "11111", so it's valid
-        assertTrue(usPostalCodeAttribute.validate("111"), "111 pads to 11100 which is valid");
-        // "123" pads to "12300", not "12345", so it's valid
-        assertTrue(usPostalCodeAttribute.validate("123"), "123 pads to 12300 which is valid");
-        // Other similar cases are also valid
-        assertTrue(usPostalCodeAttribute.validate("222"), "222 pads to 22200 which is valid");
-        assertTrue(usPostalCodeAttribute.validate("987"), "987 pads to 98700 which is valid");
+        // These ZIP-3 codes are VALID - they don't start with 000, 555, or 888
+        assertTrue(usPostalCodeAttribute.validate("111"), "111 should be valid");
+        assertTrue(usPostalCodeAttribute.validate("123"), "123 should be valid");
+        assertTrue(usPostalCodeAttribute.validate("222"), "222 should be valid");
+        assertTrue(usPostalCodeAttribute.validate("987"), "987 should be valid");
     }
 
     @Test

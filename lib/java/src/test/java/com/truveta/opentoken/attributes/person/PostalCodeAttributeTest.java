@@ -50,9 +50,9 @@ class PostalCodeAttributeTest {
 
     @Test
     void normalize_ShouldHandleCanadianPostalCodes() {
-        assertEquals("K1A 0A6", postalCodeAttribute.normalize("K1A0A6"));
-        assertEquals("K1A 0A6", postalCodeAttribute.normalize("k1a0a6"));
-        assertEquals("K1A 0A6", postalCodeAttribute.normalize("K1A 0A6"));
+        assertEquals("K1B 0A6", postalCodeAttribute.normalize("K1B0A6"));
+        assertEquals("K1B 0A6", postalCodeAttribute.normalize("k1b0a6"));
+        assertEquals("K1B 0A6", postalCodeAttribute.normalize("K1B 0A6"));
         assertEquals("M5V 3L9", postalCodeAttribute.normalize("m5v3l9"));
         assertEquals("H3Z 2Y7", postalCodeAttribute.normalize("H3Z2Y7"));
         assertEquals("T2X 1V4", postalCodeAttribute.normalize("t2x1v4"));
@@ -69,15 +69,15 @@ class PostalCodeAttributeTest {
 
     @Test
     void validate_ShouldReturnTrueForValidCanadianPostalCodes() {
-        assertTrue(postalCodeAttribute.validate("K1A 0A7"));
-        assertTrue(postalCodeAttribute.validate("K1A0A7"));
-        assertTrue(postalCodeAttribute.validate("k1a 0a7"));
-        assertTrue(postalCodeAttribute.validate("k1a0a7"));
+        assertTrue(postalCodeAttribute.validate("K1B 0A7"));
+        assertTrue(postalCodeAttribute.validate("K1B0A7"));
+        assertTrue(postalCodeAttribute.validate("k1b 0a7"));
+        assertTrue(postalCodeAttribute.validate("k1b0a7"));
         assertTrue(postalCodeAttribute.validate("M5V 3L9"));
         assertTrue(postalCodeAttribute.validate("H3Z 2Y7"));
         assertTrue(postalCodeAttribute.validate("T2X 1V4"));
-        assertTrue(postalCodeAttribute.validate(" K1A 0A7 "));
-        assertTrue(postalCodeAttribute.validate("  K1A0A7  "));
+        assertTrue(postalCodeAttribute.validate(" K1B 0A7 "));
+        assertTrue(postalCodeAttribute.validate("  K1B0A7  "));
     }
 
     @Test
@@ -101,7 +101,7 @@ class PostalCodeAttributeTest {
         assertEquals("10\t001", attribute.normalize("10\t001"), "Tab character");
         assertEquals("10\n001", attribute.normalize("10\n001"), "Newline character");
         assertEquals("10\r\n001", attribute.normalize("10\r\n001"), "Carriage return and newline");
-        assertEquals("K1A  0A7", attribute.normalize("K1A  0A7"),
+        assertEquals("K1B  0A7", attribute.normalize("K1B  0A7"),
                 "Inner space should not be normalized for Canadian postal code");
     }
 
@@ -117,14 +117,14 @@ class PostalCodeAttributeTest {
         assertFalse(postalCodeAttribute.validate("abcde"), "Non-numeric should not be allowed");
 
         // Invalid Canadian postal code formats
-        // Note: "K1A" is now VALID - it will be padded to "K1A 000"
-        assertFalse(postalCodeAttribute.validate("K1A 0A"), "Incomplete Canadian postal code should not be allowed");
-        assertFalse(postalCodeAttribute.validate("K1A 0A67"), "Too long Canadian postal code should not be allowed");
+        // Note: Using K1B instead of K1A for testing incomplete formats (K1A is now an invalid prefix)
+        assertFalse(postalCodeAttribute.validate("K1B 0A"), "Incomplete Canadian postal code should not be allowed");
+        assertFalse(postalCodeAttribute.validate("K1B 0A67"), "Too long Canadian postal code should not be allowed");
         assertFalse(postalCodeAttribute.validate("K11 0A6"),
                 "Invalid Canadian postal code format should not be allowed");
         assertFalse(postalCodeAttribute.validate("KAA 0A6"),
                 "Invalid Canadian postal code format should not be allowed");
-        assertFalse(postalCodeAttribute.validate("K1A 0AA"),
+        assertFalse(postalCodeAttribute.validate("K1B 0AA"),
                 "Invalid Canadian postal code format should not be allowed");
     }
 
@@ -245,8 +245,8 @@ class PostalCodeAttributeTest {
                 "90210-1234",
                 "30301",
                 "60601-2345",
-                "K1A 0A7",
-                "k1a0a7",
+                "K1B 0A7",
+                "k1b0a7",
                 "M5V 3L9",
                 "H3Z2Y7"
         };

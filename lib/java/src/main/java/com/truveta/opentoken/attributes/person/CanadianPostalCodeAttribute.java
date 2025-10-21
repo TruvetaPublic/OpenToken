@@ -59,9 +59,11 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
             "Z0Z 0Z0",
             "A0A 0A0",
             "B1B 1B1",
-            "C2C 2C2"
-            // Note: No 3-character codes are invalid because they pad to "XXX 000" which is different
-            // from the invalid full postal codes like "A1A 1A1", "K1A 0A6", etc.
+            "C2C 2C2",
+            // 3-character invalid codes (ZIP-3 prefixes that should be invalidated)
+            "K1A", // Canadian government
+            "M7A", // Government of Ontario
+            "H0H"  // Santa Claus
     );
 
     public CanadianPostalCodeAttribute() {

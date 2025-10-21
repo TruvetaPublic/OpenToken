@@ -64,10 +64,10 @@ public class USPostalCodeAttribute extends BaseAttribute {
             "12345",
             "54321",
             "98765",
-            // 3-digit invalid codes (ZIP-3 that would pad to "XXX00" which matches invalid ZIP-5)
-            "000" // pads to 00000
-            // Note: "111" pads to "11100", not "11111", so it's NOT invalid
-            // Note: "123" pads to "12300", not "12345", so it's NOT invalid
+            // 3-digit invalid codes (ZIP-3 prefixes that should be invalidated)
+            "000", // pads to 00000
+            "555", // pads to 55500
+            "888"  // pads to 88800
     );
 
     public USPostalCodeAttribute() {
