@@ -27,14 +27,11 @@ class USPostalCodeAttribute(BaseAttribute):
 
     INVALID_ZIP_CODES = {
         # 5-digit invalid codes
-        "00000",
         "11111",
         "22222",
         "33333",
-        "55555",
         "66666",
         "77777",
-        "88888",
         "99999",
         # Commonly used placeholders
         "01234",
@@ -42,9 +39,12 @@ class USPostalCodeAttribute(BaseAttribute):
         "54321",
         "98765",
         # 3-digit invalid codes (ZIP-3 prefixes that should be invalidated)
-        "000",  # pads to 00000
-        "555",  # pads to 55500
-        "888"   # pads to 88800
+        # Note: "000" invalidates "00000" and all codes starting with "000"
+        # Note: "555" invalidates "55555" and all codes starting with "555"
+        # Note: "888" invalidates "88888" and all codes starting with "888"
+        "000",
+        "555",
+        "888"
     }
 
     def __init__(self):

@@ -28,8 +28,6 @@ class CanadianPostalCodeAttribute(BaseAttribute):
     INVALID_ZIP_CODES = {
         # 6-character Canadian postal code placeholders
         "A1A 1A1",
-        "K1A 0A6",
-        "H0H 0H0",
         "X0X 0X0",
         "Y0Y 0Y0",
         "Z0Z 0Z0",
@@ -37,6 +35,8 @@ class CanadianPostalCodeAttribute(BaseAttribute):
         "B1B 1B1",
         "C2C 2C2",
         # 3-character invalid codes (ZIP-3 prefixes that should be invalidated)
+        # Note: "K1A" invalidates "K1A 0A6" and all codes starting with "K1A"
+        # Note: "H0H" invalidates "H0H 0H0" and all codes starting with "H0H"
         "K1A",  # Canadian government
         "M7A",  # Government of Ontario
         "H0H"   # Santa Claus
