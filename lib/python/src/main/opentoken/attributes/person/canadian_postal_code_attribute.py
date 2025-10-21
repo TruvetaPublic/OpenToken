@@ -22,10 +22,11 @@ class CanadianPostalCodeAttribute(BaseAttribute):
     ALIASES = [NAME, "CanadianZipCode"]
 
     # Regular expression pattern for validating Canadian postal codes
-    CANADIAN_POSTAL_REGEX = r"^\s*[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d\s*$"
+    # Supports 3-character (ZIP-3) and full 6-character formats
+    CANADIAN_POSTAL_REGEX = r"^\s*[A-Za-z]\d[A-Za-z](\s?\d[A-Za-z]\d)?\s*$"
 
     INVALID_ZIP_CODES = {
-        # Canadian postal code placeholders
+        # 6-character Canadian postal code placeholders
         "A1A 1A1",
         "K1A 0A6",
         "H0H 0H0",
@@ -34,7 +35,11 @@ class CanadianPostalCodeAttribute(BaseAttribute):
         "Z0Z 0Z0",
         "A0A 0A0",
         "B1B 1B1",
-        "C2C 2C2"
+        "C2C 2C2",
+        # 3-character invalid codes (ZIP-3 prefixes that should be invalidated)
+        "K1A",  # Canadian government
+        "M7A",  # Government of Ontario
+        "H0H"   # Santa Claus
     }
 
     def __init__(self):
@@ -54,8 +59,9 @@ class CanadianPostalCodeAttribute(BaseAttribute):
         """
         Normalize a Canadian postal code to standard A1A 1A1 format.
 
-        For Canadian postal codes: returns uppercase format with space (e.g.,
-        "k1a0a6" becomes "K1A 0A6")
+        For Canadian postal codes:
+        - 3-character format (e.g., "J1X") is padded with " 000" to create full format (e.g., "J1X 000")
+        - 6-character format returns uppercase format with space (e.g., "k1a0a6" becomes "K1A 0A6")
         If the input value is null or doesn't match Canadian postal pattern, the original
         trimmed value is returned.
         """
@@ -63,6 +69,11 @@ class CanadianPostalCodeAttribute(BaseAttribute):
             return value
 
         trimmed = AttributeUtilities.remove_whitespace(value.strip())
+
+        # Check if it's a 3-character Canadian postal code (ZIP-3) - pad with " 000"
+        if re.match(r"^[A-Za-z]\d[A-Za-z]$", trimmed):
+            upper = trimmed.upper()
+            return f"{upper} 000"
 
         # Check if it's a Canadian postal code (6 alphanumeric characters)
         if re.match(r"[A-Za-z]\d[A-Za-z]\d[A-Za-z]\d", trimmed):

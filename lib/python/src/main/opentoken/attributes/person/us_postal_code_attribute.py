@@ -22,9 +22,11 @@ class USPostalCodeAttribute(BaseAttribute):
     ALIASES = [NAME, "USZipCode"]
 
     # Regular expression pattern for validating US postal (ZIP) codes
-    US_ZIP_REGEX = r"^\s*(\d{5}(-\d{4})?|\d{9})\s*$"
+    # Supports 3-digit (ZIP-3), 5-digit, and 9-digit formats
+    US_ZIP_REGEX = r"^\s*(\d{3}|\d{5}(-\d{4})?|\d{9})\s*$"
 
     INVALID_ZIP_CODES = {
+        # 5-digit invalid codes
         "00000",
         "11111",
         "22222",
@@ -38,7 +40,11 @@ class USPostalCodeAttribute(BaseAttribute):
         "01234",
         "12345",
         "54321",
-        "98765"
+        "98765",
+        # 3-digit invalid codes (ZIP-3 prefixes that should be invalidated)
+        "000",  # pads to 00000
+        "555",  # pads to 55500
+        "888"   # pads to 88800
     }
 
     def __init__(self):
@@ -58,7 +64,9 @@ class USPostalCodeAttribute(BaseAttribute):
         """
         Normalize a US ZIP code to standard 5-digit format.
 
-        For US ZIP codes: returns the first 5 digits (e.g., "12345-6789" becomes "12345")
+        For US ZIP codes:
+        - 3-digit ZIP code (ZIP-3) is padded with "00" to create 5-digit format (e.g., "951" becomes "95100")
+        - 5-digit or longer ZIP codes return the first 5 digits (e.g., "12345-6789" becomes "12345")
         If the input value is null or doesn't match US ZIP pattern, the original
         trimmed value is returned.
         """
@@ -66,6 +74,10 @@ class USPostalCodeAttribute(BaseAttribute):
             return value
 
         trimmed = AttributeUtilities.remove_whitespace(value.strip())
+
+        # Check if it's a 3-digit ZIP code (ZIP-3) - pad with "00"
+        if re.match(r"^\d{3}$", trimmed):
+            return trimmed + "00"
 
         # Check if it's a US ZIP code (5 digits, 5+4 with dash, or 9 digits without dash)
         if re.match(r"\d{5}(-?\d{4})?", trimmed) or re.match(r"\d{9}", trimmed):

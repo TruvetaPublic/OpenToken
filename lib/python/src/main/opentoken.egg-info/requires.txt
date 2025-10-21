@@ -1,0 +1,14 @@
+pandas
+pyarrow
+csv2parquet
+cryptography>=42.0.2
+
+[dev]
+csv2parquet
+pandas
+pyarrow
+cryptography
+pycryptodome
+
+[test]
+pytest
