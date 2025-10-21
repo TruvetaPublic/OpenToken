@@ -3,6 +3,7 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 import logging
+import uuid
 from collections import defaultdict
 from typing import Dict, List, Type, Any
 
@@ -130,11 +131,16 @@ class PersonAttributesProcessor:
         # Sort token IDs for consistent output
         token_ids = sorted(token_generator_result.tokens.keys())
 
+        # Generate a UUID for RecordId if it's not present in the input data
+        record_id = row.get(RecordIdAttribute)
+        if record_id is None or record_id == '':
+            record_id = str(uuid.uuid4())
+
         for token_id in token_ids:
             row_result = {
                 PersonAttributesProcessor.RULE_ID: token_id,
                 PersonAttributesProcessor.TOKEN: token_generator_result.tokens[token_id],
-                PersonAttributesProcessor.RECORD_ID: row.get(RecordIdAttribute)
+                PersonAttributesProcessor.RECORD_ID: record_id
             }
 
             try:
