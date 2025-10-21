@@ -1,0 +1,3 @@
+# Interoperability Test Requirements
+
+pyarrow

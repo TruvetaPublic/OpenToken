@@ -6,6 +6,7 @@
         " * Copyright (c) Truveta. All rights reserved.",
         " */"
     ],
+    "java.format.comments.enabled": false,
     "terminal.integrated.scrollback": 10000,
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
@@ -15,5 +16,9 @@
         "titleBar.inactiveBackground": "#00c3b4"
     },
     "files.trimFinalNewlines": true,
-    "files.eol": "\n"
+    "files.eol": "\n",
+    "chat.tools.autoApprove": true,
+    "chat.mcp.access": "all",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": true
 }

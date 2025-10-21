@@ -5,7 +5,7 @@ name: Maven Package
 
 on:
   release:
-    types: [created]
+    types: [created, published, released]
 
 jobs:
   build:
@@ -13,6 +13,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      actions: read
 
     steps:
       - uses: actions/checkout@v4
@@ -25,9 +26,10 @@ jobs:
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: cd lib/java && mvn -B package --file pom.xml
 
+      # Change run command to only run lib/java, this is temporary
       - name: Publish to GitHub Packages Apache Maven
-        run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+        run: cd lib/java && mvn deploy -s $GITHUB_WORKSPACE/settings.xml
         env:
           GITHUB_TOKEN: ${{ github.token }}

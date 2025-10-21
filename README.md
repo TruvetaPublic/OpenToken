@@ -1,14 +1,34 @@
-# Open token
+# OpenToken  <!-- omit in toc -->
 
 ## Introduction
 
-Truveta’s approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
+Our approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
 
-## Token generation strategy
+- [Introduction](#introduction)
+- [Highlights](#highlights)
+- [Overview](#overview)
+- [Usage](#usage)
+- [Quick Start](#quick-start)
+- [Development \& Documentation](#development--documentation)
+- [Contributing](#contributing)
 
-Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. Truveta uses multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
+## Highlights
 
-### Sample token generation rules
+- Multi-language Support
+- Cryptographically Secure encryption that prevents re-identification
+- Enables straightforward person-matching by comparing 5 deterministic and unique tokens, providing a high degree of confidence in matches
+
+## Overview
+
+### Library <!-- omit in toc -->
+
+This project, `OpenToken`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
+
+### Token Generation <!-- omit in toc -->
+
+Tokens are cryptographically secure hashes computed from multiple deterministic person attributes. Tokens are created based on a set of `token generation rules`. We use multiple distinct token generation rules that define a set of person attributes and which parts of those attributes to use for token generation.
+
+### Sample Token Generation Rules <!-- omit in toc -->
 
 | Rule ID | Rule Definition                                          |
 | ------- | -------------------------------------------------------- |
@@ -21,7 +41,7 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 > U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
 
-### Rules for token generation
+### Token Encryption Process <!-- omit in toc -->
 
 A token signature is generated first for every token generation rule. The token signature is then cryptographically hashed and hex encoded to generate the token.
 
@@ -29,7 +49,7 @@ A token signature is generated first for every token generation rule. The token 
 > The token is then transformed further using the formula below:<br>
 > $Base64(AESEncrypt(Base64(HMACSHA256(Token(R)))))$<br>
 
-### Example
+### Example <!-- omit in toc -->
 
 Given a person with the following attributes:
 
@@ -52,27 +72,27 @@ The token generation rules above generate the following token signatures:
 
 **Note:** The tokens in the example above have been generated using the hash key `HashingKey` and encryption key `Secret-Encryption-Key-Goes-Here.`
 
-### Open token data flow
+### Data Flow  <!-- omit in toc -->
 
-![open-token-data-flow](./open-token-data-flow.jpg)
+![open-token-data-flow](./docs/images/open-token-data-flow.jpg)
 
-### Validation of person attribute values prior to normalization
+### Validation of Person Attributes  <!-- omit in toc -->
 
 The person attributes are validated before normalization. The validation rules are as follows:
 
-| Attribute Name         | Validation Rule                                                                                                                                                                                                                                                 |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `FirstName`            | Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                        |
-| `LastName`             | Must be at least 2 characters long. For 2-character names, must contain at least one vowel or be "Ng". Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty. |
-| `BirthDate`            | Must be after January 1, 1910. Cannot be in the future (after today's date). Must be in a valid date format.                                                                                                                                                 |
+| Attribute Name         | Validation Rule                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `FirstName`            | Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                                                                                                                 |
+| `LastName`             | Must be at least 2 characters long. For 2-character names, must contain at least one vowel or be "Ng". Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                          |
+| `BirthDate`            | Must be after January 1, 1910. Cannot be in the future (after today's date). Must be in a valid date format.                                                                                                                                                                                                                                           |
 | `PostalCode`           | Must be a valid US ZIP code (5 or 9 digits) or Canadian postal code. US ZIP codes: `ddddd` or `ddddd-dddd`. Canadian postal codes: `AdA dAd` format (letter-digit-letter space digit-letter-digit). Cannot be common placeholder values like `00000`, `11111`, `12345`, `54321`, `98765` for US or `A1A 1A1`, `K1A 0A6`, `H0H 0H0` for Canadian codes. |
-| `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.             |
+| `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.                                                                                                    |
 
-### Normalized person attributes for token generation
+### Normalization of Person Attributes  <!-- omit in toc -->
 
-All attribute values get normalized as part of their processing. The normalization process includes:
+All attribute values get normalized as part of their processing after validation. The normalization process includes:
 
-**First Name normalization:**
+**FirstName normalization:**
 
 - Removes titles (e.g., "Dr. John" → "John")
 - Removes middle initials (e.g., "John J" → "John")
@@ -81,23 +101,23 @@ All attribute values get normalized as part of their processing. The normalizati
 - Removes non-alphabetic characters (e.g., "Anne-Marie" → "AnneMarie")
 - Normalizes diacritics (e.g., "José" → "Jose")
 
-**Last Name normalization:**
+**LastName normalization:**
 
 - Removes generational suffixes (e.g., "Warner IV" → "Warner")
 - Removes non-alphabetic characters (e.g., "O'Keefe" → "OKeefe")
 - Normalizes diacritics (e.g., "García" → "Garcia")
 
-| Attribute Name           | Normalized Format                                   |
-| ------------------------ | --------------------------------------------------- |
-| `record-id`              | Any unique string identifier                        |
-| `first-name`             | Any string (after normalization as described above) |
-| `last-name`              | Any string (after normalization as described above) |
+| Attribute Name           | Normalized Format                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `record-id`              | Any unique string identifier (optional - auto-generated UUID if not provided)                                |
+| `first-name`             | Any string (after normalization as described above)                                                          |
+| `last-name`              | Any string (after normalization as described above)                                                          |
 | `postal-code`            | US: `ddddd` where `d` is a numeric digit (0-9). Canadian: `AdA dAd` where `A` is a letter and `d` is a digit |
-| `sex`                    | `Male\|Female`                                      |
-| `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31) |
-| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)      |
+| `sex`                    | `Male\|Female`                                                                                               |
+| `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31)                                                          |
+| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9) |
 
-## Open token overview
+### How Token Matching Works  <!-- omit in toc -->
 
 This library focuses primarily on token generation. Even though the person matching process is beyond the scope of this library, this document discusses how these tokens work in a person matching system.
 
@@ -123,37 +143,11 @@ As noted above, N distinct tokens are generated for each person using this libra
 
 If tokens are generated for persons from multiple data sources, person matching systems can identify a person match if the tokens for a person from one data source matches tokens for another person from a different data source. In the picture below, all tokens for **r3** and **r4** match, and as such r3 and r4 are considered a match.
 
-![open-token-system](./open-token-system.jpg)
+![open-token-system](./docs/images/open-token-system.jpg)
 
-## Library driver
+## Usage
 
-A driver is provided so that the library code can be executed easily.
-
-### Execution
-
-#### Via Shell
-
-The driver code could be invoked using:
-
-```shell
-java -jar open-token-<version>.jar -i <input-file> -t <input-type> -o <output-file> -ot <output-type> -h "xb7...98a" -e "b32...q1r"
-```
-
-Example:
-`java -jar target/open-token-1.8.0.jar -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
-
-#### Via Docker
-
-Please run the following command in the same folder as the source CSV file:
-
-```shell
-docker run -v "$(pwd)":/app open-token -i <input-file> -t <input-type> -o <output-file> -ot <output-type> -h "xb7...98a" -e "b32...q1r"
-```
-
-Example:
-`docker run -v "$(pwd)":/app open-token -i src/test/resources/sample.csv -t csv -o target/output.csv -ot csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."`
-
-### Arguments
+### Arguments  <!-- omit in toc -->
 
 The driver accepts multiple command line arguments:
 
@@ -167,27 +161,30 @@ The driver accepts multiple command line arguments:
 
 - `-h | --hashingsecret`: This argument is used to specify the hashing secret for the `HMAC-SHA256` digest. The generated tokens are hashed using this digest.
 
-- `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokes are encrypted using this key.
+- `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key.
 
-The encryption logic is: Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))
+The encryption logic is: 
+> $Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))$
 
-### Accepted input
+### Accepted input  <!-- omit in toc -->
 
 The input file (in csv format) must contain at least the following columns and values (one each):
 
-| Accepted Column Names                              | Accepted Values                                                                |
-| -------------------------------------------------- | ------------------------------------------------------------------------------ |
-| RecordId, Id                                       | Any unique string identifier                                                   |
-| FirstName, GivenName                               | Any string value                                                               |
-| LastName, Surname                                  | Any string value                                                               |
-| PostalCode, ZipCode                                | US: 5 or 9 digit ZIP code `ddddd` or `ddddd-dddd`. Canadian: 6 character postal code `AdAdAd` (with or without space) |
-| Sex, Gender                                        | `Male`, `M`, `Female`, `F`                                                     |
-| BirthDate, DateOfBirth                             | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy` |
-| SocialSecurityNumber, NationalIdentificationNumber | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                     |
+| Accepted Column Names                              | Required | Accepted Values                                                                                                       |
+| -------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| RecordId, Id                                       | Optional | Any unique string identifier. If not provided, a unique UUID will be automatically generated for each row.           |
+| FirstName, GivenName                               | Required | Any string value                                                                                                      |
+| LastName, Surname                                  | Required | Any string value                                                                                                      |
+| PostalCode, ZipCode                                | Required | US: 5 or 9 digit ZIP code `ddddd` or `ddddd-dddd`. Canadian: 6 character postal code `AdAdAd` (with or without space) |
+| Sex, Gender                                        | Required | `Male`, `M`, `Female`, `F`                                                                                            |
+| BirthDate, DateOfBirth                             | Required | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                        |
+| SocialSecurityNumber, NationalIdentificationNumber | Required | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                            |
 
-**Note 1:** No attribute values can be empty to be considered valid.
+**Note 1:** RecordId is optional. When not provided in the input file, the system automatically generates a unique UUID for each record in the output. Auto-generated UUIDs are suitable for initial overlap analysis, but for linkage of actual data records, providing real RecordIds from your source data is recommended.
 
-**Note 2:** commas are only used for separation of field values, not for within values.
+**Note 2:** No attribute values (other than RecordId) can be empty to be considered valid.
+
+**Note 3:** Commas are only used for separation of field values, not for within values.
 
 The output file (in csv format) contains the following columns:
 
@@ -195,116 +192,83 @@ The output file (in csv format) contains the following columns:
 - TokenId
 - Token
 
-### Building
+### Metadata  <!-- omit in toc -->
 
-#### With Maven
+The library generates a metadata file containing information about the token generation process, including processing statistics, system information, and secure hashes of the secrets used. The metadata file is written to the same directory as the output file with the suffix `.metadata.json`.
 
-Prerequisites:
+The metadata includes key fields such as:
 
-- Java 11 SDK
-- Maven 3.8.7
+- Processing statistics (total records, valid/invalid counts)
+- System information (Java version, library version, timestamp)
+- Security hashes (SHA-256 hashes of the hashing secret and encryption key)
+- Input/output file paths
 
-Run the following:
+For complete details about all metadata fields, examples, and security considerations, see the [Metadata Format Documentation](./docs/metadata-format.md).
+
+## Quick Start
+
+### Java  <!-- omit in toc -->
 
 ```shell
+cd lib/java
 mvn clean install
+java -jar target/opentoken-*.jar \
+  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-The compiled jar can be found under ./target
-
-#### With Docker
-
-Prerequisites:
-
-- Docker
-
-Run the following:
+### Python  <!-- omit in toc -->
 
 ```shell
-docker build . -t open-token
+cd lib/python
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt -r dev-requirements.txt -e .
+PYTHONPATH=src/main python src/main/opentoken/main.py \
+  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-This will build a local Docker image called `open-token`.
+## Development & Documentation
 
-#### Generating `javadoc`
+Central reference: [Development Guide](docs/dev-guide-development.md) (setup, build, testing, versioning, dev container, registration, contribution checklist).
 
-The `javadoc` for the library can be generated as following:
+Key anchors in the guide:
 
-```shell
-mvn clean javadoc:javadoc
+- Language Development: [Java & Python](docs/dev-guide-development.md#3-language-development-java--python)
+- Registration: [Token & Attribute Registration](docs/dev-guide-development.md#4-token--attribute-registration)
+
+Quick parity note: Java and Python implementations produce identical tokens for the same normalized input values.
+
+### Project Structure <!-- omit in toc -->
+
+```
+lib/
+├── java/        # Java implementation (Maven)
+├── python/      # Python implementation (pip)
+tools/           # Utility scripts and tools
+docs/            # Documentation
+.devcontainer/   # Development container configuration
 ```
 
-The Java documentation is created in `./target/reports/apidocs`. Invoke by opening `./target/reports/apidocs/index.html` in your favorite browser.
+### Development Environment  <!-- omit in toc -->
 
-## Overview of the library
+Use the Dev Container for a reproducible setup (Java, Maven, Python). See the [Development Guide](docs/dev-guide-development.md#7-development-container) for details.
 
-This project, `open-token`, provides common utilities, models, and services used across the person matching system. It is designed to support the development of applications and services that require person matching capabilities, ensuring consistency and efficiency.
+### Test Data  <!-- omit in toc -->
 
-## Getting started
+You can generate mock person data in the expected format for testing purposes.
 
-To use `open-token` in your project, follow these steps:
-
-1. Add it as a dependency in your build configuration file. For Maven, add the following code to your `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>com.truveta.opentoken</groupId>
-    <artifactId>open-token</artifactId>
-    <version>1.8.0</version>
-</dependency>
-```
-
-2. Import `open-token` in your Java code using the following import statement:
-
-```java
-import com.truveta.opentoken.tokens.*;
-```
-
-3. Start using the utilities, models, and services provided by `open-token` in your project. For example, you can use the `TokenGenerator` class to perform token generation operations:
-
-```java
-ArrayList<Map<String, String>> result = new ArrayList<>();
-
-Map<Class<? extends Attribute>, String> row;
-
-/* process person record one by one */
-while (reader.hasNext()) {
-    row = reader.next();
-
-    /* generate all tokens for one person */
-    Map<String, String> tokens = tokenGenerator.getAllTokens(row).getTokens();
-    logger.info("Tokens: {}", tokens);
-
-    Set<String> tokenIds = new TreeSet<>(tokens.keySet());
-
-    /* add all the token for the person in result */
-    for (String tokenId : tokenIds) {
-        var rowResult = new HashMap<String, String>();
-        rowResult.put("RecordId", row.get(RecordIdAttribute.class));
-        rowResult.put("RuleId", tokenId);
-        rowResult.put("Token", tokens.get(tokenId));
-        result.add(rowResult);
-    }
-};
-
-// result has tokens for all persons now.
-```
-
-## Test Data
-
-In order to test, you have the option to generate mock person data in the expected format.
-
-### Prerequisites
+#### Prerequisites  <!-- omit in toc -->
 
 - Python3
 - [faker](https://pypi.org/project/Faker/)
 
-### Generating mock data
+#### Generating Mock Data  <!-- omit in toc -->
 
-Under `src/test/resources/mockdata` you can find a python script that allows to generate fake random person data. You can run it as follows with pre-configured defaults:
+Navigate to `tools/mockdata/` to find the data generation script. Run it with pre-configured defaults:
 
 ```shell
-./generate.sh 
+./generate.sh
 ```
 
 You can modify the parameters when running the script directly. The script will repeat a percentage of the record values using a different record ID.
@@ -314,27 +278,22 @@ You can modify the parameters when running the script directly. The script will 
 python data_generator.py 100 0.05 test_data.csv
 ```
 
-## Contribute
+The script generates fake person data and optionally repeats a percentage of records with different record IDs to simulate duplicate persons.
 
-Truveta encourages contributions in the form of features, bug fixes, documentation updates, etc. Some of the areas in key needs of improvements are:
+## Contributing
 
-1. The library currently provides `csv` reader and writer. See `com.truveta.opentoken.io`. Readers/writers for `parquet` file is highly desired.
-2. More test coverage.
+We welcome contributions including features, bug fixes, documentation updates, and more. Key areas for improvement include:
 
-## Development Environment
+1. **File Format Support**: The library currently supports CSV and Parquet. Additional readers/writers for other formats are highly desired.
+2. **Test Coverage**: Expanding unit tests and integration tests.
+3. **Language Implementations**: Adding support for additional programming languages.
 
-This project includes a [Development Container](https://containers.dev/) configuration that provides a consistent and isolated development environment for working with OpenToken. The Dev Container includes all necessary tools and dependencies pre-configured, making it easy to start contributing right away.
+### Before Contributing  <!-- omit in toc -->
 
-### Getting Started with the Dev Container
+Please ensure you follow the project's coding standards:
 
-For detailed instructions on how to use the development container, please refer to the [Dev Container README](./.devcontainer/README.md).
+- **Java**: Follow Checkstyle rules and add Javadoc for public APIs
+- **Version Bumping**: Use `bump2version` for all PRs (required)
+- **Testing**: Run `mvn clean install` to ensure everything works
 
-The Dev Container provides:
-
-- Java 11 SDK pre-installed
-- Maven 3.8.7 pre-installed
-- All necessary dependencies configured
-- Git and other development tools
-- SSL certificate handling for corporate environments
-
-Using the Dev Container ensures all contributors work with the same environment, avoiding "works on my machine" issues and making the development experience more consistent and reproducible.
+See the [contribution guidelines](.github/copilot-instructions.md) for detailed requirements.

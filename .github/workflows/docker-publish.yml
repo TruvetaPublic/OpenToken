@@ -1,12 +1,11 @@
 name: Docker Publish
 
 on:
-  push:
-    branches: ["main"]
-    # Publish semver tags as releases.
-    tags: ["v*.*.*"]
   pull_request:
     branches: ["main"]
+  release:
+    types: [created, published, released]
+  # Added pull_request trigger - pull requests now trigger builds for validation
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -28,19 +27,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-
-      - name: Install bump2version
-        run: pip install bump2version
-
-      - name: Get version
+      - name: Get version from release tag
         id: get_version
-        run: echo "VERSION=$(bumpversion --dry-run --list patch | grep current_version | sed -r s,"^.*=",,)" >> $GITHUB_ENV
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Detected version: ${VERSION}"
 
-      # Install the cosign tool except on PR
+      # Install the cosign tool for signing images (only needed for releases)
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
         if: github.event_name != 'pull_request'
@@ -54,7 +49,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
 
-      # Login against a Docker registry except on PR
+      # Login against a Docker registry
       # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
@@ -74,7 +69,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}},value=${{ env.VERSION }}
 
-      # Build and push Docker image with Buildx (don't push on PR)
+      # Build and push Docker image with Buildx
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         id: build-and-push
@@ -87,13 +82,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Sign the resulting Docker image digest except on PRs.
+      # Sign the resulting Docker image digest
       # This will only write to the public Rekor transparency log when the Docker
       # repository is public to avoid leaking data.  If you would like to publish
       # transparency data even for private images, pass --force to cosign below.
       # https://github.com/sigstore/cosign
       - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' }}
+        if: github.event_name != 'pull_request'
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
           TAGS: ${{ steps.meta.outputs.tags }}
