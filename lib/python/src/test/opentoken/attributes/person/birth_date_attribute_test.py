@@ -233,7 +233,7 @@ class TestBirthDateAttribute:
         assert self.birth_date_attribute.validate("02/29/2020") is True
         
         # Test boundary dates (if range validation is implemented)
-        # These tests depend on the actual validation rules in BirthDateRangeValidator
+        # These tests depend on the actual validation rules in DateRangeValidator
         
         # Test whitespace handling
         assert self.birth_date_attribute.normalize("  2023-01-01  ") == "2023-01-01"

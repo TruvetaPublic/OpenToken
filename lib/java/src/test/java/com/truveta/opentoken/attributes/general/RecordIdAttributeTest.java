@@ -36,9 +36,11 @@ class RecordIdAttributeTest {
     }
 
     @Test
-    void normalize_ShouldReturnUnchangedValue() {
-        String input = "test123";
-        assertEquals(input, recordIdAttribute.normalize(input));
+    void normalize_ShouldTrimWhitespace() {
+        assertEquals("test123", recordIdAttribute.normalize("test123"));
+        assertEquals("test123", recordIdAttribute.normalize("  test123  "));
+        assertEquals("ID-12345", recordIdAttribute.normalize("  ID-12345  "));
+        assertEquals("record_001", recordIdAttribute.normalize("\t\nrecord_001\n\t"));
     }
 
     @Test
@@ -65,9 +67,10 @@ class RecordIdAttributeTest {
         // Test various record ID values with both original and deserialized attributes
         String[] testValues = {
                 "test123",
+                "  test123  ",
                 "record_001",
                 "ID-12345",
-                "user@domain.com",
+                "  user@domain.com  ",
                 "a1b2c3d4",
                 "RECORD123",
                 "123abc"

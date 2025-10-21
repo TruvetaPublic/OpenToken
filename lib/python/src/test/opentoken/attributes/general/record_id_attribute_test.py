@@ -107,7 +107,7 @@ class TestRecordIdAttribute:
         ("RECORD123", "RECORD123"),
         ("123abc", "123abc"),
         ("", ""),
-        ("   leading_and_trailing_spaces   ", "   leading_and_trailing_spaces   "),
+        ("   leading_and_trailing_spaces   ", "leading_and_trailing_spaces"),
     ])
     def test_normalize_parametrized(self, test_value, expected_normalized):
         """Parametrized test for normalization with various inputs."""
