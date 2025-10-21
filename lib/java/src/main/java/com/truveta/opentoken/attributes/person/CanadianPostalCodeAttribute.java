@@ -29,25 +29,28 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
      *
      * The pattern matches Canadian postal codes in the format "A1A 1A1" or "A1A1A1",
      * where 'A' represents an uppercase or lowercase letter and '1' represents a digit.
+     * Also accepts 3-character format "A1A" which will be padded to full format.
      *
      * Breakdown:
      *   ^\\s*        - Allows optional leading whitespace.
      *   [A-Za-z]     - Matches a single letter (case-insensitive).
      *   \\d          - Matches a single digit.
      *   [A-Za-z]     - Matches a single letter (case-insensitive).
-     *   \\s?         - Allows an optional space between the two segments.
-     *   \\d          - Matches a single digit.
-     *   [A-Za-z]     - Matches a single letter (case-insensitive).
-     *   \\d          - Matches a single digit.
+     *   (            - Start optional group for full postal code:
+     *     \\s?       - Allows an optional space between the two segments.
+     *     \\d        - Matches a single digit.
+     *     [A-Za-z]   - Matches a single letter (case-insensitive).
+     *     \\d        - Matches a single digit.
+     *   )?           - End optional group
      *   \\s*$        - Allows optional trailing whitespace.
      *
      * This pattern ensures that the postal code follows the Canadian standard,
      * optionally surrounded by whitespace and with an optional space in the middle.
      */
-    private static final String CANADIAN_POSTAL_REGEX = "^\\s*[A-Za-z]\\d[A-Za-z]\\s?\\d[A-Za-z]\\d\\s*$";
+    private static final String CANADIAN_POSTAL_REGEX = "^\\s*[A-Za-z]\\d[A-Za-z](\\s?\\d[A-Za-z]\\d)?\\s*$";
 
     private static final Set<String> INVALID_ZIP_CODES = Set.of(
-            // Canadian postal code placeholders
+            // 6-character Canadian postal code placeholders
             "A1A 1A1",
             "K1A 0A6", // Valid but used for Canadian government
             "H0H 0H0", // Santa Claus postal code
@@ -56,7 +59,10 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
             "Z0Z 0Z0",
             "A0A 0A0",
             "B1B 1B1",
-            "C2C 2C2");
+            "C2C 2C2"
+            // Note: No 3-character codes are invalid because they pad to "XXX 000" which is different
+            // from the invalid full postal codes like "A1A 1A1", "K1A 0A6", etc.
+    );
 
     public CanadianPostalCodeAttribute() {
         super(List.of(
@@ -77,11 +83,11 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
     /**
      * Normalizes a Canadian postal code to standard A1A 1A1 format.
      * 
-     * For Canadian postal codes: returns uppercase format with space (e.g.,
-     * "k1a0a6" becomes "K1A 0A6")
+     * For Canadian postal codes:
+     * - 3-character format (e.g., "J1X") is padded with " 000" to create full format (e.g., "J1X 000")
+     * - 6-character format returns uppercase format with space (e.g., "k1a0a6" becomes "K1A 0A6")
      * If the input value is null or doesn't match Canadian postal pattern, the
-     * original
-     * trimmed value is returned.
+     * original trimmed value is returned.
      *
      * @param value The postal code to normalize
      * @return The normalized postal code or the original trimmed value if
@@ -95,6 +101,12 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
         }
 
         String trimmed = value.trim().replaceAll(AttributeUtilities.WHITESPACE.pattern(), StringUtils.EMPTY);
+
+        // Check if it's a 3-character Canadian postal code (ZIP-3) - pad with " 000"
+        if (trimmed.matches("[A-Za-z]\\d[A-Za-z]")) {
+            String upper = trimmed.toUpperCase();
+            return upper + " 000";
+        }
 
         // Check if it's a Canadian postal code (6 alphanumeric characters)
         if (trimmed.matches("[A-Za-z]\\d[A-Za-z]\\d[A-Za-z]\\d")) {

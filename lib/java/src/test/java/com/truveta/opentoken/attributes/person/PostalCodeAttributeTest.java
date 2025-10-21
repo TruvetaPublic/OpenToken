@@ -117,7 +117,7 @@ class PostalCodeAttributeTest {
         assertFalse(postalCodeAttribute.validate("abcde"), "Non-numeric should not be allowed");
 
         // Invalid Canadian postal code formats
-        assertFalse(postalCodeAttribute.validate("K1A"), "Incomplete Canadian postal code should not be allowed");
+        // Note: "K1A" is now VALID - it will be padded to "K1A 000"
         assertFalse(postalCodeAttribute.validate("K1A 0A"), "Incomplete Canadian postal code should not be allowed");
         assertFalse(postalCodeAttribute.validate("K1A 0A67"), "Too long Canadian postal code should not be allowed");
         assertFalse(postalCodeAttribute.validate("K11 0A6"),
@@ -167,9 +167,8 @@ class PostalCodeAttributeTest {
 
     @Test
     void normalize_ShouldHandleEdgeCases() {
-        // Test short postal codes (less than 5 characters)
+        // Test short postal codes (less than 3 characters)
         assertEquals("1234", postalCodeAttribute.normalize("1234 "));
-        assertEquals("123", postalCodeAttribute.normalize("123"));
         assertEquals("12", postalCodeAttribute.normalize("12"));
         assertEquals("1", postalCodeAttribute.normalize("1"));
 
@@ -184,6 +183,44 @@ class PostalCodeAttributeTest {
 
         assertEquals("10001", postalCodeAttribute.normalize("10001-6789"));
         assertEquals("10001", postalCodeAttribute.normalize("100016789"));
+    }
+
+    @Test
+    void normalize_ShouldPadUsZip3ToZip5() {
+        // Test US ZIP-3 padding with "00"
+        assertEquals("95100", postalCodeAttribute.normalize("951"));
+        assertEquals("95100", postalCodeAttribute.normalize(" 951"));
+        assertEquals("95100", postalCodeAttribute.normalize("951 "));
+        assertEquals("12300", postalCodeAttribute.normalize("123"));
+        assertEquals("98000", postalCodeAttribute.normalize("980"));
+    }
+
+    @Test
+    void normalize_ShouldPadCanadianZip3ToFullPostalCode() {
+        // Test Canadian ZIP-3 padding with " 000" (using valid, non-placeholder codes)
+        assertEquals("J1X 000", postalCodeAttribute.normalize("J1X"));
+        assertEquals("J1X 000", postalCodeAttribute.normalize(" J1X"));
+        assertEquals("J1X 000", postalCodeAttribute.normalize("J1X "));
+        assertEquals("J1X 000", postalCodeAttribute.normalize("j1x"));
+        assertEquals("M5V 000", postalCodeAttribute.normalize("M5V"));
+        assertEquals("G1R 000", postalCodeAttribute.normalize("G1R"));
+    }
+
+    @Test
+    void validate_ShouldReturnTrueForValidZip3() {
+        // US ZIP-3 codes should be valid (will be padded during normalization)
+        assertTrue(postalCodeAttribute.validate("951"));
+        assertTrue(postalCodeAttribute.validate(" 951"));
+        assertTrue(postalCodeAttribute.validate("980"));
+        assertTrue(postalCodeAttribute.validate("303"));
+        
+        // Canadian ZIP-3 codes should be valid (will be padded during normalization)
+        // Using valid, non-placeholder codes
+        assertTrue(postalCodeAttribute.validate("J1X"));
+        assertTrue(postalCodeAttribute.validate(" J1X"));
+        assertTrue(postalCodeAttribute.validate("j1x"));
+        assertTrue(postalCodeAttribute.validate("M5V"));
+        assertTrue(postalCodeAttribute.validate("G1R"));
     }
 
     @Test

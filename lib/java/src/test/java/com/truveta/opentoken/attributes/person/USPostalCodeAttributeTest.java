@@ -151,9 +151,8 @@ class USPostalCodeAttributeTest {
 
     @Test
     void normalize_ShouldHandleEdgeCases() {
-        // Test short postal codes (less than 5 characters) - should return trimmed original
+        // Test short postal codes (less than 3 characters) - should return trimmed original
         assertEquals("1234", usPostalCodeAttribute.normalize("1234 "));
-        assertEquals("123", usPostalCodeAttribute.normalize("123"));
         assertEquals("12", usPostalCodeAttribute.normalize("12"));
         assertEquals("1", usPostalCodeAttribute.normalize("1"));
 
@@ -170,6 +169,50 @@ class USPostalCodeAttributeTest {
         // Test non-US formats - should return trimmed original
         assertEquals("K1A 0A7", usPostalCodeAttribute.normalize("K1A 0A7"));
         assertEquals("k1a0a7", usPostalCodeAttribute.normalize("k1a0a7"));
+    }
+
+    @Test
+    void normalize_ShouldPadZip3ToZip5() {
+        // Test ZIP-3 padding with "00"
+        assertEquals("95100", usPostalCodeAttribute.normalize("951"));
+        assertEquals("95100", usPostalCodeAttribute.normalize(" 951"));
+        assertEquals("95100", usPostalCodeAttribute.normalize("951 "));
+        assertEquals("95100", usPostalCodeAttribute.normalize(" 951 "));
+        assertEquals("12300", usPostalCodeAttribute.normalize("123"));
+        assertEquals("98000", usPostalCodeAttribute.normalize("980"));
+        assertEquals("30300", usPostalCodeAttribute.normalize("303"));
+        assertEquals("60600", usPostalCodeAttribute.normalize("606"));
+    }
+
+    @Test
+    void validate_ShouldReturnTrueForValidZip3() {
+        // US ZIP-3 codes should be valid (will be padded during normalization)
+        // Example from issue: "951" should be accepted
+        assertTrue(usPostalCodeAttribute.validate("951"));
+        assertTrue(usPostalCodeAttribute.validate(" 951"));
+        assertTrue(usPostalCodeAttribute.validate("951 "));
+        assertTrue(usPostalCodeAttribute.validate(" 951 "));
+        
+        // Other valid ZIP-3 codes
+        assertTrue(usPostalCodeAttribute.validate("123"));
+        assertTrue(usPostalCodeAttribute.validate("980"));
+        assertTrue(usPostalCodeAttribute.validate("303"));
+        assertTrue(usPostalCodeAttribute.validate("606"));
+    }
+
+    @Test
+    void validate_ShouldReturnFalseForInvalidZip3ThatWouldBeInvalid() {
+        // Only "000" is invalid because it pads to "00000" which is in the invalid list
+        assertFalse(usPostalCodeAttribute.validate("000"), "000 pads to 00000 which is invalid");
+        
+        // These ZIP-3 codes are VALID because they pad to different codes than the invalid ones
+        // "111" pads to "11100", not "11111", so it's valid
+        assertTrue(usPostalCodeAttribute.validate("111"), "111 pads to 11100 which is valid");
+        // "123" pads to "12300", not "12345", so it's valid
+        assertTrue(usPostalCodeAttribute.validate("123"), "123 pads to 12300 which is valid");
+        // Other similar cases are also valid
+        assertTrue(usPostalCodeAttribute.validate("222"), "222 pads to 22200 which is valid");
+        assertTrue(usPostalCodeAttribute.validate("987"), "987 pads to 98700 which is valid");
     }
 
     @Test

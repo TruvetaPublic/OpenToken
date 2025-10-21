@@ -75,8 +75,7 @@ class CanadianPostalCodeAttributeTest {
         assertFalse(canadianPostalCodeAttribute.validate(""), "Empty value should not be allowed");
 
         // Invalid Canadian postal code formats
-        assertFalse(canadianPostalCodeAttribute.validate("K1A"),
-                "Incomplete Canadian postal code should not be allowed");
+        // Note: "K1A" is now VALID - it will be padded to "K1A 000"
         assertFalse(canadianPostalCodeAttribute.validate("K1A 0A"),
                 "Incomplete Canadian postal code should not be allowed");
         assertFalse(canadianPostalCodeAttribute.validate("K1A 0A67"),
@@ -163,6 +162,60 @@ class CanadianPostalCodeAttributeTest {
         assertEquals("12345-6789", canadianPostalCodeAttribute.normalize("12345-6789"));
         assertEquals("1234", canadianPostalCodeAttribute.normalize("1234 "));
         assertEquals("invalid", canadianPostalCodeAttribute.normalize("invalid"));
+    }
+
+    @Test
+    void normalize_ShouldPadZip3ToFullPostalCode() {
+        // Test Canadian ZIP-3 padding with " 000" (using valid, non-placeholder codes)
+        assertEquals("J1X 000", canadianPostalCodeAttribute.normalize("J1X"));
+        assertEquals("J1X 000", canadianPostalCodeAttribute.normalize(" J1X"));
+        assertEquals("J1X 000", canadianPostalCodeAttribute.normalize("J1X "));
+        assertEquals("J1X 000", canadianPostalCodeAttribute.normalize(" J1X "));
+        assertEquals("J1X 000", canadianPostalCodeAttribute.normalize("j1x"));
+        assertEquals("M5V 000", canadianPostalCodeAttribute.normalize("M5V"));
+        assertEquals("M5V 000", canadianPostalCodeAttribute.normalize("m5v"));
+        assertEquals("H3Z 000", canadianPostalCodeAttribute.normalize("H3Z"));
+        assertEquals("T2X 000", canadianPostalCodeAttribute.normalize("T2X"));
+        assertEquals("V6B 000", canadianPostalCodeAttribute.normalize("V6B"));
+        assertEquals("N2L 000", canadianPostalCodeAttribute.normalize("N2L"));
+        assertEquals("G1R 000", canadianPostalCodeAttribute.normalize("G1R"));
+        assertEquals("L5N 000", canadianPostalCodeAttribute.normalize("L5N"));
+    }
+
+    @Test
+    void validate_ShouldReturnTrueForValidZip3() {
+        // Canadian ZIP-3 codes should be valid (will be padded during normalization)
+        // Example from issue: "J1X" should be accepted
+        assertTrue(canadianPostalCodeAttribute.validate("J1X"));
+        assertTrue(canadianPostalCodeAttribute.validate(" J1X"));
+        assertTrue(canadianPostalCodeAttribute.validate("J1X "));
+        assertTrue(canadianPostalCodeAttribute.validate(" J1X "));
+        assertTrue(canadianPostalCodeAttribute.validate("j1x"));
+        
+        // Other valid ZIP-3 codes
+        assertTrue(canadianPostalCodeAttribute.validate("M5V"));
+        assertTrue(canadianPostalCodeAttribute.validate("H3Z"));
+        assertTrue(canadianPostalCodeAttribute.validate("T2X"));
+        assertTrue(canadianPostalCodeAttribute.validate("V6B"));
+        assertTrue(canadianPostalCodeAttribute.validate("N2L"));
+        assertTrue(canadianPostalCodeAttribute.validate("G1R"));
+        assertTrue(canadianPostalCodeAttribute.validate("L5N"));
+    }
+
+    @Test
+    void validate_ShouldAcceptValidZip3EvenIfFullVersionIsInvalid() {
+        // These ZIP-3 codes are VALID even though their full versions might be invalid
+        // They pad to "XXX 000" which is different from the invalid full postal codes
+        // For example, "A1A" pads to "A1A 000", not "A1A 1A1"
+        assertTrue(canadianPostalCodeAttribute.validate("A1A"), "A1A pads to A1A 000 which is valid");
+        assertTrue(canadianPostalCodeAttribute.validate("H0H"), "H0H pads to H0H 000 which is valid");
+        assertTrue(canadianPostalCodeAttribute.validate("K1A"), "K1A pads to K1A 000 which is valid");
+        assertTrue(canadianPostalCodeAttribute.validate("X0X"), "X0X pads to X0X 000 which is valid");
+        assertTrue(canadianPostalCodeAttribute.validate("Y0Y"), "Y0Y pads to Y0Y 000 which is valid");
+        assertTrue(canadianPostalCodeAttribute.validate("Z0Z"), "Z0Z pads to Z0Z 000 which is valid");
+        assertTrue(canadianPostalCodeAttribute.validate("A0A"), "A0A pads to A0A 000 which is valid");
+        assertTrue(canadianPostalCodeAttribute.validate("B1B"), "B1B pads to B1B 000 which is valid");
+        assertTrue(canadianPostalCodeAttribute.validate("C2C"), "C2C pads to C2C 000 which is valid");
     }
 
     @Test

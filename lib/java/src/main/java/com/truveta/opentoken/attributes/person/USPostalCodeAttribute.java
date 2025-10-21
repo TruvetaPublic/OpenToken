@@ -28,6 +28,7 @@ public class USPostalCodeAttribute extends BaseAttribute {
      * Regular expression pattern for validating US postal (ZIP) codes.
      *
      * This pattern matches the following formats:
+     *  - 3-digit ZIP code (e.g., "951") - will be padded to 5 digits
      *  - 5-digit ZIP code (e.g., "12345")
      *  - ZIP+4 code with hyphen (e.g., "12345-6789")
      *  - 9-digit ZIP code without hyphen (e.g., "123456789")
@@ -36,6 +37,8 @@ public class USPostalCodeAttribute extends BaseAttribute {
      * Breakdown of the regex:
      *   ^\s*                Start of string, optional leading whitespace
      *   (                   Start of group:
+     *     \d{3}             Exactly 3 digits (ZIP-3, will be padded)
+     *     |                 OR
      *     \d{5}             Exactly 5 digits
      *     ( -\d{4} )?       Optional: hyphen followed by exactly 4 digits
      *     |                 OR
@@ -43,9 +46,10 @@ public class USPostalCodeAttribute extends BaseAttribute {
      *   )
      *   \s*$                Optional trailing whitespace, end of string
      */
-    private static final String US_ZIP_REGEX = "^\\s*(\\d{5}(-\\d{4})?|\\d{9})\\s*$";
+    private static final String US_ZIP_REGEX = "^\\s*(\\d{3}|\\d{5}(-\\d{4})?|\\d{9})\\s*$";
 
     private static final Set<String> INVALID_ZIP_CODES = Set.of(
+            // 5-digit invalid codes
             "00000",
             "11111",
             "22222",
@@ -59,7 +63,12 @@ public class USPostalCodeAttribute extends BaseAttribute {
             "01234",
             "12345",
             "54321",
-            "98765");
+            "98765",
+            // 3-digit invalid codes (ZIP-3 that would pad to "XXX00" which matches invalid ZIP-5)
+            "000" // pads to 00000
+            // Note: "111" pads to "11100", not "11111", so it's NOT invalid
+            // Note: "123" pads to "12300", not "12345", so it's NOT invalid
+    );
 
     public USPostalCodeAttribute() {
         super(List.of(
@@ -80,8 +89,9 @@ public class USPostalCodeAttribute extends BaseAttribute {
     /**
      * Normalizes a US ZIP code to standard 5-digit format.
      * 
-     * For US ZIP codes: returns the first 5 digits (e.g., "12345-6789" becomes
-     * "12345")
+     * For US ZIP codes:
+     * - 3-digit ZIP code (ZIP-3) is padded with "00" to create 5-digit format (e.g., "951" becomes "95100")
+     * - 5-digit or longer ZIP codes return the first 5 digits (e.g., "12345-6789" becomes "12345")
      * If the input value is null or doesn't match US ZIP pattern, the original
      * trimmed value is returned.
      *
@@ -97,6 +107,11 @@ public class USPostalCodeAttribute extends BaseAttribute {
         }
 
         String trimmed = value.trim().replaceAll(AttributeUtilities.WHITESPACE.pattern(), StringUtils.EMPTY);
+
+        // Check if it's a 3-digit ZIP code (ZIP-3) - pad with "00"
+        if (trimmed.matches("\\d{3}")) {
+            return trimmed + "00";
+        }
 
         // Check if it's a US ZIP code (5 digits, 5+4 with dash, or 9 digits without
         // dash)
