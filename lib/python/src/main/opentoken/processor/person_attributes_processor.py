@@ -133,7 +133,7 @@ class PersonAttributesProcessor:
 
         # Generate a UUID for RecordId if it's not present in the input data
         record_id = row.get(RecordIdAttribute)
-        if not record_id:
+        if record_id is None or record_id == '':
             record_id = str(uuid.uuid4())
 
         for token_id in token_ids:
