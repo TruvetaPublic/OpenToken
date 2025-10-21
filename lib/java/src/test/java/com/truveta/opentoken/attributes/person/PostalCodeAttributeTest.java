@@ -38,7 +38,7 @@ class PostalCodeAttributeTest {
 
     @Test
     void getAliases_ShouldReturnPostalCodeAndZipCode() {
-        String[] expectedAliases = { "PostalCode", "ZipCode" };
+        String[] expectedAliases = { "PostalCode", "ZipCode", "ZIP3", "ZIP5" };
         assertArrayEquals(expectedAliases, postalCodeAttribute.getAliases());
     }
 
