@@ -109,7 +109,7 @@ All attribute values get normalized as part of their processing after validation
 
 | Attribute Name           | Normalized Format                                                                                            |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `record-id`              | Any unique string identifier                                                                                 |
+| `record-id`              | Any unique string identifier (optional - auto-generated UUID if not provided)                                |
 | `first-name`             | Any string (after normalization as described above)                                                          |
 | `last-name`              | Any string (after normalization as described above)                                                          |
 | `postal-code`            | US: `ddddd` where `d` is a numeric digit (0-9). Canadian: `AdA dAd` where `A` is a letter and `d` is a digit |
@@ -170,19 +170,21 @@ The encryption logic is:
 
 The input file (in csv format) must contain at least the following columns and values (one each):
 
-| Accepted Column Names                              | Accepted Values                                                                                                       |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| RecordId, Id                                       | Any unique string identifier                                                                                          |
-| FirstName, GivenName                               | Any string value                                                                                                      |
-| LastName, Surname                                  | Any string value                                                                                                      |
-| PostalCode, ZipCode                                | US: 5 or 9 digit ZIP code `ddddd` or `ddddd-dddd`. Canadian: 6 character postal code `AdAdAd` (with or without space) |
-| Sex, Gender                                        | `Male`, `M`, `Female`, `F`                                                                                            |
-| BirthDate, DateOfBirth                             | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                        |
-| SocialSecurityNumber, NationalIdentificationNumber | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                            |
+| Accepted Column Names                              | Required | Accepted Values                                                                                                       |
+| -------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| RecordId, Id                                       | Optional | Any unique string identifier. If not provided, a unique UUID will be automatically generated for each row.           |
+| FirstName, GivenName                               | Required | Any string value                                                                                                      |
+| LastName, Surname                                  | Required | Any string value                                                                                                      |
+| PostalCode, ZipCode                                | Required | US: 5 or 9 digit ZIP code `ddddd` or `ddddd-dddd`. Canadian: 6 character postal code `AdAdAd` (with or without space) |
+| Sex, Gender                                        | Required | `Male`, `M`, `Female`, `F`                                                                                            |
+| BirthDate, DateOfBirth                             | Required | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                        |
+| SocialSecurityNumber, NationalIdentificationNumber | Required | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                            |
 
-**Note 1:** No attribute values can be empty to be considered valid.
+**Note 1:** RecordId is optional. When not provided in the input file, the system automatically generates a unique UUID for each record in the output.
 
-**Note 2:** commas are only used for separation of field values, not for within values.
+**Note 2:** No attribute values (other than RecordId) can be empty to be considered valid.
+
+**Note 3:** Commas are only used for separation of field values, not for within values.
 
 The output file (in csv format) contains the following columns:
 
