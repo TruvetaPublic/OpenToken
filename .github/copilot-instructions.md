@@ -1,5 +1,26 @@
 # OpenToken AI Coding Agent Instructions
 
+## Overview
+
+This document provides comprehensive guidance for AI coding agents working on the OpenToken project. Follow these instructions to ensure code quality, consistency, and compatibility across both Java and Python implementations.
+
+### Task Suitability
+
+**Good Tasks for AI Agents:**
+- Adding new attributes (with validation/normalization)
+- Adding new validation rules
+- Bug fixes in existing attributes/validators
+- Test coverage improvements
+- Documentation updates
+- Code refactoring within existing patterns
+
+**Tasks Requiring Human Review:**
+- Changes to core token generation logic
+- Modifications to encryption/hashing algorithms
+- Breaking API changes
+- New token rules (T6+)
+- Multi-language implementation changes
+
 ## Architecture Overview
 
 **OpenToken** is a dual-implementation (Java/Python) library for privacy-preserving person matching using cryptographically secure token generation. Tokens are generated from deterministic person attributes (name, birthdate, SSN, etc.) using 5 distinct token rules (T1-T5). Both implementations must produce **identical tokens** for the same normalized input.
@@ -128,3 +149,107 @@ lib/python/src/main/opentoken/  # Mirrors Java structure with Pythonic naming
 - **Python docstrings**: Follow Google style (Args, Returns, Raises)
 - **README.md updates**: Add new attributes to acceptance table, update token rules if changed
 - **CHANGELOG**: Implicit via PR descriptions and version bumps
+
+## Security Guidelines
+
+### Secrets and Sensitive Data
+
+- **Never commit secrets**: Hashing keys and encryption keys must only appear in test files with dummy values
+- **Test data only**: Use placeholder values like `"HashingKey"` or `"Secret-Encryption-Key-Goes-Here."` in examples
+- **Metadata files**: Contain SHA-256 hashes of secrets (for audit), not the secrets themselves
+- **Validation patterns**: SSN validation logic is public but never log/expose actual SSN values
+
+### Dependency Management
+
+- **Java dependencies**: Declared in `pom.xml`, must pass security scans via GitHub Dependabot
+- **Python dependencies**: Managed in `requirements.txt` and `dev-requirements.txt`
+- **Version pinning**: Pin major versions, allow minor/patch updates (`~=` for Python, ranges for Maven)
+- **Vulnerability scanning**: Both implementations use automated security scans (see `.github/workflows/`)
+
+## Git Workflow & PR Standards
+
+### Before Submitting
+
+1. **Run all builds**: `mvn clean install` (Java) and `pytest` (Python)
+2. **Check cross-language sync**: Run `tools/java_python_syncer.py`
+3. **Version bump**: Use `bump2version` (patch/minor/major)
+4. **Code style**: Java Checkstyle must pass, Python follows PEP 8
+5. **Test coverage**: Add tests for new code paths
+
+### PR Checklist
+
+- [ ] Both Java and Python implementations updated (if applicable)
+- [ ] Tests added/updated for changes
+- [ ] Version bumped appropriately
+- [ ] Documentation updated (README, JavaDoc, docstrings)
+- [ ] Service registration files updated (Java: `META-INF/services/`, Python: loaders)
+- [ ] No secrets or sensitive data committed
+- [ ] CI/CD pipelines updated if necessary (GitHub Actions workflows, build configurations)
+- [ ] All CI checks passing
+
+### Commit Message Format
+
+```
+<type>: <short summary>
+
+<detailed description if needed>
+
+- Specific change 1
+- Specific change 2
+```
+
+Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`
+
+## Debugging & Troubleshooting
+
+### Common Build Issues
+
+**Java Checkstyle failures:**
+```bash
+cd lib/java && mvn checkstyle:check
+```
+Fix style issues before running full build.
+
+**Python import errors:**
+```bash
+cd lib/python && source .venv/bin/activate
+pip install -e .
+```
+Ensure editable install for local development.
+
+**Token mismatch between Java/Python:**
+- Verify normalization logic matches exactly
+- Check attribute order in token signatures
+- Use `tools/interoperability/` tests to compare outputs
+
+### Testing Strategies
+
+**Unit tests**: Test individual attributes/validators in isolation
+**Integration tests**: `PersonAttributesProcessorIntegrationTest.java` tests full pipeline
+**Interoperability tests**: Verify Java/Python produce identical tokens
+**Sanity checks**: Maven runs end-to-end CSV/Parquet tests post-build
+
+### Performance Considerations
+
+- **Thread-safety**: All validators must be thread-safe (pre-compile regex patterns)
+- **Streaming**: I/O readers use iterators, not loading entire files into memory
+- **Batch processing**: Process large datasets in chunks for memory efficiency
+
+## Code Review Standards
+
+### What to Look For
+
+1. **Correctness**: Logic matches requirements, edge cases handled
+2. **Parity**: Java and Python implementations produce identical results
+3. **Security**: No secrets committed, validation prevents injection
+4. **Performance**: No unnecessary allocations, thread-safe patterns
+5. **Documentation**: Public APIs documented, complex logic explained
+6. **Tests**: New code has corresponding tests, tests are meaningful
+
+### Red Flags
+
+- Missing service registration (Java won't discover new attributes)
+- Python loader not updated (hardcoded set won't include new classes)
+- Validation after normalization (must validate normalized values)
+- Mutable shared state in validators (causes race conditions)
+- Breaking changes without major version bump
