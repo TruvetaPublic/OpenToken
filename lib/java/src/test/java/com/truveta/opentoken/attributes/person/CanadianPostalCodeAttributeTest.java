@@ -75,9 +75,6 @@ class CanadianPostalCodeAttributeTest {
         assertFalse(canadianPostalCodeAttribute.validate(""), "Empty value should not be allowed");
 
         // Invalid Canadian postal code formats
-        // Note: Using K1B instead of K1A for testing incomplete formats (K1A is now an invalid prefix)
-        assertFalse(canadianPostalCodeAttribute.validate("K1B 0A"),
-                "Incomplete Canadian postal code should not be allowed");
         assertFalse(canadianPostalCodeAttribute.validate("K1B 0A67"),
                 "Too long Canadian postal code should not be allowed");
         assertFalse(canadianPostalCodeAttribute.validate("K11 0A6"),
@@ -217,6 +214,65 @@ class CanadianPostalCodeAttributeTest {
         assertTrue(canadianPostalCodeAttribute.validate("A0A"), "A0A should be valid");
         assertTrue(canadianPostalCodeAttribute.validate("B1B"), "B1B should be valid");
         assertTrue(canadianPostalCodeAttribute.validate("C2C"), "C2C should be valid");
+    }
+
+    @Test
+    void normalize_ShouldPadPartialCanadianPostalCodes() {
+        // Test 4-character partial postal code padding (e.g., "A1A1" → "A1A 1A0")
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize("J1X1"));
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize(" J1X1"));
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize("J1X1 "));
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize(" J1X1 "));
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize("J1X 1"));
+        assertEquals("M5V 3A0", canadianPostalCodeAttribute.normalize("M5V3"));
+        assertEquals("H3Z 2A0", canadianPostalCodeAttribute.normalize("H3Z2"));
+        
+        // Test 5-character partial postal code padding (e.g., "A1A1A" → "A1A 1A0")
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize("J1X1A"));
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize(" J1X1A"));
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize("J1X1A "));
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize(" J1X1A "));
+        assertEquals("J1X 1A0", canadianPostalCodeAttribute.normalize("J1X 1A"));
+        assertEquals("M5V 3L0", canadianPostalCodeAttribute.normalize("M5V3L"));
+        assertEquals("H3Z 2Y0", canadianPostalCodeAttribute.normalize("H3Z2Y"));
+    }
+
+    @Test
+    void validate_ShouldReturnTrueForPartialCanadianPostalCodes() {
+        // 4-character partial postal codes should be valid (will be padded during normalization)
+        assertTrue(canadianPostalCodeAttribute.validate("J1X1"));
+        assertTrue(canadianPostalCodeAttribute.validate(" J1X1"));
+        assertTrue(canadianPostalCodeAttribute.validate("J1X1 "));
+        assertTrue(canadianPostalCodeAttribute.validate(" J1X1 "));
+        assertTrue(canadianPostalCodeAttribute.validate("J1X 1"));
+        assertTrue(canadianPostalCodeAttribute.validate("M5V3"));
+        assertTrue(canadianPostalCodeAttribute.validate("H3Z2"));
+        
+        // 5-character partial postal codes should be valid (will be padded during normalization)
+        assertTrue(canadianPostalCodeAttribute.validate("J1X1A"));
+        assertTrue(canadianPostalCodeAttribute.validate(" J1X1A"));
+        assertTrue(canadianPostalCodeAttribute.validate("J1X1A "));
+        assertTrue(canadianPostalCodeAttribute.validate(" J1X1A "));
+        assertTrue(canadianPostalCodeAttribute.validate("J1X 1A"));
+        assertTrue(canadianPostalCodeAttribute.validate("M5V3L"));
+        assertTrue(canadianPostalCodeAttribute.validate("H3Z2Y"));
+    }
+
+    @Test
+    void validate_ShouldReturnFalseForInvalidPartialCanadianPostalCodes() {
+        // These partial postal codes start with invalid ZIP-3 prefixes
+        assertFalse(canadianPostalCodeAttribute.validate("K1A1"), "K1A1 should be invalid (starts with K1A)");
+        assertFalse(canadianPostalCodeAttribute.validate("K1A1A"), "K1A1A should be invalid (starts with K1A)");
+        assertFalse(canadianPostalCodeAttribute.validate("M7A2"), "M7A2 should be invalid (starts with M7A)");
+        assertFalse(canadianPostalCodeAttribute.validate("M7A2B"), "M7A2B should be invalid (starts with M7A)");
+        assertFalse(canadianPostalCodeAttribute.validate("H0H3"), "H0H3 should be invalid (starts with H0H)");
+        assertFalse(canadianPostalCodeAttribute.validate("H0H3C"), "H0H3C should be invalid (starts with H0H)");
+        
+        // These partial postal codes are VALID - they don't start with K1A, M7A, or H0H
+        assertTrue(canadianPostalCodeAttribute.validate("K1B1"), "K1B1 should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("K1B1A"), "K1B1A should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("M5V3"), "M5V3 should be valid");
+        assertTrue(canadianPostalCodeAttribute.validate("M5V3L"), "M5V3L should be valid");
     }
 
     @Test

@@ -90,7 +90,7 @@ class USPostalCodeAttributeTest {
 
     @Test
     void validate_ShouldReturnFalseForInvalidFormats() {
-        assertFalse(usPostalCodeAttribute.validate("1234"), "Short postal code should not be allowed");
+        assertFalse(usPostalCodeAttribute.validate("12"), "Too short postal code should not be allowed");
         assertFalse(usPostalCodeAttribute.validate("123456"), "Long postal code should not be allowed");
         assertFalse(usPostalCodeAttribute.validate("1234-5678"), "Invalid format should not be allowed");
         assertFalse(usPostalCodeAttribute.validate("abcde"), "Non-numeric should not be allowed");
@@ -152,7 +152,6 @@ class USPostalCodeAttributeTest {
     @Test
     void normalize_ShouldHandleEdgeCases() {
         // Test short postal codes (less than 3 characters) - should return trimmed original
-        assertEquals("1234", usPostalCodeAttribute.normalize("1234 "));
         assertEquals("12", usPostalCodeAttribute.normalize("12"));
         assertEquals("1", usPostalCodeAttribute.normalize("1"));
 
@@ -212,6 +211,47 @@ class USPostalCodeAttributeTest {
         assertTrue(usPostalCodeAttribute.validate("123"), "123 should be valid");
         assertTrue(usPostalCodeAttribute.validate("222"), "222 should be valid");
         assertTrue(usPostalCodeAttribute.validate("987"), "987 should be valid");
+    }
+
+    @Test
+    void normalize_ShouldPadZip4ToZip5() {
+        // Test ZIP-4 padding with "0"
+        assertEquals("12340", usPostalCodeAttribute.normalize("1234"));
+        assertEquals("12340", usPostalCodeAttribute.normalize(" 1234"));
+        assertEquals("12340", usPostalCodeAttribute.normalize("1234 "));
+        assertEquals("12340", usPostalCodeAttribute.normalize(" 1234 "));
+        assertEquals("56780", usPostalCodeAttribute.normalize("5678"));
+        assertEquals("90210", usPostalCodeAttribute.normalize("9021"));
+        assertEquals("30300", usPostalCodeAttribute.normalize("3030"));
+    }
+
+    @Test
+    void validate_ShouldReturnTrueForValidZip4() {
+        // US ZIP-4 codes should be valid (will be padded during normalization)
+        assertTrue(usPostalCodeAttribute.validate("1234"));
+        assertTrue(usPostalCodeAttribute.validate(" 1234"));
+        assertTrue(usPostalCodeAttribute.validate("1234 "));
+        assertTrue(usPostalCodeAttribute.validate(" 1234 "));
+        
+        // Other valid ZIP-4 codes
+        assertTrue(usPostalCodeAttribute.validate("5678"));
+        assertTrue(usPostalCodeAttribute.validate("9021"));
+        assertTrue(usPostalCodeAttribute.validate("3030"));
+        assertTrue(usPostalCodeAttribute.validate("6060"));
+    }
+
+    @Test
+    void validate_ShouldReturnFalseForInvalidZip4ThatWouldBeInvalid() {
+        // These ZIP-4 codes start with invalid ZIP-3 prefixes
+        assertFalse(usPostalCodeAttribute.validate("0001"), "0001 should be invalid (starts with 000)");
+        assertFalse(usPostalCodeAttribute.validate("5555"), "5555 should be invalid (starts with 555)");
+        assertFalse(usPostalCodeAttribute.validate("8888"), "8888 should be invalid (starts with 888)");
+        
+        // These ZIP-4 codes are VALID - they don't start with 000, 555, or 888
+        assertTrue(usPostalCodeAttribute.validate("1111"), "1111 should be valid");
+        assertTrue(usPostalCodeAttribute.validate("1234"), "1234 should be valid");
+        assertTrue(usPostalCodeAttribute.validate("2222"), "2222 should be valid");
+        assertTrue(usPostalCodeAttribute.validate("9876"), "9876 should be valid");
     }
 
     @Test

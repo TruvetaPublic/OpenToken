@@ -29,25 +29,30 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
      *
      * The pattern matches Canadian postal codes in the format "A1A 1A1" or "A1A1A1",
      * where 'A' represents an uppercase or lowercase letter and '1' represents a digit.
-     * Also accepts 3-character format "A1A" which will be padded to full format.
+     * Also accepts partial formats:
+     * - 3-character format "A1A" which will be padded to full format "A1A 000"
+     * - 4-character format "A1A 1" which will be padded to "A1A 1A0"
+     * - 5-character format "A1A 1A" which will be padded to "A1A 1A0"
      *
      * Breakdown:
      *   ^\\s*        - Allows optional leading whitespace.
      *   [A-Za-z]     - Matches a single letter (case-insensitive).
      *   \\d          - Matches a single digit.
      *   [A-Za-z]     - Matches a single letter (case-insensitive).
-     *   (            - Start optional group for full postal code:
+     *   (            - Start optional group for partial or full postal code:
      *     \\s?       - Allows an optional space between the two segments.
      *     \\d        - Matches a single digit.
-     *     [A-Za-z]   - Matches a single letter (case-insensitive).
-     *     \\d        - Matches a single digit.
+     *     (          - Start optional group for last two characters:
+     *       [A-Za-z] - Matches a single letter (case-insensitive).
+     *       \\d?     - Matches an optional digit.
+     *     )?         - End optional group for last two characters
      *   )?           - End optional group
      *   \\s*$        - Allows optional trailing whitespace.
      *
      * This pattern ensures that the postal code follows the Canadian standard,
      * optionally surrounded by whitespace and with an optional space in the middle.
      */
-    private static final String CANADIAN_POSTAL_REGEX = "^\\s*[A-Za-z]\\d[A-Za-z](\\s?\\d[A-Za-z]\\d)?\\s*$";
+    private static final String CANADIAN_POSTAL_REGEX = "^\\s*[A-Za-z]\\d[A-Za-z](\\s?\\d([A-Za-z]\\d?)?)?\\s*$";
 
     private static final Set<String> INVALID_ZIP_CODES = Set.of(
             // 6-character Canadian postal code placeholders
@@ -87,6 +92,8 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
      * 
      * For Canadian postal codes:
      * - 3-character format (e.g., "J1X") is padded with " 000" to create full format (e.g., "J1X 000")
+     * - 4-character format (e.g., "J1X 1") is padded with "A0" to create full format (e.g., "J1X 1A0")
+     * - 5-character format (e.g., "J1X 1A") is padded with "0" to create full format (e.g., "J1X 1A0")
      * - 6-character format returns uppercase format with space (e.g., "k1a0a6" becomes "K1A 0A6")
      * If the input value is null or doesn't match Canadian postal pattern, the
      * original trimmed value is returned.
@@ -108,6 +115,18 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
         if (trimmed.matches("[A-Za-z]\\d[A-Za-z]")) {
             String upper = trimmed.toUpperCase();
             return upper + " 000";
+        }
+
+        // Check if it's a 4-character partial postal code (e.g., "A1A1") - pad with "A0"
+        if (trimmed.matches("[A-Za-z]\\d[A-Za-z]\\d")) {
+            String upper = trimmed.toUpperCase();
+            return upper.substring(0, 3) + " " + upper.substring(3) + "A0";
+        }
+
+        // Check if it's a 5-character partial postal code (e.g., "A1A1A") - pad with "0"
+        if (trimmed.matches("[A-Za-z]\\d[A-Za-z]\\d[A-Za-z]")) {
+            String upper = trimmed.toUpperCase();
+            return upper.substring(0, 3) + " " + upper.substring(3) + "0";
         }
 
         // Check if it's a Canadian postal code (6 alphanumeric characters)

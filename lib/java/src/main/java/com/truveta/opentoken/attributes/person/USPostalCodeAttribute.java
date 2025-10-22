@@ -29,6 +29,7 @@ public class USPostalCodeAttribute extends BaseAttribute {
      *
      * This pattern matches the following formats:
      *  - 3-digit ZIP code (e.g., "951") - will be padded to 5 digits
+     *  - 4-digit ZIP code (e.g., "1234") - will be padded to 5 digits
      *  - 5-digit ZIP code (e.g., "12345")
      *  - ZIP+4 code with hyphen (e.g., "12345-6789")
      *  - 9-digit ZIP code without hyphen (e.g., "123456789")
@@ -39,6 +40,8 @@ public class USPostalCodeAttribute extends BaseAttribute {
      *   (                   Start of group:
      *     \d{3}             Exactly 3 digits (ZIP-3, will be padded)
      *     |                 OR
+     *     \d{4}             Exactly 4 digits (ZIP-4, will be padded)
+     *     |                 OR
      *     \d{5}             Exactly 5 digits
      *     ( -\d{4} )?       Optional: hyphen followed by exactly 4 digits
      *     |                 OR
@@ -46,7 +49,7 @@ public class USPostalCodeAttribute extends BaseAttribute {
      *   )
      *   \s*$                Optional trailing whitespace, end of string
      */
-    private static final String US_ZIP_REGEX = "^\\s*(\\d{3}|\\d{5}(-\\d{4})?|\\d{9})\\s*$";
+    private static final String US_ZIP_REGEX = "^\\s*(\\d{3}|\\d{4}|\\d{5}(-\\d{4})?|\\d{9})\\s*$";
 
     private static final Set<String> INVALID_ZIP_CODES = Set.of(
             // 5-digit invalid codes
@@ -91,6 +94,7 @@ public class USPostalCodeAttribute extends BaseAttribute {
      * 
      * For US ZIP codes:
      * - 3-digit ZIP code (ZIP-3) is padded with "00" to create 5-digit format (e.g., "951" becomes "95100")
+     * - 4-digit ZIP code (ZIP-4) is padded with "0" to create 5-digit format (e.g., "1234" becomes "12340")
      * - 5-digit or longer ZIP codes return the first 5 digits (e.g., "12345-6789" becomes "12345")
      * If the input value is null or doesn't match US ZIP pattern, the original
      * trimmed value is returned.
@@ -111,6 +115,11 @@ public class USPostalCodeAttribute extends BaseAttribute {
         // Check if it's a 3-digit ZIP code (ZIP-3) - pad with "00"
         if (trimmed.matches("\\d{3}")) {
             return trimmed + "00";
+        }
+
+        // Check if it's a 4-digit ZIP code (ZIP-4) - pad with "0"
+        if (trimmed.matches("\\d{4}")) {
+            return trimmed + "0";
         }
 
         // Check if it's a US ZIP code (5 digits, 5+4 with dash, or 9 digits without

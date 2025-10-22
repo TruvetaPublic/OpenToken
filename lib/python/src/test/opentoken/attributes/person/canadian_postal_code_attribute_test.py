@@ -61,8 +61,6 @@ class TestCanadianPostalCodeAttribute:
                "Empty value should not be allowed"
         
         # Invalid Canadian postal code formats (using K1B to avoid invalid prefix)
-        assert self.canadian_postal_code_attribute.validate("K1B 0A") is False, \
-               "Incomplete Canadian postal code should not be allowed"
         assert self.canadian_postal_code_attribute.validate("K1B 0A67") is False, \
                "Too long Canadian postal code should not be allowed"
         assert self.canadian_postal_code_attribute.validate("K11 0A6") is False, \
@@ -184,6 +182,62 @@ class TestCanadianPostalCodeAttribute:
         assert self.canadian_postal_code_attribute.validate("X0X") is True
         assert self.canadian_postal_code_attribute.validate("Y0Y") is True
     
+    def test_normalize_should_pad_partial_canadian_postal_codes(self):
+        """Test padding of partial Canadian postal codes."""
+        # Test 4-character partial postal code padding (e.g., "J1X1" → "J1X 1A0")
+        assert self.canadian_postal_code_attribute.normalize("J1X1") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize(" J1X1") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize("J1X1 ") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize(" J1X1 ") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize("J1X 1") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize("M5V3") == "M5V 3A0"
+        assert self.canadian_postal_code_attribute.normalize("H3Z2") == "H3Z 2A0"
+        
+        # Test 5-character partial postal code padding (e.g., "J1X1A" → "J1X 1A0")
+        assert self.canadian_postal_code_attribute.normalize("J1X1A") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize(" J1X1A") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize("J1X1A ") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize(" J1X1A ") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize("J1X 1A") == "J1X 1A0"
+        assert self.canadian_postal_code_attribute.normalize("M5V3L") == "M5V 3L0"
+        assert self.canadian_postal_code_attribute.normalize("H3Z2Y") == "H3Z 2Y0"
+    
+    def test_validate_should_return_true_for_partial_canadian_postal_codes(self):
+        """Test validation returns true for partial Canadian postal codes."""
+        # 4-character partial postal codes should be valid
+        assert self.canadian_postal_code_attribute.validate("J1X1") is True
+        assert self.canadian_postal_code_attribute.validate(" J1X1") is True
+        assert self.canadian_postal_code_attribute.validate("J1X1 ") is True
+        assert self.canadian_postal_code_attribute.validate(" J1X1 ") is True
+        assert self.canadian_postal_code_attribute.validate("J1X 1") is True
+        assert self.canadian_postal_code_attribute.validate("M5V3") is True
+        assert self.canadian_postal_code_attribute.validate("H3Z2") is True
+        
+        # 5-character partial postal codes should be valid
+        assert self.canadian_postal_code_attribute.validate("J1X1A") is True
+        assert self.canadian_postal_code_attribute.validate(" J1X1A") is True
+        assert self.canadian_postal_code_attribute.validate("J1X1A ") is True
+        assert self.canadian_postal_code_attribute.validate(" J1X1A ") is True
+        assert self.canadian_postal_code_attribute.validate("J1X 1A") is True
+        assert self.canadian_postal_code_attribute.validate("M5V3L") is True
+        assert self.canadian_postal_code_attribute.validate("H3Z2Y") is True
+    
+    def test_validate_should_return_false_for_invalid_partial_canadian_postal_codes(self):
+        """Test validation returns false for partial Canadian postal codes with invalid prefixes."""
+        # These partial postal codes start with invalid ZIP-3 prefixes
+        assert self.canadian_postal_code_attribute.validate("K1A1") is False
+        assert self.canadian_postal_code_attribute.validate("K1A1A") is False
+        assert self.canadian_postal_code_attribute.validate("M7A2") is False
+        assert self.canadian_postal_code_attribute.validate("M7A2B") is False
+        assert self.canadian_postal_code_attribute.validate("H0H3") is False
+        assert self.canadian_postal_code_attribute.validate("H0H3C") is False
+        
+        # These partial postal codes are VALID
+        assert self.canadian_postal_code_attribute.validate("K1B1") is True
+        assert self.canadian_postal_code_attribute.validate("K1B1A") is True
+        assert self.canadian_postal_code_attribute.validate("M5V3") is True
+        assert self.canadian_postal_code_attribute.validate("M5V3L") is True
+    
     def test_normalize_should_handle_edge_cases(self):
         """Test edge cases for normalization."""
         # Test null and empty values
@@ -271,7 +325,6 @@ class TestCanadianPostalCodeAttribute:
     @pytest.mark.parametrize("invalid_code", [
         None,
         "",
-        "K1B 0A",
         "K1B 0A67",
         "K11 0A6",
         "KAA 0A6",

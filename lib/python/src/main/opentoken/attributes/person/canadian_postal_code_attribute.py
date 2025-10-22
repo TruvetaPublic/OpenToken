@@ -22,8 +22,8 @@ class CanadianPostalCodeAttribute(BaseAttribute):
     ALIASES = [NAME, "CanadianZipCode"]
 
     # Regular expression pattern for validating Canadian postal codes
-    # Supports 3-character (ZIP-3) and full 6-character formats
-    CANADIAN_POSTAL_REGEX = r"^\s*[A-Za-z]\d[A-Za-z](\s?\d[A-Za-z]\d)?\s*$"
+    # Supports 3-character (ZIP-3), partial (4-5 char), and full 6-character formats
+    CANADIAN_POSTAL_REGEX = r"^\s*[A-Za-z]\d[A-Za-z](\s?\d([A-Za-z]\d?)?)?\s*$"
 
     INVALID_ZIP_CODES = {
         # 6-character Canadian postal code placeholders
@@ -61,6 +61,8 @@ class CanadianPostalCodeAttribute(BaseAttribute):
 
         For Canadian postal codes:
         - 3-character format (e.g., "J1X") is padded with " 000" to create full format (e.g., "J1X 000")
+        - 4-character format (e.g., "J1X1") is padded with "A0" to create full format (e.g., "J1X 1A0")
+        - 5-character format (e.g., "J1X1A") is padded with "0" to create full format (e.g., "J1X 1A0")
         - 6-character format returns uppercase format with space (e.g., "k1a0a6" becomes "K1A 0A6")
         If the input value is null or doesn't match Canadian postal pattern, the original
         trimmed value is returned.
@@ -74,6 +76,16 @@ class CanadianPostalCodeAttribute(BaseAttribute):
         if re.match(r"^[A-Za-z]\d[A-Za-z]$", trimmed):
             upper = trimmed.upper()
             return f"{upper} 000"
+
+        # Check if it's a 4-character partial postal code (e.g., "A1A1") - pad with "A0"
+        if re.match(r"^[A-Za-z]\d[A-Za-z]\d$", trimmed):
+            upper = trimmed.upper()
+            return f"{upper[:3]} {upper[3]}A0"
+
+        # Check if it's a 5-character partial postal code (e.g., "A1A1A") - pad with "0"
+        if re.match(r"^[A-Za-z]\d[A-Za-z]\d[A-Za-z]$", trimmed):
+            upper = trimmed.upper()
+            return f"{upper[:3]} {upper[3:]}0"
 
         # Check if it's a Canadian postal code (6 alphanumeric characters)
         if re.match(r"[A-Za-z]\d[A-Za-z]\d[A-Za-z]\d", trimmed):

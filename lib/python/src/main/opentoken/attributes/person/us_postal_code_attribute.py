@@ -22,8 +22,8 @@ class USPostalCodeAttribute(BaseAttribute):
     ALIASES = [NAME, "USZipCode"]
 
     # Regular expression pattern for validating US postal (ZIP) codes
-    # Supports 3-digit (ZIP-3), 5-digit, and 9-digit formats
-    US_ZIP_REGEX = r"^\s*(\d{3}|\d{5}(-\d{4})?|\d{9})\s*$"
+    # Supports 3-digit (ZIP-3), 4-digit (ZIP-4), 5-digit, and 9-digit formats
+    US_ZIP_REGEX = r"^\s*(\d{3}|\d{4}|\d{5}(-\d{4})?|\d{9})\s*$"
 
     INVALID_ZIP_CODES = {
         # 5-digit invalid codes
@@ -66,6 +66,7 @@ class USPostalCodeAttribute(BaseAttribute):
 
         For US ZIP codes:
         - 3-digit ZIP code (ZIP-3) is padded with "00" to create 5-digit format (e.g., "951" becomes "95100")
+        - 4-digit ZIP code (ZIP-4) is padded with "0" to create 5-digit format (e.g., "1234" becomes "12340")
         - 5-digit or longer ZIP codes return the first 5 digits (e.g., "12345-6789" becomes "12345")
         If the input value is null or doesn't match US ZIP pattern, the original
         trimmed value is returned.
@@ -78,6 +79,10 @@ class USPostalCodeAttribute(BaseAttribute):
         # Check if it's a 3-digit ZIP code (ZIP-3) - pad with "00"
         if re.match(r"^\d{3}$", trimmed):
             return trimmed + "00"
+
+        # Check if it's a 4-digit ZIP code (ZIP-4) - pad with "0"
+        if re.match(r"^\d{4}$", trimmed):
+            return trimmed + "0"
 
         # Check if it's a US ZIP code (5 digits, 5+4 with dash, or 9 digits without dash)
         if re.match(r"\d{5}(-?\d{4})?", trimmed) or re.match(r"\d{9}", trimmed):

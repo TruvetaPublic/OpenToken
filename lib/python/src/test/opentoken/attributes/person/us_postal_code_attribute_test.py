@@ -67,7 +67,7 @@ class TestUSPostalCodeAttribute:
 
     def test_validate_should_return_false_for_invalid_formats(self):
         """Test validation returns false for invalid formats."""
-        assert self.us_postal_code_attribute.validate("1234") is False
+        assert self.us_postal_code_attribute.validate("12") is False
         assert self.us_postal_code_attribute.validate("123456") is False
         assert self.us_postal_code_attribute.validate("1234-5678") is False
         assert self.us_postal_code_attribute.validate("abcde") is False
@@ -103,7 +103,6 @@ class TestUSPostalCodeAttribute:
     def test_normalize_should_handle_edge_cases(self):
         """Test normalization handles edge cases."""
         # Less than 3 digits - return trimmed original
-        assert self.us_postal_code_attribute.normalize("1234 ") == "1234"
         assert self.us_postal_code_attribute.normalize("12") == "12"
         assert self.us_postal_code_attribute.normalize("1") == "1"
         
@@ -132,6 +131,16 @@ class TestUSPostalCodeAttribute:
         assert self.us_postal_code_attribute.normalize("303") == "30300"
         assert self.us_postal_code_attribute.normalize("606") == "60600"
 
+    def test_normalize_should_pad_zip4_to_zip5(self):
+        """Test ZIP-4 padding with '0'."""
+        assert self.us_postal_code_attribute.normalize("1234") == "12340"
+        assert self.us_postal_code_attribute.normalize(" 1234") == "12340"
+        assert self.us_postal_code_attribute.normalize("1234 ") == "12340"
+        assert self.us_postal_code_attribute.normalize(" 1234 ") == "12340"
+        assert self.us_postal_code_attribute.normalize("5678") == "56780"
+        assert self.us_postal_code_attribute.normalize("9021") == "90210"
+        assert self.us_postal_code_attribute.normalize("3030") == "30300"
+
     def test_validate_should_return_true_for_valid_zip3(self):
         """Test validation returns true for valid ZIP-3 codes."""
         assert self.us_postal_code_attribute.validate("951") is True
@@ -141,6 +150,16 @@ class TestUSPostalCodeAttribute:
         assert self.us_postal_code_attribute.validate("980") is True
         assert self.us_postal_code_attribute.validate("303") is True
         assert self.us_postal_code_attribute.validate("606") is True
+
+    def test_validate_should_return_true_for_valid_zip4(self):
+        """Test validation returns true for valid ZIP-4 codes."""
+        assert self.us_postal_code_attribute.validate("1234") is True
+        assert self.us_postal_code_attribute.validate(" 1234") is True
+        assert self.us_postal_code_attribute.validate("1234 ") is True
+        assert self.us_postal_code_attribute.validate("5678") is True
+        assert self.us_postal_code_attribute.validate("9021") is True
+        assert self.us_postal_code_attribute.validate("3030") is True
+        assert self.us_postal_code_attribute.validate("6060") is True
 
     def test_validate_should_return_false_for_invalid_zip3(self):
         """Test validation returns false for invalid ZIP-3 codes."""
@@ -153,6 +172,19 @@ class TestUSPostalCodeAttribute:
         assert self.us_postal_code_attribute.validate("111") is True
         assert self.us_postal_code_attribute.validate("222") is True
         assert self.us_postal_code_attribute.validate("987") is True
+
+    def test_validate_should_return_false_for_invalid_zip4(self):
+        """Test validation returns false for invalid ZIP-4 codes that start with invalid prefixes."""
+        # These ZIP-4 codes start with invalid ZIP-3 prefixes
+        assert self.us_postal_code_attribute.validate("0001") is False
+        assert self.us_postal_code_attribute.validate("5555") is False
+        assert self.us_postal_code_attribute.validate("8888") is False
+        
+        # These should be valid (not in invalid list)
+        assert self.us_postal_code_attribute.validate("1111") is True
+        assert self.us_postal_code_attribute.validate("1234") is True
+        assert self.us_postal_code_attribute.validate("2222") is True
+        assert self.us_postal_code_attribute.validate("9876") is True
 
     def test_serialization(self):
         """Test serialization and deserialization of USPostalCodeAttribute."""
