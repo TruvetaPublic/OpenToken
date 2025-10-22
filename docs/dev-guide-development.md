@@ -2,6 +2,8 @@
 
 This guide centralizes contributor-facing information. It covers local setup, language-specific build instructions, development environment, versioning, and key contribution workflows.
 
+> **For AI Coding Agents**: See the [Copilot Instructions](../.github/copilot-instructions.md) for comprehensive guidance on working with this codebase, including security guidelines, PR standards, and debugging tips.
+
 ## At a Glance
 
 - Two implementations: Java (Maven) & Python (pip)
