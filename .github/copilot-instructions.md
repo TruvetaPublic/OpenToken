@@ -7,6 +7,7 @@ This document provides comprehensive guidance for AI coding agents working on th
 ### Task Suitability
 
 **Good Tasks for AI Agents:**
+
 - Adding new attributes (with validation/normalization)
 - Adding new validation rules
 - Bug fixes in existing attributes/validators
@@ -15,6 +16,7 @@ This document provides comprehensive guidance for AI coding agents working on th
 - Code refactoring within existing patterns
 
 **Tasks Requiring Human Review:**
+
 - Changes to core token generation logic
 - Modifications to encryption/hashing algorithms
 - Breaking API changes
@@ -74,9 +76,63 @@ bump2version major   # Breaking API changes
 
 This updates `.bumpversion.cfg`, `pom.xml`, `setup.py`, `__init__.py`, `Dockerfile`, and `Metadata.java` automatically. **Never** manually edit version numbers.
 
-### Branch Naming
+### Branch Management
 
-`dev/<github-username>/<feature-description>` (e.g., `dev/mattwise-42/additional-attributes`)
+**Required Branch Format:** `dev/<github-username>/<feature-description>` (e.g., `dev/mattwise-42/additional-attributes`)
+
+**Automatic Branch Creation:**
+
+When starting work on a new feature or task, always check if a feature branch exists. If not, create one automatically using this workflow:
+
+1. **Get the GitHub username:**
+
+   ```bash
+   # Get authenticated user's GitHub username
+   git config user.name  # Fallback if GitHub API unavailable
+   ```
+
+2. **Create feature branch:**
+
+   ```bash
+   # Format: dev/<username>/<feature-name>
+   # Example: dev/mattwise-42/add-middle-name-attribute
+   git checkout -b "dev/<username>/<feature-name>" main
+   git push -u origin "dev/<username>/<feature-name>"
+   ```
+
+3. **Feature name conventions:**
+   - Use kebab-case (lowercase with hyphens)
+   - Be descriptive but concise (3-5 words)
+   - Examples:
+     - `add-middle-name-attribute`
+     - `fix-ssn-validation-bug`
+     - `update-birth-date-range`
+     - `improve-test-coverage`
+
+**Branch Creation Decision Tree:**
+
+- If on `main` branch and starting new work → Create feature branch
+- If on existing feature branch for same task → Continue on current branch
+- If on unrelated feature branch → Switch to main, then create new feature branch
+- If branch name doesn't match format → Warn user and suggest creating properly named branch
+
+**Example Workflow:**
+
+```bash
+# Check current branch
+CURRENT_BRANCH=$(git branch --show-current)
+
+# If on main and no feature branch exists
+if [ "$CURRENT_BRANCH" = "main" ]; then
+  USERNAME=$(git config user.name | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+  FEATURE_NAME="your-feature-description"
+  NEW_BRANCH="dev/${USERNAME}/${FEATURE_NAME}"
+
+  git checkout -b "$NEW_BRANCH"
+  git push -u origin "$NEW_BRANCH"
+  echo "Created and switched to branch: $NEW_BRANCH"
+fi
+```
 
 ## Project-Specific Conventions
 
@@ -205,19 +261,24 @@ Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`
 ### Common Build Issues
 
 **Java Checkstyle failures:**
+
 ```bash
 cd lib/java && mvn checkstyle:check
 ```
+
 Fix style issues before running full build.
 
 **Python import errors:**
+
 ```bash
 cd lib/python && source .venv/bin/activate
 pip install -e .
 ```
+
 Ensure editable install for local development.
 
 **Token mismatch between Java/Python:**
+
 - Verify normalization logic matches exactly
 - Check attribute order in token signatures
 - Use `tools/interoperability/` tests to compare outputs
