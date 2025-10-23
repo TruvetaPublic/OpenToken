@@ -28,7 +28,7 @@ class USPostalCodeAttributeTest {
 
     @BeforeEach
     void setUp() {
-        usPostalCodeAttribute = new USPostalCodeAttribute();
+        usPostalCodeAttribute = new USPostalCodeAttribute(3);
     }
 
     @Test

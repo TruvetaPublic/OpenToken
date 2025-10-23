@@ -73,10 +73,25 @@ public class USPostalCodeAttribute extends BaseAttribute {
             "888"
     );
 
+    private final int minLength;
+
+    /**
+     * Constructs a USPostalCodeAttribute with default minimum length of 5.
+     */
     public USPostalCodeAttribute() {
+        this(5);
+    }
+
+    /**
+     * Constructs a USPostalCodeAttribute with specified minimum length.
+     * 
+     * @param minLength The minimum length for postal codes (e.g., 3, 4, or 5)
+     */
+    public USPostalCodeAttribute(int minLength) {
         super(List.of(
                 new RegexValidator(US_ZIP_REGEX),
                 new NotStartsWithValidator(INVALID_ZIP_CODES)));
+        this.minLength = minLength;
     }
 
     @Override
@@ -93,8 +108,9 @@ public class USPostalCodeAttribute extends BaseAttribute {
      * Normalizes a US ZIP code to standard 5-digit format.
      * 
      * For US ZIP codes:
-     * - 3-digit ZIP code (ZIP-3) is padded with "00" to create 5-digit format (e.g., "951" becomes "95100")
-     * - 4-digit ZIP code (ZIP-4) is padded with "0" to create 5-digit format (e.g., "1234" becomes "12340")
+     * - Codes shorter than minLength are rejected (return original)
+     * - 3-digit ZIP code (ZIP-3) is padded with "00" to create 5-digit format (e.g., "951" becomes "95100") if minLength <= 3
+     * - 4-digit ZIP code (ZIP-4) is padded with "0" to create 5-digit format (e.g., "1234" becomes "12340") if minLength <= 4
      * - 5-digit or longer ZIP codes return the first 5 digits (e.g., "12345-6789" becomes "12345")
      * If the input value is null or doesn't match US ZIP pattern, the original
      * trimmed value is returned.
@@ -112,14 +128,22 @@ public class USPostalCodeAttribute extends BaseAttribute {
 
         String trimmed = value.trim().replaceAll(AttributeUtilities.WHITESPACE.pattern(), StringUtils.EMPTY);
 
-        // Check if it's a 3-digit ZIP code (ZIP-3) - pad with "00"
+        // Check if it's a 3-digit ZIP code (ZIP-3) - pad with "00" if minLength allows
         if (trimmed.matches("\\d{3}")) {
-            return trimmed + "00";
+            if (minLength <= 3) {
+                return trimmed + "00";
+            }
+            // If minLength > 3, reject this by returning original
+            return value.trim();
         }
 
-        // Check if it's a 4-digit ZIP code (ZIP-4) - pad with "0"
+        // Check if it's a 4-digit ZIP code (ZIP-4) - pad with "0" if minLength allows
         if (trimmed.matches("\\d{4}")) {
-            return trimmed + "0";
+            if (minLength <= 4) {
+                return trimmed + "0";
+            }
+            // If minLength > 4, reject this by returning original
+            return value.trim();
         }
 
         // Check if it's a US ZIP code (5 digits, 5+4 with dash, or 9 digits without

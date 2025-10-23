@@ -13,7 +13,7 @@ class TestUSPostalCodeAttribute:
 
     def setup_method(self):
         """Set up test fixtures before each test method."""
-        self.us_postal_code_attribute = USPostalCodeAttribute()
+        self.us_postal_code_attribute = USPostalCodeAttribute(min_length=3)
 
     def test_get_name_should_return_us_postal_code(self):
         """Test that get_name returns 'USPostalCode'."""

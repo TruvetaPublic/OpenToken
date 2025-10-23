@@ -18,9 +18,12 @@ class PostalCodeAttribute(CombinedAttribute):
     "ZipCode", "ZIP3", and "ZIP5" as valid aliases for this attribute type.
 
     The attribute performs normalization on input values, converting them to a
-    standard format. Supports both US ZIP codes (3, 5, or 9 digits) and Canadian
-    postal codes (3 or 6 characters in A1A 1A1 format). ZIP-3 codes (3 digits/characters)
+    standard format. Supports both US ZIP codes (3, 4, or 5 digits) and Canadian
+    postal codes (3, 4, 5, or 6 characters in A1A 1A1 format). ZIP-3 codes (3 digits/characters)
     are automatically padded to full length during normalization.
+    
+    This class instantiates postal code attributes with min_length=3 to support
+    partial postal codes (ZIP-3, ZIP-4, and partial Canadian formats).
     """
 
     NAME = "PostalCode"
@@ -28,8 +31,8 @@ class PostalCodeAttribute(CombinedAttribute):
 
     def __init__(self):
         self._implementations = [
-            USPostalCodeAttribute(),
-            CanadianPostalCodeAttribute()
+            USPostalCodeAttribute(min_length=3),
+            CanadianPostalCodeAttribute(min_length=3)
         ]
         super().__init__()
 

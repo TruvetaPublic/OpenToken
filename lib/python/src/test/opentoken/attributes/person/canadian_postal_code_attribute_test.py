@@ -16,7 +16,7 @@ class TestCanadianPostalCodeAttribute:
     
     def setup_method(self):
         """Set up test fixtures before each test method."""
-        self.canadian_postal_code_attribute = CanadianPostalCodeAttribute()
+        self.canadian_postal_code_attribute = CanadianPostalCodeAttribute(min_length=3)
     
     def test_get_name_should_return_canadian_postal_code(self):
         """Test that get_name returns 'CanadianPostalCode'."""

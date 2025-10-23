@@ -28,7 +28,7 @@ class CanadianPostalCodeAttributeTest {
 
     @BeforeEach
     void setUp() {
-        canadianPostalCodeAttribute = new CanadianPostalCodeAttribute();
+        canadianPostalCodeAttribute = new CanadianPostalCodeAttribute(3);
     }
 
     @Test
