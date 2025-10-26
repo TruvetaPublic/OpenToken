@@ -23,8 +23,8 @@ class TestPostalCodeAttribute:
         assert self.postal_code_attribute.get_name() == "PostalCode"
     
     def test_get_aliases_should_return_postal_code_and_zip_code(self):
-        """Test that get_aliases returns PostalCode, ZipCode, ZIP3, and ZIP5."""
-        expected_aliases = ["PostalCode", "ZipCode", "ZIP3", "ZIP5"]
+        """Test that get_aliases returns PostalCode, ZipCode, ZIP3, ZIP4, and ZIP5."""
+        expected_aliases = ["PostalCode", "ZipCode", "ZIP3", "ZIP4", "ZIP5"]
         actual_aliases = self.postal_code_attribute.get_aliases()
         assert actual_aliases == expected_aliases
     
@@ -91,8 +91,9 @@ class TestPostalCodeAttribute:
                "Null value should not be allowed"
         assert self.postal_code_attribute.validate("") is False, \
                "Empty value should not be allowed"
-        assert self.postal_code_attribute.validate("1234") is False, \
-               "Short postal code should not be allowed"
+        # Note: "1234" is now VALID (ZIP-4) with minLength=3 and gets padded to "12340"
+        assert self.postal_code_attribute.validate("12") is False, \
+               "Too short postal code should not be allowed"
         assert self.postal_code_attribute.validate("12345") is False, \
                "Invalid postal code should not be allowed"
         assert self.postal_code_attribute.validate("54321") is False, \
@@ -200,8 +201,9 @@ class TestPostalCodeAttribute:
     
     def test_normalize_should_handle_edge_cases(self):
         """Test edge cases for normalization."""
-        # Test short postal codes (less than 3 characters)
-        assert self.postal_code_attribute.normalize("1234 ") == "1234"
+        # Test ZIP-4 padding (4 digits with trailing space)
+        assert self.postal_code_attribute.normalize("1234 ") == "12340"
+        # Test short postal codes (less than 3 characters) - returned as-is
         assert self.postal_code_attribute.normalize("12") == "12"
         assert self.postal_code_attribute.normalize("1") == "1"
         
@@ -297,18 +299,19 @@ class TestPostalCodeAttribute:
     @pytest.mark.parametrize("invalid_code", [
         None,
         "",
-        "1234",
-        "12345",
-        "54321",
-        "123456",
-        "1234-5678",
-        "abcde",
-        "K1A",
-        "K1A 0A",
-        "K1B 0A67",
-        "K11 0A6",
-        "KAA 0A6",
-        "K1A 0AA",
+        # Note: "1234" is now VALID (ZIP-4) with minLength=3 and gets padded to "12340"
+        "12",  # Too short (only 2 digits)
+        "12345",  # Invalid US ZIP (starts with invalid prefix based on validation)
+        "54321",  # Invalid US ZIP (starts with invalid prefix based on validation)
+        "123456",  # Invalid format (6 digits, not US or Canadian)
+        "1234-5678",  # Invalid format
+        "abcde",  # Invalid characters
+        "K1A",  # Invalid Canadian (starts with K1A which is reserved)
+        "K1A 0A",  # Invalid partial Canadian
+        "K1B 0A67",  # Too long for Canadian
+        "K11 0A6",  # Invalid Canadian format (digit in first position)
+        "KAA 0A6",  # Invalid Canadian format (two letters in second position)
+        "K1A 0AA",  # Invalid Canadian format (two letters in last position)
     ])
     def test_validate_invalid_codes_parametrized(self, invalid_code):
         """Parametrized test for validation with invalid postal codes."""

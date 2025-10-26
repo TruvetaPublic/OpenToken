@@ -15,7 +15,7 @@ class PostalCodeAttribute(CombinedAttribute):
 
     This class combines US and Canadian postal code implementations to provide
     functionality for working with postal code fields. It recognizes "PostalCode",
-    "ZipCode", "ZIP3", and "ZIP5" as valid aliases for this attribute type.
+    "ZipCode", "ZIP3", "ZIP4", and "ZIP5" as valid aliases for this attribute type.
 
     The attribute performs normalization on input values, converting them to a
     standard format. Supports both US ZIP codes (3, 4, or 5 digits) and Canadian
@@ -27,7 +27,7 @@ class PostalCodeAttribute(CombinedAttribute):
     """
 
     NAME = "PostalCode"
-    ALIASES = [NAME, "ZipCode", "ZIP3", "ZIP5"]
+    ALIASES = [NAME, "ZipCode", "ZIP3", "ZIP4", "ZIP5"]
 
     def __init__(self):
         self._implementations = [
