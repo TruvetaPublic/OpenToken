@@ -23,7 +23,7 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
  */
 public final class SHA256Tokenizer implements Serializable {
 
-    private static final long serialVersionUID = -6468579638578573932L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The empty token value.

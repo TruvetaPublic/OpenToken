@@ -20,7 +20,7 @@ import lombok.Getter;
  */
 @Getter
 public class TokenGeneratorResult implements Serializable {
-    private static final long serialVersionUID = -2345678901234567890L;
+    private static final long serialVersionUID = 1L;
 
     private Map<String, String> tokens = new TreeMap<>();
 
