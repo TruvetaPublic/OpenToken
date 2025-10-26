@@ -51,7 +51,7 @@ import lombok.Setter;
 public final class AttributeExpression implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static final transient Pattern EXPRESSION_PATTERN = Pattern
+    private static final Pattern EXPRESSION_PATTERN = Pattern
             .compile("\\s*(?<expr>[^ (]+)(?:\\((?<args>[^\\)]+)\\))?");
 
     private Class<? extends Attribute> attributeClass;
