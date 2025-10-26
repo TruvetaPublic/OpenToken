@@ -13,7 +13,7 @@ import com.truveta.opentoken.attributes.SerializableAttribute;
  * 
  * This class combines US and Canadian postal code implementations to provide
  * functionality for working with postal code fields. It recognizes "PostalCode",
- * "ZipCode", "ZIP3", and "ZIP5" as valid aliases for this attribute type.
+ * "ZipCode", "ZIP3", "ZIP4", and "ZIP5" as valid aliases for this attribute type.
  * 
  * The attribute performs normalization on input values, converting them to a
  * standard format. Supports both US ZIP codes (3, 4, or 5 digits) and Canadian
@@ -26,12 +26,11 @@ import com.truveta.opentoken.attributes.SerializableAttribute;
 public class PostalCodeAttribute extends CombinedAttribute {
 
     private static final String NAME = "PostalCode";
-    private static final String[] ALIASES = new String[] { NAME, "ZipCode", "ZIP3", "ZIP5" };
+    private static final String[] ALIASES = new String[] { NAME, "ZipCode", "ZIP3", "ZIP4", "ZIP5" };
 
     private final List<SerializableAttribute> implementations = List.of(
             new USPostalCodeAttribute(3),
-            new CanadianPostalCodeAttribute(3)
-    );
+            new CanadianPostalCodeAttribute(3));
 
     @Override
     public String getName() {
