@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.tokenizer;
+package com.truveta.opentoken.tokens.tokenizer;
 
 import java.io.Serializable;
 

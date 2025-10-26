@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.tokens;
+package com.truveta.opentoken.tokens.tokenizer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.truveta.opentoken.tokens.Token;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;

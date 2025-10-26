@@ -5,10 +5,11 @@ Copyright (c) Truveta. All rights reserved.
 import hashlib
 from typing import List
 from opentoken.tokens.token import Token
+from opentoken.tokens.tokenizer.tokenizer import Tokenizer
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
-class SHA256Tokenizer:
+class SHA256Tokenizer(Tokenizer):
     """
     Generates token using SHA256 digest.
 

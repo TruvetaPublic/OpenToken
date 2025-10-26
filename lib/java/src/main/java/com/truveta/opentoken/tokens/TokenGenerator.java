@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeExpression;
 import com.truveta.opentoken.attributes.AttributeLoader;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 /**
