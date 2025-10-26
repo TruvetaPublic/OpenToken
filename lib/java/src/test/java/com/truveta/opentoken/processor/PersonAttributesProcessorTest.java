@@ -120,7 +120,7 @@ class PersonAttributesProcessorTest {
                 "Metadata should contain invalidAttributesByType key");
 
         // Verify values
-        assertEquals(1, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), "Total rows should be 1");
+        assertEquals(1L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), "Total rows should be 1");
         assertEquals(0L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES),
                 "Total rows with invalid attributes should be 0");
 
@@ -157,7 +157,7 @@ class PersonAttributesProcessorTest {
         PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
         // Verify
-        assertEquals(3, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), "Total rows should be 3");
+        assertEquals(3L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), "Total rows should be 3");
         assertEquals(0L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES),
                 "Total rows with invalid attributes should be 0");
     }
