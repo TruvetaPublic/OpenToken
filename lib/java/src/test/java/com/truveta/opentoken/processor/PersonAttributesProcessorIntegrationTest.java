@@ -296,7 +296,7 @@ class PersonAttributesProcessorIntegrationTest {
             // Verify essential metadata fields for backward compatibility
             assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS),
                     "Metadata must contain TotalRows for backward compatibility");
-            assertEquals(1, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS),
+            assertEquals(1L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS),
                     "TotalRows should be 1 for single record");
             assertTrue(metadataMap.containsKey(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES),
                     "Metadata must contain TotalRowsWithInvalidAttributes for backward compatibility");

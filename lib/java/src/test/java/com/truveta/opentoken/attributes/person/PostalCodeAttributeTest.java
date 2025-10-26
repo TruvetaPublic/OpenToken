@@ -38,7 +38,7 @@ class PostalCodeAttributeTest {
 
     @Test
     void getAliases_ShouldReturnPostalCodeAndZipCode() {
-        String[] expectedAliases = { "PostalCode", "ZipCode", "ZIP3", "ZIP5" };
+        String[] expectedAliases = { "PostalCode", "ZipCode", "ZIP3", "ZIP4", "ZIP5" };
         assertArrayEquals(expectedAliases, postalCodeAttribute.getAliases());
     }
 
@@ -210,7 +210,7 @@ class PostalCodeAttributeTest {
         assertTrue(postalCodeAttribute.validate(" 951"));
         assertTrue(postalCodeAttribute.validate("980"));
         assertTrue(postalCodeAttribute.validate("303"));
-        
+
         // Canadian ZIP-3 codes should be valid (will be padded during normalization)
         // Using valid, non-placeholder codes
         assertTrue(postalCodeAttribute.validate("J1X"));
