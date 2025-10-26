@@ -3,6 +3,7 @@
  */
 package com.truveta.opentoken.tokens;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -11,7 +12,7 @@ import com.truveta.opentoken.attributes.AttributeExpression;
 /**
  * A generic interface for the token definition.
  */
-public interface BaseTokenDefinition {
+public interface BaseTokenDefinition extends Serializable {
 
     /**
      * Get the version of the token definition.

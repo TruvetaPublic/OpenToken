@@ -3,6 +3,7 @@
  */
 package com.truveta.opentoken.tokens;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
@@ -20,7 +21,9 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
  * by those transformers.
  * 
  */
-public final class SHA256Tokenizer {
+public final class SHA256Tokenizer implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * The empty token value.

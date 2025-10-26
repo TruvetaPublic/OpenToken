@@ -3,6 +3,7 @@
  */
 package com.truveta.opentoken.tokens;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,7 +29,8 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
  */
 @Getter
 @Setter
-public class TokenGenerator {
+public class TokenGenerator implements Serializable {
+    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(TokenGenerator.class);
     private SHA256Tokenizer tokenizer;
     private List<TokenTransformer> tokenTransformerList;
