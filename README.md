@@ -175,7 +175,7 @@ The input file (in csv format) must contain at least the following columns and v
 | RecordId, Id                                       | Optional | Any unique string identifier. If not provided, a unique UUID will be automatically generated for each row.           |
 | FirstName, GivenName                               | Required | Any string value                                                                                                      |
 | LastName, Surname                                  | Required | Any string value                                                                                                      |
-| PostalCode, ZipCode, ZIP3, ZIP5                    | Required | US: 3 (ZIP-3), 5, or 9 digit ZIP code `ddd`, `ddddd` or `ddddd-dddd`. Canadian: 3 (ZIP-3) or 6 character postal code `AdA` or `AdAdAd` (with or without space). ZIP-3 codes are automatically padded to full length. |
+| PostalCode, ZipCode, ZIP3, ZIP4, ZIP5                    | Required | US: 3 (ZIP-3), 4, 5, or 9 digit ZIP code `ddd`, `ddddd` or `ddddd-dddd`. Canadian: 3 (ZIP-3) or 6 character postal code `AdA` or `AdAdAd` (with or without space). ZIP-3 codes are automatically padded to full length. |
 | Sex, Gender                                        | Required | `Male`, `M`, `Female`, `F`                                                                                            |
 | BirthDate, DateOfBirth                             | Required | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                        |
 | SocialSecurityNumber, NationalIdentificationNumber | Required | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                            |
@@ -224,7 +224,7 @@ cd lib/python
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r dev-requirements.txt -e .
 PYTHONPATH=src/main python src/main/opentoken/main.py \
-  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -i ../../resources/sample.csv -t csv -o ../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
