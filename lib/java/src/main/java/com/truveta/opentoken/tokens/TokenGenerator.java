@@ -30,7 +30,7 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
 @Getter
 @Setter
 public class TokenGenerator implements Serializable {
-    private static final long serialVersionUID = -1234567890123456789L;
+    private static final long serialVersionUID = 1L;
     private static final transient Logger logger = LoggerFactory.getLogger(TokenGenerator.class);
     private SHA256Tokenizer tokenizer;
     private List<TokenTransformer> tokenTransformerList;
