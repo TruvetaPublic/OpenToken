@@ -71,7 +71,7 @@ public final class PersonAttributesProcessor {
         Map<Class<? extends Attribute>, String> row;
         TokenGeneratorResult tokenGeneratorResult;
 
-        int rowCounter = 0;
+        long rowCounter = 0;
         Map<String, Long> invalidAttributeCount = new HashMap<>();
         Map<String, Long> blankTokensByRuleCount = new HashMap<>();
 
@@ -118,7 +118,7 @@ public final class PersonAttributesProcessor {
     }
 
     private static void writeTokens(PersonAttributesWriter writer, Map<Class<? extends Attribute>, String> row,
-            int rowCounter, TokenGeneratorResult tokenGeneratorResult) {
+            long rowCounter, TokenGeneratorResult tokenGeneratorResult) {
 
         Set<String> tokenIds = new TreeSet<>(tokenGeneratorResult.getTokens().keySet());
 
@@ -142,7 +142,7 @@ public final class PersonAttributesProcessor {
         }
     }
 
-    private static void keepTrackOfInvalidAttributes(TokenGeneratorResult tokenGeneratorResult, int rowCounter,
+    private static void keepTrackOfInvalidAttributes(TokenGeneratorResult tokenGeneratorResult, long rowCounter,
             Map<String, Long> invalidAttributeCount) {
 
         if (!tokenGeneratorResult.getInvalidAttributes().isEmpty()) {
@@ -159,7 +159,7 @@ public final class PersonAttributesProcessor {
         }
     }
 
-    private static void keepTrackOfBlankTokens(TokenGeneratorResult tokenGeneratorResult, int rowCounter,
+    private static void keepTrackOfBlankTokens(TokenGeneratorResult tokenGeneratorResult, long rowCounter,
             Map<String, Long> blankTokensByRuleCount) {
 
         if (!tokenGeneratorResult.getBlankTokensByRule().isEmpty()) {
