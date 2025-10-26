@@ -3,6 +3,7 @@
  */
 package com.truveta.opentoken.tokens;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import com.truveta.opentoken.attributes.AttributeExpression;
 
@@ -11,7 +12,7 @@ import com.truveta.opentoken.attributes.AttributeExpression;
  * together to get the token signature
  * and a unique identifier.
  */
-public interface Token {
+public interface Token extends Serializable {
 
     /**
      * Represents the value for tokens with invalid or missing data.
