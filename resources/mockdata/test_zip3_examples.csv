@@ -1,0 +1,17 @@
+RecordId,BirthDate,FirstName,LastName,PostalCode,Sex,SocialSecurityNumber
+zip3-us-example-1,1990-01-15,Alice,Johnson,951,Female,234-56-7890
+zip3-us-example-2,1985-03-20,Bob,Smith,980,Male,345-67-8901
+zip3-us-example-3,1995-07-10,Charlie,Williams,303,Male,456-78-9012
+zip3-us-example-4,1988-11-25,Diana,Brown,606,Female,567-89-0123
+zip4-us-example-1,1993-03-12,Oliver,Davis,9876,Male,123-45-6789
+zip4-us-example-2,1991-06-18,Sophia,Martinez,1234,Female,234-56-7890
+zip4-us-example-3,1989-09-25,Liam,Garcia,5678,Male,345-67-8901
+zip3-can-example-1,1992-05-18,Emma,Davis,J1X,Female,678-90-1234
+zip3-can-example-2,1987-09-22,Frank,Miller,M5V,Male,789-01-2345
+zip3-can-example-3,1993-12-05,Grace,Wilson,H3Z,Female,890-12-3456
+zip3-can-example-4,1991-04-30,Henry,Moore,G1R,Male,901-23-4567
+zip3-can-example-5,1989-08-14,Isabel,Taylor,L5N,Female,012-34-5678
+partial-can-example-1,1994-02-20,Noah,Anderson,T2X 3,Male,456-78-9012
+partial-can-example-2,1990-07-14,Emma,Thomas,G1R 4,Female,567-89-0123
+partial-can-example-3,1986-11-30,Ava,Jackson,M4C 5A,Male,678-90-1234
+partial-can-example-4,1992-04-22,William,White,V6B 1,Female,789-01-2345

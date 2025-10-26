@@ -23,8 +23,8 @@ class TestPostalCodeAttribute:
         assert self.postal_code_attribute.get_name() == "PostalCode"
     
     def test_get_aliases_should_return_postal_code_and_zip_code(self):
-        """Test that get_aliases returns PostalCode and ZipCode."""
-        expected_aliases = ["PostalCode", "ZipCode"]
+        """Test that get_aliases returns PostalCode, ZipCode, ZIP3, ZIP4, and ZIP5."""
+        expected_aliases = ["PostalCode", "ZipCode", "ZIP3", "ZIP4", "ZIP5"]
         actual_aliases = self.postal_code_attribute.get_aliases()
         assert actual_aliases == expected_aliases
     
@@ -35,9 +35,9 @@ class TestPostalCodeAttribute:
     
     def test_normalize_should_handle_canadian_postal_codes(self):
         """Test normalization of Canadian postal codes."""
-        assert self.postal_code_attribute.normalize("K1A0A6") == "K1A 0A6"
-        assert self.postal_code_attribute.normalize("k1a0a6") == "K1A 0A6"
-        assert self.postal_code_attribute.normalize("K1A 0A6") == "K1A 0A6"
+        assert self.postal_code_attribute.normalize("K1B0A6") == "K1B 0A6"
+        assert self.postal_code_attribute.normalize("k1b0a6") == "K1B 0A6"
+        assert self.postal_code_attribute.normalize("K1B 0A6") == "K1B 0A6"
         assert self.postal_code_attribute.normalize("m5v3l9") == "M5V 3L9"
         assert self.postal_code_attribute.normalize("H3Z2Y7") == "H3Z 2Y7"
         assert self.postal_code_attribute.normalize("t2x1v4") == "T2X 1V4"
@@ -52,15 +52,15 @@ class TestPostalCodeAttribute:
     
     def test_validate_should_return_true_for_valid_canadian_postal_codes(self):
         """Test validation for valid Canadian postal codes."""
-        assert self.postal_code_attribute.validate("K1A 0A7") is True
-        assert self.postal_code_attribute.validate("K1A0A7") is True
+        assert self.postal_code_attribute.validate("K1B 0A7") is True
+        assert self.postal_code_attribute.validate("K1B0A7") is True
         assert self.postal_code_attribute.validate("k1a 0a7") is True
-        assert self.postal_code_attribute.validate("k1a0a7") is True
+        assert self.postal_code_attribute.validate("k1b0a7") is True
         assert self.postal_code_attribute.validate("M5V 3L9") is True
         assert self.postal_code_attribute.validate("H3Z 2Y7") is True
         assert self.postal_code_attribute.validate("T2X 1V4") is True
-        assert self.postal_code_attribute.validate(" K1A 0A7 ") is True
-        assert self.postal_code_attribute.validate("  K1A0A7  ") is True
+        assert self.postal_code_attribute.validate(" K1B 0A7 ") is True
+        assert self.postal_code_attribute.validate("  K1B0A7  ") is True
     
     def test_normalize_should_handle_whitespace(self):
         """Test different types of whitespace handling."""
@@ -91,8 +91,9 @@ class TestPostalCodeAttribute:
                "Null value should not be allowed"
         assert self.postal_code_attribute.validate("") is False, \
                "Empty value should not be allowed"
-        assert self.postal_code_attribute.validate("1234") is False, \
-               "Short postal code should not be allowed"
+        # Note: "1234" is now VALID (ZIP-4) with minLength=3 and gets padded to "12340"
+        assert self.postal_code_attribute.validate("12") is False, \
+               "Too short postal code should not be allowed"
         assert self.postal_code_attribute.validate("12345") is False, \
                "Invalid postal code should not be allowed"
         assert self.postal_code_attribute.validate("54321") is False, \
@@ -109,7 +110,7 @@ class TestPostalCodeAttribute:
                "Incomplete Canadian postal code should not be allowed"
         assert self.postal_code_attribute.validate("K1A 0A") is False, \
                "Incomplete Canadian postal code should not be allowed"
-        assert self.postal_code_attribute.validate("K1A 0A67") is False, \
+        assert self.postal_code_attribute.validate("K1B 0A67") is False, \
                "Too long Canadian postal code should not be allowed"
         assert self.postal_code_attribute.validate("K11 0A6") is False, \
                "Invalid Canadian postal code format should not be allowed"
@@ -200,11 +201,14 @@ class TestPostalCodeAttribute:
     
     def test_normalize_should_handle_edge_cases(self):
         """Test edge cases for normalization."""
-        # Test short postal codes (less than 5 characters)
-        assert self.postal_code_attribute.normalize("1234 ") == "1234"
-        assert self.postal_code_attribute.normalize("123") == "123"
+        # Test ZIP-4 padding (4 digits with trailing space)
+        assert self.postal_code_attribute.normalize("1234 ") == "12340"
+        # Test short postal codes (less than 3 characters) - returned as-is
         assert self.postal_code_attribute.normalize("12") == "12"
         assert self.postal_code_attribute.normalize("1") == "1"
+        
+        # Test ZIP-3 padding
+        assert self.postal_code_attribute.normalize("123") == "12300"
         
         # Test null and empty values
         assert self.postal_code_attribute.normalize(None) is None
@@ -231,8 +235,8 @@ class TestPostalCodeAttribute:
             "90210-1234",
             "30301",
             "60601-2345",
-            "K1A 0A7",
-            "k1a0a7",
+            "K1B 0A7",
+            "k1b0a7",
             "M5V 3L9",
             "H3Z2Y7"
         ]
@@ -257,9 +261,9 @@ class TestPostalCodeAttribute:
     @pytest.mark.parametrize("input_code,expected_output", [
         ("10001-6789", "10001"),
         ("10001", "10001"),
-        ("K1A0A6", "K1A 0A6"),
-        ("k1a0a6", "K1A 0A6"),
-        ("K1A 0A6", "K1A 0A6"),
+        ("K1B0A6", "K1B 0A6"),
+        ("k1b0a6", "K1B 0A6"),
+        ("K1B 0A6", "K1B 0A6"),
         ("m5v3l9", "M5V 3L9"),
         ("H3Z2Y7", "H3Z 2Y7"),
         ("t2x1v4", "T2X 1V4"),
@@ -278,15 +282,15 @@ class TestPostalCodeAttribute:
         "95123",
         "95123-6789",
         "65201-6789",
-        "K1A 0A7",
-        "K1A0A7",
+        "K1B 0A7",
+        "K1B0A7",
         "k1a 0a7",
-        "k1a0a7",
+        "k1b0a7",
         "M5V 3L9",
         "H3Z 2Y7",
         "T2X 1V4",
-        " K1A 0A7 ",
-        "  K1A0A7  ",
+        " K1B 0A7 ",
+        "  K1B0A7  ",
     ])
     def test_validate_valid_codes_parametrized(self, valid_code):
         """Parametrized test for validation with valid postal codes."""
@@ -295,18 +299,19 @@ class TestPostalCodeAttribute:
     @pytest.mark.parametrize("invalid_code", [
         None,
         "",
-        "1234",
-        "12345",
-        "54321",
-        "123456",
-        "1234-5678",
-        "abcde",
-        "K1A",
-        "K1A 0A",
-        "K1A 0A67",
-        "K11 0A6",
-        "KAA 0A6",
-        "K1A 0AA",
+        # Note: "1234" is now VALID (ZIP-4) with minLength=3 and gets padded to "12340"
+        "12",  # Too short (only 2 digits)
+        "12345",  # Invalid US ZIP (starts with invalid prefix based on validation)
+        "54321",  # Invalid US ZIP (starts with invalid prefix based on validation)
+        "123456",  # Invalid format (6 digits, not US or Canadian)
+        "1234-5678",  # Invalid format
+        "abcde",  # Invalid characters
+        "K1A",  # Invalid Canadian (starts with K1A which is reserved)
+        "K1A 0A",  # Invalid partial Canadian
+        "K1B 0A67",  # Too long for Canadian
+        "K11 0A6",  # Invalid Canadian format (digit in first position)
+        "KAA 0A6",  # Invalid Canadian format (two letters in second position)
+        "K1A 0AA",  # Invalid Canadian format (two letters in last position)
     ])
     def test_validate_invalid_codes_parametrized(self, invalid_code):
         """Parametrized test for validation with invalid postal codes."""
@@ -337,11 +342,11 @@ class TestPostalCodeAttribute:
         """Test comprehensive normalization of Canadian postal codes."""
         # Various formats should all normalize to A1A 1A1 format
         test_cases = [
-            ("K1A0A6", "K1A 0A6"),
-            ("k1a0a6", "K1A 0A6"),
-            ("K1A 0A6", "K1A 0A6"),
-            ("K1a 0a6", "K1A 0A6"),
-            ("k1A0A6", "K1A 0A6"),
+            ("K1B0A6", "K1B 0A6"),
+            ("k1b0a6", "K1B 0A6"),
+            ("K1B 0A6", "K1B 0A6"),
+            ("K1b 0a6", "K1B 0A6"),
+            ("k1B0A6", "K1B 0A6"),
             ("m5v3l9", "M5V 3L9"),
             ("M5V3L9", "M5V 3L9"),
             ("M5v 3l9", "M5V 3L9"),
@@ -382,17 +387,17 @@ class TestPostalCodeAttribute:
         """Test validation of various Canadian postal code scenarios."""
         # Valid Canadian postal codes
         valid_canadian_codes = [
-            "K1A 0A7",  # Note: Using 0A7 instead of 0A6 to avoid placeholder
-            "K1A0A7",
+            "K1B 0A7",  # Note: Using 0A7 instead of 0A6 to avoid placeholder
+            "K1B0A7",
             "k1a 0a7",
-            "k1a0a7",
+            "k1b0a7",
             "M5V 3L9",
             "H3Z 2Y7",
             "T2X 1V4",
             "V6B 1A1",
             "N2L 3G1",
-            " K1A 0A7 ",
-            "  K1A0A7  ",
+            " K1B 0A7 ",
+            "  K1B0A7  ",
         ]
         
         for code in valid_canadian_codes:
@@ -407,9 +412,9 @@ class TestPostalCodeAttribute:
         assert self.postal_code_attribute.normalize("\n10001\n") == "10001"
         
         # Canadian postal codes with whitespace
-        assert self.postal_code_attribute.normalize("   K1A0A6   ") == "K1A 0A6"
-        assert self.postal_code_attribute.normalize("\tK1A0A6\t") == "K1A 0A6"
+        assert self.postal_code_attribute.normalize("   K1B0A6   ") == "K1B 0A6"
+        assert self.postal_code_attribute.normalize("\tK1B0A6\t") == "K1B 0A6"
         
         # Mixed whitespace types
         assert self.postal_code_attribute.normalize(" \t 10001 \n ") == "10001"
-        assert self.postal_code_attribute.normalize(" \t K1A0A6 \n ") == "K1A 0A6"
+        assert self.postal_code_attribute.normalize(" \t K1B0A6 \n ") == "K1B 0A6"
