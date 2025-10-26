@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
 
-import com.truveta.opentoken.tokenizer.Tokenizer;
+import com.truveta.opentoken.tokens.tokenizer.Tokenizer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 /**
