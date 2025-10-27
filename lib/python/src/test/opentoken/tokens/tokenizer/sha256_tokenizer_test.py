@@ -9,7 +9,7 @@ import pytest
 
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
-from opentoken.tokens.sha256_tokenizer import SHA256Tokenizer
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 
 
 class TestSHA256Tokenizer:

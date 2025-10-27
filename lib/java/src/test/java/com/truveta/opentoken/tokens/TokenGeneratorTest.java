@@ -27,6 +27,7 @@ import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.AttributeExpression;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 class TokenGeneratorTest {

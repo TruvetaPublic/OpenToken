@@ -12,7 +12,7 @@ from opentoken.attributes.attribute_expression import AttributeExpression
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
 from opentoken.attributes.person.last_name_attribute import LastNameAttribute
 from opentoken.tokens.base_token_definition import BaseTokenDefinition
-from opentoken.tokens.sha256_tokenizer import SHA256Tokenizer
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokens.token_generation_exception import TokenGenerationException
 from opentoken.tokens.token_generator import TokenGenerator
 from opentoken.tokens.token_generator_result import TokenGeneratorResult

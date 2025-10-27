@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Truveta. All rights reserved.
  */
-package com.truveta.opentoken.tokens;
+package com.truveta.opentoken.tokens.tokenizer;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
 
+import com.truveta.opentoken.tokens.Token;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 /**
@@ -20,7 +21,9 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
  * by those transformers.
  * 
  */
-public final class SHA256Tokenizer {
+public final class SHA256Tokenizer implements Tokenizer {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * The empty token value.

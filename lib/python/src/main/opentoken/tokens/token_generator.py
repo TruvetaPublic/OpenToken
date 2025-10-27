@@ -7,7 +7,7 @@ from typing import Dict, List, Set, Type, Optional
 from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.attribute_loader import AttributeLoader
 from opentoken.tokens.base_token_definition import BaseTokenDefinition
-from opentoken.tokens.sha256_tokenizer import SHA256Tokenizer
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokens.token import Token
 from opentoken.tokens.token_generator_result import TokenGeneratorResult
 from opentoken.tokens.token_generation_exception import TokenGenerationException

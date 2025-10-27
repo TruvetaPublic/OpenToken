@@ -3,6 +3,7 @@
  */
 package com.truveta.opentoken.tokens;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +19,8 @@ import lombok.Getter;
  * </p>
  */
 @Getter
-public class TokenGeneratorResult {
+public class TokenGeneratorResult implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private Map<String, String> tokens = new TreeMap<>();
 

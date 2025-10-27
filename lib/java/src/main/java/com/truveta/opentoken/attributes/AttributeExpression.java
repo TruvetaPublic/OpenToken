@@ -4,6 +4,7 @@
 
 package com.truveta.opentoken.attributes;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -47,9 +48,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public final class AttributeExpression {
+public final class AttributeExpression implements Serializable {
 
-    private static final Pattern EXPRESSION_PATTERN = Pattern.compile("\\s*(?<expr>[^ (]+)(?:\\((?<args>[^\\)]+)\\))?");
+    private static final long serialVersionUID = 1L;
+    private static final Pattern EXPRESSION_PATTERN = Pattern
+            .compile("\\s*(?<expr>[^ (]+)(?:\\((?<args>[^\\)]+)\\))?");
 
     private Class<? extends Attribute> attributeClass;
     private String expressions;
