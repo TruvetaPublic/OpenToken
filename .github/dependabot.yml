@@ -6,11 +6,16 @@
 version: 2
 updates:
   - package-ecosystem: "maven"
-    directory: "/"
+    directory: "lib/java"
     schedule:
       interval: "weekly"
 
   - package-ecosystem: "docker"
     directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "lib/python"
     schedule:
       interval: "weekly"
