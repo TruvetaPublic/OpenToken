@@ -30,7 +30,7 @@
         <jetty.version>11.0.16</jetty.version>
         <junit.jupiter.version>5.13.4</junit.jupiter.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
-        <mockito.version>5.18.0</mockito.version>
+        <mockito.version>5.20.0</mockito.version>
     </properties>
 
     <dependencies>
