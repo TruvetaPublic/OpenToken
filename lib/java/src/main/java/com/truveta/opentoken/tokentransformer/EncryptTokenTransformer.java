@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
  * @see <a href=https://datatracker.ietf.org/doc/html/rfc3826>AES</a>
  */
 public class EncryptTokenTransformer implements TokenTransformer {
+    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = LoggerFactory.getLogger(EncryptTokenTransformer.class);
     private static final String AES = "AES";
