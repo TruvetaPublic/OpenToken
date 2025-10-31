@@ -26,6 +26,7 @@ import com.truveta.opentoken.attributes.AttributeExpression;
  *      AttributeExpression
  */
 public class TokenDefinition implements BaseTokenDefinition {
+    private static final long serialVersionUID = 1L;
     private final Map<String, List<AttributeExpression>> definitions;
 
     /**

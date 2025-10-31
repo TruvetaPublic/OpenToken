@@ -3,8 +3,6 @@
  */
 package com.truveta.opentoken.attributes;
 
-import java.io.Serializable;
-
 /**
  * A generic interface for attributes.
  * 
@@ -30,7 +28,7 @@ import java.io.Serializable;
  * is valid.
  * </p>
  */
-public interface Attribute extends Serializable {
+public interface Attribute {
 
     /**
      * Gets the name of the attribute.

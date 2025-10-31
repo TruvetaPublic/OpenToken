@@ -24,6 +24,7 @@ import com.truveta.opentoken.tokens.Token;
  * @see com.truveta.opentoken.tokens.Token Token
  */
 public class T2Token implements Token {
+    private static final long serialVersionUID = 1L;
     private static final String ID = "T2";
 
     private final ArrayList<AttributeExpression> definition = new ArrayList<>();

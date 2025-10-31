@@ -8,6 +8,7 @@ package com.truveta.opentoken.tokentransformer;
  * applied whatsoever.
  */
 public class NoOperationTokenTransformer implements TokenTransformer {
+    private static final long serialVersionUID = 1L;
 
     /**
      * No operation token transformer.

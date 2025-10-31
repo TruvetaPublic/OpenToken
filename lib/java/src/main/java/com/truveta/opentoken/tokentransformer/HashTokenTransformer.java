@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
  * @see <a href=https://datatracker.ietf.org/doc/html/rfc4868>HMACSHA256</a>
  */
 public class HashTokenTransformer implements TokenTransformer {
+    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(HashTokenTransformer.class);
 
     private transient Mac mac;
