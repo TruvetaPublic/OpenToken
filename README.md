@@ -228,6 +228,23 @@ PYTHONPATH=src/main python src/main/opentoken/main.py \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
+### Docker  <!-- omit in toc -->
+
+Build and run using Docker (from repository root):
+
+```shell
+# Build the Docker image
+docker build -t opentoken:latest .
+
+# Run with sample data
+docker run --rm -v $(pwd)/resources:/app/resources \
+  opentoken:latest \
+  -i /app/resources/sample.csv -t csv -o /app/resources/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+**Note:** These commands must be run from the repository root directory. The Docker container mounts the `resources` directory to access input files and write output files. If running in a dev container environment, use the absolute path: `-v /workspaces/OpenToken/resources:/app/resources`
+
 ## Development & Documentation
 
 Central reference: [Development Guide](docs/dev-guide-development.md) (setup, build, testing, versioning, dev container, registration, contribution checklist).
