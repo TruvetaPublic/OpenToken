@@ -199,11 +199,13 @@ if [[ $SKIP_BUILD == false ]]; then
         
         if [[ $VERBOSE == true ]]; then
             docker build -t "$DOCKER_IMAGE" .
+            BUILD_STATUS=$?
         else
             docker build -t "$DOCKER_IMAGE" . > /dev/null 2>&1
+            BUILD_STATUS=$?
         fi
         
-        if [[ $? -eq 0 ]]; then
+        if [[ $BUILD_STATUS -eq 0 ]]; then
             log_success "Docker image built successfully"
         else
             log_error "Failed to build Docker image"
