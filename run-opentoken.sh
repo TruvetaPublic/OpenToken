@@ -187,20 +187,28 @@ fi
 
 # Build Docker image if needed
 if [[ $SKIP_BUILD == false ]]; then
-    log_info "Building Docker image: $DOCKER_IMAGE"
-    log_info "This may take a few minutes on first run..."
-    
-    if [[ $VERBOSE == true ]]; then
-        docker build -t "$DOCKER_IMAGE" .
+    # Check if image already exists
+    if docker image inspect "$DOCKER_IMAGE" > /dev/null 2>&1; then
+        log_success "Docker image '$DOCKER_IMAGE' already exists locally"
+        if [[ $VERBOSE == true ]]; then
+            log_info "Use --skip-build to suppress this check"
+        fi
     else
-        docker build -t "$DOCKER_IMAGE" . > /dev/null 2>&1
-    fi
-    
-    if [[ $? -eq 0 ]]; then
-        log_success "Docker image built successfully"
-    else
-        log_error "Failed to build Docker image"
-        exit 1
+        log_info "Building Docker image: $DOCKER_IMAGE"
+        log_info "This may take a few minutes on first run..."
+        
+        if [[ $VERBOSE == true ]]; then
+            docker build -t "$DOCKER_IMAGE" .
+        else
+            docker build -t "$DOCKER_IMAGE" . > /dev/null 2>&1
+        fi
+        
+        if [[ $? -eq 0 ]]; then
+            log_success "Docker image built successfully"
+        else
+            log_error "Failed to build Docker image"
+            exit 1
+        fi
     fi
 else
     log_info "Skipping Docker build (using existing image)"

@@ -207,20 +207,29 @@ if ($VerboseOutput) {
 
 # Build Docker image if needed
 if (-not $SkipBuild) {
-    Write-Info "Building Docker image: $DockerImage"
-    Write-Info "This may take a few minutes on first run..."
-    
-    if ($VerboseOutput) {
-        docker build -t $DockerImage .
+    # Check if image already exists
+    $imageExists = docker image inspect $DockerImage 2>$null
+    if ($imageExists) {
+        Write-Success "Docker image '$DockerImage' already exists locally"
+        if ($VerboseOutput) {
+            Write-Info "Use -SkipBuild to suppress this check"
+        }
     } else {
-        docker build -t $DockerImage . 2>&1 | Out-Null
-    }
-    
-    if ($LASTEXITCODE -eq 0) {
-        Write-Success "Docker image built successfully"
-    } else {
-        Write-Error-Custom "Failed to build Docker image"
-        exit 1
+        Write-Info "Building Docker image: $DockerImage"
+        Write-Info "This may take a few minutes on first run..."
+        
+        if ($VerboseOutput) {
+            docker build -t $DockerImage .
+        } else {
+            docker build -t $DockerImage . 2>&1 | Out-Null
+        }
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "Docker image built successfully"
+        } else {
+            Write-Error-Custom "Failed to build Docker image"
+            exit 1
+        }
     }
 } else {
     Write-Info "Skipping Docker build (using existing image)"
