@@ -274,7 +274,9 @@ docker run --rm -v $(pwd)/resources:/app/resources \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-**Note:** These commands must be run from the repository root directory. The Docker container mounts the `resources` directory to access input files and write output files. If running in a dev container environment, use the absolute path: `-v /workspaces/OpenToken/resources:/app/resources`
+**Note:** These commands must be run from the repository root directory.
+The Docker container mounts the `resources` directory to access input files and write output files.
+If running in a dev container environment, use the absolute path: `-v /workspaces/OpenToken/resources:/app/resources`
 
 ## Development & Documentation
 
