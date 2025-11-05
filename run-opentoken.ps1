@@ -40,29 +40,10 @@ param(
     [switch]$Help
 )
 
-# Function to write colored output
+# Function to write script output in a consistent format
 function Write-Info {
     param([string]$Message)
-    Write-Host "ℹ " -ForegroundColor Blue -NoNewline
-    Write-Host $Message
-}
-
-function Write-Success {
-    param([string]$Message)
-    Write-Host "✓ " -ForegroundColor Green -NoNewline
-    Write-Host $Message
-}
-
-function Write-Warning-Custom {
-    param([string]$Message)
-    Write-Host "⚠ " -ForegroundColor Yellow -NoNewline
-    Write-Host $Message
-}
-
-function Write-Error-Custom {
-    param([string]$Message)
-    Write-Host "✗ " -ForegroundColor Red -NoNewline
-    Write-Host $Message
+    Write-Host "[INFO] $Message"
 }
 
 # Function to show usage
@@ -120,28 +101,28 @@ if ($Help) {
 
 # Validate required parameters
 if (-not $InputFile) {
-    Write-Error-Custom "Input file is required (use -InputFile or -i)"
+    Write-Info "Input file is required (use -InputFile or -i)"
     Write-Host ""
     Show-Usage
     exit 1
 }
 
 if (-not $OutputFile) {
-    Write-Error-Custom "Output file is required (use -OutputFile or -o)"
+    Write-Info "Output file is required (use -OutputFile or -o)"
     Write-Host ""
     Show-Usage
     exit 1
 }
 
 if (-not $HashingSecret) {
-    Write-Error-Custom "Hashing secret is required (use -HashingSecret or -h)"
+    Write-Info "Hashing secret is required (use -HashingSecret or -h)"
     Write-Host ""
     Show-Usage
     exit 1
 }
 
 if (-not $EncryptionKey) {
-    Write-Error-Custom "Encryption key is required (use -EncryptionKey or -e)"
+    Write-Info "Encryption key is required (use -EncryptionKey or -e)"
     Write-Host ""
     Show-Usage
     exit 1
@@ -155,15 +136,15 @@ try {
     }
 }
 catch {
-    Write-Error-Custom "Docker is not installed or not in PATH"
-    Write-Error-Custom "Please install Docker: https://docs.docker.com/get-docker/"
+    Write-Info "Docker is not installed or not in PATH"
+    Write-Info "Please install Docker: https://docs.docker.com/get-docker/"
     exit 1
 }
 
 # Convert to absolute paths
 $InputFile = Resolve-Path -Path $InputFile -ErrorAction SilentlyContinue
 if (-not $InputFile) {
-    Write-Error-Custom "Input file does not exist: $InputFile"
+    Write-Info "Input file does not exist: $InputFile"
     exit 1
 }
 
@@ -183,7 +164,7 @@ $OutputFile = [System.IO.Path]::GetFullPath($OutputFile)
 
 # Verify input file exists
 if (-not (Test-Path $InputFile)) {
-    Write-Error-Custom "Input file does not exist: $InputFile"
+    Write-Info "Input file does not exist: $InputFile"
     exit 1
 }
 
@@ -208,26 +189,26 @@ if ($VerboseOutput) {
 # Build Docker image if needed
 if (-not $SkipBuild) {
     # Check if image already exists
-    $imageExists = docker image inspect $DockerImage 2>$null
-    if ($imageExists) {
-        Write-Success "Docker image '$DockerImage' already exists locally"
+    docker image inspect $DockerImage > $null 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Info "Docker image '$DockerImage' already exists locally"
         if ($VerboseOutput) {
             Write-Info "Use -SkipBuild to suppress this check"
         }
     } else {
         Write-Info "Building Docker image: $DockerImage"
         Write-Info "This may take a few minutes on first run..."
-        
+
         if ($VerboseOutput) {
             docker build -t $DockerImage .
         } else {
             docker build -t $DockerImage . 2>&1 | Out-Null
         }
-        
+
         if ($LASTEXITCODE -eq 0) {
-            Write-Success "Docker image built successfully"
+            Write-Info "Docker image built successfully"
         } else {
-            Write-Error-Custom "Failed to build Docker image"
+            Write-Info "Failed to build Docker image"
             exit 1
         }
     }
@@ -235,10 +216,10 @@ if (-not $SkipBuild) {
     Write-Info "Skipping Docker build (using existing image)"
     
     # Check if image exists
-    $imageExists = docker image inspect $DockerImage 2>$null
-    if (-not $imageExists) {
-        Write-Error-Custom "Docker image '$DockerImage' not found"
-        Write-Error-Custom "Run without -SkipBuild to build the image first"
+    docker image inspect $DockerImage > $null 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Info "Docker image '$DockerImage' not found"
+        Write-Info "Run without -SkipBuild to build the image first"
         exit 1
     }
 }
@@ -287,9 +268,9 @@ if ($InputDir -eq $OutputDir) {
 }
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Success "OpenToken completed successfully!"
-    Write-Success "Output file: $OutputFile"
+    Write-Info "OpenToken completed successfully!"
+    Write-Info "Output file: $OutputFile"
 } else {
-    Write-Error-Custom "OpenToken execution failed"
+    Write-Info "OpenToken execution failed"
     exit 1
 }

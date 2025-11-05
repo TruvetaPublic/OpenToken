@@ -9,6 +9,8 @@ Our approach to person matching relies on building a set of matching tokens (or 
 - [Overview](#overview)
 - [Usage](#usage)
 - [Quick Start](#quick-start)
+    - [Using Convenience Scripts (Recommended)](#using-convenience-scripts-recommended)
+    - [Manual Docker Commands](#manual-docker-commands)
 - [Development \& Documentation](#development--documentation)
 - [Contributing](#contributing)
 
@@ -236,13 +238,13 @@ Use the provided scripts to automatically build and run OpenToken via Docker:
 
 **Bash (Linux/Mac):**
 ```bash
-./run-opentoken.sh -i /path/to/input.csv -o /path/to/output.csv \
+./run-opentoken.sh -i /path/to/input.csv -o /path/to/output.csv -t csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 **PowerShell (Windows):**
 ```powershell
-.\run-opentoken.ps1 -i D:\Data\input.csv -o D:\Data\output.csv `
+.\run-opentoken.ps1 -i D:\Data\input.csv -o D:\Data\output.csv -FileType csv `
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
