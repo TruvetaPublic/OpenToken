@@ -142,9 +142,10 @@ catch {
 }
 
 # Convert to absolute paths
+$InputFileRaw = $InputFile
 $InputFile = Resolve-Path -Path $InputFile -ErrorAction SilentlyContinue
 if (-not $InputFile) {
-    Write-Info "Input file does not exist: $InputFile"
+    Write-Info "Input file does not exist: $InputFileRaw"
     exit 1
 }
 
