@@ -1,0 +1,11 @@
+{
+  "JavaVersion" : "11.0.29",
+  "Platform" : "Java",
+  "OpenTokenVersion" : "1.10.0",
+  "HashingSecretHash" : "9cd8b688854a146294fb3df05f0a5bf952e8a1cae204c484d0b546ba6950d041",
+  "EncryptionSecretHash" : "b715a24df6be6c29d7cc6ffe0895032bd4031282d9669f5d9715c963313300fc",
+  "TotalRows" : 120,
+  "TotalRowsWithInvalidAttributes" : 0,
+  "InvalidAttributesByType" : { },
+  "BlankTokensByRule" : { }
+}
