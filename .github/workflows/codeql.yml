@@ -97,11 +97,11 @@ jobs:
       - if: matrix.build-mode == 'manual'
         shell: bash
         run: |
-          # Build Java code from the lib/java directory
+          # Build Java code from the lib/java/opentoken directory
           if [[ "${{ matrix.language }}" == "java-kotlin" ]]; then
-            cd lib/java
+            cd lib/java/opentoken
             mvn clean package -DskipTests
-            cd ../..
+            cd ../../..
           else
             echo "Manual build mode set for ${{ matrix.language }} but no build commands specified"
             exit 1

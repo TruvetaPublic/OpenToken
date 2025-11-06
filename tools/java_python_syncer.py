@@ -165,7 +165,7 @@ class JavaPythonSyncer:
                     pass
             
             result = subprocess.run([
-                'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', 'lib/java/src/'
+                'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', 'lib/java/opentoken/src/'
             ], capture_output=True, text=True, cwd=self.root_dir)
 
             if result.returncode == 0:
@@ -350,16 +350,16 @@ class JavaPythonSyncer:
         python_file = java_file
         
         # Handle main source files
-        if "lib/java/src/main/java/com/truveta/opentoken/" in java_file:
+        if "lib/java/opentoken/src/main/java/com/truveta/opentoken/" in java_file:
             python_file = java_file.replace(
-                "lib/java/src/main/java/com/truveta/opentoken/",
-                "lib/python/src/main/opentoken/"
+                "lib/java/opentoken/src/main/java/com/truveta/opentoken/",
+                "lib/python/opentoken/src/main/opentoken/"
             )
         # Handle test files
-        elif "lib/java/src/test/java/com/truveta/opentoken/" in java_file:
+        elif "lib/java/opentoken/src/test/java/com/truveta/opentoken/" in java_file:
             python_file = java_file.replace(
-                "lib/java/src/test/java/com/truveta/opentoken/",
-                "lib/python/src/test/opentoken/"
+                "lib/java/opentoken/src/test/java/com/truveta/opentoken/",
+                "lib/python/opentoken/src/test/opentoken/"
             )
         
         python_file = self._convert_to_python_naming(python_file)
@@ -395,7 +395,7 @@ class JavaPythonSyncer:
                     pass
             
             result = subprocess.run([
-                'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', 'lib/python/src/'
+                'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', 'lib/python/opentoken/src/'
             ], capture_output=True, text=True, cwd=self.root_dir)
 
             if result.returncode == 0:

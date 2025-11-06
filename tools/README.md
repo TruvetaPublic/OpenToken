@@ -34,7 +34,7 @@ python3 tools/java_python_syncer.py --validate-only
 The tool automatically runs on pull requests via the `.github/workflows/java-python-sync-enhanced.yml` workflow:
 
 - **Triggers**: On PR open, synchronize, or reopen
-- **Scope**: Changes to Java files in `lib/java/src/main/java/com/truveta/opentoken/` or Python files in `lib/python/src/`
+- **Scope**: Changes to Java files in `lib/java/opentoken/src/main/java/com/truveta/opentoken/` or Python files in `lib/python/opentoken/src/`
 - **Output**: Automated PR comments with progress tracking and checklists
 - **Permissions**: Requires `issues: write` and `pull-requests: write` permissions
 
@@ -46,8 +46,8 @@ The tool's behavior is configured via a JSON mapping file with the following str
 ```json
 {
   "critical_files": {
-    "lib/java/src/main/java/com/truveta/opentoken/SpecialClass.java": {
-      "python_file": "lib/python/src/main/opentoken/special_class.py",
+    "lib/java/opentoken/src/main/java/com/truveta/opentoken/SpecialClass.java": {
+      "python_file": "lib/python/opentoken/src/main/opentoken/special_class.py",
       "sync_priority": "high",
       "description": "Critical authentication component",
       "auto_sync": false,
@@ -55,14 +55,14 @@ The tool's behavior is configured via a JSON mapping file with the following str
     }
   },
   "directory_mappings": {
-    "lib/java/src/main/java/com/truveta/opentoken/": {
-      "python_directory": "lib/python/src/main/opentoken/",
+    "lib/java/opentoken/src/main/java/com/truveta/opentoken/": {
+      "python_directory": "lib/python/opentoken/src/main/opentoken/",
       "sync_priority": "medium",
       "description": "Main source directory mapping",
       "auto_sync": true
     },
-    "lib/java/src/test/java/com/truveta/opentoken/": {
-      "python_directory": "lib/python/src/test/opentoken/",
+    "lib/java/opentoken/src/test/java/com/truveta/opentoken/": {
+      "python_directory": "lib/python/opentoken/src/test/opentoken/",
       "sync_priority": "low",
       "description": "Test directory mapping",
       "auto_sync": true
@@ -108,11 +108,11 @@ The tool automatically converts between Java and Python naming conventions:
 
 #### Examples
 ```
-Java: lib/java/src/main/java/com/truveta/opentoken/attributes/BirthDateAttribute.java
-Python: lib/python/src/main/opentoken/attributes/birth_date_attribute.py
+Java: lib/java/opentoken/src/main/java/com/truveta/opentoken/attributes/BirthDateAttribute.java
+Python: lib/python/opentoken/src/main/opentoken/attributes/birth_date_attribute.py
 
-Java: lib/java/src/test/java/com/truveta/opentoken/TokenGeneratorTest.java
-Python: lib/python/src/test/opentoken/token_generator_test.py
+Java: lib/java/opentoken/src/test/java/com/truveta/opentoken/TokenGeneratorTest.java
+Python: lib/python/opentoken/src/test/opentoken/token_generator_test.py
 ```
 
 ### Output Formats
@@ -122,8 +122,8 @@ Python: lib/python/src/test/opentoken/token_generator_test.py
 Java changes detected (1 Java files):
 ============================================================
 
-📁 lib/java/src/main/java/com/truveta/opentoken/TokenGenerator.java:
-   ✅ 🔄 lib/python/src/main/opentoken/token_generator.py
+📁 lib/java/opentoken/src/main/java/com/truveta/opentoken/TokenGenerator.java:
+   ✅ 🔄 lib/python/opentoken/src/main/opentoken/token_generator.py
 ----------------------------------------
 
 PROGRESS SUMMARY:
@@ -140,9 +140,9 @@ LEGEND:
 ```markdown
 ## Java to Python Sync Required (1/2 completed)
 
-### 📁 `lib/java/src/main/java/com/truveta/opentoken/TokenGenerator.java`
-- [x] **🔄 UPDATED**: `lib/python/src/main/opentoken/token_generator.py`
-- [ ] **⏳ NEEDS UPDATE**: `lib/python/src/test/opentoken/token_generator_test.py`
+### 📁 `lib/java/opentoken/src/main/java/com/truveta/opentoken/TokenGenerator.java`
+- [x] **🔄 UPDATED**: `lib/python/opentoken/src/main/opentoken/token_generator.py`
+- [ ] **⏳ NEEDS UPDATE**: `lib/python/opentoken/src/test/opentoken/token_generator_test.py`
 
 ✅ **Progress**: 1 of 2 items completed
 ```

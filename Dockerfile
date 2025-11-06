@@ -9,7 +9,7 @@ FROM maven:${MAVEN_VERSION}-amazoncorretto-${JAVA_VERSION} AS build
 RUN mkdir /app
 WORKDIR /app
 
-COPY lib/java /app
+COPY lib/java/opentoken /app
 COPY resources /resources
 
 RUN mvn clean package

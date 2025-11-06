@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "maven"
-    directory: "lib/java"
+    directory: "lib/java/opentoken"
     schedule:
       interval: "weekly"
 
@@ -16,6 +16,6 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "pip"
-    directory: "lib/python"
+    directory: "lib/python/opentoken"
     schedule:
       interval: "weekly"

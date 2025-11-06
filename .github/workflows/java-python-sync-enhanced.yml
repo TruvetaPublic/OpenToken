@@ -4,8 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'lib/java/src/main/java/com/truveta/opentoken/**/*.java'
-      - 'lib/python/src/**/*.py'
+      - 'lib/java/opentoken/src/main/java/com/truveta/opentoken/**/*.java'
+      - 'lib/python/opentoken/src/**/*.py'
 
 jobs:
   sync-check:

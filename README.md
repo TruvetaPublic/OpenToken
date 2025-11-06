@@ -210,21 +210,21 @@ For complete details about all metadata fields, examples, and security considera
 ### Java  <!-- omit in toc -->
 
 ```shell
-cd lib/java
+cd lib/java/opentoken
 mvn clean install
 java -jar target/opentoken-*.jar \
-  -i ../../resources/sample.csv -t csv -o target/output.csv \
+  -i ../../../resources/sample.csv -t csv -o target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 ### Python  <!-- omit in toc -->
 
 ```shell
-cd lib/python
+cd lib/python/opentoken
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r dev-requirements.txt -e .
 PYTHONPATH=src/main python src/main/opentoken/main.py \
-  -i ../../resources/sample.csv -t csv -o ../../resources/output.csv \
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 

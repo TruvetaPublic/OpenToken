@@ -78,14 +78,14 @@ Prerequisites:
 Build (from project root):
 
 ```shell
-cd lib/java && mvn clean install
+cd lib/java/opentoken && mvn clean install
 ```
-Or from `lib/java` directly:
+Or from `lib/java/opentoken` directly:
 
 ```shell
 mvn clean install
 ```
-Resulting JAR: `lib/java/target/opentoken-*.jar`.
+Resulting JAR: `lib/java/opentoken/target/opentoken-*.jar`.
 
 Using as a Maven dependency:
 
@@ -100,7 +100,7 @@ Using as a Maven dependency:
 CLI usage:
 
 ```shell
-cd lib/java && java -jar target/opentoken-*.jar [OPTIONS]
+cd lib/java/opentoken && java -jar target/opentoken-*.jar [OPTIONS]
 ```
 Arguments:
 
@@ -114,7 +114,7 @@ Arguments:
 Example:
 
 ```shell
-cd lib/java && java -jar target/opentoken-*.jar \
+cd lib/java/opentoken && java -jar target/opentoken-*.jar \
   -i src/test/resources/sample.csv -t csv -o target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
@@ -161,7 +161,7 @@ Prerequisites:
 Create & activate virtual environment (recommended):
 
 ```shell
-cd lib/python
+cd lib/python/opentoken
 python -m venv .venv
 source .venv/bin/activate
 ```
@@ -181,15 +181,15 @@ pip install -e .
 CLI usage (from project root):
 
 ```shell
-PYTHONPATH=lib/python/src/main python3 lib/python/src/main/opentoken/main.py [OPTIONS]
+PYTHONPATH=lib/python/opentoken/src/main python3 lib/python/opentoken/src/main/opentoken/main.py [OPTIONS]
 ```
 Arguments mirror Java implementation.
 
 Example:
 
 ```shell
-PYTHONPATH=lib/python/src/main python3 lib/python/src/main/opentoken/main.py \
-  -i resources/sample.csv -t csv -o lib/python/target/output.csv \
+PYTHONPATH=lib/python/opentoken/src/main python3 lib/python/opentoken/src/main/opentoken/main.py \
+  -i resources/sample.csv -t csv -o lib/python/opentoken/target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
@@ -208,7 +208,7 @@ with PersonAttributesCSVReader("input.csv") as reader, \
 Testing:
 
 ```shell
-cd lib/python
+cd lib/python/opentoken
 PYTHONPATH=src/main pytest src/test
 ```
 
@@ -255,13 +255,13 @@ Steps (Token example):
 
 1. Create class in `com.truveta.opentoken.tokens.definitions` extending `Token`.
 2. Implement required abstract methods (identifier, definition, etc.).
-3. Add fully qualified class name to: `lib/java/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token` (one per line).
+3. Add fully qualified class name to: `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token` (one per line).
 4. Run `mvn clean install` and add/adjust tests.
 
 Attribute steps are identical except:
 
 - Class extends `com.truveta.opentoken.attributes.Attribute` (e.g., in `attributes.person`).
-- Register in: `lib/java/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute`.
+- Register in: `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute`.
 
 Guidelines:
 
@@ -282,7 +282,7 @@ Python uses two mechanisms:
 
 Add a Token:
 
-1. Create `lib/python/src/main/opentoken/tokens/definitions/t6_token.py` (example).
+1. Create `lib/python/opentoken/src/main/opentoken/tokens/definitions/t6_token.py` (example).
 2. Define a class inheriting `Token` with `get_identifier()` & `get_definition()`.
 3. Ensure file and class names are unique and public.
 4. Run `pytest src/test` to verify auto-discovery.
@@ -325,10 +325,10 @@ Maintain tests to guard consistency between languages.
 
 ```shell
 # Java
-(cd lib/java && mvn clean install)
+(cd lib/java/opentoken && mvn clean install)
 
 # Python
-(cd lib/python && pytest src/test)
+(cd lib/python/opentoken && pytest src/test)
 ```
 
 ### Docker Image
