@@ -372,7 +372,7 @@
                                     <arg value="-jar" />
                                     <arg value="${project.build.directory}/opentoken-${revision}.jar" />
                                     <arg value="-i" />
-                                    <arg value="../../resources/sample.csv" />
+                                    <arg value="../../../resources/sample.csv" />
                                     <arg value="-t" />
                                     <arg value="csv" />
                                     <arg value="-o" />
@@ -409,7 +409,7 @@
                                     <arg value="-jar" />
                                     <arg value="${project.build.directory}/opentoken-${revision}.jar" />
                                     <arg value="-i" />
-                                    <arg value="../../resources/sample.parquet" />
+                                    <arg value="../../../resources/sample.parquet" />
                                     <arg value="-t" />
                                     <arg value="parquet" />
                                     <arg value="-o" />

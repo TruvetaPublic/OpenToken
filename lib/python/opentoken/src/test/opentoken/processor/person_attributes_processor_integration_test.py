@@ -27,8 +27,8 @@ from opentoken.tokentransformer.hash_token_transformer import HashTokenTransform
 from opentoken.tokentransformer.no_operation_token_transformer import NoOperationTokenTransformer
 
 
-# Get repository root (goes up from lib/python/src/test/opentoken/processor/ to repo root)
-REPO_ROOT = Path(__file__).parent.parent.parent.parent.parent.parent.parent
+# Get repository root (goes up from lib/python/opentoken/src/test/opentoken/processor/ to repo root)
+REPO_ROOT = Path(__file__).parent.parent.parent.parent.parent.parent.parent.parent
 RESOURCES_DIR = REPO_ROOT / "resources" / "mockdata"
 
 
