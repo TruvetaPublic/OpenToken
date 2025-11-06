@@ -62,7 +62,7 @@ class YearAttribute(BaseAttribute):
             value: The year string to normalize
 
         Returns:
-            str: The trimmed year value
+            str: The normalized year value as a string (leading zeros removed)
 
         Raises:
             ValueError: If the year is not a valid 4-digit year or empty
