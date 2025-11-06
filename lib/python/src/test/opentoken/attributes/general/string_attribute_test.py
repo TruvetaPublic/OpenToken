@@ -77,24 +77,15 @@ class TestStringAttribute:
                 barrier.wait(timeout=10)
                 # Perform normalization
                 result = string_attribute.normalize(test_string)
-        barrier = threading.Barrier(thread_count + 1)
-        start_event = threading.Event()
+                with results_lock:
+                    results.append(result)
+            except Exception as e:
+                pytest.fail(f"Worker thread failed: {e}")
 
-        def normalize_value():
-            # Wait for all threads to be ready
-            barrier.wait()
-            # Wait for the start signal
-            start_event.wait()
-            result = string_attribute.normalize(test_string)
-            results.append(result)
-
+        # Create and start threads
         threads = [threading.Thread(target=normalize_value) for _ in range(thread_count)]
         for thread in threads:
             thread.start()
-        # Wait for all threads to reach the barrier
-        barrier.wait()
-        # Signal all threads to start
-        start_event.set()
         # Start all threads simultaneously
         start_event.set()
         # Wait for all threads to complete
