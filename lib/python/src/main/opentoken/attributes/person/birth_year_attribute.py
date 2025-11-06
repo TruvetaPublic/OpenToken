@@ -18,7 +18,7 @@ class BirthYearAttribute(YearAttribute):
     """
 
     NAME = "BirthYear"
-    ALIASES = [NAME]
+    ALIASES = [NAME, "YearOfBirth"]
 
     def __init__(self):
         super().__init__(additional_validators=[YearRangeValidator()])

@@ -16,7 +16,7 @@ class TestDateRangeValidator:
     @pytest.fixture
     def validator(self):
         """Create a validator with minimum date set to 1910-01-01."""
-        return DateRangeValidator(min_date=date(1910, 1, 1), allow_today=True)
+        return DateRangeValidator(min_date=date(1910, 1, 1), use_current_as_max=True)
 
     def test_eval_valid_dates_within_range_should_return_true(self, validator):
         """Test boundary dates that should be valid."""

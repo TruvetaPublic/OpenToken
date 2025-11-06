@@ -18,7 +18,7 @@ class StringAttribute(BaseAttribute):
     """
 
     NAME = "String"
-    ALIASES = [NAME]
+    ALIASES = [NAME, "Text"]
 
     def __init__(self):
         # Use default validation rules from BaseAttribute (not null or empty)
@@ -48,5 +48,10 @@ class StringAttribute(BaseAttribute):
 
         Returns:
             str: The trimmed string value
+            
+        Raises:
+            ValueError: If value is None
         """
+        if value is None:
+            raise ValueError("String value cannot be null")
         return value.strip()

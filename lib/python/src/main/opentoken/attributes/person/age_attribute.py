@@ -58,13 +58,16 @@ class AgeAttribute(BaseAttribute):
             str: The trimmed age value
 
         Raises:
-            ValueError: If the age is not a valid integer
+            ValueError: If the age is not a valid integer or empty
         """
+        if not value:
+            raise ValueError(f"Invalid age format: {value}")
+            
         trimmed = value.strip()
         
         # Validate it's a valid integer
         try:
-            int(trimmed)
-            return trimmed
+            age = int(trimmed)
+            return str(age)
         except ValueError:
             raise ValueError(f"Invalid age format: {value}")

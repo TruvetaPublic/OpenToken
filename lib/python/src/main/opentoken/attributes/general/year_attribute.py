@@ -22,8 +22,10 @@ class YearAttribute(BaseAttribute):
     NAME = "Year"
     ALIASES = [NAME]
 
-    # Regular expression pattern for validating 4-digit year format
-    VALIDATION_PATTERN = re.compile(r"^\d{4}$")
+    # Regular expression pattern for validating 4-digit year format with optional whitespace
+    VALIDATION_PATTERN = re.compile(r"^\s*\d{4}\s*$")
+    # Pattern for extracting just the 4 digits
+    YEAR_PATTERN = re.compile(r"\d{4}")
 
     def __init__(self, additional_validators: List[SerializableAttributeValidator] = None):
         """
@@ -63,12 +65,19 @@ class YearAttribute(BaseAttribute):
             str: The trimmed year value
 
         Raises:
-            ValueError: If the year is not a valid 4-digit year
+            ValueError: If the year is not a valid 4-digit year or empty
         """
+        if not value:
+            raise ValueError(f"Invalid year format: {value}")
+            
         trimmed = value.strip()
         
-        # Validate it's exactly 4 digits
-        if not self.VALIDATION_PATTERN.match(trimmed):
+        # Validate it's exactly 4 digits using the pattern
+        if not self.YEAR_PATTERN.match(trimmed):
             raise ValueError(f"Invalid year format: {value}")
         
-        return trimmed
+        try:
+            year = int(trimmed)
+            return str(year)
+        except ValueError:
+            raise ValueError(f"Invalid year format: {value}")
