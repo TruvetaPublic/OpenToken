@@ -56,19 +56,34 @@ class TestDateAttribute:
         assert date_attribute.validate("") is False
 
     def test_normalize_thread_safety(self, date_attribute):
-        """Test thread safety of normalize method."""
+        """Test thread safety of normalize method with barrier-style synchronization."""
         thread_count = 100
         test_date = "10/26/2023"
         results = []
+        results_lock = threading.Lock()
+        barrier = threading.Barrier(thread_count)
+        start_event = threading.Event()
 
         def normalize_value():
-            result = date_attribute.normalize(test_date)
-            results.append(result)
+            try:
+                # Wait for the signal to start
+                start_event.wait(timeout=10)
+                # Wait for all threads to be ready (synchronize at barrier)
+                barrier.wait(timeout=10)
+                # Perform normalization
+                result = date_attribute.normalize(test_date)
+                with results_lock:
+                    results.append(result)
+            except Exception as e:
+                pytest.fail(f"Worker thread failed: {e}")
 
         # Create and start threads
         threads = [threading.Thread(target=normalize_value) for _ in range(thread_count)]
         for thread in threads:
             thread.start()
+        # Start all threads simultaneously
+        start_event.set()
+        # Wait for all threads to complete
         for thread in threads:
             thread.join(timeout=15)
 
