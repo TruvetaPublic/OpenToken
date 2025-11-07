@@ -60,6 +60,8 @@ class AgeAttribute(BaseAttribute):
         Raises:
             ValueError: If the age is not a valid integer or empty
         """
+        if value is None:
+            raise ValueError("Age value cannot be null")
         if not value:
             raise ValueError(f"Invalid age format: {value}")
             
