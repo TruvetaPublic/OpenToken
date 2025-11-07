@@ -86,8 +86,6 @@ class TestStringAttribute:
         threads = [threading.Thread(target=normalize_value) for _ in range(thread_count)]
         for thread in threads:
             thread.start()
-        # Start all threads simultaneously
-        start_event.set()
         # Wait for all threads to complete
         for thread in threads:
             thread.join(timeout=15)
