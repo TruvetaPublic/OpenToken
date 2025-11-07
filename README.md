@@ -9,6 +9,8 @@ Our approach to person matching relies on building a set of matching tokens (or 
 - [Overview](#overview)
 - [Usage](#usage)
 - [Quick Start](#quick-start)
+    - [Using Convenience Scripts (Recommended)](#using-convenience-scripts-recommended)
+    - [Manual Docker Commands](#manual-docker-commands)
 - [Development \& Documentation](#development--documentation)
 - [Contributing](#contributing)
 
@@ -227,6 +229,54 @@ PYTHONPATH=src/main python src/main/opentoken/main.py \
   -i ../../resources/sample.csv -t csv -o ../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
+
+### Docker  <!-- omit in toc -->
+
+#### Using Convenience Scripts (Recommended)
+
+Use the provided scripts to automatically build and run OpenToken via Docker:
+
+**Bash (Linux/Mac):**
+```bash
+./run-opentoken.sh -i /path/to/input.csv -o /path/to/output.csv -t csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+**PowerShell (Windows):**
+```powershell
+.\run-opentoken.ps1 -i D:\Data\input.csv -o D:\Data\output.csv -FileType csv `
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+These scripts automatically:
+- Build the Docker image (if needed)
+- Mount input/output directories
+- Handle path conversions for your OS
+- Support both CSV and Parquet formats
+
+Run with `--help` (Bash) or `-Help` (PowerShell) for all options, including:
+- `-t` or `-FileType` for format selection (csv/parquet)
+- `-s` or `-SkipBuild` to skip rebuilding the image
+- `-v` or `-Verbose` for detailed output
+
+#### Manual Docker Commands
+
+Alternatively, build and run using Docker manually (from repository root):
+
+```shell
+# Build the Docker image
+docker build -t opentoken:latest .
+
+# Run with sample data
+docker run --rm -v $(pwd)/resources:/app/resources \
+  opentoken:latest \
+  -i /app/resources/sample.csv -t csv -o /app/resources/output.csv \
+  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+**Note:** These commands must be run from the repository root directory.
+The Docker container mounts the `resources` directory to access input files and write output files.
+If running in a dev container environment, use the absolute path: `-v /workspaces/OpenToken/resources:/app/resources`
 
 ## Development & Documentation
 
