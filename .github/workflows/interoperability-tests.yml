@@ -33,7 +33,7 @@ jobs:
 
       - name: Install Python Dependencies
         run: |
-          cd lib/python
+          cd lib/python/opentoken
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           if [ -f dev-requirements.txt ]; then
@@ -49,7 +49,7 @@ jobs:
 
       - name: Build Java Application
         run: |
-          cd lib/java
+          cd lib/java/opentoken
           mvn clean package -DskipTests
           echo "Java JAR built successfully"
 
@@ -64,7 +64,7 @@ jobs:
           python java_python_interoperability_test.py
           echo "Interoperability tests completed"
         env:
-          PYTHONPATH: ${{ github.workspace }}/lib/python/src/main
+          PYTHONPATH: ${{ github.workspace }}/lib/python/opentoken/src/main
 
       - name: Archive Test Results
         if: always()
