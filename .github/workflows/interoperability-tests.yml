@@ -18,11 +18,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 11
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "11"
+          java-version: "21"
           cache: maven
 
       - name: Set up Python 3.10
@@ -87,7 +87,7 @@ jobs:
             echo " Both implementations produce identical encrypted tokens" >> $GITHUB_STEP_SUMMARY
             echo " Decrypted tokens are identical between implementations" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Environment:** Java 11 + Python 3.10 on Ubuntu Latest" >> $GITHUB_STEP_SUMMARY
+            echo "**Environment:** Java 21 + Python 3.10 on Ubuntu Latest" >> $GITHUB_STEP_SUMMARY
           else
             echo "## Interoperability Tests Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY

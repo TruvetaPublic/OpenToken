@@ -1,4 +1,4 @@
-ARG JAVA_VERSION=11
+ARG JAVA_VERSION=21
 FROM mcr.microsoft.com/devcontainers/java:1-${JAVA_VERSION}-bookworm
 
 # Check for Zscaler certificates and install if found using external script
