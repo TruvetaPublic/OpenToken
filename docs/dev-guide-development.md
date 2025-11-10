@@ -360,7 +360,7 @@ Arguments:
 
 A Dev Container configuration provides a reproducible environment with:
 
-- JDK 21 (with JDK 11 and 17 also available)
+- JDK 21
 - Maven
 - Python & tooling
 
