@@ -1,4 +1,4 @@
-ARG JAVA_VERSION=11
+ARG JAVA_VERSION=21
 FROM mcr.microsoft.com/devcontainers/java:1-${JAVA_VERSION}-bookworm
 
 # Check for Zscaler certificates and install if found using external script
@@ -25,7 +25,7 @@ ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 USER vscode
 
-COPY lib/python/dev-requirements.txt /tmp/dev-requirements.txt
-COPY lib/python/requirements.txt /tmp/requirements.txt
+COPY lib/python/opentoken/dev-requirements.txt /tmp/dev-requirements.txt
+COPY lib/python/opentoken/requirements.txt /tmp/requirements.txt
 
 RUN pip install -r /tmp/dev-requirements.txt --break-system-packages

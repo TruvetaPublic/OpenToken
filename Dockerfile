@@ -1,7 +1,7 @@
 ##################################################
 # Stage 1: Build the application
 ##################################################
-ARG JAVA_VERSION=11
+ARG JAVA_VERSION=21
 ARG MAVEN_VERSION=3.8.8
 
 FROM maven:${MAVEN_VERSION}-amazoncorretto-${JAVA_VERSION} AS build
@@ -17,7 +17,7 @@ RUN mvn clean package
 ##################################################
 # Stage 2: Create the image to run the application
 ##################################################
-FROM amazoncorretto:11-alpine AS final
+FROM amazoncorretto:21-alpine AS final
 
 RUN mkdir /app
 
