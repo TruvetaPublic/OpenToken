@@ -16,7 +16,7 @@
                 "-t",
                 "${input:inputType}",
                 "-o",
-                "lib/java/target/output.${input:outputType}",
+                "lib/java/opentoken/target/output.${input:outputType}",
                 "-ot",
                 "${input:outputType}",
                 "-h",
@@ -29,9 +29,9 @@
             "name": "OpenToken-Python",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/lib/python/src/main/opentoken/main.py",
+            "program": "${workspaceFolder}/lib/python/opentoken/src/main/opentoken/main.py",
             "env": {
-                "PYTHONPATH": "lib/python/src/main"
+                "PYTHONPATH": "lib/python/opentoken/src/main"
             },
             "args": [
                 "-i",
@@ -39,7 +39,7 @@
                 "-t",
                 "${input:inputType}",
                 "-o",
-                "lib/python/target/output.${input:outputType}",
+                "lib/python/opentoken/target/output.${input:outputType}",
                 "-ot",
                 "${input:outputType}",
                 "-h",
