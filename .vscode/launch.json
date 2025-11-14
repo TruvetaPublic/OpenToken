@@ -31,7 +31,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/lib/python/opentoken/src/main/opentoken/main.py",
             "env": {
-                "PYTHONPATH": "lib/python/opentoken/src/main/opentoken"
+                "PYTHONPATH": "lib/python/opentoken/src/main"
             },
             "args": [
                 "-i",
