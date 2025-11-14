@@ -1,0 +1,23 @@
+{
+  "JavaVersion" : "11.0.28",
+  "Platform" : "Java",
+  "OpenTokenVersion" : "1.10.0",
+  "HashingSecretHash" : "26ce1637d4a1e514cbf90ce0d73d7ea257342009083ab6f6e06cb434fb3a9d99",
+  "EncryptionSecretHash" : "05f0825275cb54bdf4cde58ef6875d24acb75f84ec0187a26d45d626f57f189b",
+  "TotalRows" : 105,
+  "TotalRowsWithInvalidAttributes" : 12,
+  "InvalidAttributesByType" : {
+    "SocialSecurityNumber" : 4,
+    "FirstName" : 1,
+    "PostalCode" : 2,
+    "LastName" : 2,
+    "BirthDate" : 3
+  },
+  "BlankTokensByRule" : {
+    "T4" : 7,
+    "T5" : 3,
+    "T1" : 6,
+    "T2" : 8,
+    "T3" : 6
+  }
+}
