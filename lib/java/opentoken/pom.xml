@@ -112,7 +112,7 @@
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>10.4.2</version>
+            <version>10.6</version>
         </dependency>
         <!-- this package is explicitly added to override the vulnerable version consumed by org.apache.hadoop:hadoop-common@3.4.1 -->
         <dependency>
