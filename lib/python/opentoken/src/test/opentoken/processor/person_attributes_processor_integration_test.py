@@ -141,7 +141,7 @@ class TestPersonAttributesProcessorIntegration:
         """
         # Set up the test
         input_csv_file = str(RESOURCES_DIR / "test_data.csv")
-        output_csv_file = "lib/python/target/test_metadata_location_output.csv"
+        output_csv_file = "lib/python/opentoken/target/test_metadata_location_output.csv"
 
         token_transformer_list = [NoOperationTokenTransformer()]
 

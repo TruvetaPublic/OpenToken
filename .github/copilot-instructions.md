@@ -40,13 +40,13 @@ This document provides comprehensive guidance for AI coding agents working on th
 **Java uses ServiceLoader SPI** - new attributes/tokens require:
 
 1. Implement interface (e.g., extend `BaseAttribute`)
-2. Add fully-qualified class name to `lib/java/src/main/resources/META-INF/services/com.truveta.opentoken.{attributes.Attribute|tokens.Token}`
+2. Add fully-qualified class name to `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.{attributes.Attribute|tokens.Token}`
 3. Keep entries sorted alphabetically (one per line, no blank lines/comments)
 
 **Python uses explicit imports** in loader files:
 
-- `lib/python/src/main/opentoken/attributes/attribute_loader.py` → add to `AttributeLoader.load()` set
-- `lib/python/src/main/opentoken/tokens/token_registry.py` → add to registry
+- `lib/python/opentoken/src/main/opentoken/attributes/attribute_loader.py` → add to `AttributeLoader.load()` set
+- `lib/python/opentoken/src/main/opentoken/tokens/token_registry.py` → add to registry
 
 **Both languages must be updated** or parity breaks. Use `tools/java_python_syncer.py` to verify cross-language sync.
 
@@ -55,11 +55,11 @@ This document provides comprehensive guidance for AI coding agents working on th
 ### Build & Test
 
 ```bash
-# Java (from lib/java/): Maven handles compile, Checkstyle, JaCoCo coverage, sanity checks
-cd lib/java && mvn clean install
+# Java (from lib/java/opentoken/): Maven handles compile, Checkstyle, JaCoCo coverage, sanity checks
+cd lib/java/opentoken && mvn clean install
 
-# Python (from lib/python/): Creates venv, installs deps, runs pytest
-cd lib/python && python -m venv .venv && source .venv/bin/activate
+# Python (from lib/python/opentoken/): Creates venv, installs deps, runs pytest
+cd lib/python/opentoken && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r dev-requirements.txt -e .
 pytest
 
@@ -179,7 +179,7 @@ Every token generation run produces `.metadata.json` with:
 ## File Structure Patterns
 
 ```
-lib/java/src/main/java/com/truveta/opentoken/
+lib/java/opentoken/src/main/java/com/truveta/opentoken/
 ├── attributes/
 │   ├── general/        # DateAttribute, StringAttribute, RecordIdAttribute
 │   ├── person/         # BirthDateAttribute, SexAttribute, SSN, etc.
@@ -188,7 +188,7 @@ lib/java/src/main/java/com/truveta/opentoken/
 ├── tokens/             # Token interface, TokenRegistry, definitions/ (T1-T5)
 └── tokentransformer/   # HashTokenTransformer, EncryptTokenTransformer
 
-lib/python/src/main/opentoken/  # Mirrors Java structure with Pythonic naming
+lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic naming
 ```
 
 ## Common Pitfalls
@@ -263,7 +263,7 @@ Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`
 **Java Checkstyle failures:**
 
 ```bash
-cd lib/java && mvn checkstyle:check
+cd lib/java/opentoken && mvn checkstyle:check
 ```
 
 Fix style issues before running full build.
@@ -271,7 +271,7 @@ Fix style issues before running full build.
 **Python import errors:**
 
 ```bash
-cd lib/python && source .venv/bin/activate
+cd lib/python/opentoken && source .venv/bin/activate
 pip install -e .
 ```
 
