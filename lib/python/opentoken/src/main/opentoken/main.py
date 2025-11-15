@@ -9,11 +9,14 @@ from typing import List
 from opentoken.command_line_arguments import CommandLineArguments
 from opentoken.io.csv.person_attributes_csv_reader import PersonAttributesCSVReader
 from opentoken.io.csv.person_attributes_csv_writer import PersonAttributesCSVWriter
+from opentoken.io.csv.token_csv_reader import TokenCSVReader
+from opentoken.io.csv.token_csv_writer import TokenCSVWriter
 from opentoken.io.json.metadata_json_writer import MetadataJsonWriter
 from opentoken.io.parquet.person_attributes_parquet_reader import PersonAttributesParquetReader
 from opentoken.io.parquet.person_attributes_parquet_writer import PersonAttributesParquetWriter
 from opentoken.metadata import Metadata
 from opentoken.processor.person_attributes_processor import PersonAttributesProcessor
+from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 from opentoken.tokentransformer.token_transformer import TokenTransformer
@@ -39,7 +42,9 @@ def main():
         input_type = args.input_type
         output_path = args.output_path
         output_type = args.output_type if args.output_type else input_type
+        decrypt_mode = args.decrypt
 
+        logger.info(f"Decrypt Mode: {decrypt_mode}")
         logger.info(f"Hashing Secret: {_mask_string(hashing_secret)}")
         logger.info(f"Encryption Key: {_mask_string(encryption_key)}")
         logger.info(f"Input Path: {input_path}")
@@ -47,7 +52,21 @@ def main():
         logger.info(f"Output Path: {output_path}")
         logger.info(f"Output Type: {output_type}")
 
-        # Validate input parameters
+        # Decrypt mode - process encrypted tokens
+        if decrypt_mode:
+            if not encryption_key or not encryption_key.strip():
+                logger.error("Encryption key must be specified for decryption")
+                return
+            
+            if input_type != CommandLineArguments.TYPE_CSV:
+                logger.error("Decryption mode only supports CSV input type")
+                return
+            
+            _decrypt_tokens(input_path, output_path, encryption_key)
+            logger.info("Token decryption completed successfully.")
+            return
+
+        # Validate input parameters for encryption mode
         if input_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
             logger.error("Only csv and parquet input types are supported!")
             return
@@ -138,6 +157,41 @@ def _mask_string(input_str: str) -> str:
     if input_str is None or len(input_str) <= 3:
         return input_str
     return input_str[:3] + "*" * (len(input_str) - 3)
+
+
+def _decrypt_tokens(input_path: str, output_path: str, encryption_key: str):
+    """
+    Decrypt tokens from input CSV file and write to output CSV file.
+    
+    Args:
+        input_path: Path to input CSV file with encrypted tokens.
+        output_path: Path to output CSV file for decrypted tokens.
+        encryption_key: Encryption key for decryption.
+    """
+    BLANK_TOKEN = "0000000000000000000000000000000000000000000000000000000000000000"
+    
+    try:
+        decryptor = DecryptTokenTransformer(encryption_key)
+        
+        with TokenCSVReader(input_path) as reader, TokenCSVWriter(output_path) as writer:
+            for row in reader:
+                token = row.get('Token', '')
+                
+                # Decrypt the token if it's not blank
+                if token and token != BLANK_TOKEN:
+                    try:
+                        decrypted_token = decryptor.transform(token)
+                        row['Token'] = decrypted_token
+                    except Exception as e:
+                        logger.error(f"Failed to decrypt token for RecordId {row.get('RecordId')}, "
+                                   f"RuleId {row.get('RuleId')}: {e}")
+                        # Keep the encrypted token in case of error
+                
+                writer.write_token(row)
+                
+    except Exception as e:
+        logger.error(f"Error during token decryption: {e}")
+        raise
 
 
 def build_token_transformers(args: CommandLineArguments) -> List[TokenTransformer]:

@@ -1,0 +1,63 @@
+"""
+Copyright (c) Truveta. All rights reserved.
+"""
+
+import csv
+import logging
+import os
+from typing import Dict
+
+
+logger = logging.getLogger(__name__)
+
+
+class TokenCSVWriter:
+    """
+    Writes decrypted tokens to a CSV file.
+    Output columns: RuleId, Token, RecordId
+    """
+
+    def __init__(self, file_path: str):
+        """
+        Initialize the class with the output file in CSV format.
+
+        Args:
+            file_path: The output file path.
+
+        Raises:
+            IOError: If an I/O error occurs.
+        """
+        self.file_path = file_path
+
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
+
+        self.file_handle = open(file_path, 'w', newline='', encoding='utf-8')
+        self.csv_writer = csv.DictWriter(self.file_handle, fieldnames=['RuleId', 'Token', 'RecordId'])
+        self.csv_writer.writeheader()
+
+    def write_token(self, data: Dict[str, str]) -> None:
+        """
+        Write a token row to the CSV file.
+
+        Args:
+            data: A dictionary with RuleId, Token, and RecordId.
+        """
+        try:
+            self.csv_writer.writerow(data)
+        except IOError as e:
+            logger.error(f"Error in writing to CSV file: {e}")
+            raise
+
+    def close(self):
+        """Close the file handle."""
+        if self.file_handle:
+            self.file_handle.close()
+
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self.close()

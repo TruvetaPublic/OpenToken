@@ -11,6 +11,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.beust.jcommander.JCommander;
+import com.truveta.opentoken.tokentransformer.DecryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
@@ -19,6 +20,8 @@ import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
+import com.truveta.opentoken.io.csv.TokenCSVReader;
+import com.truveta.opentoken.io.csv.TokenCSVWriter;
 import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetWriter;
@@ -36,10 +39,13 @@ public class Main {
         String inputType = commandLineArguments.getInputType();
         String outputPath = commandLineArguments.getOutputPath();
         String outputType = commandLineArguments.getOutputType();
+        boolean decryptMode = commandLineArguments.isDecrypt();
+        
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType; // defaulting to input type if not provided
         }
 
+        logger.info("Decrypt Mode: {}", decryptMode);
         if (logger.isInfoEnabled()) {
             logger.info("Hashing Secret: {}", maskString(hashingSecret));
             logger.info("Encryption Key: {}", maskString(encryptionKey));
@@ -48,6 +54,23 @@ public class Main {
         logger.info("Input Type: {}", inputType);
         logger.info("Output Path: {}", outputPath);
         logger.info("Output Type: {}", outputType);
+
+        // Decrypt mode - process encrypted tokens
+        if (decryptMode) {
+            if (encryptionKey == null || encryptionKey.isBlank()) {
+                logger.error("Encryption key must be specified for decryption");
+                return;
+            }
+            
+            if (!CommandLineArguments.TYPE_CSV.equals(inputType)) {
+                logger.error("Decryption mode only supports CSV input type");
+                return;
+            }
+            
+            decryptTokens(inputPath, outputPath, encryptionKey);
+            logger.info("Token decryption completed successfully.");
+            return;
+        }
 
         if (!(CommandLineArguments.TYPE_CSV.equals(inputType) || CommandLineArguments.TYPE_PARQUET.equals(inputType))) {
             logger.error("Only csv and parquet input types are supported!");
@@ -127,5 +150,38 @@ public class Main {
             return input;
         }
         return input.substring(0, 3) + "*".repeat(input.length() - 3);
+    }
+
+    private static void decryptTokens(String inputPath, String outputPath, String encryptionKey) {
+        final String BLANK_TOKEN = "0000000000000000000000000000000000000000000000000000000000000000";
+        
+        try {
+            DecryptTokenTransformer decryptor = new DecryptTokenTransformer(encryptionKey);
+            
+            try (TokenCSVReader reader = new TokenCSVReader(inputPath);
+                 TokenCSVWriter writer = new TokenCSVWriter(outputPath)) {
+                
+                while (reader.hasNext()) {
+                    Map<String, String> row = reader.next();
+                    String token = row.get("Token");
+                    
+                    // Decrypt the token if it's not blank
+                    if (token != null && !token.isEmpty() && !BLANK_TOKEN.equals(token)) {
+                        try {
+                            String decryptedToken = decryptor.transform(token);
+                            row.put("Token", decryptedToken);
+                        } catch (Exception e) {
+                            logger.error("Failed to decrypt token for RecordId {}, RuleId {}: {}", 
+                                       row.get("RecordId"), row.get("RuleId"), e.getMessage());
+                            // Keep the encrypted token in case of error
+                        }
+                    }
+                    
+                    writer.writeToken(row);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during token decryption: ", e);
+        }
     }
 }
