@@ -1,0 +1,42 @@
+name: Validate PR Target
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-pr-target:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate PR is from release branch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const headRef = pr.head.ref;
+            
+            console.log(`Validating PR #${pr.number}`);
+            console.log(`Head branch: ${headRef}`);
+            console.log(`Base branch: ${pr.base.ref}`);
+            
+            // Check if the head branch matches release/* pattern
+            if (!headRef.startsWith('release/')) {
+              core.setFailed(
+                `❌ PRs to main must come from release/* branches.\n\n` +
+                `Current head branch: ${headRef}\n\n` +
+                `Standard development work should target the 'develop' branch.\n` +
+                `Only release PRs from 'release/x.y.z' branches can target 'main'.\n\n` +
+                `Please close this PR and open a new one targeting 'develop' instead.`
+              );
+              return;
+            }
+            
+            console.log(`✅ PR is from a release branch (${headRef}), validation passed.`);

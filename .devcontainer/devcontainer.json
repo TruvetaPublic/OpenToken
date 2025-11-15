@@ -50,5 +50,7 @@
     "mounts": [],
     "containerEnv": {},
     "postCreateCommand": {},
-    "postStartCommand": {}
+    "postStartCommand": {
+        "initialize-python-env": "/bin/bash .devcontainer/scripts/setup_python_env.sh"
+    }
 }
