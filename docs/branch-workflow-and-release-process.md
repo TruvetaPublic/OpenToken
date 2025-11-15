@@ -101,7 +101,7 @@ graph TB
   4. `auto-version-bump` workflow runs automatically
   5. Review and merge PR
   6. `auto-release` workflow runs automatically
-  7. Delete branch after release
+  7. Keep the `release/x.y.z` branch around after release (do not delete it). This provides both a permanent, inspectable record of the exact branch used to cut that release **and** a clean starting point if you need to branch off and create a patch or hotfix release later.
 - **Merges from**: `develop`
 - **Merges to**: `main` only
 
