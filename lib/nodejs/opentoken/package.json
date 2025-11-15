@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "opentoken": "dist/cli.js"
+    "opentoken": "dist/Main.js"
   },
   "scripts": {
     "build": "tsc",
