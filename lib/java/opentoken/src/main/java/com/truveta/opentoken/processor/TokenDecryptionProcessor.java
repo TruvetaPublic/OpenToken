@@ -4,12 +4,13 @@
 package com.truveta.opentoken.processor;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.io.TokenReader;
+import com.truveta.opentoken.io.TokenWriter;
 import com.truveta.opentoken.tokens.Token;
 import com.truveta.opentoken.tokentransformer.DecryptTokenTransformer;
 
@@ -30,13 +31,13 @@ public final class TokenDecryptionProcessor {
      * Reads encrypted tokens from the input data source, decrypts them, and
      * writes the result back to the output data source.
      * 
-     * @param reader    Iterator providing encrypted token rows
-     * @param writer    Writer interface for output (must support writeToken method)
+     * @param reader    TokenReader providing encrypted token rows
+     * @param writer    TokenWriter for output
      * @param decryptor The decryption transformer
      * @throws IOException if an I/O error occurs
      */
-    public static void process(Iterator<Map<String, String>> reader,
-                                AutoCloseable writer,
+    public static void process(TokenReader reader,
+                                TokenWriter writer,
                                 DecryptTokenTransformer decryptor) throws IOException {
         long rowCounter = 0;
         long decryptedCounter = 0;
@@ -62,18 +63,8 @@ public final class TokenDecryptionProcessor {
                 }
             }
             
-            // Write token using appropriate writer
-            try {
-                if (writer instanceof com.truveta.opentoken.io.csv.TokenCSVWriter) {
-                    ((com.truveta.opentoken.io.csv.TokenCSVWriter) writer).writeToken(row);
-                } else if (writer instanceof com.truveta.opentoken.io.parquet.TokenParquetWriter) {
-                    ((com.truveta.opentoken.io.parquet.TokenParquetWriter) writer).writeToken(row);
-                }
-            } catch (Exception e) {
-                logger.error("Failed to write token for RecordId {}, RuleId {}: {}", 
-                           row.get("RecordId"), row.get("RuleId"), e.getMessage());
-                throw new IOException("Error writing token", e);
-            }
+            // Write token
+            writer.writeToken(row);
 
             if (rowCounter % 10000 == 0) {
                 logger.info(String.format("Processed \"%,d\" tokens", rowCounter));
@@ -87,3 +78,4 @@ public final class TokenDecryptionProcessor {
         }
     }
 }
+

@@ -3,8 +3,9 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 import logging
-from typing import Iterator, Dict
 
+from opentoken.io.token_reader import TokenReader
+from opentoken.io.token_writer import TokenWriter
 from opentoken.tokens.token import Token
 from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
 
@@ -25,7 +26,7 @@ class TokenDecryptionProcessor:
         pass
 
     @staticmethod
-    def process(reader: Iterator[Dict[str, str]], writer, decryptor: DecryptTokenTransformer):
+    def process(reader: TokenReader, writer: TokenWriter, decryptor: DecryptTokenTransformer):
         """
         Reads encrypted tokens from the input data source, decrypts them, and
         writes the result back to the output data source.

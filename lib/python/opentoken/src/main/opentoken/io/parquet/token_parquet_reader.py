@@ -10,11 +10,13 @@ try:
 except ImportError:
     raise ImportError("pyarrow is required for Parquet support. Install with: pip install pyarrow")
 
+from opentoken.io.token_reader import TokenReader
+
 
 logger = logging.getLogger(__name__)
 
 
-class TokenParquetReader:
+class TokenParquetReader(TokenReader):
     """
     Reads encrypted tokens from a Parquet file for decryption.
     Expected columns: RuleId, Token, RecordId

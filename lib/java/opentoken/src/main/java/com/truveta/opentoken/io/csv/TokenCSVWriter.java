@@ -14,11 +14,13 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.io.TokenWriter;
+
 /**
  * Writes decrypted tokens to a CSV file.
  * Output columns: RuleId, Token, RecordId
  */
-public class TokenCSVWriter implements AutoCloseable {
+public class TokenCSVWriter implements TokenWriter {
     private static final Logger logger = LoggerFactory.getLogger(TokenCSVWriter.class);
     
     private final BufferedWriter writer;

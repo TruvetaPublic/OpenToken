@@ -6,11 +6,13 @@ import csv
 import logging
 from typing import Iterator, Dict
 
+from opentoken.io.token_reader import TokenReader
+
 
 logger = logging.getLogger(__name__)
 
 
-class TokenCSVReader:
+class TokenCSVReader(TokenReader):
     """
     Reads encrypted tokens from a CSV file for decryption.
     Expected columns: RuleId, Token, RecordId

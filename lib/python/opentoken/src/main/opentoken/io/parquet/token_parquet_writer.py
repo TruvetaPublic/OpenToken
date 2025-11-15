@@ -12,11 +12,13 @@ try:
 except ImportError:
     raise ImportError("pyarrow is required for Parquet support. Install with: pip install pyarrow")
 
+from opentoken.io.token_writer import TokenWriter
+
 
 logger = logging.getLogger(__name__)
 
 
-class TokenParquetWriter:
+class TokenParquetWriter(TokenWriter):
     """
     Writes decrypted tokens to a Parquet file.
     Output columns: RuleId, Token, RecordId

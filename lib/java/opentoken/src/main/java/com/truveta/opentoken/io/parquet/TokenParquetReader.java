@@ -5,7 +5,6 @@ package com.truveta.opentoken.io.parquet;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -18,11 +17,13 @@ import org.apache.parquet.schema.GroupType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.io.TokenReader;
+
 /**
  * Reads encrypted tokens from a Parquet file for decryption.
  * Expected columns: RuleId, Token, RecordId
  */
-public class TokenParquetReader implements Iterator<Map<String, String>>, AutoCloseable {
+public class TokenParquetReader implements TokenReader {
     private static final Logger logger = LoggerFactory.getLogger(TokenParquetReader.class);
     
     private final ParquetReader<Group> reader;

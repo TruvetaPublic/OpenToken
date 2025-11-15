@@ -7,11 +7,13 @@ import logging
 import os
 from typing import Dict
 
+from opentoken.io.token_writer import TokenWriter
+
 
 logger = logging.getLogger(__name__)
 
 
-class TokenCSVWriter:
+class TokenCSVWriter(TokenWriter):
     """
     Writes decrypted tokens to a CSV file.
     Output columns: RuleId, Token, RecordId

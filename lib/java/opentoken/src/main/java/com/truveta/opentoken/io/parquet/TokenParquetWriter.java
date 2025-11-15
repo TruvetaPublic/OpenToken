@@ -21,11 +21,13 @@ import org.apache.parquet.schema.Types;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.io.TokenWriter;
+
 /**
  * Writes decrypted tokens to a Parquet file.
  * Output columns: RuleId, Token, RecordId
  */
-public class TokenParquetWriter implements AutoCloseable {
+public class TokenParquetWriter implements TokenWriter {
     private static final Logger logger = LoggerFactory.getLogger(TokenParquetWriter.class);
     
     private final ParquetWriter<Group> writer;
