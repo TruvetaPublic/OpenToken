@@ -18,6 +18,8 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
 import com.truveta.opentoken.io.MetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
+import com.truveta.opentoken.io.TokenReader;
+import com.truveta.opentoken.io.TokenWriter;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
 import com.truveta.opentoken.io.csv.TokenCSVReader;
@@ -75,6 +77,7 @@ public class Main {
             return;
         }
 
+        // Validate input parameters for encryption mode
         if (!(CommandLineArguments.TYPE_CSV.equals(inputType) || CommandLineArguments.TYPE_PARQUET.equals(inputType))) {
             logger.error("Only csv and parquet input types are supported!");
             return;
@@ -84,6 +87,11 @@ public class Main {
             return;
         }
 
+        encryptTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey);
+    }
+
+    private static void encryptTokens(String inputPath, String outputPath, String inputType, String outputType,
+                                      String hashingSecret, String encryptionKey) {
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
         try {
             tokenTransformerList.add(new HashTokenTransformer(hashingSecret));
@@ -160,36 +168,34 @@ public class Main {
         try {
             DecryptTokenTransformer decryptor = new DecryptTokenTransformer(encryptionKey);
             
-            // Handle CSV input/output
-            if (CommandLineArguments.TYPE_CSV.equals(inputType) && CommandLineArguments.TYPE_CSV.equals(outputType)) {
-                try (TokenCSVReader reader = new TokenCSVReader(inputPath);
-                     TokenCSVWriter writer = new TokenCSVWriter(outputPath)) {
-                    TokenDecryptionProcessor.process(reader, writer, decryptor);
-                }
-            }
-            // Handle Parquet input with CSV output
-            else if (CommandLineArguments.TYPE_PARQUET.equals(inputType) && CommandLineArguments.TYPE_CSV.equals(outputType)) {
-                try (TokenParquetReader reader = new TokenParquetReader(inputPath);
-                     TokenCSVWriter writer = new TokenCSVWriter(outputPath)) {
-                    TokenDecryptionProcessor.process(reader, writer, decryptor);
-                }
-            }
-            // Handle CSV input with Parquet output
-            else if (CommandLineArguments.TYPE_CSV.equals(inputType) && CommandLineArguments.TYPE_PARQUET.equals(outputType)) {
-                try (TokenCSVReader reader = new TokenCSVReader(inputPath);
-                     TokenParquetWriter writer = new TokenParquetWriter(outputPath)) {
-                    TokenDecryptionProcessor.process(reader, writer, decryptor);
-                }
-            }
-            // Handle Parquet input/output
-            else if (CommandLineArguments.TYPE_PARQUET.equals(inputType) && CommandLineArguments.TYPE_PARQUET.equals(outputType)) {
-                try (TokenParquetReader reader = new TokenParquetReader(inputPath);
-                     TokenParquetWriter writer = new TokenParquetWriter(outputPath)) {
-                    TokenDecryptionProcessor.process(reader, writer, decryptor);
-                }
+            try (TokenReader reader = createTokenReader(inputPath, inputType);
+                 TokenWriter writer = createTokenWriter(outputPath, outputType)) {
+                TokenDecryptionProcessor.process(reader, writer, decryptor);
             }
         } catch (Exception e) {
             logger.error("Error during token decryption: ", e);
+        }
+    }
+
+    private static TokenReader createTokenReader(String inputPath, String inputType) throws IOException {
+        switch (inputType.toLowerCase()) {
+            case CommandLineArguments.TYPE_CSV:
+                return new TokenCSVReader(inputPath);
+            case CommandLineArguments.TYPE_PARQUET:
+                return new TokenParquetReader(inputPath);
+            default:
+                throw new IllegalArgumentException("Unsupported input type: " + inputType);
+        }
+    }
+
+    private static TokenWriter createTokenWriter(String outputPath, String outputType) throws IOException {
+        switch (outputType.toLowerCase()) {
+            case CommandLineArguments.TYPE_CSV:
+                return new TokenCSVWriter(outputPath);
+            case CommandLineArguments.TYPE_PARQUET:
+                return new TokenParquetWriter(outputPath);
+            default:
+                throw new IllegalArgumentException("Unsupported output type: " + outputType);
         }
     }
 }

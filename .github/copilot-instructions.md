@@ -212,6 +212,21 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 - **Version pinning**: Pin major versions, allow minor/patch updates (`~=` for Python, ranges for Maven)
 - **Vulnerability scanning**: Both implementations use automated security scans (see `.github/workflows/`)
 
+## Code Style Guidelines
+
+### Java
+
+- **Always use imported classes**: Never use full namespace declarations (e.g., use `TokenWriter` not `com.truveta.opentoken.io.TokenWriter`)
+- **Import statements**: Add proper imports at the top of the file
+- **Checkstyle compliance**: Run `mvn checkstyle:check` to validate
+- **JavaDoc**: Required for all public classes and methods
+
+### Python
+
+- **PEP 8 compliance**: Follow Python style guidelines
+- **Import organization**: Group imports (standard library, third-party, local)
+- **Docstrings**: Use Google style (Args, Returns, Raises)
+
 ## Git Workflow & PR Standards
 
 ### Before Submitting
