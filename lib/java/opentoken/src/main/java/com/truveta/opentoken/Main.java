@@ -25,6 +25,8 @@ import com.truveta.opentoken.io.csv.TokenCSVWriter;
 import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetWriter;
+import com.truveta.opentoken.io.parquet.TokenParquetReader;
+import com.truveta.opentoken.io.parquet.TokenParquetWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
 
 public class Main {
@@ -62,12 +64,12 @@ public class Main {
                 return;
             }
             
-            if (!CommandLineArguments.TYPE_CSV.equals(inputType)) {
-                logger.error("Decryption mode only supports CSV input type");
+            if (!(CommandLineArguments.TYPE_CSV.equals(inputType) || CommandLineArguments.TYPE_PARQUET.equals(inputType))) {
+                logger.error("Decryption mode only supports CSV and Parquet input types");
                 return;
             }
             
-            decryptTokens(inputPath, outputPath, encryptionKey);
+            decryptTokens(inputPath, outputPath, inputType, outputType, encryptionKey);
             logger.info("Token decryption completed successfully.");
             return;
         }
@@ -152,36 +154,71 @@ public class Main {
         return input.substring(0, 3) + "*".repeat(input.length() - 3);
     }
 
-    private static void decryptTokens(String inputPath, String outputPath, String encryptionKey) {
+    private static void decryptTokens(String inputPath, String outputPath, String inputType, String outputType, 
+                                      String encryptionKey) {
         final String BLANK_TOKEN = "0000000000000000000000000000000000000000000000000000000000000000";
         
         try {
             DecryptTokenTransformer decryptor = new DecryptTokenTransformer(encryptionKey);
             
-            try (TokenCSVReader reader = new TokenCSVReader(inputPath);
-                 TokenCSVWriter writer = new TokenCSVWriter(outputPath)) {
-                
-                while (reader.hasNext()) {
-                    Map<String, String> row = reader.next();
-                    String token = row.get("Token");
-                    
-                    // Decrypt the token if it's not blank
-                    if (token != null && !token.isEmpty() && !BLANK_TOKEN.equals(token)) {
-                        try {
-                            String decryptedToken = decryptor.transform(token);
-                            row.put("Token", decryptedToken);
-                        } catch (Exception e) {
-                            logger.error("Failed to decrypt token for RecordId {}, RuleId {}: {}", 
-                                       row.get("RecordId"), row.get("RuleId"), e.getMessage());
-                            // Keep the encrypted token in case of error
-                        }
-                    }
-                    
-                    writer.writeToken(row);
+            // Handle CSV input/output
+            if (CommandLineArguments.TYPE_CSV.equals(inputType) && CommandLineArguments.TYPE_CSV.equals(outputType)) {
+                try (TokenCSVReader reader = new TokenCSVReader(inputPath);
+                     TokenCSVWriter writer = new TokenCSVWriter(outputPath)) {
+                    processDecryption(reader, writer, decryptor, BLANK_TOKEN);
+                }
+            }
+            // Handle Parquet input with CSV output
+            else if (CommandLineArguments.TYPE_PARQUET.equals(inputType) && CommandLineArguments.TYPE_CSV.equals(outputType)) {
+                try (TokenParquetReader reader = new TokenParquetReader(inputPath);
+                     TokenCSVWriter writer = new TokenCSVWriter(outputPath)) {
+                    processDecryption(reader, writer, decryptor, BLANK_TOKEN);
+                }
+            }
+            // Handle CSV input with Parquet output
+            else if (CommandLineArguments.TYPE_CSV.equals(inputType) && CommandLineArguments.TYPE_PARQUET.equals(outputType)) {
+                try (TokenCSVReader reader = new TokenCSVReader(inputPath);
+                     TokenParquetWriter writer = new TokenParquetWriter(outputPath)) {
+                    processDecryption(reader, writer, decryptor, BLANK_TOKEN);
+                }
+            }
+            // Handle Parquet input/output
+            else if (CommandLineArguments.TYPE_PARQUET.equals(inputType) && CommandLineArguments.TYPE_PARQUET.equals(outputType)) {
+                try (TokenParquetReader reader = new TokenParquetReader(inputPath);
+                     TokenParquetWriter writer = new TokenParquetWriter(outputPath)) {
+                    processDecryption(reader, writer, decryptor, BLANK_TOKEN);
                 }
             }
         } catch (Exception e) {
             logger.error("Error during token decryption: ", e);
+        }
+    }
+
+    private static void processDecryption(java.util.Iterator<Map<String, String>> reader,
+                                          AutoCloseable writer, DecryptTokenTransformer decryptor, 
+                                          String blankToken) throws Exception {
+        while (reader.hasNext()) {
+            Map<String, String> row = reader.next();
+            String token = row.get("Token");
+            
+            // Decrypt the token if it's not blank
+            if (token != null && !token.isEmpty() && !blankToken.equals(token)) {
+                try {
+                    String decryptedToken = decryptor.transform(token);
+                    row.put("Token", decryptedToken);
+                } catch (Exception e) {
+                    logger.error("Failed to decrypt token for RecordId {}, RuleId {}: {}", 
+                               row.get("RecordId"), row.get("RuleId"), e.getMessage());
+                    // Keep the encrypted token in case of error
+                }
+            }
+            
+            // Write token using appropriate writer
+            if (writer instanceof TokenCSVWriter) {
+                ((TokenCSVWriter) writer).writeToken(row);
+            } else if (writer instanceof TokenParquetWriter) {
+                ((TokenParquetWriter) writer).writeToken(row);
+            }
         }
     }
 }

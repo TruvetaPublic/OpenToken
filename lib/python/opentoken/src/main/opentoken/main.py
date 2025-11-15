@@ -14,6 +14,8 @@ from opentoken.io.csv.token_csv_writer import TokenCSVWriter
 from opentoken.io.json.metadata_json_writer import MetadataJsonWriter
 from opentoken.io.parquet.person_attributes_parquet_reader import PersonAttributesParquetReader
 from opentoken.io.parquet.person_attributes_parquet_writer import PersonAttributesParquetWriter
+from opentoken.io.parquet.token_parquet_reader import TokenParquetReader
+from opentoken.io.parquet.token_parquet_writer import TokenParquetWriter
 from opentoken.metadata import Metadata
 from opentoken.processor.person_attributes_processor import PersonAttributesProcessor
 from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
@@ -58,11 +60,11 @@ def main():
                 logger.error("Encryption key must be specified for decryption")
                 return
             
-            if input_type != CommandLineArguments.TYPE_CSV:
-                logger.error("Decryption mode only supports CSV input type")
+            if input_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
+                logger.error("Decryption mode only supports CSV and Parquet input types")
                 return
             
-            _decrypt_tokens(input_path, output_path, encryption_key)
+            _decrypt_tokens(input_path, output_path, input_type, output_type, encryption_key)
             logger.info("Token decryption completed successfully.")
             return
 
@@ -159,13 +161,15 @@ def _mask_string(input_str: str) -> str:
     return input_str[:3] + "*" * (len(input_str) - 3)
 
 
-def _decrypt_tokens(input_path: str, output_path: str, encryption_key: str):
+def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str, encryption_key: str):
     """
-    Decrypt tokens from input CSV file and write to output CSV file.
+    Decrypt tokens from input file and write to output file.
     
     Args:
-        input_path: Path to input CSV file with encrypted tokens.
-        output_path: Path to output CSV file for decrypted tokens.
+        input_path: Path to input file with encrypted tokens.
+        output_path: Path to output file for decrypted tokens.
+        input_type: Type of input file (csv or parquet).
+        output_type: Type of output file (csv or parquet).
         encryption_key: Encryption key for decryption.
     """
     BLANK_TOKEN = "0000000000000000000000000000000000000000000000000000000000000000"
@@ -173,21 +177,41 @@ def _decrypt_tokens(input_path: str, output_path: str, encryption_key: str):
     try:
         decryptor = DecryptTokenTransformer(encryption_key)
         
-        with TokenCSVReader(input_path) as reader, TokenCSVWriter(output_path) as writer:
-            for row in reader:
-                token = row.get('Token', '')
-                
-                # Decrypt the token if it's not blank
-                if token and token != BLANK_TOKEN:
-                    try:
-                        decrypted_token = decryptor.transform(token)
-                        row['Token'] = decrypted_token
-                    except Exception as e:
-                        logger.error(f"Failed to decrypt token for RecordId {row.get('RecordId')}, "
-                                   f"RuleId {row.get('RuleId')}: {e}")
-                        # Keep the encrypted token in case of error
-                
-                writer.write_token(row)
+        # Create reader based on input type
+        if input_type == CommandLineArguments.TYPE_CSV:
+            reader = TokenCSVReader(input_path)
+        elif input_type == CommandLineArguments.TYPE_PARQUET:
+            reader = TokenParquetReader(input_path)
+        else:
+            raise ValueError(f"Unsupported input type: {input_type}")
+        
+        # Create writer based on output type
+        if output_type == CommandLineArguments.TYPE_CSV:
+            writer = TokenCSVWriter(output_path)
+        elif output_type == CommandLineArguments.TYPE_PARQUET:
+            writer = TokenParquetWriter(output_path)
+        else:
+            raise ValueError(f"Unsupported output type: {output_type}")
+        
+        try:
+            with reader, writer:
+                for row in reader:
+                    token = row.get('Token', '')
+                    
+                    # Decrypt the token if it's not blank
+                    if token and token != BLANK_TOKEN:
+                        try:
+                            decrypted_token = decryptor.transform(token)
+                            row['Token'] = decrypted_token
+                        except Exception as e:
+                            logger.error(f"Failed to decrypt token for RecordId {row.get('RecordId')}, "
+                                       f"RuleId {row.get('RuleId')}: {e}")
+                            # Keep the encrypted token in case of error
+                    
+                    writer.write_token(row)
+        finally:
+            # Ensure resources are closed even if context managers fail
+            pass
                 
     except Exception as e:
         logger.error(f"Error during token decryption: {e}")

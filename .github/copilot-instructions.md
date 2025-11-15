@@ -66,16 +66,6 @@ pytest
 # Note: No unified build script exists - build each language separately
 ```
 
-### Version Bumping (MANDATORY for ALL PRs)
-
-```bash
-bump2version patch   # Bug fixes, minor changes (e.g., adding invalid SSN patterns)
-bump2version minor   # New attributes, new token rules
-bump2version major   # Breaking API changes
-```
-
-This updates `.bumpversion.cfg`, `pom.xml`, `setup.py`, `__init__.py`, `Dockerfile`, and `Metadata.java` automatically. **Never** manually edit version numbers.
-
 ### Branch Management
 
 **Required Branch Format:** `dev/<github-username>/<feature-description>` (e.g., `dev/mattwise-42/additional-attributes`)
@@ -228,15 +218,13 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 
 1. **Run all builds**: `mvn clean install` (Java) and `pytest` (Python)
 2. **Check cross-language sync**: Run `tools/java_python_syncer.py`
-3. **Version bump**: Use `bump2version` (patch/minor/major)
-4. **Code style**: Java Checkstyle must pass, Python follows PEP 8
-5. **Test coverage**: Add tests for new code paths
+3. **Code style**: Java Checkstyle must pass, Python follows PEP 8
+4. **Test coverage**: Add tests for new code paths
 
 ### PR Checklist
 
 - [ ] Both Java and Python implementations updated (if applicable)
 - [ ] Tests added/updated for changes
-- [ ] Version bumped appropriately
 - [ ] Documentation updated (README, JavaDoc, docstrings)
 - [ ] Service registration files updated (Java: `META-INF/services/`, Python: loaders)
 - [ ] No secrets or sensitive data committed

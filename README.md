@@ -165,7 +165,7 @@ The driver accepts multiple command line arguments:
 
 - `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key.
 
-- `-d | --decrypt`: Optional. When provided, the tool operates in decryption mode. It decrypts tokens from a previously encrypted OpenToken output file. In decryption mode, only the encryption key (`-e`) is required. The input file must be a CSV file containing encrypted tokens with columns: `RuleId`, `Token`, and `RecordId`.
+- `-d | --decrypt`: Optional. When provided, the tool operates in decryption mode. It decrypts tokens from a previously encrypted OpenToken output file. In decryption mode, only the encryption key (`-e`) is required. The input file can be either CSV or Parquet format containing encrypted tokens with columns: `RuleId`, `Token`, and `RecordId`.
 
 The encryption logic is: 
 > $Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))$
@@ -257,7 +257,7 @@ python -m opentoken.main -d \
   -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-**Note:** Decryption mode only supports CSV input/output. The decrypted output will contain the HMAC-SHA256 hashed tokens (base64 encoded) before AES encryption. Cross-language compatibility is supported - tokens encrypted by Java can be decrypted by Python and vice versa.
+**Note:** Decryption mode supports both CSV and Parquet input/output formats. The decrypted output will contain the HMAC-SHA256 hashed tokens (base64 encoded) before AES encryption. Cross-language compatibility is supported - tokens encrypted by Java can be decrypted by Python and vice versa.
 
 ### Docker  <!-- omit in toc -->
 
