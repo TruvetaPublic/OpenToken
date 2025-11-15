@@ -6,11 +6,8 @@ import { AttributeExpression } from '../../attributes/AttributeExpression';
 import { BirthDateAttribute } from '../../attributes/person/BirthDateAttribute';
 import { FirstNameAttribute } from '../../attributes/person/FirstNameAttribute';
 import { LastNameAttribute } from '../../attributes/person/LastNameAttribute';
+import { PostalCodeAttribute } from '../../attributes/person/PostalCodeAttribute';
 import { Token } from '../Token';
-
-// NOTE: PostalCodeAttribute not yet implemented - will need to be added
-// For now, we'll create a placeholder
-class PostalCodeAttributePlaceholder {}
 
 /**
  * Represents the token definition for token T2.
@@ -28,8 +25,7 @@ export class T2Token implements Token {
       new AttributeExpression(LastNameAttribute as any, 'T|U'),
       new AttributeExpression(FirstNameAttribute as any, 'T|U'),
       new AttributeExpression(BirthDateAttribute as any, 'T|D'),
-      // TODO: Replace with actual PostalCodeAttribute when implemented
-      new AttributeExpression(PostalCodeAttributePlaceholder as any, 'T|S(0,3)|U'),
+      new AttributeExpression(PostalCodeAttribute as any, 'T|S(0,3)|U'),
     ];
   }
 

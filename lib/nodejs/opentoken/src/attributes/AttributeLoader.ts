@@ -8,6 +8,7 @@ import { LastNameAttribute } from './person/LastNameAttribute';
 import { BirthDateAttribute } from './person/BirthDateAttribute';
 import { SexAttribute } from './person/SexAttribute';
 import { SocialSecurityNumberAttribute } from './person/SocialSecurityNumberAttribute';
+import { PostalCodeAttribute } from './person/PostalCodeAttribute';
 import { RecordIdAttribute } from './general/RecordIdAttribute';
 import { StringAttribute } from './general/StringAttribute';
 import { DateAttribute } from './general/DateAttribute';
@@ -37,6 +38,7 @@ export class AttributeLoader {
     attributes.add(new BirthDateAttribute());
     attributes.add(new SexAttribute());
     attributes.add(new SocialSecurityNumberAttribute());
+    attributes.add(new PostalCodeAttribute());
     attributes.add(new RecordIdAttribute());
     
     // Generic attributes (usually not used directly in token generation)
