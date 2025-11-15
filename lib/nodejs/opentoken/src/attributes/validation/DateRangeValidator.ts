@@ -13,13 +13,14 @@ import { Validator } from './Validator';
  * - Use current date as maximum - dynamically sets max to today
  */
 export class DateRangeValidator implements Validator {
-  private static readonly POSSIBLE_INPUT_FORMATS = [
-    /^\d{4}-\d{2}-\d{2}$/,          // yyyy-MM-dd
-    /^\d{4}\/\d{2}\/\d{2}$/,         // yyyy/MM/dd
-    /^\d{2}\/\d{2}\/\d{4}$/,         // MM/dd/yyyy
-    /^\d{2}-\d{2}-\d{4}$/,           // MM-dd-yyyy
-    /^\d{2}\.\d{2}\.\d{4}$/,         // dd.MM.yyyy
-  ];
+  // Supported formats (not used directly, but documented for reference)
+  // private static readonly POSSIBLE_INPUT_FORMATS = [
+  //   /^\d{4}-\d{2}-\d{2}$/,          // yyyy-MM-dd
+  //   /^\d{4}\/\d{2}\/\d{2}$/,         // yyyy/MM/dd
+  //   /^\d{2}\/\d{2}\/\d{4}$/,         // MM/dd/yyyy
+  //   /^\d{2}-\d{2}-\d{4}$/,           // MM-dd-yyyy
+  //   /^\d{2}\.\d{2}\.\d{4}$/,         // dd.MM.yyyy
+  // ];
 
   private minDate: Date | null;
   private maxDate: Date | null;

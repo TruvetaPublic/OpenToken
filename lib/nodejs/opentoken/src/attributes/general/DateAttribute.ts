@@ -9,13 +9,14 @@ import { Validator } from '../validation/Validator';
  * Base class for date-based attributes.
  */
 export class DateAttribute extends SerializableAttribute {
-  private static readonly POSSIBLE_INPUT_FORMATS = [
-    /^\d{4}-\d{2}-\d{2}$/,    // yyyy-MM-dd
-    /^\d{4}\/\d{2}\/\d{2}$/,  // yyyy/MM/dd
-    /^\d{2}\/\d{2}\/\d{4}$/,  // MM/dd/yyyy
-    /^\d{2}-\d{2}-\d{4}$/,    // MM-dd-yyyy
-    /^\d{2}\.\d{2}\.\d{4}$/,  // dd.MM.yyyy
-  ];
+  // Supported date format patterns (currently not used, but kept for future validation)
+  // private static readonly POSSIBLE_INPUT_FORMATS = [
+  //   /^\d{4}-\d{2}-\d{2}$/,    // yyyy-MM-dd
+  //   /^\d{4}\/\d{2}\/\d{2}$/,  // yyyy/MM/dd
+  //   /^\d{2}\/\d{2}\/\d{4}$/,  // MM/dd/yyyy
+  //   /^\d{2}-\d{2}-\d{4}$/,    // MM-dd-yyyy
+  //   /^\d{2}\.\d{2}\.\d{4}$/,  // dd.MM.yyyy
+  // ];
 
   /**
    * Constructs a new DateAttribute.

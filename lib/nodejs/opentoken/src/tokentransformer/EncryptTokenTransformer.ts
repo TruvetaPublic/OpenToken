@@ -14,7 +14,7 @@ export class EncryptTokenTransformer implements TokenTransformer {
   private static readonly ENCRYPTION_ALGORITHM = 'aes-256-gcm';
   private static readonly KEY_BYTE_LENGTH = 32;
   private static readonly IV_SIZE = 12;
-  private static readonly TAG_LENGTH = 16;
+  // TAG_LENGTH is implicit in GCM mode (16 bytes)
 
   private secretKey: Buffer;
 

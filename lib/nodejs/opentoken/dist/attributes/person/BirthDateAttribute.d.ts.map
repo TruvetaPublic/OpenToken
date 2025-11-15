@@ -1,0 +1,1 @@
+{"version":3,"file":"BirthDateAttribute.d.ts","sourceRoot":"","sources":["../../../src/attributes/person/BirthDateAttribute.ts"],"names":[],"mappings":"AAAA;;GAEG;AAEH,OAAO,EAAE,aAAa,EAAE,MAAM,0BAA0B,CAAC;AAGzD;;;;;;;;;;;;;GAaG;AACH,qBAAa,kBAAmB,SAAQ,aAAa;IACnD,OAAO,CAAC,MAAM,CAAC,QAAQ,CAAC,IAAI,CAAe;IAC3C,OAAO,CAAC,MAAM,CAAC,QAAQ,CAAC,OAAO,CAAgC;;CAQhE"}

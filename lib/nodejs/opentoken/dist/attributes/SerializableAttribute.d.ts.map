@@ -1,0 +1,1 @@
+{"version":3,"file":"SerializableAttribute.d.ts","sourceRoot":"","sources":["../../src/attributes/SerializableAttribute.ts"],"names":[],"mappings":"AAAA;;GAEG;AAEH,OAAO,EAAE,aAAa,EAAE,MAAM,iBAAiB,CAAC;AAChD,OAAO,EAAE,SAAS,EAAE,MAAM,wBAAwB,CAAC;AAEnD;;GAEG;AACH,8BAAsB,qBAAsB,SAAQ,aAAa;IAC/D;;;;;;OAMG;gBACS,IAAI,EAAE,MAAM,EAAE,OAAO,GAAE,MAAM,EAAO,EAAE,UAAU,GAAE,SAAS,EAAO;CAG/E"}

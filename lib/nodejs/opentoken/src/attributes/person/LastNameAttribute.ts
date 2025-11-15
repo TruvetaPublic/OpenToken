@@ -22,12 +22,8 @@ export class LastNameAttribute extends BaseAttribute {
   private static readonly NAME = 'LastName';
   private static readonly ALIASES = ['LastName', 'Surname'];
 
-  /**
-   * Pattern to validate last names.
-   * - Must be at least 2 characters long
-   * - For 2-character names, must contain at least one vowel or be "Ng"
-   */
-  private static readonly LAST_NAME_PATTERN = /^(?:[a-zA-Z]*[aeiouAEIOU][a-zA-Z]*|Ng)$/;
+  // Pattern kept for reference but validation is done inline in validate method
+  // private static readonly LAST_NAME_PATTERN = /^(?:[a-zA-Z]*[aeiouAEIOU][a-zA-Z]*|Ng)$/;
 
   constructor() {
     super(LastNameAttribute.NAME, LastNameAttribute.ALIASES, [

@@ -2,8 +2,6 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-import { Attribute } from './Attribute';
-
 /**
  * An attribute expression determines how the value of an attribute is normalized for consumption.
  *
@@ -23,10 +21,12 @@ import { Attribute } from './Attribute';
 export class AttributeExpression {
   private static readonly EXPRESSION_PATTERN = /\s*(?<expr>[^ (]+)(?:\((?<args>[^)]+)\))?/;
 
-  private attributeClass: typeof Attribute;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private attributeClass: any;
   private expressions: string;
 
-  constructor(attributeClass: typeof Attribute, expressions: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(attributeClass: any, expressions: string) {
     this.attributeClass = attributeClass;
     this.expressions = expressions;
   }
@@ -151,13 +151,14 @@ export class AttributeExpression {
   /**
    * Date expression - returns date in yyyy-MM-dd format
    */
-  private dateExpression(value: string, expression: string): string {
+  private dateExpression(value: string, _expression: string): string {
     // For dates, we expect them to already be normalized
     // This is a placeholder - full implementation would parse various date formats
     return value.trim();
   }
 
-  getAttributeClass(): typeof Attribute {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getAttributeClass(): any {
     return this.attributeClass;
   }
 
