@@ -1,1 +1,0 @@
-{"version":3,"file":"StringAttribute.d.ts","sourceRoot":"","sources":["../../../src/attributes/general/StringAttribute.ts"],"names":[],"mappings":"AAAA;;GAEG;AAEH,OAAO,EAAE,qBAAqB,EAAE,MAAM,0BAA0B,CAAC;AACjE,OAAO,EAAE,SAAS,EAAE,MAAM,yBAAyB,CAAC;AAEpD;;GAEG;AACH,qBAAa,eAAgB,SAAQ,qBAAqB;IACxD;;;;;;OAMG;gBACS,IAAI,EAAE,MAAM,EAAE,OAAO,GAAE,MAAM,EAAO,EAAE,UAAU,GAAE,SAAS,EAAO;CAG/E"}
