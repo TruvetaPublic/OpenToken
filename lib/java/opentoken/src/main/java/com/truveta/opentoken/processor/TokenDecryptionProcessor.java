@@ -1,0 +1,89 @@
+/**
+ * Copyright (c) Truveta. All rights reserved.
+ */
+package com.truveta.opentoken.processor;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.truveta.opentoken.tokens.Token;
+import com.truveta.opentoken.tokentransformer.DecryptTokenTransformer;
+
+/**
+ * Process encrypted tokens for decryption.
+ * <p>
+ * This class is used to read encrypted tokens from input source,
+ * decrypt them, and write the decrypted tokens to the output data source.
+ */
+public final class TokenDecryptionProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(TokenDecryptionProcessor.class);
+
+    private TokenDecryptionProcessor() {
+    }
+
+    /**
+     * Reads encrypted tokens from the input data source, decrypts them, and
+     * writes the result back to the output data source.
+     * 
+     * @param reader    Iterator providing encrypted token rows
+     * @param writer    Writer interface for output (must support writeToken method)
+     * @param decryptor The decryption transformer
+     * @throws IOException if an I/O error occurs
+     */
+    public static void process(Iterator<Map<String, String>> reader,
+                                AutoCloseable writer,
+                                DecryptTokenTransformer decryptor) throws IOException {
+        long rowCounter = 0;
+        long decryptedCounter = 0;
+        long errorCounter = 0;
+
+        while (reader.hasNext()) {
+            Map<String, String> row = reader.next();
+            rowCounter++;
+            
+            String token = row.get("Token");
+            
+            // Decrypt the token if it's not blank
+            if (token != null && !token.isEmpty() && !Token.BLANK.equals(token)) {
+                try {
+                    String decryptedToken = decryptor.transform(token);
+                    row.put("Token", decryptedToken);
+                    decryptedCounter++;
+                } catch (Exception e) {
+                    logger.error("Failed to decrypt token for RecordId {}, RuleId {}: {}", 
+                               row.get("RecordId"), row.get("RuleId"), e.getMessage());
+                    errorCounter++;
+                    // Keep the encrypted token in case of error
+                }
+            }
+            
+            // Write token using appropriate writer
+            try {
+                if (writer instanceof com.truveta.opentoken.io.csv.TokenCSVWriter) {
+                    ((com.truveta.opentoken.io.csv.TokenCSVWriter) writer).writeToken(row);
+                } else if (writer instanceof com.truveta.opentoken.io.parquet.TokenParquetWriter) {
+                    ((com.truveta.opentoken.io.parquet.TokenParquetWriter) writer).writeToken(row);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to write token for RecordId {}, RuleId {}: {}", 
+                           row.get("RecordId"), row.get("RuleId"), e.getMessage());
+                throw new IOException("Error writing token", e);
+            }
+
+            if (rowCounter % 10000 == 0) {
+                logger.info(String.format("Processed \"%,d\" tokens", rowCounter));
+            }
+        }
+
+        logger.info(String.format("Processed a total of %,d tokens", rowCounter));
+        logger.info(String.format("Successfully decrypted %,d tokens", decryptedCounter));
+        if (errorCounter > 0) {
+            logger.warn(String.format("Failed to decrypt %,d tokens", errorCounter));
+        }
+    }
+}

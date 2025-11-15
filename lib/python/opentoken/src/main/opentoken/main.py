@@ -18,6 +18,7 @@ from opentoken.io.parquet.token_parquet_reader import TokenParquetReader
 from opentoken.io.parquet.token_parquet_writer import TokenParquetWriter
 from opentoken.metadata import Metadata
 from opentoken.processor.person_attributes_processor import PersonAttributesProcessor
+from opentoken.processor.token_decryption_processor import TokenDecryptionProcessor
 from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
@@ -172,8 +173,6 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
         output_type: Type of output file (csv or parquet).
         encryption_key: Encryption key for decryption.
     """
-    BLANK_TOKEN = "0000000000000000000000000000000000000000000000000000000000000000"
-    
     try:
         decryptor = DecryptTokenTransformer(encryption_key)
         
@@ -193,25 +192,8 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
         else:
             raise ValueError(f"Unsupported output type: {output_type}")
         
-        try:
-            with reader, writer:
-                for row in reader:
-                    token = row.get('Token', '')
-                    
-                    # Decrypt the token if it's not blank
-                    if token and token != BLANK_TOKEN:
-                        try:
-                            decrypted_token = decryptor.transform(token)
-                            row['Token'] = decrypted_token
-                        except Exception as e:
-                            logger.error(f"Failed to decrypt token for RecordId {row.get('RecordId')}, "
-                                       f"RuleId {row.get('RuleId')}: {e}")
-                            # Keep the encrypted token in case of error
-                    
-                    writer.write_token(row)
-        finally:
-            # Ensure resources are closed even if context managers fail
-            pass
+        with reader, writer:
+            TokenDecryptionProcessor.process(reader, writer, decryptor)
                 
     except Exception as e:
         logger.error(f"Error during token decryption: {e}")
