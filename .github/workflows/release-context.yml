@@ -1,4 +1,6 @@
 name: Release Context
+permissions:
+  contents: read
 
 on:
   workflow_call:
