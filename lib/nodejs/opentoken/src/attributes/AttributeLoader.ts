@@ -6,12 +6,15 @@ import { Attribute } from './Attribute';
 import { FirstNameAttribute } from './person/FirstNameAttribute';
 import { LastNameAttribute } from './person/LastNameAttribute';
 import { BirthDateAttribute } from './person/BirthDateAttribute';
+import { BirthYearAttribute } from './person/BirthYearAttribute';
+import { AgeAttribute } from './person/AgeAttribute';
 import { SexAttribute } from './person/SexAttribute';
 import { SocialSecurityNumberAttribute } from './person/SocialSecurityNumberAttribute';
 import { PostalCodeAttribute } from './person/PostalCodeAttribute';
 import { RecordIdAttribute } from './general/RecordIdAttribute';
 import { StringAttribute } from './general/StringAttribute';
 import { DateAttribute } from './general/DateAttribute';
+import { YearAttribute } from './general/YearAttribute';
 
 /**
  * Loader for all available attributes in the system.
@@ -36,6 +39,8 @@ export class AttributeLoader {
     attributes.add(new FirstNameAttribute());
     attributes.add(new LastNameAttribute());
     attributes.add(new BirthDateAttribute());
+    attributes.add(new BirthYearAttribute());
+    attributes.add(new AgeAttribute());
     attributes.add(new SexAttribute());
     attributes.add(new SocialSecurityNumberAttribute());
     attributes.add(new PostalCodeAttribute());
@@ -44,6 +49,7 @@ export class AttributeLoader {
     // Generic attributes (usually not used directly in token generation)
     attributes.add(new StringAttribute('String', ['String']));
     attributes.add(new DateAttribute('Date', ['Date']));
+    attributes.add(new YearAttribute());
 
     return attributes;
   }
