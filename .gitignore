@@ -55,3 +55,9 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+
+# Node.js-specific
+lib/nodejs/opentoken/node_modules/
+lib/nodejs/opentoken/dist/
+lib/nodejs/opentoken/coverage/
+*.tsbuildinfo
