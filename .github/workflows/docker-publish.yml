@@ -1,8 +1,10 @@
 name: Docker Publish
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "develop"]
   release:
     types: [created, published, released]
   # Added pull_request trigger - pull requests now trigger builds for validation
@@ -17,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
@@ -27,13 +29,47 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get version from release tag
+      - name: Get version from .bumpversion.cfg or release
         id: get_version
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
+          if [ -n "${{ github.event.release.tag_name }}" ]; then
+            # Use release tag if triggered by release event
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            # Get version from .bumpversion.cfg for push/PR/workflow_dispatch
+            VERSION=$(sed -n '/^\[bumpversion\]/,/^\[/p' .bumpversion.cfg | grep "^current_version" | cut -d'=' -f2 | tr -d ' ')
+            VERSION="v${VERSION}"
+          fi
           VERSION="${VERSION#v}"  # Remove 'v' prefix if present
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "TAG=v${VERSION}" >> $GITHUB_ENV
           echo "Detected version: ${VERSION}"
+          echo "Detected tag: v${VERSION}"
+
+      - name: Find matching release
+        id: find_release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = 'v${{ env.VERSION }}';
+            try {
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tag
+              });
+              core.setOutput('release_id', release.data.id);
+              core.setOutput('found', 'true');
+              console.log(`Found release ${tag} with ID ${release.data.id}`);
+            } catch (error) {
+              if (error.status === 404) {
+                core.setOutput('found', 'false');
+                console.log(`No release found for tag ${tag}`);
+              } else {
+                throw error;
+              }
+            }
 
       # Install the cosign tool for signing images (only needed for releases)
       # https://github.com/sigstore/cosign-installer
@@ -96,3 +132,46 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+      - name: Upload Docker image details to release
+        if: |
+          (github.event_name == 'release') || 
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.find_release.outputs.found == 'true')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ env.VERSION }}';
+            const registry = '${{ env.REGISTRY }}';
+            const fullImage = `${registry}/${{ github.repository }}:${version}`;
+            const digest = '${{ steps.build-and-push.outputs.digest }}';
+
+            let releaseId;
+
+            // Get release ID from event or from find_release step
+            if (context.payload.release) {
+              releaseId = context.payload.release.id;
+            } else if ('${{ steps.find_release.outputs.release_id }}') {
+              releaseId = '${{ steps.find_release.outputs.release_id }}';
+            }
+
+            if (!releaseId) {
+              console.log('No release ID found, skipping upload');
+              return;
+            }
+
+            // Get current release to append to its body
+            const release = await github.rest.repos.getRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId
+            });
+
+            const releaseBody = release.data.body + `\n\n---\n\n## Docker Image\n\n\`\`\`\n${fullImage}\n\`\`\`\n\nDigest: \`${digest}\`\n`;
+
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+              body: releaseBody
+            });
+            console.log(`Updated release v${version} with Docker image information`);
