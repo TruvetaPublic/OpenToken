@@ -16,7 +16,14 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  release-info:
+    uses: ./.github/workflows/release-context.yml
+    secrets: inherit
+    with:
+      lookup-release: ${{ github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+
   build:
+    needs: release-info
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,51 +32,15 @@ jobs:
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
 
+    env:
+      VERSION: ${{ needs.release-info.outputs.version }}
+      TAG: ${{ needs.release-info.outputs.tag }}
+      RELEASE_FOUND: ${{ needs.release-info.outputs['release-found'] }}
+      RELEASE_ID: ${{ needs.release-info.outputs['release-id'] }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Get version from .bumpversion.cfg or release
-        id: get_version
-        run: |
-          if [ -n "${{ github.event.release.tag_name }}" ]; then
-            # Use release tag if triggered by release event
-            VERSION="${{ github.event.release.tag_name }}"
-          else
-            # Get version from .bumpversion.cfg for push/PR/workflow_dispatch
-            VERSION=$(sed -n '/^\[bumpversion\]/,/^\[/p' .bumpversion.cfg | grep "^current_version" | cut -d'=' -f2 | tr -d ' ')
-            VERSION="v${VERSION}"
-          fi
-          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "TAG=v${VERSION}" >> $GITHUB_ENV
-          echo "Detected version: ${VERSION}"
-          echo "Detected tag: v${VERSION}"
-
-      - name: Find matching release
-        id: find_release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const tag = 'v${{ env.VERSION }}';
-            try {
-              const release = await github.rest.repos.getReleaseByTag({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag: tag
-              });
-              core.setOutput('release_id', release.data.id);
-              core.setOutput('found', 'true');
-              console.log(`Found release ${tag} with ID ${release.data.id}`);
-            } catch (error) {
-              if (error.status === 404) {
-                core.setOutput('found', 'false');
-                console.log(`No release found for tag ${tag}`);
-              } else {
-                throw error;
-              }
-            }
 
       # Install the cosign tool for signing images (only needed for releases)
       # https://github.com/sigstore/cosign-installer
@@ -134,9 +105,7 @@ jobs:
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
       - name: Upload Docker image details to release
-        if: |
-          (github.event_name == 'release') || 
-          (github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.find_release.outputs.found == 'true')
+        if: env.RELEASE_FOUND == 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -145,17 +114,9 @@ jobs:
             const fullImage = `${registry}/${{ github.repository }}:${version}`;
             const digest = '${{ steps.build-and-push.outputs.digest }}';
 
-            let releaseId;
-
-            // Get release ID from event or from find_release step
-            if (context.payload.release) {
-              releaseId = context.payload.release.id;
-            } else if ('${{ steps.find_release.outputs.release_id }}') {
-              releaseId = '${{ steps.find_release.outputs.release_id }}';
-            }
-
+            const releaseId = '${{ env.RELEASE_ID }}';
             if (!releaseId) {
-              console.log('No release ID found, skipping upload');
+              console.log('No release ID provided, skipping upload');
               return;
             }
 
