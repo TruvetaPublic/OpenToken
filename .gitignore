@@ -57,7 +57,18 @@ venv/
 *.egg-info/
 
 # Node.js-specific
-lib/nodejs/opentoken/node_modules/
-lib/nodejs/opentoken/dist/
-lib/nodejs/opentoken/coverage/
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+.output
+
+# TypeScript
 *.tsbuildinfo
