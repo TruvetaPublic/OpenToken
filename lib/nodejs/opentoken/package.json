@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "start": "node dist/Main.js",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
@@ -27,7 +28,7 @@
     "encryption"
   ],
   "author": "Truveta",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/TruvetaPublic/OpenToken.git",

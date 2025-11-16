@@ -16,7 +16,7 @@ Our approach to person matching relies on building a set of matching tokens (or 
 
 ## Highlights
 
-- Multi-language Support
+- **Multi-language Support**: Java, Python, and Node.js implementations with identical token generation
 - Cryptographically Secure encryption that prevents re-identification
 - Enables straightforward person-matching by comparing 5 deterministic and unique tokens, providing a high degree of confidence in matches
 
