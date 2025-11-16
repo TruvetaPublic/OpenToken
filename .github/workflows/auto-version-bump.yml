@@ -145,7 +145,7 @@ jobs:
               - \`.bumpversion.cfg\`
               - \`lib/java/pom.xml\`
               - \`Dockerfile\`
-              - \`lib/java/src/main/java/com/truveta/opentoken/Metadata.java\`
+              - \`lib/java/opentoken/src/main/java/com/truveta/opentoken/Metadata.java\`
               - \`lib/python/setup.py\`
               - \`lib/python/opentoken/src/main/opentoken/__init__.py\`
               - \`lib/python/opentoken/src/main/opentoken/metadata.py\`
