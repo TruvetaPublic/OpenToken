@@ -5,7 +5,7 @@
 /**
  * Interface for validators.
  */
-export interface Validator {
+export interface AttributeValidator {
   /**
    * Validates the given value.
    *

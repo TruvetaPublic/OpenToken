@@ -3,7 +3,7 @@
  */
 
 import { SerializableAttribute } from '../SerializableAttribute';
-import { Validator } from '../validation/Validator';
+import { AttributeValidator } from '../validation/AttributeValidator';
 
 /**
  * Base class for date-based attributes.
@@ -25,7 +25,7 @@ export class DateAttribute extends SerializableAttribute {
    * @param aliases - The aliases of the attribute.
    * @param validators - The validators for the attribute.
    */
-  constructor(name: string, aliases: string[] = [], validators: Validator[] = []) {
+  constructor(name: string, aliases: string[] = [], validators: AttributeValidator[] = []) {
     super(name, aliases, validators);
   }
 

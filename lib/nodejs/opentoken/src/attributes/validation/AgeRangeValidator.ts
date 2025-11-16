@@ -2,7 +2,7 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-import { Validator } from './Validator';
+import { AttributeValidator } from './AttributeValidator';
 
 /**
  * A Validator that asserts that the age value is within
@@ -14,7 +14,7 @@ import { Validator } from './Validator';
  *
  * If the age is outside this range, the validation fails.
  */
-export class AgeRangeValidator implements Validator {
+export class AgeRangeValidator implements AttributeValidator {
   private static readonly MIN_AGE = 0;
   private static readonly MAX_AGE = 120;
 

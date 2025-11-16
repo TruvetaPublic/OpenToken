@@ -2,7 +2,7 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-import { Validator } from './Validator';
+import { AttributeValidator } from './AttributeValidator';
 
 /**
  * A Validator that ensures a string does not start with any of the specified prefixes.
@@ -10,7 +10,7 @@ import { Validator } from './Validator';
  * This validator checks that the given value (after trimming) does not begin
  * with any of the prefixes in the provided set.
  */
-export class NotStartsWithValidator implements Validator {
+export class NotStartsWithValidator implements AttributeValidator {
   private prefixes: Set<string>;
 
   /**

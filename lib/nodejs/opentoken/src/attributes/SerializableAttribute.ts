@@ -3,7 +3,7 @@
  */
 
 import { BaseAttribute } from './BaseAttribute';
-import { Validator } from './validation/Validator';
+import { AttributeValidator } from './validation/AttributeValidator';
 
 /**
  * A serializable attribute that can be used for token generation.
@@ -16,7 +16,7 @@ export abstract class SerializableAttribute extends BaseAttribute {
    * @param aliases - The aliases of the attribute.
    * @param validators - The validators for the attribute.
    */
-  constructor(name: string, aliases: string[] = [], validators: Validator[] = []) {
+  constructor(name: string, aliases: string[] = [], validators: AttributeValidator[] = []) {
     super(name, aliases, validators);
   }
 }

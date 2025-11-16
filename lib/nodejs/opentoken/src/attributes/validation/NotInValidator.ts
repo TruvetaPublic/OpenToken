@@ -2,12 +2,12 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-import { Validator } from './Validator';
+import { AttributeValidator } from './AttributeValidator';
 
 /**
  * A validator that checks if a value is NOT in a given set of invalid values.
  */
-export class NotInValidator implements Validator {
+export class NotInValidator implements AttributeValidator {
   private invalidValues: Set<string>;
 
   /**

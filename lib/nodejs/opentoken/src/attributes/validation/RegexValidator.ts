@@ -2,12 +2,12 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-import { Validator } from './Validator';
+import { AttributeValidator } from './AttributeValidator';
 
 /**
  * A validator that validates a value against a regular expression.
  */
-export class RegexValidator implements Validator {
+export class RegexValidator implements AttributeValidator {
   private pattern: RegExp;
 
   /**

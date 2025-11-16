@@ -2,7 +2,7 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-import { Validator } from './Validator';
+import { AttributeValidator } from './AttributeValidator';
 
 /**
  * A validator that asserts that a date value is within a configurable date range.
@@ -12,7 +12,7 @@ import { Validator } from './Validator';
  * - Maximum date (inclusive) - can be null for no upper bound
  * - Use current date as maximum - dynamically sets max to today
  */
-export class DateRangeValidator implements Validator {
+export class DateRangeValidator implements AttributeValidator {
   // Supported formats (not used directly, but documented for reference)
   // private static readonly POSSIBLE_INPUT_FORMATS = [
   //   /^\d{4}-\d{2}-\d{2}$/,          // yyyy-MM-dd

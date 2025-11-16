@@ -4,7 +4,7 @@
 
 import { BaseAttribute } from '../BaseAttribute';
 import { RegexValidator } from '../validation/RegexValidator';
-import { Validator } from '../validation/Validator';
+import { AttributeValidator } from '../validation/AttributeValidator';
 
 /**
  * Represents a generic year attribute.
@@ -21,7 +21,7 @@ export class YearAttribute extends BaseAttribute {
   private static readonly YEAR_REGEX = /^\s*\d{4}\s*$/;
   private static readonly YEAR_PATTERN = /\d{4}/;
 
-  constructor(additionalValidators: Validator[] = []) {
+  constructor(additionalValidators: AttributeValidator[] = []) {
     super(
       YearAttribute.NAME,
       YearAttribute.ALIASES,

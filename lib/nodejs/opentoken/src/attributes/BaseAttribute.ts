@@ -3,7 +3,7 @@
  */
 
 import { Attribute } from './Attribute';
-import { Validator } from './validation/Validator';
+import { AttributeValidator } from './validation/AttributeValidator';
 
 /**
  * Base class for all attributes.
@@ -11,7 +11,7 @@ import { Validator } from './validation/Validator';
 export abstract class BaseAttribute implements Attribute {
   protected name: string;
   protected aliases: string[];
-  protected validators: Validator[];
+  protected validators: AttributeValidator[];
 
   /**
    * Constructs a new BaseAttribute.
@@ -20,7 +20,7 @@ export abstract class BaseAttribute implements Attribute {
    * @param aliases - The aliases of the attribute.
    * @param validators - The validators for the attribute.
    */
-  constructor(name: string, aliases: string[] = [], validators: Validator[] = []) {
+  constructor(name: string, aliases: string[] = [], validators: AttributeValidator[] = []) {
     this.name = name;
     this.aliases = aliases;
     this.validators = validators;

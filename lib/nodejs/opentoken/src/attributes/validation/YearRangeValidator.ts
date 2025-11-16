@@ -2,7 +2,7 @@
  * Copyright (c) Truveta. All rights reserved.
  */
 
-import { Validator } from './Validator';
+import { AttributeValidator } from './AttributeValidator';
 
 /**
  * A Validator that asserts that a year value is within
@@ -14,7 +14,7 @@ import { Validator } from './Validator';
  *
  * If the year is outside this range, the validation fails.
  */
-export class YearRangeValidator implements Validator {
+export class YearRangeValidator implements AttributeValidator {
   private static readonly MIN_YEAR = 1910;
 
   /**
