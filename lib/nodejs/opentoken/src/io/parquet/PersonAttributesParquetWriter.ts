@@ -20,7 +20,7 @@ export class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
   /**
    * Initialize the class with the output file in Parquet format.
-   * 
+   *
    * @param filePath the output file path
    */
   constructor(private filePath: string) {
@@ -33,7 +33,7 @@ export class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
   /**
    * Write attributes to the Parquet file.
-   * 
+   *
    * @param attributes a map of person attributes
    */
   async writeAttributes(attributes: Map<string, string>): Promise<void> {
@@ -66,13 +66,13 @@ export class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
   /**
    * Initialize the Parquet writer with schema based on the first record.
-   * 
+   *
    * @param firstRecord the first record to determine schema
    */
   private async initializeWriter(firstRecord: { [key: string]: string }): Promise<void> {
     // Create schema based on the first record
     const schemaFields: { [key: string]: any } = {};
-    
+
     for (const [key, value] of Object.entries(firstRecord)) {
       if (value !== null && value !== undefined) {
         this.firstRecordKeys.push(key);

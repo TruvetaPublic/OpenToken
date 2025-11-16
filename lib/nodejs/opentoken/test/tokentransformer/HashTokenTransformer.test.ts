@@ -21,7 +21,7 @@ describe('HashTokenTransformer', () => {
   it('should produce consistent hashes for the same input', () => {
     const transformer = new HashTokenTransformer(testSecret);
     const token = 'consistent-token';
-    
+
     const hash1 = transformer.transform(token);
     const hash2 = transformer.transform(token);
 
@@ -30,7 +30,7 @@ describe('HashTokenTransformer', () => {
 
   it('should produce different hashes for different inputs', () => {
     const transformer = new HashTokenTransformer(testSecret);
-    
+
     const hash1 = transformer.transform('token1');
     const hash2 = transformer.transform('token2');
 
@@ -39,7 +39,7 @@ describe('HashTokenTransformer', () => {
 
   it('should throw error for null or empty token', () => {
     const transformer = new HashTokenTransformer(testSecret);
-    
+
     expect(() => transformer.transform('')).toThrow('Token cannot be null or empty');
     expect(() => transformer.transform('  ')).toThrow('Token cannot be null or empty');
   });

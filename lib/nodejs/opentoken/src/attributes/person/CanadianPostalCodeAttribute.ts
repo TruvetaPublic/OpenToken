@@ -19,24 +19,29 @@ export class CanadianPostalCodeAttribute extends BaseAttribute {
   /**
    * Regular expression pattern for validating Canadian postal codes.
    */
-  private static readonly CANADIAN_POSTAL_REGEX = /^\s*[A-Za-z]\d[A-Za-z](\s?\d([A-Za-z]\d?)?)?\s*$/;
+  private static readonly CANADIAN_POSTAL_REGEX =
+    /^\s*[A-Za-z]\d[A-Za-z](\s?\d([A-Za-z]\d?)?)?\s*$/;
 
   private static readonly INVALID_ZIP_CODES = new Set([
-    'A1A 1A1', 'X0X 0X0', 'Y0Y 0Y0', 'Z0Z 0Z0', 'A0A 0A0', 'B1B 1B1', 'C2C 2C2',
-    'K1A', 'M7A', 'H0H',
+    'A1A 1A1',
+    'X0X 0X0',
+    'Y0Y 0Y0',
+    'Z0Z 0Z0',
+    'A0A 0A0',
+    'B1B 1B1',
+    'C2C 2C2',
+    'K1A',
+    'M7A',
+    'H0H',
   ]);
 
   private minLength: number;
 
   constructor(minLength: number = 6) {
-    super(
-      CanadianPostalCodeAttribute.NAME,
-      CanadianPostalCodeAttribute.ALIASES,
-      [
-        new RegexValidator(CanadianPostalCodeAttribute.CANADIAN_POSTAL_REGEX),
-        new NotStartsWithValidator(CanadianPostalCodeAttribute.INVALID_ZIP_CODES),
-      ]
-    );
+    super(CanadianPostalCodeAttribute.NAME, CanadianPostalCodeAttribute.ALIASES, [
+      new RegexValidator(CanadianPostalCodeAttribute.CANADIAN_POSTAL_REGEX),
+      new NotStartsWithValidator(CanadianPostalCodeAttribute.INVALID_ZIP_CODES),
+    ]);
     this.minLength = minLength;
   }
 

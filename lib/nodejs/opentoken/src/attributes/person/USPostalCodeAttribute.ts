@@ -22,22 +22,28 @@ export class USPostalCodeAttribute extends BaseAttribute {
   private static readonly US_ZIP_REGEX = /^\s*(\d{3}|\d{4}|\d{5}(-\d{4})?|\d{9})\s*$/;
 
   private static readonly INVALID_ZIP_CODES = new Set([
-    '11111', '22222', '33333', '66666', '77777', '99999',
-    '01234', '12345', '54321', '98765',
-    '000', '555', '888',
+    '11111',
+    '22222',
+    '33333',
+    '66666',
+    '77777',
+    '99999',
+    '01234',
+    '12345',
+    '54321',
+    '98765',
+    '000',
+    '555',
+    '888',
   ]);
 
   private minLength: number;
 
   constructor(minLength: number = 5) {
-    super(
-      USPostalCodeAttribute.NAME,
-      USPostalCodeAttribute.ALIASES,
-      [
-        new RegexValidator(USPostalCodeAttribute.US_ZIP_REGEX),
-        new NotStartsWithValidator(USPostalCodeAttribute.INVALID_ZIP_CODES),
-      ]
-    );
+    super(USPostalCodeAttribute.NAME, USPostalCodeAttribute.ALIASES, [
+      new RegexValidator(USPostalCodeAttribute.US_ZIP_REGEX),
+      new NotStartsWithValidator(USPostalCodeAttribute.INVALID_ZIP_CODES),
+    ]);
     this.minLength = minLength;
   }
 

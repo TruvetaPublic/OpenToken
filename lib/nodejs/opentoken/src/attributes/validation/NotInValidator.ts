@@ -16,8 +16,7 @@ export class NotInValidator implements AttributeValidator {
    * @param invalidValues - Set of values that are considered invalid
    */
   constructor(invalidValues: Set<string> | string[]) {
-    this.invalidValues =
-      invalidValues instanceof Set ? invalidValues : new Set(invalidValues);
+    this.invalidValues = invalidValues instanceof Set ? invalidValues : new Set(invalidValues);
   }
 
   /**

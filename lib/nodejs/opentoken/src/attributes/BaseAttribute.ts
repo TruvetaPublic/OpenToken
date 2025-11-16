@@ -30,7 +30,7 @@ export abstract class BaseAttribute implements Attribute {
     return this.name;
   }
 
-  getAliases(): string[]  {
+  getAliases(): string[] {
     return this.aliases;
   }
 

@@ -30,10 +30,7 @@ export class PostalCodeAttribute extends CombinedAttribute {
 
   constructor() {
     super(PostalCodeAttribute.NAME, PostalCodeAttribute.ALIASES, []);
-    this.implementations = [
-      new USPostalCodeAttribute(3),
-      new CanadianPostalCodeAttribute(3),
-    ];
+    this.implementations = [new USPostalCodeAttribute(3), new CanadianPostalCodeAttribute(3)];
   }
 
   getName(): string {
