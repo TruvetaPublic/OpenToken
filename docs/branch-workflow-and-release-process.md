@@ -7,7 +7,7 @@ We follow Gitflow’s separation of `main`, `develop`, `feature/*`, and `release
 ## Branch Structure
 
 ```
-feature/*, bugfix/*, etc. (development work)
+feature/* (development work)
   ↓
   | (all feature/bug PRs go here)
   |
