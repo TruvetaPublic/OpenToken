@@ -55,3 +55,20 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+
+# Node.js-specific
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+.output
+
+# TypeScript
+*.tsbuildinfo
