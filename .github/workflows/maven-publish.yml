@@ -54,7 +54,7 @@ jobs:
             const path = require('path');
 
             const tag = '${{ env.TAG }}';
-            const artifactDir = 'lib/java/target';
+            const artifactDir = 'lib/java/opentoken/target';
 
             console.log(`[DEBUG] Starting artifact upload process`);
             console.log(`[DEBUG] Tag: ${tag}`);
