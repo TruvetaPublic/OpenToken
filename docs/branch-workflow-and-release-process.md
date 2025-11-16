@@ -221,7 +221,7 @@ git push origin feature/<github-username>/new-token-type
 ### Example 3: Accidental PR to Main
 
 ```bash
-# Developer mistakenly opens PR: feature/my-work → main
+# Developer mistakenly opens PR: feature/<github-username>/my-work → main
 # The PR is immediately auto-retargeted to develop
 # Comment posted explaining the change
 # Developer continues with the PR targeting develop
