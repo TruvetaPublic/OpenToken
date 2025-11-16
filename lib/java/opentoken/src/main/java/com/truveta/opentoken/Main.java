@@ -11,18 +11,26 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.beust.jcommander.JCommander;
+import com.truveta.opentoken.tokentransformer.DecryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 import com.truveta.opentoken.io.MetadataWriter;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
+import com.truveta.opentoken.io.TokenReader;
+import com.truveta.opentoken.io.TokenWriter;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.io.csv.PersonAttributesCSVWriter;
+import com.truveta.opentoken.io.csv.TokenCSVReader;
+import com.truveta.opentoken.io.csv.TokenCSVWriter;
 import com.truveta.opentoken.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.io.parquet.PersonAttributesParquetWriter;
+import com.truveta.opentoken.io.parquet.TokenParquetReader;
+import com.truveta.opentoken.io.parquet.TokenParquetWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
+import com.truveta.opentoken.processor.TokenDecryptionProcessor;
 
 public class Main {
 
@@ -36,10 +44,13 @@ public class Main {
         String inputType = commandLineArguments.getInputType();
         String outputPath = commandLineArguments.getOutputPath();
         String outputType = commandLineArguments.getOutputType();
+        boolean decryptMode = commandLineArguments.isDecrypt();
+        
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType; // defaulting to input type if not provided
         }
 
+        logger.info("Decrypt Mode: {}", decryptMode);
         if (logger.isInfoEnabled()) {
             logger.info("Hashing Secret: {}", maskString(hashingSecret));
             logger.info("Encryption Key: {}", maskString(encryptionKey));
@@ -49,15 +60,40 @@ public class Main {
         logger.info("Output Path: {}", outputPath);
         logger.info("Output Type: {}", outputType);
 
+        // Validate input and output types for both modes
         if (!(CommandLineArguments.TYPE_CSV.equals(inputType) || CommandLineArguments.TYPE_PARQUET.equals(inputType))) {
             logger.error("Only csv and parquet input types are supported!");
             return;
-        } else if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null
-                || encryptionKey.isBlank()) {
-            logger.error("Hashing secret and encryption key must be specified");
+        }
+        if (!(CommandLineArguments.TYPE_CSV.equals(outputType) || CommandLineArguments.TYPE_PARQUET.equals(outputType))) {
+            logger.error("Only csv and parquet output types are supported!");
             return;
         }
 
+        // Process based on mode
+        if (decryptMode) {
+            // Decrypt mode - process encrypted tokens
+            if (encryptionKey == null || encryptionKey.isBlank()) {
+                logger.error("Encryption key must be specified for decryption");
+                return;
+            }
+            
+            decryptTokens(inputPath, outputPath, inputType, outputType, encryptionKey);
+            logger.info("Token decryption completed successfully.");
+        } else {
+            // Encrypt mode - validate and process person attributes
+            if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null
+                    || encryptionKey.isBlank()) {
+                logger.error("Hashing secret and encryption key must be specified");
+                return;
+            }
+
+            encryptTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey);
+        }
+    }
+
+    private static void encryptTokens(String inputPath, String outputPath, String inputType, String outputType,
+                                      String hashingSecret, String encryptionKey) {
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
         try {
             tokenTransformerList.add(new HashTokenTransformer(hashingSecret));
@@ -127,5 +163,41 @@ public class Main {
             return input;
         }
         return input.substring(0, 3) + "*".repeat(input.length() - 3);
+    }
+
+    private static void decryptTokens(String inputPath, String outputPath, String inputType, String outputType, 
+                                      String encryptionKey) {
+        try {
+            DecryptTokenTransformer decryptor = new DecryptTokenTransformer(encryptionKey);
+            
+            try (TokenReader reader = createTokenReader(inputPath, inputType);
+                 TokenWriter writer = createTokenWriter(outputPath, outputType)) {
+                TokenDecryptionProcessor.process(reader, writer, decryptor);
+            }
+        } catch (Exception e) {
+            logger.error("Error during token decryption: ", e);
+        }
+    }
+
+    private static TokenReader createTokenReader(String inputPath, String inputType) throws IOException {
+        switch (inputType.toLowerCase()) {
+            case CommandLineArguments.TYPE_CSV:
+                return new TokenCSVReader(inputPath);
+            case CommandLineArguments.TYPE_PARQUET:
+                return new TokenParquetReader(inputPath);
+            default:
+                throw new IllegalArgumentException("Unsupported input type: " + inputType);
+        }
+    }
+
+    private static TokenWriter createTokenWriter(String outputPath, String outputType) throws IOException {
+        switch (outputType.toLowerCase()) {
+            case CommandLineArguments.TYPE_CSV:
+                return new TokenCSVWriter(outputPath);
+            case CommandLineArguments.TYPE_PARQUET:
+                return new TokenParquetWriter(outputPath);
+            default:
+                throw new IllegalArgumentException("Unsupported output type: " + outputType);
+        }
     }
 }

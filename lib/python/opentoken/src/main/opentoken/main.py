@@ -9,11 +9,17 @@ from typing import List
 from opentoken.command_line_arguments import CommandLineArguments
 from opentoken.io.csv.person_attributes_csv_reader import PersonAttributesCSVReader
 from opentoken.io.csv.person_attributes_csv_writer import PersonAttributesCSVWriter
+from opentoken.io.csv.token_csv_reader import TokenCSVReader
+from opentoken.io.csv.token_csv_writer import TokenCSVWriter
 from opentoken.io.json.metadata_json_writer import MetadataJsonWriter
 from opentoken.io.parquet.person_attributes_parquet_reader import PersonAttributesParquetReader
 from opentoken.io.parquet.person_attributes_parquet_writer import PersonAttributesParquetWriter
+from opentoken.io.parquet.token_parquet_reader import TokenParquetReader
+from opentoken.io.parquet.token_parquet_writer import TokenParquetWriter
 from opentoken.metadata import Metadata
 from opentoken.processor.person_attributes_processor import PersonAttributesProcessor
+from opentoken.processor.token_decryption_processor import TokenDecryptionProcessor
+from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 from opentoken.tokentransformer.token_transformer import TokenTransformer
@@ -39,7 +45,9 @@ def main():
         input_type = args.input_type
         output_path = args.output_path
         output_type = args.output_type if args.output_type else input_type
+        decrypt_mode = args.decrypt
 
+        logger.info(f"Decrypt Mode: {decrypt_mode}")
         logger.info(f"Hashing Secret: {_mask_string(hashing_secret)}")
         logger.info(f"Encryption Key: {_mask_string(encryption_key)}")
         logger.info(f"Input Path: {input_path}")
@@ -47,7 +55,21 @@ def main():
         logger.info(f"Output Path: {output_path}")
         logger.info(f"Output Type: {output_type}")
 
-        # Validate input parameters
+        # Decrypt mode - process encrypted tokens
+        if decrypt_mode:
+            if not encryption_key or not encryption_key.strip():
+                logger.error("Encryption key must be specified for decryption")
+                return
+            
+            if input_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
+                logger.error("Decryption mode only supports CSV and Parquet input types")
+                return
+            
+            _decrypt_tokens(input_path, output_path, input_type, output_type, encryption_key)
+            logger.info("Token decryption completed successfully.")
+            return
+
+        # Validate input parameters for encryption mode
         if input_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
             logger.error("Only csv and parquet input types are supported!")
             return
@@ -138,6 +160,44 @@ def _mask_string(input_str: str) -> str:
     if input_str is None or len(input_str) <= 3:
         return input_str
     return input_str[:3] + "*" * (len(input_str) - 3)
+
+
+def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str, encryption_key: str):
+    """
+    Decrypt tokens from input file and write to output file.
+    
+    Args:
+        input_path: Path to input file with encrypted tokens.
+        output_path: Path to output file for decrypted tokens.
+        input_type: Type of input file (csv or parquet).
+        output_type: Type of output file (csv or parquet).
+        encryption_key: Encryption key for decryption.
+    """
+    try:
+        decryptor = DecryptTokenTransformer(encryption_key)
+        
+        # Create reader based on input type
+        if input_type == CommandLineArguments.TYPE_CSV:
+            reader = TokenCSVReader(input_path)
+        elif input_type == CommandLineArguments.TYPE_PARQUET:
+            reader = TokenParquetReader(input_path)
+        else:
+            raise ValueError(f"Unsupported input type: {input_type}")
+        
+        # Create writer based on output type
+        if output_type == CommandLineArguments.TYPE_CSV:
+            writer = TokenCSVWriter(output_path)
+        elif output_type == CommandLineArguments.TYPE_PARQUET:
+            writer = TokenParquetWriter(output_path)
+        else:
+            raise ValueError(f"Unsupported output type: {output_type}")
+        
+        with reader, writer:
+            TokenDecryptionProcessor.process(reader, writer, decryptor)
+                
+    except Exception as e:
+        logger.error(f"Error during token decryption: {e}")
+        raise
 
 
 def build_token_transformers(args: CommandLineArguments) -> List[TokenTransformer]:

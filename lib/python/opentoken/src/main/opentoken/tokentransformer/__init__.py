@@ -7,3 +7,4 @@ from opentoken.tokentransformer.token_transformer import TokenTransformer
 from opentoken.tokentransformer.no_operation_token_transformer import NoOperationTokenTransformer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
+from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer

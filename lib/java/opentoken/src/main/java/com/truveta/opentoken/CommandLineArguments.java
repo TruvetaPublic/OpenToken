@@ -40,4 +40,9 @@ public class CommandLineArguments {
     @Parameter(names = { "-ot",
             "--output-type" }, description = "Output file type if different from input.", required = false)
     private String outputType = "";
+
+    @Getter
+    @Parameter(names = { "-d",
+            "--decrypt" }, description = "Decrypt mode. Decrypts tokens from input file.", required = false)
+    private boolean decrypt = false;
 }

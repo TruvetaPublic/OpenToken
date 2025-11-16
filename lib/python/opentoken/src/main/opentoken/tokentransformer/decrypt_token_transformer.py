@@ -3,7 +3,6 @@ Copyright (c) Truveta. All rights reserved.
 """
 import base64
 import logging
-import secrets
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from opentoken.tokentransformer.token_transformer import TokenTransformer
@@ -13,16 +12,16 @@ from opentoken.tokentransformer.encryption_constants import EncryptionConstants
 logger = logging.getLogger(__name__)
 
 
-class EncryptTokenTransformer(TokenTransformer):
+class DecryptTokenTransformer(TokenTransformer):
     """
-    Transforms the token using AES-256 symmetric encryption.
+    Transforms the token using AES-256 symmetric decryption.
 
     See: https://datatracker.ietf.org/doc/html/rfc3826 (AES)
     """
 
     def __init__(self, encryption_key: str):
         """
-        Initializes the underlying cipher (AES) with the encryption secret.
+        Initializes the underlying cipher (AES) with the decryption secret.
 
         Args:
             encryption_key: The encryption key. The key must be 32 characters long.
@@ -38,42 +37,42 @@ class EncryptTokenTransformer(TokenTransformer):
 
     def transform(self, token: str) -> str:
         """
-        Encryption token transformer.
+        Decryption token transformer.
 
-        Encrypts the token using AES-256 symmetric encryption algorithm.
+        Decrypts the token using AES-256 symmetric decryption algorithm.
 
         Args:
-            token: The token to be encrypted.
+            token: The encrypted token in base64 format.
 
         Returns:
-            The encrypted token in base64 format.
+            The decrypted token.
 
         Raises:
-            Exception: If encryption fails due to various cryptographic errors.
+            Exception: If decryption fails due to various cryptographic errors.
         """
         try:
-            # Generate random IV (for AES GCM mode)
-            iv_bytes = secrets.token_bytes(EncryptionConstants.IV_SIZE)
+            # Decode the base64-encoded token
+            message_bytes = base64.b64decode(token)
 
-            # Create cipher
+            # Extract IV, encrypted data, and tag
+            iv_bytes = message_bytes[:EncryptionConstants.IV_SIZE]
+            ciphertext_and_tag = message_bytes[EncryptionConstants.IV_SIZE:]
+            ciphertext = ciphertext_and_tag[:-EncryptionConstants.TAG_LENGTH_BYTES]
+            tag = ciphertext_and_tag[-EncryptionConstants.TAG_LENGTH_BYTES:]
+
+            # Create cipher for decryption
             cipher = Cipher(
                 algorithms.AES(self.encryption_key),
-                modes.GCM(iv_bytes),
+                modes.GCM(iv_bytes, tag),
                 backend=default_backend()
             )
 
-            # Encrypt the token
-            encryptor = cipher.encryptor()
-            encrypted_bytes = encryptor.update(token.encode('utf-8')) + encryptor.finalize()
+            # Decrypt the token
+            decryptor = cipher.decryptor()
+            decrypted_bytes = decryptor.update(ciphertext) + decryptor.finalize()
 
-            # Get the authentication tag
-            tag = encryptor.tag
-
-            # Combine IV + encrypted data + tag
-            message_bytes = iv_bytes + encrypted_bytes + tag
-
-            return base64.b64encode(message_bytes).decode('utf-8')
+            return decrypted_bytes.decode('utf-8')
 
         except Exception as e:
-            logger.error(f"Error during token encryption: {e}")
+            logger.error(f"Error during token decryption: {e}")
             raise
