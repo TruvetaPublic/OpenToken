@@ -124,7 +124,7 @@ graph TB
 **Actions**:
 1. Extracts version from branch name (e.g., `release/1.23.4` → `1.23.4`)
 2. Validates semantic versioning format (`x.y.z`)
-3. Compares with current version in `.bumpversion.cfg`
+3. Compares with current version in `lib/python/src/main/opentoken/__init__.py` (`__version__` variable)
 4. If update needed:
    - Runs `bump2version --new-version x.y.z patch`
    - Updates all version files:
