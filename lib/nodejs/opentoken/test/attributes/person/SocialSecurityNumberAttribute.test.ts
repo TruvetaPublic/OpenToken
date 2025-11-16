@@ -44,8 +44,12 @@ describe('SocialSecurityNumberAttribute', () => {
     expect(ssnAttribute.validate('000-00-0000')).toBe(false);
     // Sequential like 123-45-6789 (common test pattern)
     expect(ssnAttribute.validate('123-45-6789')).toBe(true); // This is actually valid format
-    // Too short
-    expect(ssnAttribute.validate('123-45-678')).toBe(false);
+    // 8 digits is valid (will be padded to 9)
+    expect(ssnAttribute.validate('123-45-678')).toBe(true);
+    // 7 digits is valid (will be padded to 9)
+    expect(ssnAttribute.validate('123-45-67')).toBe(true);
+    // Too short (less than 7 digits - only 6)
+    expect(ssnAttribute.validate('123-45-6')).toBe(false);
     // Too long
     expect(ssnAttribute.validate('123-45-67890')).toBe(false);
   });

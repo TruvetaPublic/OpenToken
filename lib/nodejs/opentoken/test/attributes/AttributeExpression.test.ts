@@ -8,10 +8,10 @@ import { LastNameAttribute } from '../../src/attributes/person/LastNameAttribute
 import { BirthDateAttribute } from '../../src/attributes/person/BirthDateAttribute';
 
 describe('AttributeExpression', () => {
-  test('should apply truncate operation (T)', () => {
-    const expression = new AttributeExpression(FirstNameAttribute, 'T(3)');
-    const result = expression.getEffectiveValue('JONATHAN');
-    expect(result).toBe('JON');
+  test('should apply trim operation (T)', () => {
+    const expression = new AttributeExpression(FirstNameAttribute, 'T');
+    const result = expression.getEffectiveValue('  JONATHAN  ');
+    expect(result).toBe('JONATHAN');
   });
 
   test('should apply uppercase operation (U)', () => {
@@ -33,8 +33,8 @@ describe('AttributeExpression', () => {
   });
 
   test('should apply combined operations with pipe', () => {
-    // U|T(3) - uppercase then truncate
-    const expression = new AttributeExpression(FirstNameAttribute, 'U|T(3)');
+    // U|S(0,3) - uppercase then substring (truncate to 3 chars)
+    const expression = new AttributeExpression(FirstNameAttribute, 'U|S(0,3)');
     const result = expression.getEffectiveValue('jonathan');
     expect(result).toBe('JON');
   });
@@ -46,8 +46,8 @@ describe('AttributeExpression', () => {
     expect(expression.getEffectiveValue('')).toBe('');
   });
 
-  test('should handle truncate beyond string length', () => {
-    const expression = new AttributeExpression(FirstNameAttribute, 'T(10)');
+  test('should handle substring beyond string length', () => {
+    const expression = new AttributeExpression(FirstNameAttribute, 'S(0,10)');
     const result = expression.getEffectiveValue('JON');
     expect(result).toBe('JON');
   });

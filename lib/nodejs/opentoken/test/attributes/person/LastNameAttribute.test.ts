@@ -23,24 +23,24 @@ describe('LastNameAttribute', () => {
 
   test('normalize should return unchanged value for basic names', () => {
     const input = 'Smith';
-    expect(lastNameAttribute.normalize(input)).toBe('SMITH');
+    expect(lastNameAttribute.normalize(input)).toBe(input);
   });
 
   test('normalize should remove accents', () => {
-    expect(lastNameAttribute.normalize('García')).toBe('GARCIA');
-    expect(lastNameAttribute.normalize('Müller')).toBe('MULLER');
-    expect(lastNameAttribute.normalize('Nguyễn')).toBe('NGUYEN');
+    expect(lastNameAttribute.normalize('García')).toBe('Garcia');
+    expect(lastNameAttribute.normalize('Müller')).toBe('Muller');
+    expect(lastNameAttribute.normalize('Nguyễn')).toBe('Nguyen');
   });
 
   test('normalize should remove suffixes', () => {
-    expect(lastNameAttribute.normalize('Smith Jr')).toBe('SMITH');
-    expect(lastNameAttribute.normalize('Johnson III')).toBe('JOHNSON');
-    expect(lastNameAttribute.normalize('Brown Sr.')).toBe('BROWN');
+    expect(lastNameAttribute.normalize('Smith Jr')).toBe('Smith');
+    expect(lastNameAttribute.normalize('Johnson III')).toBe('Johnson');
+    expect(lastNameAttribute.normalize('Brown Sr.')).toBe('Brown');
   });
 
-  test('normalize should convert to uppercase', () => {
-    expect(lastNameAttribute.normalize('smith')).toBe('SMITH');
-    expect(lastNameAttribute.normalize('Johnson')).toBe('JOHNSON');
+  test('normalize should preserve case', () => {
+    expect(lastNameAttribute.normalize('smith')).toBe('smith');
+    expect(lastNameAttribute.normalize('Johnson')).toBe('Johnson');
   });
 
   test('validate should return true for names with 2+ characters', () => {

@@ -25,8 +25,9 @@ export class SexAttribute extends BaseAttribute {
    * This pattern matches the following formats (case-insensitive):
    * - "M" or "F"
    * - "Male" or "Female"
+   * - "MALE" or "FEMALE"
    */
-  private static readonly VALIDATE_REGEX = /^([Mm](ale)?|[Ff](emale)?)$/;
+  private static readonly VALIDATE_REGEX = /^([Mm](ale|ALE)?|[Ff](emale|EMALE)?)$/;
 
   constructor() {
     super(SexAttribute.NAME, SexAttribute.ALIASES, [
@@ -42,9 +43,9 @@ export class SexAttribute extends BaseAttribute {
     const firstChar = value.charAt(0).toUpperCase();
     switch (firstChar) {
       case 'M':
-        return 'Male';
+        return 'MALE';
       case 'F':
-        return 'Female';
+        return 'FEMALE';
       default:
         return value;
     }

@@ -24,7 +24,8 @@ describe('BirthDateAttribute', () => {
   test('normalize should convert various date formats to YYYY-MM-DD', () => {
     expect(birthDateAttribute.normalize('01/15/1990')).toBe('1990-01-15');
     expect(birthDateAttribute.normalize('1990-01-15')).toBe('1990-01-15');
-    expect(birthDateAttribute.normalize('15-01-1990')).toBe('1990-01-15');
+    // DateAttribute treats XX-XX-XXXX as MM-DD-YYYY format (matches Java/Python)
+    expect(birthDateAttribute.normalize('01-15-1990')).toBe('1990-01-15');
   });
 
   test('validate should return true for dates within valid range (1910-present)', () => {

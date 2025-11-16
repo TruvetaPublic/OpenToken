@@ -20,7 +20,7 @@ import { AttributeUtilities } from '../utilities/AttributeUtilities';
  */
 export class LastNameAttribute extends BaseAttribute {
   private static readonly NAME = 'LastName';
-  private static readonly ALIASES = ['LastName', 'Surname'];
+  private static readonly ALIASES = ['LastName', 'FamilyName'];
 
   // Pattern kept for reference but validation is done inline in validate method
   // private static readonly LAST_NAME_PATTERN = /^(?:[a-zA-Z]*[aeiouAEIOU][a-zA-Z]*|Ng)$/;
@@ -39,9 +39,9 @@ export class LastNameAttribute extends BaseAttribute {
 
     const normalized = this.normalize(value);
 
-    // For 2-character names, must contain at least one vowel or be "Ng"
+    // For 2-character names, must contain at least one vowel or be "Ng" or "NG"
     if (normalized.length === 2) {
-      return /[aeiouAEIOU]/.test(normalized) || normalized === 'Ng';
+      return /[aeiouAEIOU]/.test(normalized) || normalized.toUpperCase() === 'NG';
     }
 
     return true;

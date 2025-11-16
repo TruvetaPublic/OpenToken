@@ -24,8 +24,7 @@ import { AttributeUtilities } from '../utilities/AttributeUtilities';
  */
 export class SocialSecurityNumberAttribute extends BaseAttribute {
   private static readonly NAME = 'SocialSecurityNumber';
-  private static readonly ALIASES = ['SocialSecurityNumber', 'NationalIdentificationNumber'];
-  private static readonly DASH = '-';
+  private static readonly ALIASES = ['SocialSecurityNumber', 'SSN'];
   private static readonly MIN_SSN_LENGTH = 7;
   private static readonly SSN_LENGTH = 9;
 
@@ -45,25 +44,25 @@ export class SocialSecurityNumberAttribute extends BaseAttribute {
   private static readonly DIGITS_ONLY_PATTERN = /^\d+$/;
 
   private static readonly INVALID_SSNS = new Set([
-    '111-11-1111',
-    '222-22-2222',
-    '333-33-3333',
-    '444-44-4444',
-    '555-55-5555',
-    '777-77-7777',
-    '888-88-8888',
-    // Common placeholder SSNs
-    '001-23-4567',
-    '009-99-9999',
-    '010-10-1010',
-    '012-34-5678',
-    '087-65-4321',
-    '098-76-5432',
-    '099-99-9999',
-    '111-22-3333',
-    '121-21-2121',
-    '123-45-6789',
-    '123-45-9999',
+    // All zeros is invalid
+    '000000000',
+    // Repeating patterns
+    '111111111',
+    '222222222',
+    '333333333',
+    '444444444',
+    '555555555',
+    '777777777',
+    '888888888',
+    // Common placeholder SSNs (normalized without dashes)
+    '009999999',
+    '010101010',
+    '087654321',
+    '098765432',
+    '099999999',
+    '111223333',
+    '121212121',
+    '123459999',
   ]);
 
   constructor() {
@@ -83,11 +82,12 @@ export class SocialSecurityNumberAttribute extends BaseAttribute {
   }
 
   /**
-   * Normalize the social security number value. Remove any dashes and format the
-   * value as xxx-xx-xxxx. If not possible return the original but trimmed value.
+   * Normalize the social security number value. Remove any dashes and return
+   * the value as a 9-digit number without dashes. If not possible return the
+   * original but trimmed value.
    *
    * @param originalValue - The social security number value.
-   * @returns The normalized SSN in xxx-xx-xxxx format.
+   * @returns The normalized SSN as 9 digits without dashes (e.g., "123456789").
    */
   normalize(originalValue: string): string {
     if (!originalValue || originalValue.length === 0) {
@@ -120,7 +120,8 @@ export class SocialSecurityNumberAttribute extends BaseAttribute {
 
     normalizedValue = this.padWithZeros(normalizedValue);
 
-    return this.formatWithDashes(normalizedValue);
+    // Return without dashes (just 9 digits) to match Java/Python behavior
+    return normalizedValue;
   }
 
   /**
@@ -140,21 +141,4 @@ export class SocialSecurityNumberAttribute extends BaseAttribute {
     return ssn;
   }
 
-  /**
-   * Takes a 9-digit SSN and adds dashes in the right places.
-   *
-   * Takes: "123456789"
-   * Returns: "123-45-6789"
-   *
-   * SSN parts:
-   * - First 3 digits: Area number
-   * - Middle 2 digits: Group number
-   * - Last 4 digits: Serial number
-   */
-  private formatWithDashes(value: string): string {
-    const areaNumber = value.substring(0, 3);
-    const groupNumber = value.substring(3, 5);
-    const serialNumber = value.substring(5);
-    return `${areaNumber}${SocialSecurityNumberAttribute.DASH}${groupNumber}${SocialSecurityNumberAttribute.DASH}${serialNumber}`;
-  }
 }
