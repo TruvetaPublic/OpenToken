@@ -147,6 +147,28 @@ def _create_person_attributes_writer(output_path: str, output_type: str):
         raise ValueError(f"Unsupported output type: {output_type}")
 
 
+def _create_token_reader(input_path: str, input_type: str):
+    """Create a TokenReader based on input type."""
+    input_type_lower = input_type.lower()
+    if input_type_lower == CommandLineArguments.TYPE_CSV:
+        return TokenCSVReader(input_path)
+    elif input_type_lower == CommandLineArguments.TYPE_PARQUET:
+        return TokenParquetReader(input_path)
+    else:
+        raise ValueError(f"Unsupported input type: {input_type}")
+
+
+def _create_token_writer(output_path: str, output_type: str):
+    """Create a TokenWriter based on output type."""
+    output_type_lower = output_type.lower()
+    if output_type_lower == CommandLineArguments.TYPE_CSV:
+        return TokenCSVWriter(output_path)
+    elif output_type_lower == CommandLineArguments.TYPE_PARQUET:
+        return TokenParquetWriter(output_path)
+    else:
+        raise ValueError(f"Unsupported output type: {output_type}")
+
+
 def _load_command_line_arguments(args: list) -> CommandLineArguments:
     """Load and parse command line arguments."""
     logger.debug(f"Processing command line arguments: {' | '.join(args)}")
@@ -176,23 +198,8 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
     try:
         decryptor = DecryptTokenTransformer(encryption_key)
         
-        # Create reader based on input type
-        if input_type == CommandLineArguments.TYPE_CSV:
-            reader = TokenCSVReader(input_path)
-        elif input_type == CommandLineArguments.TYPE_PARQUET:
-            reader = TokenParquetReader(input_path)
-        else:
-            raise ValueError(f"Unsupported input type: {input_type}")
-        
-        # Create writer based on output type
-        if output_type == CommandLineArguments.TYPE_CSV:
-            writer = TokenCSVWriter(output_path)
-        elif output_type == CommandLineArguments.TYPE_PARQUET:
-            writer = TokenParquetWriter(output_path)
-        else:
-            raise ValueError(f"Unsupported output type: {output_type}")
-        
-        with reader, writer:
+        with _create_token_reader(input_path, input_type) as reader, \
+             _create_token_writer(output_path, output_type) as writer:
             TokenDecryptionProcessor.process(reader, writer, decryptor)
                 
     except Exception as e:
