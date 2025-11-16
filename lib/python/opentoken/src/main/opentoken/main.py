@@ -35,94 +35,48 @@ logger = logging.getLogger(__name__)
 
 def main():
     """Main entry point for the OpenToken application."""
-    try:
-        # Parse command line arguments
-        args = CommandLineArguments.parse_args()
+    command_line_arguments = _load_command_line_arguments(sys.argv[1:])
+    hashing_secret = command_line_arguments.hashing_secret
+    encryption_key = command_line_arguments.encryption_key
+    input_path = command_line_arguments.input_path
+    input_type = command_line_arguments.input_type
+    output_path = command_line_arguments.output_path
+    output_type = command_line_arguments.output_type if command_line_arguments.output_type else input_type
+    decrypt_mode = command_line_arguments.decrypt
 
-        hashing_secret = args.hashing_secret
-        encryption_key = args.encryption_key
-        input_path = args.input_path
-        input_type = args.input_type
-        output_path = args.output_path
-        output_type = args.output_type if args.output_type else input_type
-        decrypt_mode = args.decrypt
+    logger.info(f"Decrypt Mode: {decrypt_mode}")
+    logger.info(f"Hashing Secret: {_mask_string(hashing_secret)}")
+    logger.info(f"Encryption Key: {_mask_string(encryption_key)}")
+    logger.info(f"Input Path: {input_path}")
+    logger.info(f"Input Type: {input_type}")
+    logger.info(f"Output Path: {output_path}")
+    logger.info(f"Output Type: {output_type}")
 
-        logger.info(f"Decrypt Mode: {decrypt_mode}")
-        logger.info(f"Hashing Secret: {_mask_string(hashing_secret)}")
-        logger.info(f"Encryption Key: {_mask_string(encryption_key)}")
-        logger.info(f"Input Path: {input_path}")
-        logger.info(f"Input Type: {input_type}")
-        logger.info(f"Output Path: {output_path}")
-        logger.info(f"Output Type: {output_type}")
+    # Validate input and output types for both modes
+    if input_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
+        logger.error("Only csv and parquet input types are supported!")
+        return
+    if output_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
+        logger.error("Only csv and parquet output types are supported!")
+        return
 
+    # Process based on mode
+    if decrypt_mode:
         # Decrypt mode - process encrypted tokens
-        if decrypt_mode:
-            if not encryption_key or not encryption_key.strip():
-                logger.error("Encryption key must be specified for decryption")
-                return
-            
-            if input_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
-                logger.error("Decryption mode only supports CSV and Parquet input types")
-                return
-            
-            _decrypt_tokens(input_path, output_path, input_type, output_type, encryption_key)
-            logger.info("Token decryption completed successfully.")
+        if not encryption_key or not encryption_key.strip():
+            logger.error("Encryption key must be specified for decryption")
             return
 
-        # Validate input parameters for encryption mode
-        if input_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
-            logger.error("Only csv and parquet input types are supported!")
-            return
-        elif (not hashing_secret or not hashing_secret.strip() or
-              not encryption_key or not encryption_key.strip()):
+        _decrypt_tokens(input_path, output_path, input_type, output_type, encryption_key)
+        logger.info("Token decryption completed successfully.")
+    else:
+        # Encrypt mode - validate and process person attributes
+        if (not hashing_secret or not hashing_secret.strip() or
+                not encryption_key or not encryption_key.strip()):
             logger.error("Hashing secret and encryption key must be specified")
             return
 
-        # Create token transformers
-        token_transformer_list = []
-        try:
-            token_transformer_list.append(HashTokenTransformer(hashing_secret))
-            token_transformer_list.append(EncryptTokenTransformer(encryption_key))
-        except Exception as e:
-            logger.error("Error in initializing the transformer. Execution halted.", exc_info=e)
-            return
-
-        try:
-            # Create reader and writer based on file types
-            reader = _create_person_attributes_reader(input_path, input_type)
-            writer = _create_person_attributes_writer(output_path, output_type)
-
-            try:
-                # Create initial metadata with system information
-                metadata = Metadata()
-                metadata_map = metadata.initialize()
-
-                # Set secrets separately
-                metadata.add_hashed_secret(Metadata.HASHING_SECRET_HASH, hashing_secret)
-                metadata.add_hashed_secret(Metadata.ENCRYPTION_SECRET_HASH, encryption_key)
-
-                # Process data and get updated metadata
-                PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
-
-                # Write the metadata to file
-                metadata_writer = MetadataJsonWriter(output_path)
-                metadata_writer.write(metadata_map)
-
-            finally:
-                # Close resources
-                if reader:
-                    reader.close()
-                if writer:
-                    writer.close()
-
-        except Exception as e:
-            logger.error("Error in processing the input file. Execution halted.", exc_info=e)
-
-        logger.info("OpenToken processing completed successfully.")
-
-    except Exception as e:
-        logger.error(f"Error during OpenToken processing: {e}", exc_info=True)
-        sys.exit(1)
+        _encrypt_tokens(input_path, output_path, input_type, output_type, hashing_secret, encryption_key)
 
 
 def _create_person_attributes_reader(input_path: str, input_type: str):
@@ -182,6 +136,50 @@ def _mask_string(input_str: str) -> str:
     if input_str is None or len(input_str) <= 3:
         return input_str
     return input_str[:3] + "*" * (len(input_str) - 3)
+
+
+def _encrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str,
+                    hashing_secret: str, encryption_key: str):
+    """
+    Encrypt tokens from person attributes and write to output file.
+    
+    Args:
+        input_path: Path to input file with person attributes.
+        output_path: Path to output file for encrypted tokens.
+        input_type: Type of input file (csv or parquet).
+        output_type: Type of output file (csv or parquet).
+        hashing_secret: Secret for hashing tokens.
+        encryption_key: Key for encrypting tokens.
+    """
+    token_transformer_list: List[TokenTransformer] = []
+    try:
+        token_transformer_list.append(HashTokenTransformer(hashing_secret))
+        token_transformer_list.append(EncryptTokenTransformer(encryption_key))
+    except Exception as e:
+        logger.error("Error in initializing the transformer. Execution halted.", exc_info=e)
+        return
+
+    try:
+        with _create_person_attributes_reader(input_path, input_type) as reader, \
+             _create_person_attributes_writer(output_path, output_type) as writer:
+
+            # Create initial metadata with system information
+            metadata = Metadata()
+            metadata_map = metadata.initialize()
+
+            # Set secrets separately
+            metadata.add_hashed_secret(Metadata.HASHING_SECRET_HASH, hashing_secret)
+            metadata.add_hashed_secret(Metadata.ENCRYPTION_SECRET_HASH, encryption_key)
+
+            # Process data and get updated metadata
+            PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
+
+            # Write the metadata to file
+            metadata_writer = MetadataJsonWriter(output_path)
+            metadata_writer.write(metadata_map)
+
+    except Exception as e:
+        logger.error("Error in processing the input file. Execution halted.", exc_info=e)
 
 
 def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str, encryption_key: str):
