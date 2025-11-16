@@ -230,6 +230,17 @@ PYTHONPATH=src/main python src/main/opentoken/main.py \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
+### Node.js  <!-- omit in toc -->
+
+```shell
+cd lib/nodejs/opentoken
+npm install
+npm run build
+npm start -- \
+  -i ../../../resources/sample.csv -o ../../../resources/output.csv \
+  -k "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
 ### Docker  <!-- omit in toc -->
 
 #### Using Convenience Scripts (Recommended)
