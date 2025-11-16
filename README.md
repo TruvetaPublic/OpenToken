@@ -217,9 +217,9 @@ For complete details about all metadata fields, examples, and security considera
 
 ```shell
 cd lib/java/opentoken
-mvn clean install
+mvn install -DskipTests
 java -jar target/opentoken-*.jar \
-  -i ../../../resources/sample.csv -t csv -o target/output.csv \
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
@@ -243,7 +243,7 @@ To decrypt previously encrypted tokens, use the `-d` or `--decrypt` flag. The de
 ```shell
 cd lib/java/opentoken
 java -jar target/opentoken-*.jar -d \
-  -i target/output.csv -t csv -o target/decrypted.csv \
+  -i ../../../resources/output.csv -t csv -o ../../../resources/decrypted.csv \
   -e "Secret-Encryption-Key-Goes-Here."
 ```
 
