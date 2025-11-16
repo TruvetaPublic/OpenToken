@@ -11,6 +11,7 @@ from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.io.person_attributes_reader import PersonAttributesReader
 from opentoken.io.person_attributes_writer import PersonAttributesWriter
+from opentoken.processor.token_constants import TokenConstants
 from opentoken.tokens.token_definition import TokenDefinition
 from opentoken.tokens.token_generator import TokenGenerator
 from opentoken.tokens.token_generator_result import TokenGeneratorResult
@@ -28,10 +29,6 @@ class PersonAttributesProcessor:
     generate tokens for each person record and write the tokens back
     to the output data source.
     """
-
-    TOKEN = "Token"
-    RULE_ID = "RuleId"
-    RECORD_ID = "RecordId"
 
     TOTAL_ROWS = "TotalRows"
     TOTAL_ROWS_WITH_INVALID_ATTRIBUTES = "TotalRowsWithInvalidAttributes"
@@ -138,9 +135,9 @@ class PersonAttributesProcessor:
 
         for token_id in token_ids:
             row_result = {
-                PersonAttributesProcessor.RULE_ID: token_id,
-                PersonAttributesProcessor.TOKEN: token_generator_result.tokens[token_id],
-                PersonAttributesProcessor.RECORD_ID: record_id
+                TokenConstants.RULE_ID: token_id,
+                TokenConstants.TOKEN: token_generator_result.tokens[token_id],
+                TokenConstants.RECORD_ID: record_id
             }
 
             try:
