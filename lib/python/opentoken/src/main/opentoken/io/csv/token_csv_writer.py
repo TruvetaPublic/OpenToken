@@ -47,7 +47,11 @@ class TokenCSVWriter(TokenWriter):
             data: A dictionary with RuleId, Token, and RecordId.
         """
         try:
-            self.csv_writer.writerow(data)
+            self.csv_writer.writerow({
+                TokenConstants.RULE_ID: data.get(TokenConstants.RULE_ID, ''),
+                TokenConstants.TOKEN: data.get(TokenConstants.TOKEN, ''),
+                TokenConstants.RECORD_ID: data.get(TokenConstants.RECORD_ID, '')
+            })
         except IOError as e:
             logger.error(f"Error in writing to CSV file: {e}")
             raise
