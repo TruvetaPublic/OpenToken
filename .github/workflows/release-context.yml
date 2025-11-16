@@ -82,11 +82,16 @@ jobs:
             exit 0
           fi
 
-          if gh api repos/${{ github.repository }}/releases/tags/$TARGET_TAG >/tmp/release.json 2>/tmp/release.err; then
-            RELEASE_ID=$(jq -r '.id' /tmp/release.json)
-            echo "found=true" >> "$GITHUB_OUTPUT"
-            echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
-            echo "Found release $TARGET_TAG (ID $RELEASE_ID)"
+          if RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/$TARGET_TAG --jq '.id' 2>/tmp/release.err); then
+            if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
+              echo "found=true" >> "$GITHUB_OUTPUT"
+              echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+              echo "Found release $TARGET_TAG (ID $RELEASE_ID)"
+            else
+              echo "found=false" >> "$GITHUB_OUTPUT"
+              echo "release_id=" >> "$GITHUB_OUTPUT"
+              echo "No release found for $TARGET_TAG"
+            fi
           else
             if grep -q 'Not Found' /tmp/release.err; then
               echo "found=false" >> "$GITHUB_OUTPUT"

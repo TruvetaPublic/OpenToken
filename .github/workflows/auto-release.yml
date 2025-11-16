@@ -13,11 +13,10 @@ permissions:
 jobs:
   create-release:
     runs-on: ubuntu-latest
-    # Run if PR was merged from release branch OR manually triggered
+    # Run only if PR was merged from release branch
     if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.merged == true &&
-       startsWith(github.event.pull_request.head.ref, 'release/'))
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
 
     steps:
       - name: Checkout code
@@ -30,13 +29,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Use manual input version if provided, otherwise read from .bumpversion.cfg
-          if [ -n "${{ inputs.version }}" ]; then
-            VERSION="${{ inputs.version }}"
-          else
-            # Get version from .bumpversion.cfg - only the [bumpversion] section
-            VERSION=$(sed -n '/^\[bumpversion\]/,/^\[/p' .bumpversion.cfg | grep "^current_version" | cut -d'=' -f2 | tr -d ' ')
-          fi
+          # Get version from .bumpversion.cfg - only the [bumpversion] section
+          VERSION=$(sed -n '/^\[bumpversion\]/,/^\[/p' .bumpversion.cfg | grep "^current_version" | cut -d'=' -f2 | tr -d ' ')
 
           # sanitize against characters that will break GITHUB_OUTPUT (angle brackets, CRs, newlines)
           SAFE_VERSION=$(printf '%s' "$VERSION" | tr -d '<>' | tr -d $'\r' | tr -d $'\n')
