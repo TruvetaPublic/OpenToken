@@ -22,11 +22,10 @@ export class YearAttribute extends BaseAttribute {
   private static readonly YEAR_PATTERN = /\d{4}/;
 
   constructor(additionalValidators: Validator[] = []) {
-    super(
-      YearAttribute.NAME,
-      YearAttribute.ALIASES,
-      [new RegexValidator(YearAttribute.YEAR_REGEX), ...additionalValidators]
-    );
+    super(YearAttribute.NAME, YearAttribute.ALIASES, [
+      new RegexValidator(YearAttribute.YEAR_REGEX),
+      ...additionalValidators,
+    ]);
   }
 
   normalize(value: string): string {

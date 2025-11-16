@@ -25,11 +25,9 @@ export class FirstNameAttribute extends BaseAttribute {
   private static readonly TRAILING_PERIOD_AND_INITIAL_PATTERN = /\s[^\s]\.?$/;
 
   constructor() {
-    super(
-      FirstNameAttribute.NAME,
-      FirstNameAttribute.ALIASES,
-      [new NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES)]
-    );
+    super(FirstNameAttribute.NAME, FirstNameAttribute.ALIASES, [
+      new NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES),
+    ]);
   }
 
   normalize(value: string): string {

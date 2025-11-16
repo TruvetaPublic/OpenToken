@@ -23,7 +23,7 @@ export class PersonAttributesParquetReader implements PersonAttributesReader {
 
   /**
    * Initialize the class with the input file in Parquet format.
-   * 
+   *
    * @param filePath the input file path
    */
   constructor(private filePath: string) {}
@@ -47,7 +47,7 @@ export class PersonAttributesParquetReader implements PersonAttributesReader {
 
   /**
    * Check if there are more records to read.
-   * 
+   *
    * @returns true if there are more records, false otherwise
    * @throws Error if the reader is closed
    */
@@ -70,7 +70,7 @@ export class PersonAttributesParquetReader implements PersonAttributesReader {
 
   /**
    * Get the next record from the Parquet file.
-   * 
+   *
    * @returns a person attributes map
    * @throws Error when there are no more records or reader is closed
    */
@@ -87,12 +87,13 @@ export class PersonAttributesParquetReader implements PersonAttributesReader {
 
     // Map to attribute classes
     const attributes = new Map<string, string>();
-    
+
     for (const [fieldName, fieldValue] of Object.entries(this.currentRecord)) {
       const attribute = this.attributeMap.get(fieldName.toLowerCase());
       if (attribute) {
         const attributeName = attribute.getName();
-        const fieldValueStr = fieldValue !== null && fieldValue !== undefined ? String(fieldValue) : '';
+        const fieldValueStr =
+          fieldValue !== null && fieldValue !== undefined ? String(fieldValue) : '';
         attributes.set(attributeName, fieldValueStr);
       }
     }

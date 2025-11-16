@@ -140,5 +140,4 @@ export class SocialSecurityNumberAttribute extends BaseAttribute {
     }
     return ssn;
   }
-
 }

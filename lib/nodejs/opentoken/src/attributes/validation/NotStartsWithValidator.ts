@@ -34,7 +34,7 @@ export class NotStartsWithValidator implements Validator {
     }
 
     const trimmed = value.trim();
-    
+
     for (const prefix of this.prefixes) {
       if (trimmed.startsWith(prefix)) {
         return false;

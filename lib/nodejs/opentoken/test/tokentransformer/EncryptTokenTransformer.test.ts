@@ -21,7 +21,7 @@ describe('EncryptTokenTransformer', () => {
   it('should produce different encrypted values each time (due to random IV)', () => {
     const transformer = new EncryptTokenTransformer(testKey);
     const token = 'same-token';
-    
+
     const encrypted1 = transformer.transform(token);
     const encrypted2 = transformer.transform(token);
 
@@ -31,7 +31,7 @@ describe('EncryptTokenTransformer', () => {
 
   it('should encrypt different tokens to different values', () => {
     const transformer = new EncryptTokenTransformer(testKey);
-    
+
     const encrypted1 = transformer.transform('token1');
     const encrypted2 = transformer.transform('token2');
 
@@ -40,14 +40,16 @@ describe('EncryptTokenTransformer', () => {
 
   it('should throw error for null or empty token', () => {
     const transformer = new EncryptTokenTransformer(testKey);
-    
+
     expect(() => transformer.transform('')).toThrow('Token cannot be null or empty');
     expect(() => transformer.transform('  ')).toThrow('Token cannot be null or empty');
   });
 
   it('should throw error for invalid key length', () => {
     expect(() => new EncryptTokenTransformer('short')).toThrow('Key must be 32 characters long');
-    expect(() => new EncryptTokenTransformer('way-too-long-key-that-exceeds-32-chars')).toThrow('Key must be 32 characters long');
+    expect(() => new EncryptTokenTransformer('way-too-long-key-that-exceeds-32-chars')).toThrow(
+      'Key must be 32 characters long'
+    );
   });
 
   it('should accept 32-character key', () => {

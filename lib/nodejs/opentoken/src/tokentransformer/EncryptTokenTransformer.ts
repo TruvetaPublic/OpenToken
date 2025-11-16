@@ -25,9 +25,7 @@ export class EncryptTokenTransformer implements TokenTransformer {
    */
   constructor(encryptionKey: string) {
     if (encryptionKey.length !== EncryptTokenTransformer.KEY_BYTE_LENGTH) {
-      throw new Error(
-        `Key must be ${EncryptTokenTransformer.KEY_BYTE_LENGTH} characters long`
-      );
+      throw new Error(`Key must be ${EncryptTokenTransformer.KEY_BYTE_LENGTH} characters long`);
     }
 
     this.secretKey = Buffer.from(encryptionKey, 'utf8');

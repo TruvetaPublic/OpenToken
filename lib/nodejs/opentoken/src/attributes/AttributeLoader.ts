@@ -18,7 +18,7 @@ import { YearAttribute } from './general/YearAttribute';
 
 /**
  * Loader for all available attributes in the system.
- * 
+ *
  * In Java, this uses ServiceLoader pattern. In Node.js/TypeScript,
  * we explicitly register attributes here.
  */
@@ -29,7 +29,7 @@ export class AttributeLoader {
 
   /**
    * Load all available attributes.
-   * 
+   *
    * @returns A Set of all available attribute instances.
    */
   static load(): Set<Attribute> {
@@ -45,7 +45,7 @@ export class AttributeLoader {
     attributes.add(new SocialSecurityNumberAttribute());
     attributes.add(new PostalCodeAttribute());
     attributes.add(new RecordIdAttribute());
-    
+
     // Generic attributes (usually not used directly in token generation)
     attributes.add(new StringAttribute('String', ['String']));
     attributes.add(new DateAttribute('Date', ['Date']));
@@ -56,19 +56,19 @@ export class AttributeLoader {
 
   /**
    * Find an attribute by name or alias.
-   * 
+   *
    * @param nameOrAlias - The name or alias to search for.
    * @returns The matching attribute or undefined if not found.
    */
   static findByName(nameOrAlias: string): Attribute | undefined {
     const attributes = this.load();
-    
+
     for (const attr of attributes) {
       if (attr.getName() === nameOrAlias || attr.getAliases().includes(nameOrAlias)) {
         return attr;
       }
     }
-    
+
     return undefined;
   }
 }

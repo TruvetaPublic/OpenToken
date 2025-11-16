@@ -80,7 +80,10 @@ export class PersonAttributesProcessor {
 
         // Write the token
         const outputRecord = new Map<string, string>();
-        outputRecord.set('RecordId', row.get('RecordId') || row.get('record-id') || `row-${rowCounter}`);
+        outputRecord.set(
+          'RecordId',
+          row.get('RecordId') || row.get('record-id') || `row-${rowCounter}`
+        );
         outputRecord.set('RuleId', tokenId);
         outputRecord.set('Token', tokenValue);
 
