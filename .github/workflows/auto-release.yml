@@ -5,6 +5,12 @@ on:
     types: [closed]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.2.3). If not provided, will read from .bumpversion.cfg'
+        required: false
+        type: string
 
 permissions:
   contents: write
