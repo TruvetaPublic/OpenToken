@@ -73,6 +73,7 @@ public class TokenParquetWriter implements TokenWriter {
      * @param data A map containing RuleId, Token, and RecordId.
      * @throws IOException If an I/O error occurs.
      */
+    @Override
     public void writeToken(Map<String, String> data) throws IOException {
         String ruleId = data.getOrDefault(TokenConstants.RULE_ID, "");
         String token = data.getOrDefault(TokenConstants.TOKEN, "");
