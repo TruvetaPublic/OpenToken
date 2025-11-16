@@ -45,12 +45,14 @@ public class Main {
         String outputPath = commandLineArguments.getOutputPath();
         String outputType = commandLineArguments.getOutputType();
         boolean decryptMode = commandLineArguments.isDecrypt();
+        boolean hashOnlyMode = commandLineArguments.isHashOnly();
         
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType; // defaulting to input type if not provided
         }
 
         logger.info("Decrypt Mode: {}", decryptMode);
+        logger.info("Hash-Only Mode: {}", hashOnlyMode);
         if (logger.isInfoEnabled()) {
             logger.info("Hashing Secret: {}", maskString(hashingSecret));
             logger.info("Encryption Key: {}", maskString(encryptionKey));
@@ -80,6 +82,14 @@ public class Main {
             
             decryptTokens(inputPath, outputPath, inputType, outputType, encryptionKey);
             logger.info("Token decryption completed successfully.");
+        } else if (hashOnlyMode) {
+            // Hash-only mode - validate and process person attributes with hashing only
+            if (hashingSecret == null || hashingSecret.isBlank()) {
+                logger.error("Hashing secret must be specified for hash-only mode");
+                return;
+            }
+
+            hashTokens(inputPath, outputPath, inputType, outputType, hashingSecret);
         } else {
             // Encrypt mode - validate and process person attributes
             if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null
@@ -89,6 +99,40 @@ public class Main {
             }
 
             encryptTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey);
+        }
+    }
+
+    private static void hashTokens(String inputPath, String outputPath, String inputType, String outputType,
+                                   String hashingSecret) {
+        List<TokenTransformer> tokenTransformerList = new ArrayList<>();
+        try {
+            tokenTransformerList.add(new HashTokenTransformer(hashingSecret));
+        } catch (Exception e) {
+            logger.error("Error in initializing the transformer. Execution halted. ", e);
+            return;
+        }
+
+        try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
+                PersonAttributesWriter writer = createPersonAttributesWriter(outputPath, outputType)) {
+
+            // Create initial metadata with system information
+            Metadata metadata = new Metadata();
+            Map<String, Object> metadataMap = metadata.initialize();
+
+            // Set secrets separately
+            metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
+            // Mark that encryption was not used
+            metadataMap.put("encryption_used", false);
+
+            // Process data and get updated metadata
+            PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
+
+            // Write the metadata to file
+            MetadataWriter metadataWriter = new MetadataJsonWriter(outputPath);
+            metadataWriter.write(metadataMap);
+
+        } catch (Exception e) {
+            logger.error("Error in processing the input file. Execution halted. ", e);
         }
     }
 
@@ -113,6 +157,8 @@ public class Main {
             // Set secrets separately
             metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
             metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
+            // Mark that encryption was used
+            metadataMap.put("encryption_used", true);
 
             // Process data and get updated metadata
             PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);

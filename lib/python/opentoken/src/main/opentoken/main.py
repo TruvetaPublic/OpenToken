@@ -43,8 +43,10 @@ def main():
     output_path = command_line_arguments.output_path
     output_type = command_line_arguments.output_type if command_line_arguments.output_type else input_type
     decrypt_mode = command_line_arguments.decrypt
+    hash_only_mode = command_line_arguments.hash_only
 
     logger.info(f"Decrypt Mode: {decrypt_mode}")
+    logger.info(f"Hash-Only Mode: {hash_only_mode}")
     logger.info(f"Hashing Secret: {_mask_string(hashing_secret)}")
     logger.info(f"Encryption Key: {_mask_string(encryption_key)}")
     logger.info(f"Input Path: {input_path}")
@@ -69,6 +71,13 @@ def main():
 
         _decrypt_tokens(input_path, output_path, input_type, output_type, encryption_key)
         logger.info("Token decryption completed successfully.")
+    elif hash_only_mode:
+        # Hash-only mode - validate and process person attributes with hashing only
+        if not hashing_secret or not hashing_secret.strip():
+            logger.error("Hashing secret must be specified for hash-only mode")
+            return
+
+        _hash_tokens(input_path, output_path, input_type, output_type, hashing_secret)
     else:
         # Encrypt mode - validate and process person attributes
         if (not hashing_secret or not hashing_secret.strip() or
@@ -138,6 +147,49 @@ def _mask_string(input_str: str) -> str:
     return input_str[:3] + "*" * (len(input_str) - 3)
 
 
+def _hash_tokens(input_path: str, output_path: str, input_type: str, output_type: str,
+                 hashing_secret: str):
+    """
+    Hash tokens from person attributes and write to output file (without encryption).
+    
+    Args:
+        input_path: Path to input file with person attributes.
+        output_path: Path to output file for hashed tokens.
+        input_type: Type of input file (csv or parquet).
+        output_type: Type of output file (csv or parquet).
+        hashing_secret: Secret for hashing tokens.
+    """
+    token_transformer_list: List[TokenTransformer] = []
+    try:
+        token_transformer_list.append(HashTokenTransformer(hashing_secret))
+    except Exception as e:
+        logger.error("Error in initializing the transformer. Execution halted.", exc_info=e)
+        return
+
+    try:
+        with _create_person_attributes_reader(input_path, input_type) as reader, \
+             _create_person_attributes_writer(output_path, output_type) as writer:
+
+            # Create initial metadata with system information
+            metadata = Metadata()
+            metadata_map = metadata.initialize()
+
+            # Set secrets separately
+            metadata.add_hashed_secret(Metadata.HASHING_SECRET_HASH, hashing_secret)
+            # Mark that encryption was not used
+            metadata_map["encryption_used"] = False
+
+            # Process data and get updated metadata
+            PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
+
+            # Write the metadata to file
+            metadata_writer = MetadataJsonWriter(output_path)
+            metadata_writer.write(metadata_map)
+
+    except Exception as e:
+        logger.error("Error in processing the input file. Execution halted.", exc_info=e)
+
+
 def _encrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str,
                     hashing_secret: str, encryption_key: str):
     """
@@ -170,6 +222,8 @@ def _encrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
             # Set secrets separately
             metadata.add_hashed_secret(Metadata.HASHING_SECRET_HASH, hashing_secret)
             metadata.add_hashed_secret(Metadata.ENCRYPTION_SECRET_HASH, encryption_key)
+            # Mark that encryption was used
+            metadata_map["encryption_used"] = True
 
             # Process data and get updated metadata
             PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)

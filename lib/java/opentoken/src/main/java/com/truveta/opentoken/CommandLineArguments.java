@@ -45,4 +45,8 @@ public class CommandLineArguments {
     @Parameter(names = { "-d",
             "--decrypt" }, description = "Decrypt mode. Decrypts tokens from input file.", required = false)
     private boolean decrypt = false;
+
+    @Getter
+    @Parameter(names = { "--hash-only" }, description = "Hash-only mode. Generates tokens with hashing only, skipping encryption.", required = false)
+    private boolean hashOnly = false;
 }
