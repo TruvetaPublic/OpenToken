@@ -27,11 +27,6 @@ public class DecryptTokenTransformer implements TokenTransformer {
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = LoggerFactory.getLogger(DecryptTokenTransformer.class);
-    private static final String AES = "AES";
-    private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
-    private static final int KEY_BYTE_LENGTH = 32;
-    private static final int IV_SIZE = 12;
-    private static final int TAG_LENGTH_BITS = 128;
 
     private final SecretKeySpec secretKey;
 
@@ -48,12 +43,12 @@ public class DecryptTokenTransformer implements TokenTransformer {
      */
     public DecryptTokenTransformer(String encryptionKey)
             throws InvalidKeyException, InvalidAlgorithmParameterException {
-        if (encryptionKey.length() != KEY_BYTE_LENGTH) {
-            logger.error("Invalid Argument. Key must be {} characters long", KEY_BYTE_LENGTH);
-            throw new InvalidKeyException(String.format("Key must be %s characters long", KEY_BYTE_LENGTH));
+        if (encryptionKey.length() != EncryptionConstants.KEY_BYTE_LENGTH) {
+            logger.error("Invalid Argument. Key must be {} characters long", EncryptionConstants.KEY_BYTE_LENGTH);
+            throw new InvalidKeyException(String.format("Key must be %s characters long", EncryptionConstants.KEY_BYTE_LENGTH));
         }
 
-        this.secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), AES);
+        this.secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), EncryptionConstants.AES);
     }
 
     /**
@@ -93,16 +88,16 @@ public class DecryptTokenTransformer implements TokenTransformer {
         byte[] messageBytes = Base64.getDecoder().decode(token);
 
         // Extract IV and ciphertext
-        byte[] ivBytes = new byte[IV_SIZE];
-        byte[] cipherBytes = new byte[messageBytes.length - IV_SIZE];
+        byte[] ivBytes = new byte[EncryptionConstants.IV_SIZE];
+        byte[] cipherBytes = new byte[messageBytes.length - EncryptionConstants.IV_SIZE];
 
-        System.arraycopy(messageBytes, 0, ivBytes, 0, IV_SIZE);
-        System.arraycopy(messageBytes, IV_SIZE, cipherBytes, 0, cipherBytes.length);
+        System.arraycopy(messageBytes, 0, ivBytes, 0, EncryptionConstants.IV_SIZE);
+        System.arraycopy(messageBytes, EncryptionConstants.IV_SIZE, cipherBytes, 0, cipherBytes.length);
 
-        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(TAG_LENGTH_BITS, ivBytes);
+        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(EncryptionConstants.TAG_LENGTH_BITS, ivBytes);
 
         // Initialize AES cipher in GCM mode with no padding for decryption
-        Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
+        Cipher cipher = Cipher.getInstance(EncryptionConstants.ENCRYPTION_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, this.secretKey, gcmParameterSpec);
 
         byte[] decryptedBytes = cipher.doFinal(cipherBytes);

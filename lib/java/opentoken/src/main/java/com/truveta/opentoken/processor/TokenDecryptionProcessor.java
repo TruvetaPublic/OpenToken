@@ -47,17 +47,17 @@ public final class TokenDecryptionProcessor {
             Map<String, String> row = reader.next();
             rowCounter++;
             
-            String token = row.get("Token");
+            String token = row.get(TokenConstants.TOKEN);
             
             // Decrypt the token if it's not blank
             if (token != null && !token.isEmpty() && !Token.BLANK.equals(token)) {
                 try {
                     String decryptedToken = decryptor.transform(token);
-                    row.put("Token", decryptedToken);
+                    row.put(TokenConstants.TOKEN, decryptedToken);
                     decryptedCounter++;
                 } catch (Exception e) {
                     logger.error("Failed to decrypt token for RecordId {}, RuleId {}: {}", 
-                               row.get("RecordId"), row.get("RuleId"), e.getMessage());
+                               row.get(TokenConstants.RECORD_ID), row.get(TokenConstants.RULE_ID), e.getMessage());
                     errorCounter++;
                     // Keep the encrypted token in case of error
                 }

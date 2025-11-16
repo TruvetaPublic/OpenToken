@@ -60,34 +60,36 @@ public class Main {
         logger.info("Output Path: {}", outputPath);
         logger.info("Output Type: {}", outputType);
 
-        // Decrypt mode - process encrypted tokens
+        // Validate input and output types for both modes
+        if (!(CommandLineArguments.TYPE_CSV.equals(inputType) || CommandLineArguments.TYPE_PARQUET.equals(inputType))) {
+            logger.error("Only csv and parquet input types are supported!");
+            return;
+        }
+        if (!(CommandLineArguments.TYPE_CSV.equals(outputType) || CommandLineArguments.TYPE_PARQUET.equals(outputType))) {
+            logger.error("Only csv and parquet output types are supported!");
+            return;
+        }
+
+        // Process based on mode
         if (decryptMode) {
+            // Decrypt mode - process encrypted tokens
             if (encryptionKey == null || encryptionKey.isBlank()) {
                 logger.error("Encryption key must be specified for decryption");
                 return;
             }
             
-            if (!(CommandLineArguments.TYPE_CSV.equals(inputType) || CommandLineArguments.TYPE_PARQUET.equals(inputType))) {
-                logger.error("Decryption mode only supports CSV and Parquet input types");
-                return;
-            }
-            
             decryptTokens(inputPath, outputPath, inputType, outputType, encryptionKey);
             logger.info("Token decryption completed successfully.");
-            return;
-        }
+        } else {
+            // Encrypt mode - validate and process person attributes
+            if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null
+                    || encryptionKey.isBlank()) {
+                logger.error("Hashing secret and encryption key must be specified");
+                return;
+            }
 
-        // Validate input parameters for encryption mode
-        if (!(CommandLineArguments.TYPE_CSV.equals(inputType) || CommandLineArguments.TYPE_PARQUET.equals(inputType))) {
-            logger.error("Only csv and parquet input types are supported!");
-            return;
-        } else if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null
-                || encryptionKey.isBlank()) {
-            logger.error("Hashing secret and encryption key must be specified");
-            return;
+            encryptTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey);
         }
-
-        encryptTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey);
     }
 
     private static void encryptTokens(String inputPath, String outputPath, String inputType, String outputType,
