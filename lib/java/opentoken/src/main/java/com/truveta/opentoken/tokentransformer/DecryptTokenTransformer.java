@@ -56,6 +56,7 @@ public class DecryptTokenTransformer implements TokenTransformer {
      * <p>
      * Decrypts the token using AES-256 symmetric decryption algorithm.
      *
+     * @param token the encrypted token in base64 format.
      * @throws java.lang.IllegalStateException        the underlying cipher
      *                                                is in a wrong state.
      * @throws javax.crypto.IllegalBlockSizeException if this cipher is a block
