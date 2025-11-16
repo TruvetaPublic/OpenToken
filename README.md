@@ -163,12 +163,17 @@ The driver accepts multiple command line arguments:
 
 - `-h | --hashingsecret`: This argument is used to specify the hashing secret for the `HMAC-SHA256` digest. The generated tokens are hashed using this digest.
 
-- `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key.
+- `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key. Required unless using `--hash-only` mode.
 
 - `-d | --decrypt`: Optional. When provided, the tool operates in decryption mode. It decrypts tokens from a previously encrypted OpenToken output file. In decryption mode, only the encryption key (`-e`) is required. The input file can be either CSV or Parquet format containing encrypted tokens with columns: `RuleId`, `Token`, and `RecordId`.
 
+- `--hash-only`: Optional. When provided, the tool operates in hash-only mode. It generates tokens using HMAC-SHA256 hashing only, skipping the AES encryption step. In hash-only mode, only the hashing secret (`-h`) is required; the encryption key (`-e`) is not needed. This mode is useful for token matching scenarios where encryption is not necessary.
+
 The encryption logic is: 
 > $Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))$
+
+The hash-only logic is:
+> $Base64(HMAC-SHA256(Hex(Sha256(token-signature))))$
 
 ### Accepted input  <!-- omit in toc -->
 

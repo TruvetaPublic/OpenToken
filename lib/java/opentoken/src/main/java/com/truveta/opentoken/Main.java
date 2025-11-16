@@ -82,31 +82,35 @@ public class Main {
             
             decryptTokens(inputPath, outputPath, inputType, outputType, encryptionKey);
             logger.info("Token decryption completed successfully.");
-        } else if (hashOnlyMode) {
-            // Hash-only mode - validate and process person attributes with hashing only
-            if (hashingSecret == null || hashingSecret.isBlank()) {
-                logger.error("Hashing secret must be specified for hash-only mode");
-                return;
-            }
-
-            hashTokens(inputPath, outputPath, inputType, outputType, hashingSecret);
         } else {
-            // Encrypt mode - validate and process person attributes
-            if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null
-                    || encryptionKey.isBlank()) {
-                logger.error("Hashing secret and encryption key must be specified");
+            // Token generation mode - validate and process person attributes
+            // Hashing secret is always required
+            if (hashingSecret == null || hashingSecret.isBlank()) {
+                logger.error("Hashing secret must be specified");
+                return;
+            }
+            
+            // Encryption key is only required when not in hash-only mode
+            if (!hashOnlyMode && (encryptionKey == null || encryptionKey.isBlank())) {
+                logger.error("Encryption key must be specified (or use --hash-only to skip encryption)");
                 return;
             }
 
-            encryptTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey);
+            processTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey, hashOnlyMode);
         }
     }
 
-    private static void hashTokens(String inputPath, String outputPath, String inputType, String outputType,
-                                   String hashingSecret) {
+    private static void processTokens(String inputPath, String outputPath, String inputType, String outputType,
+                                      String hashingSecret, String encryptionKey, boolean hashOnlyMode) {
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
         try {
+            // Always add hash transformer
             tokenTransformerList.add(new HashTokenTransformer(hashingSecret));
+            
+            // Only add encryption transformer if not in hash-only mode
+            if (!hashOnlyMode) {
+                tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
+            }
         } catch (Exception e) {
             logger.error("Error in initializing the transformer. Execution halted. ", e);
             return;
@@ -119,46 +123,16 @@ public class Main {
             Metadata metadata = new Metadata();
             Map<String, Object> metadataMap = metadata.initialize();
 
-            // Set secrets separately
+            // Set hashing secret
             metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
-            // Mark that encryption was not used
-            metadataMap.put("encryption_used", false);
-
-            // Process data and get updated metadata
-            PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
-
-            // Write the metadata to file
-            MetadataWriter metadataWriter = new MetadataJsonWriter(outputPath);
-            metadataWriter.write(metadataMap);
-
-        } catch (Exception e) {
-            logger.error("Error in processing the input file. Execution halted. ", e);
-        }
-    }
-
-    private static void encryptTokens(String inputPath, String outputPath, String inputType, String outputType,
-                                      String hashingSecret, String encryptionKey) {
-        List<TokenTransformer> tokenTransformerList = new ArrayList<>();
-        try {
-            tokenTransformerList.add(new HashTokenTransformer(hashingSecret));
-            tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
-        } catch (Exception e) {
-            logger.error("Error in initializing the transformer. Execution halted. ", e);
-            return;
-        }
-
-        try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
-                PersonAttributesWriter writer = createPersonAttributesWriter(outputPath, outputType)) {
-
-            // Create initial metadata with system information
-            Metadata metadata = new Metadata();
-            Map<String, Object> metadataMap = metadata.initialize();
-
-            // Set secrets separately
-            metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
-            metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
-            // Mark that encryption was used
-            metadataMap.put("encryption_used", true);
+            
+            // Set encryption secret and mark encryption status
+            if (!hashOnlyMode) {
+                metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
+                metadataMap.put("encryption_used", true);
+            } else {
+                metadataMap.put("encryption_used", false);
+            }
 
             // Process data and get updated metadata
             PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
