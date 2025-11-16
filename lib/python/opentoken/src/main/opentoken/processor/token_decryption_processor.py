@@ -6,6 +6,7 @@ import logging
 
 from opentoken.io.token_reader import TokenReader
 from opentoken.io.token_writer import TokenWriter
+from opentoken.processor.token_constants import TokenConstants
 from opentoken.tokens.token import Token
 from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
 
@@ -43,17 +44,17 @@ class TokenDecryptionProcessor:
         for row in reader:
             row_counter += 1
             
-            token = row.get('Token', '')
+            token = row.get(TokenConstants.TOKEN, '')
             
             # Decrypt the token if it's not blank
             if token and token != Token.BLANK:
                 try:
                     decrypted_token = decryptor.transform(token)
-                    row['Token'] = decrypted_token
+                    row[TokenConstants.TOKEN] = decrypted_token
                     decrypted_counter += 1
                 except Exception as e:
-                    logger.error(f"Failed to decrypt token for RecordId {row.get('RecordId')}, "
-                               f"RuleId {row.get('RuleId')}: {e}")
+                    logger.error(f"Failed to decrypt token for RecordId {row.get(TokenConstants.RECORD_ID)}, "
+                               f"RuleId {row.get(TokenConstants.RULE_ID)}: {e}")
                     error_counter += 1
                     # Keep the encrypted token in case of error
             

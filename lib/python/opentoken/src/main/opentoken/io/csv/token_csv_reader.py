@@ -7,6 +7,7 @@ import logging
 from typing import Iterator, Dict
 
 from opentoken.io.token_reader import TokenReader
+from opentoken.processor.token_constants import TokenConstants
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class TokenCSVReader(TokenReader):
             self.csv_reader = csv.DictReader(self.file_handle)
             
             # Validate required columns
-            required_columns = {'RuleId', 'Token', 'RecordId'}
+            required_columns = {TokenConstants.RULE_ID, TokenConstants.TOKEN, TokenConstants.RECORD_ID}
             fieldnames = set(self.csv_reader.fieldnames or [])
             if not required_columns.issubset(fieldnames):
                 missing = required_columns - fieldnames

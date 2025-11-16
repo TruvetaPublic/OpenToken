@@ -13,6 +13,7 @@ except ImportError:
     raise ImportError("pyarrow is required for Parquet support. Install with: pip install pyarrow")
 
 from opentoken.io.token_writer import TokenWriter
+from opentoken.processor.token_constants import TokenConstants
 
 
 logger = logging.getLogger(__name__)
@@ -48,9 +49,9 @@ class TokenParquetWriter(TokenWriter):
             data: A dictionary with RuleId, Token, and RecordId.
         """
         self.rows.append({
-            'RuleId': data.get('RuleId', ''),
-            'Token': data.get('Token', ''),
-            'RecordId': data.get('RecordId', '')
+            TokenConstants.RULE_ID: data.get(TokenConstants.RULE_ID, ''),
+            TokenConstants.TOKEN: data.get(TokenConstants.TOKEN, ''),
+            TokenConstants.RECORD_ID: data.get(TokenConstants.RECORD_ID, '')
         })
 
     def close(self):

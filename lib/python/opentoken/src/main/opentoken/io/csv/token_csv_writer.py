@@ -8,6 +8,7 @@ import os
 from typing import Dict
 
 from opentoken.io.token_writer import TokenWriter
+from opentoken.processor.token_constants import TokenConstants
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class TokenCSVWriter(TokenWriter):
         os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
 
         self.file_handle = open(file_path, 'w', newline='', encoding='utf-8')
-        self.csv_writer = csv.DictWriter(self.file_handle, fieldnames=['RuleId', 'Token', 'RecordId'])
+        self.csv_writer = csv.DictWriter(self.file_handle, fieldnames=[TokenConstants.RULE_ID, TokenConstants.TOKEN, TokenConstants.RECORD_ID])
         self.csv_writer.writeheader()
 
     def write_token(self, data: Dict[str, str]) -> None:
