@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.io.TokenReader;
+import com.truveta.opentoken.processor.TokenConstants;
 
 /**
  * Reads encrypted tokens from a Parquet file for decryption.
@@ -56,11 +57,11 @@ public class TokenParquetReader implements TokenReader {
             
             for (org.apache.parquet.schema.Type field : schema.getFields()) {
                 String fieldName = field.getName();
-                if ("RuleId".equals(fieldName)) {
+                if (TokenConstants.RULE_ID.equals(fieldName)) {
                     hasRuleId = true;
-                } else if ("Token".equals(fieldName)) {
+                } else if (TokenConstants.TOKEN.equals(fieldName)) {
                     hasToken = true;
-                } else if ("RecordId".equals(fieldName)) {
+                } else if (TokenConstants.RECORD_ID.equals(fieldName)) {
                     hasRecordId = true;
                 }
             }

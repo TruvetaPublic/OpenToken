@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.io.TokenReader;
+import com.truveta.opentoken.processor.TokenConstants;
 
 /**
  * Reads encrypted tokens from a CSV file for decryption.
@@ -50,11 +51,11 @@ public class TokenCSVReader implements TokenReader {
         
         for (String header : headers) {
             String trimmed = header.trim();
-            if ("RuleId".equals(trimmed)) {
+            if (TokenConstants.RULE_ID.equals(trimmed)) {
                 hasRuleId = true;
-            } else if ("Token".equals(trimmed)) {
+            } else if (TokenConstants.TOKEN.equals(trimmed)) {
                 hasToken = true;
-            } else if ("RecordId".equals(trimmed)) {
+            } else if (TokenConstants.RECORD_ID.equals(trimmed)) {
                 hasRecordId = true;
             }
         }

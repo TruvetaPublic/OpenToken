@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.io.TokenWriter;
+import com.truveta.opentoken.processor.TokenConstants;
 
 /**
  * Writes decrypted tokens to a Parquet file.
@@ -49,9 +50,9 @@ public class TokenParquetWriter implements TokenWriter {
         
         // Define schema
         MessageType schema = Types.buildMessage()
-            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named("RuleId")
-            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named("Token")
-            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named("RecordId")
+            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.RULE_ID)
+            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.TOKEN)
+            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.RECORD_ID)
             .named("TokenSchema");
         
         this.groupFactory = new SimpleGroupFactory(schema);
@@ -73,14 +74,14 @@ public class TokenParquetWriter implements TokenWriter {
      * @throws IOException If an I/O error occurs.
      */
     public void writeToken(Map<String, String> data) throws IOException {
-        String ruleId = data.getOrDefault("RuleId", "");
-        String token = data.getOrDefault("Token", "");
-        String recordId = data.getOrDefault("RecordId", "");
+        String ruleId = data.getOrDefault(TokenConstants.RULE_ID, "");
+        String token = data.getOrDefault(TokenConstants.TOKEN, "");
+        String recordId = data.getOrDefault(TokenConstants.RECORD_ID, "");
         
         Group group = groupFactory.newGroup()
-            .append("RuleId", ruleId)
-            .append("Token", token)
-            .append("RecordId", recordId);
+            .append(TokenConstants.RULE_ID, ruleId)
+            .append(TokenConstants.TOKEN, token)
+            .append(TokenConstants.RECORD_ID, recordId);
         
         writer.write(group);
     }

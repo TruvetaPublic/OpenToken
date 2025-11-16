@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.io.TokenWriter;
+import com.truveta.opentoken.processor.TokenConstants;
 
 /**
  * Writes decrypted tokens to a CSV file.
@@ -42,7 +43,7 @@ public class TokenCSVWriter implements TokenWriter {
         this.writer = new BufferedWriter(new FileWriter(filePath));
         
         // Write header
-        writer.write("RuleId,Token,RecordId");
+        writer.write(TokenConstants.RULE_ID + "," + TokenConstants.TOKEN + "," + TokenConstants.RECORD_ID);
         writer.newLine();
     }
     
@@ -53,9 +54,9 @@ public class TokenCSVWriter implements TokenWriter {
      * @throws IOException If an I/O error occurs.
      */
     public void writeToken(Map<String, String> data) throws IOException {
-        String ruleId = data.getOrDefault("RuleId", "");
-        String token = data.getOrDefault("Token", "");
-        String recordId = data.getOrDefault("RecordId", "");
+        String ruleId = data.getOrDefault(TokenConstants.RULE_ID, "");
+        String token = data.getOrDefault(TokenConstants.TOKEN, "");
+        String recordId = data.getOrDefault(TokenConstants.RECORD_ID, "");
         
         writer.write(String.format("%s,%s,%s", ruleId, token, recordId));
         writer.newLine();
