@@ -124,17 +124,17 @@ graph TB
 **Actions**:
 1. Extracts version from branch name (e.g., `release/1.23.4` → `1.23.4`)
 2. Validates semantic versioning format (`x.y.z`)
-3. Compares with current version in `lib/python/src/main/opentoken/__init__.py` (`__version__` variable)
+3. Compares with current version in `lib/python/opentoken/src/main/opentoken/__init__.py` (`__version__` variable)
 4. If update needed:
    - Runs `bump2version --new-version x.y.z patch`
    - Updates all version files:
      - `.bumpversion.cfg`
      - `lib/java/pom.xml`
      - `Dockerfile`
-     - `lib/java/src/main/java/com/truveta/opentoken/Metadata.java`
-     - `lib/python/setup.py`
-     - `lib/python/src/main/opentoken/__init__.py`
-     - `lib/python/src/main/opentoken/metadata.py`
+     - `lib/java/opentoken/src/main/java/com/truveta/opentoken/Metadata.java`
+     - `lib/python/opentoken/setup.py`
+     - `lib/python/opentoken/src/main/opentoken/__init__.py`
+     - `lib/python/opentoken/src/main/opentoken/metadata.py`
    - Commits changes to release branch
    - Comments on PR with update summary
 5. If already up-to-date:
