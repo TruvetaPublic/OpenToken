@@ -31,9 +31,16 @@ export class PersonAttributesProcessor {
     const attributes = AttributeLoader.load();
     let rowCounter = 0;
 
+    // Track invalid attributes and blank tokens
+    const invalidAttributeCount = new Map<string, number>();
+    const blankTokensByRuleCount = new Map<string, number>();
+
     while (await reader.hasNext()) {
       const row = await reader.next();
       rowCounter++;
+
+      const rowInvalidAttributes = new Set<string>();
+      const rowBlankTokens = new Set<string>();
 
       // For each token definition, generate a token
       for (const token of tokens) {
@@ -43,11 +50,13 @@ export class PersonAttributesProcessor {
         // Build token signature from attribute expressions
         const signatureParts: string[] = [];
         for (const expr of definition) {
-          // Get attribute class and find corresponding value in row
-          // For now, we'll iterate through all row keys to find matches
+          const exprAttributeClass = expr.getAttributeClass();
           let effectiveValue = '';
+          let found = false;
 
           for (const attr of Array.from(attributes)) {
+            if (attr.constructor.name !== exprAttributeClass) continue;
+
             const attrName = attr.getName();
             let value = row.get(attrName);
 
@@ -59,18 +68,34 @@ export class PersonAttributesProcessor {
               }
             }
 
-            if (value && attr.validate(value)) {
-              const normalized = attr.normalize(value);
-              // Apply expression transformations
-              effectiveValue = expr.getEffectiveValue(normalized);
-              break;
+            if (value) {
+              if (attr.validate(value)) {
+                const normalized = attr.normalize(value);
+                effectiveValue = expr.getEffectiveValue(normalized);
+                found = true;
+                break;
+              } else {
+                // Track invalid attribute
+                rowInvalidAttributes.add(attrName);
+              }
             }
+          }
+
+          if (!found) {
+            // Track that this attribute was missing/invalid for this token
+            rowBlankTokens.add(tokenId);
           }
 
           signatureParts.push(effectiveValue);
         }
 
         const signature = signatureParts.join('|');
+
+        // Check if token is blank (all parts empty)
+        const isBlank = signatureParts.every((part) => part === '');
+        if (isBlank) {
+          rowBlankTokens.add(tokenId);
+        }
 
         // Apply transformers (hash, encrypt)
         let tokenValue = signature;
@@ -90,9 +115,60 @@ export class PersonAttributesProcessor {
         await writer.writeAttributes(outputRecord);
       }
 
+      // Track invalid attributes
+      if (rowInvalidAttributes.size > 0) {
+        for (const attrName of rowInvalidAttributes) {
+          invalidAttributeCount.set(
+            attrName,
+            (invalidAttributeCount.get(attrName) || 0) + 1
+          );
+        }
+      }
+
+      // Track blank tokens
+      if (rowBlankTokens.size > 0) {
+        for (const ruleId of rowBlankTokens) {
+          blankTokensByRuleCount.set(
+            ruleId,
+            (blankTokensByRuleCount.get(ruleId) || 0) + 1
+          );
+        }
+      }
+
       if (rowCounter % 1000 === 0) {
         console.log(`Processed ${rowCounter} records`);
       }
+    }
+
+    // Log invalid attribute statistics
+    if (invalidAttributeCount.size > 0) {
+      for (const [attrName, count] of invalidAttributeCount.entries()) {
+        console.log(
+          `Total invalid Attribute count for [${attrName}]: ${count.toLocaleString()}`
+        );
+      }
+      const totalInvalid = Array.from(invalidAttributeCount.values()).reduce(
+        (sum, count) => sum + count,
+        0
+      );
+      console.log(
+        `Total number of records with invalid attributes: ${totalInvalid.toLocaleString()}`
+      );
+    }
+
+    // Log blank token statistics
+    if (blankTokensByRuleCount.size > 0) {
+      for (const [ruleId, count] of blankTokensByRuleCount.entries()) {
+        console.log(
+          `Total blank tokens for rule [${ruleId}]: ${count.toLocaleString()}`
+        );
+      }
+      const totalBlankTokens = Array.from(
+        blankTokensByRuleCount.values()
+      ).reduce((sum, count) => sum + count, 0);
+      console.log(
+        `Total blank tokens generated: ${totalBlankTokens.toLocaleString()}`
+      );
     }
 
     metadata.totalRows = rowCounter;

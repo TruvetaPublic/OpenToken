@@ -5,6 +5,8 @@
 import * as fs from 'fs';
 import { parse, Parser } from 'csv-parse';
 import { PersonAttributesReader } from '../PersonAttributesReader';
+import { Attribute } from '../../attributes/Attribute';
+import { AttributeLoader } from '../../attributes/AttributeLoader';
 
 /**
  * Reads person attributes from a CSV file.
@@ -15,6 +17,8 @@ export class PersonAttributesCSVReader implements PersonAttributesReader {
   private readonly queue: Record<string, unknown>[] = [];
   private readonly waiters: Array<{ resolve: (value: boolean) => void; reject: (error: Error) => void }> = [];
   private error?: Error;
+  private readonly attributeMap: Map<string, Attribute> = new Map();
+  private headers: string[] = [];
 
   constructor(filePath: string) {
     const stream = fs.createReadStream(filePath);
@@ -25,9 +29,28 @@ export class PersonAttributesCSVReader implements PersonAttributesReader {
         trim: true,
       })
     );
+    
+    // Load all available attributes
+    const attributes = AttributeLoader.load();
+    
     this.parser.on('readable', () => {
       let record: Record<string, unknown> | null;
       while ((record = this.parser.read()) !== null) {
+        // Build attribute map from headers on first record
+        if (this.headers.length === 0 && record) {
+          this.headers = Object.keys(record);
+          for (const headerName of this.headers) {
+            for (const attribute of attributes) {
+              for (const alias of attribute.getAliases()) {
+                if (headerName.toLowerCase() === alias.toLowerCase()) {
+                  this.attributeMap.set(headerName, attribute);
+                  break;
+                }
+              }
+              if (this.attributeMap.has(headerName)) break;
+            }
+          }
+        }
         this.queue.push(record);
       }
       this.drainWaiters();
@@ -74,7 +97,8 @@ export class PersonAttributesCSVReader implements PersonAttributesReader {
 
     const result = new Map<string, string>();
     for (const [key, value] of Object.entries(record)) {
-      if (typeof value === 'string') {
+      const attribute = this.attributeMap.get(key);
+      if (attribute && typeof value === 'string') {
         result.set(key, value);
       }
     }
