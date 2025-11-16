@@ -207,15 +207,15 @@ git checkout develop
 git pull origin develop
 
 # Create feature branch
-git checkout -b feature/new-token-type
+git checkout -b feature/<github-username>/new-token-type
 
 # Make changes, commit
 git add .
 git commit -m "Add new token type T6"
 
 # Push and open PR to develop
-git push origin feature/new-token-type
-# Open PR on GitHub: feature/new-token-type → develop
+git push origin feature/<github-username>/new-token-type
+# Open PR on GitHub: feature/<github-username>/new-token-type → develop
 ```
 
 ### Example 3: Accidental PR to Main
