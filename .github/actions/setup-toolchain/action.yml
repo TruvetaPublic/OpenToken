@@ -100,6 +100,8 @@ runs:
         java-version: ${{ inputs.java-version }}
         distribution: ${{ inputs.java-distribution }}
         cache: ${{ inputs.java-cache }}
+        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+        settings-path: ${{ github.workspace }} # location for the settings.xml file
 
     - name: Set up Python
       if: inputs.enable-python == 'true'
