@@ -201,8 +201,9 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
             TokenDecryptionProcessor.process(reader, writer, decryptor)
                 
     except Exception as e:
-        logger.error(f"Error during token decryption: {e}")
-        raise
+        # Mirror Java behavior: log error and continue without raising
+        logger.error("Error during token decryption", exc_info=e)
+        return
 
 
 def build_token_transformers(args: CommandLineArguments) -> List[TokenTransformer]:

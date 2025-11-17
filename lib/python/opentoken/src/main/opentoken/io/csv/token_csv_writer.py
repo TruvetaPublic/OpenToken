@@ -15,8 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 class TokenCSVWriter(TokenWriter):
-    """
-    Writes decrypted tokens to a CSV file.
+    """Writes decrypted tokens to a CSV file.
+
+    Parity notes (Java `TokenCSVWriter`):
+    - Java uses a simple BufferedWriter and manual comma separation.
+    - We use `csv.DictWriter` for safer quoting; order and header names match.
+    - Added an explicit flush after each write to approximate Java's immediate write semantics.
     Output columns: RuleId, Token, RecordId
     """
 
@@ -40,11 +44,10 @@ class TokenCSVWriter(TokenWriter):
         self.csv_writer.writeheader()
 
     def write_token(self, data: Dict[str, str]) -> None:
-        """
-        Write a token row to the CSV file.
+        """Write a token row to the CSV file.
 
         Args:
-            data: A dictionary with RuleId, Token, and RecordId.
+            data: Dict containing RuleId, Token, RecordId (missing keys default to empty string).
         """
         try:
             self.csv_writer.writerow({
@@ -52,6 +55,8 @@ class TokenCSVWriter(TokenWriter):
                 TokenConstants.TOKEN: data.get(TokenConstants.TOKEN, ''),
                 TokenConstants.RECORD_ID: data.get(TokenConstants.RECORD_ID, '')
             })
+            # Flush to keep behavior closer to Java's line-by-line writes
+            self.file_handle.flush()
         except IOError as e:
             logger.error(f"Error in writing to CSV file: {e}")
             raise
