@@ -2,12 +2,12 @@
 
 This document explains the **Gitflow‑based** branch strategy and automated workflows for the OpenToken repository.
 
-We follow Gitflow’s separation of `main`, `develop`, `feature/*`, and `release/*` branches, with a few automation‑oriented tweaks (notably an automated `main` → `develop` sync after each release).
+We follow Gitflow’s separation of `main`, `develop`, `dev/*`, and `release/*` branches, with a few automation‑oriented tweaks (notably an automated `main` → `develop` sync after each release).
 
 ## Branch Structure
 
 ```
-feature/* (development work)
+dev/* (development work)
   ↓
   | (all feature/bug PRs go here)
   |
@@ -87,7 +87,7 @@ graph TB
 - **Protection** (recommended):
   - All CI checks must pass
   - Code review required
-- **Merges from**: `feature/*`, `bugfix/*`, etc.
+- **Merges from**: `dev/*`
 - **Merges to**: `release/*` branches (for release preparation)
 - **Keeps in sync with `main`**: After each release, an automated PR merges `main` back into `develop`, carrying all release changes (equivalent to Gitflow’s manual `release/*` → `develop` merge).
 
@@ -105,7 +105,7 @@ graph TB
 - **Merges from**: `develop`
 - **Merges to**: `main` only
 
-### `feature/*`, `bugfix/*`, etc.
+### `feature/*`
 - **Purpose**: Development work
 - **Lifecycle**:
   1. Branch from `develop`
@@ -207,21 +207,21 @@ git checkout develop
 git pull origin develop
 
 # Create feature branch
-git checkout -b feature/<github-username>/new-token-type
+git checkout -b dev/<github-username>/new-token-type
 
 # Make changes, commit
 git add .
 git commit -m "Add new token type T6"
 
 # Push and open PR to develop
-git push origin feature/<github-username>/new-token-type
-# Open PR on GitHub: feature/<github-username>/new-token-type → develop
+git push origin dev/<github-username>/new-token-type
+# Open PR on GitHub: dev/<github-username>/new-token-type → develop
 ```
 
 ### Example 3: Accidental PR to Main
 
 ```bash
-# Developer mistakenly opens PR: feature/<github-username>/my-work → main
+# Developer mistakenly opens PR: dev/<github-username>/my-work → main
 # The PR is immediately auto-retargeted to develop
 # Comment posted explaining the change
 # Developer continues with the PR targeting develop

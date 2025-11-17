@@ -54,9 +54,7 @@ jobs:
 
 If you believe this PR should target \`main\` (e.g., it's a hotfix or release), please:
 1. Create a \`release/x.y.z\` branch
-2. Open a new PR from that branch to \`main\`
-
-For more information, see our [contributing guidelines](.github/pull_request_template.md).`
+2. Open a new PR from that branch to \`main\``
               });
               
               console.log(`Successfully retargeted PR #${pr.number} to develop`);
