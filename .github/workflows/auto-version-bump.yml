@@ -148,7 +148,7 @@ jobs:
               - \`lib/java/opentoken/pom.xml\`
               - \`Dockerfile\`
               - \`lib/java/opentoken/src/main/java/com/truveta/opentoken/Metadata.java\`
-              - \`lib/python/setup.py\`
+              - \`lib/python/opentoken/setup.py\`
               - \`lib/python/opentoken/src/main/opentoken/__init__.py\`
               - \`lib/python/opentoken/src/main/opentoken/metadata.py\`
               
