@@ -34,7 +34,7 @@ jobs:
                 `Current head branch: ${headRef}\n\n` +
                 `Standard development work should target the 'develop' branch.\n` +
                 `Only release PRs from 'release/x.y.z' branches can target 'main'.\n\n` +
-                `Please close this PR and open a new one targeting 'develop' instead.`
+                `This PR may be automatically retargeted to 'develop' by our automation. If it is not, please close this PR and open a new one targeting 'develop' instead.`
               );
               return;
             }
