@@ -3,11 +3,12 @@ name: Docker Publish
 on:
   push:
     branches: [main]
+    tags:
+      - "v*.*.*"
   pull_request:
     branches: ["main", "develop"]
   release:
-    types: [created, published, released]
-  # Added pull_request trigger - pull requests now trigger builds for validation
+    types: [published]
 
 env:
   # Use docker.io for Docker Hub if empty
