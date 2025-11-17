@@ -23,11 +23,10 @@ jobs:
     permissions:
       contents: write
       packages: write
-      actions: read
 
     env:
-      VERSION: ${{ needs.release-info.outputs.version }}
-      TAG: ${{ needs.release-info.outputs.tag }}
+      VERSION: ${{ needs.release-info.outputs['version'] }}
+      TAG: ${{ needs.release-info.outputs['tag'] }}
       RELEASE_FOUND: ${{ needs.release-info.outputs['release-found'] }}
       RELEASE_ID: ${{ needs.release-info.outputs['release-id'] }}
 
@@ -37,7 +36,7 @@ jobs:
       - name: Setup toolchain (Java)
         uses: ./.github/actions/setup-toolchain
         with:
-          python-version: ""
+          enable-python: false
 
       - name: Build with Maven
         run: cd lib/java/opentoken && mvn -B package --file pom.xml

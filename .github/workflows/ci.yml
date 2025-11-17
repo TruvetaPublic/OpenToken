@@ -27,7 +27,7 @@ jobs:
       - name: Setup toolchain (Java)
         uses: ./.github/actions/setup-toolchain
         with:
-          python-version: ""
+          enable-python: false
 
       - name: Build and test with Maven
         run: cd lib/java/opentoken && mvn -B package --file pom.xml
@@ -86,7 +86,8 @@ jobs:
       - name: Setup toolchain (Python)
         uses: ./.github/actions/setup-toolchain
         with:
-          java-version: ""
+          enable-java: false
+          enable-python: true
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies

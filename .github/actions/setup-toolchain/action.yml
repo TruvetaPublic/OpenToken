@@ -1,6 +1,10 @@
 name: "Setup Toolchain"
 description: "Install shared Java and/or Python toolchains with caching"
 inputs:
+  enable-java:
+    description: "Whether to set up Java (true/false)"
+    required: false
+    default: "true"
   java-version:
     description: "Version string passed to actions/setup-java"
     required: false
@@ -13,10 +17,14 @@ inputs:
     description: "Cache strategy for actions/setup-java"
     required: false
     default: "maven"
-  python-version:
-    description: "Python version to install (omit to skip)"
+  enable-python:
+    description: "Whether to set up Python (true/false)"
     required: false
-    default: ""
+    default: "true"
+  python-version:
+    description: "Python version to install"
+    required: false
+    default: "3.10"
   python-cache:
     description: "Cache strategy for actions/setup-python"
     required: false
@@ -25,7 +33,7 @@ runs:
   using: "composite"
   steps:
     - name: Set up JDK
-      if: inputs.java-version != ''
+      if: inputs.enable-java == 'true'
       uses: actions/setup-java@v4
       with:
         java-version: ${{ inputs.java-version }}
@@ -33,7 +41,7 @@ runs:
         cache: ${{ inputs.java-cache }}
 
     - name: Set up Python
-      if: inputs.python-version != ''
+      if: inputs.enable-python == 'true'
       uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}

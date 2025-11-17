@@ -65,7 +65,7 @@ jobs:
       - name: Setup toolchain (Java)
         uses: ./.github/actions/setup-toolchain
         with:
-          python-version: ""
+          enable-python: false
 
       # Add any setup steps before running the `github/codeql-action/init` action.
       # This includes steps like installing compilers or runtimes (`actions/setup-node`
