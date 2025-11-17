@@ -34,8 +34,8 @@ jobs:
       id-token: write
 
     env:
-      VERSION: ${{ needs.release-info.outputs.version }}
-      TAG: ${{ needs.release-info.outputs.tag }}
+      VERSION: ${{ needs.release-info.outputs['version'] }}
+      TAG: ${{ needs.release-info.outputs['tag'] }}
       RELEASE_FOUND: ${{ needs.release-info.outputs['release-found'] }}
       RELEASE_ID: ${{ needs.release-info.outputs['release-id'] }}
 
