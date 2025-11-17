@@ -32,12 +32,6 @@ runs:
         distribution: ${{ inputs.java-distribution }}
         cache: ${{ inputs.java-cache }}
 
-    - name: Ensure pip cache directory
-      if: inputs.python-version != ''
-      shell: bash
-      run: |
-        mkdir -p "$HOME/.cache/pip"
-
     - name: Set up Python
       if: inputs.python-version != ''
       uses: actions/setup-python@v5
