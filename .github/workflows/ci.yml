@@ -1,0 +1,211 @@
+name: Core CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+  workflow_dispatch:
+
+env:
+  MIN_COVERAGE_OVERALL: "60"
+  MIN_COVERAGE_CHANGED_FILES: "80"
+
+jobs:
+  java-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: write
+      pull-requests: write
+      statuses: write
+      actions: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup toolchain (Java)
+        uses: ./.github/actions/setup-toolchain
+        with:
+          enable-python: false
+
+      - name: Build and test with Maven
+        run: cd lib/java/opentoken && mvn -B package --file pom.xml
+
+      - name: Publish Maven Surefire report
+        if: success() || failure()
+        uses: scacap/action-surefire-report@v1
+
+      - name: Publish unit test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: |
+            lib/java/opentoken/target/surefire-reports/*.xml
+
+      - name: Generate JaCoCo report
+        run: cd lib/java/opentoken && mvn jacoco:report
+
+      - name: Upload JaCoCo artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-code-coverage
+          path: |
+            lib/java/opentoken/target/site/jacoco/*
+
+      - name: Add code coverage to PR
+        uses: madrapps/jacoco-report@v1.7.1
+        with:
+          paths: |
+            lib/java/opentoken/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Code Coverage
+          min-coverage-overall: ${{ env.MIN_COVERAGE_OVERALL }}
+          min-coverage-changed-files: ${{ env.MIN_COVERAGE_CHANGED_FILES }}
+          pass-emoji: ":green_circle:"
+          fail-emoji: ":red_circle:"
+
+      - name: Update dependency graph
+        uses: advanced-security/maven-dependency-submission-action@v3
+        with:
+          directory: ${{ github.workspace }}/lib/java/opentoken
+          maven-args: "-B -DskipTests"
+
+  python-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup toolchain (Python)
+        uses: ./.github/actions/setup-toolchain
+        with:
+          enable-java: false
+          enable-python: true
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f lib/python/opentoken/requirements.txt ]; then
+            pip install -r lib/python/opentoken/requirements.txt
+          fi
+          pip install pytest pytest-cov flake8
+          pip install -e lib/python/opentoken/
+
+      - name: Lint with flake8
+        run: |
+          flake8 lib/python/opentoken/src --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 lib/python/opentoken/src --count --exit-zero --statistics
+
+      - name: Test with pytest
+        run: |
+          PYTHONPATH=lib/python/opentoken/src/main pytest lib/python/opentoken/src/test
+
+      - name: Run CLI smoke test
+        run: |
+          cd lib/python/opentoken
+          PYTHONPATH=src/main python3 src/main/opentoken/main.py -i ../../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+
+      - name: Validate CLI output files
+        run: |
+          cd lib/python/opentoken
+          if [ ! -f "target/output.csv" ]; then
+            echo "Error: output.csv not created"
+            exit 1
+          fi
+          if [ ! -f "target/output.metadata.json" ]; then
+            echo "Error: metadata file not created"
+            exit 1
+          fi
+
+      - name: Validate CLI output content
+        run: |
+          cd lib/python/opentoken
+          line_count=$(wc -l < target/output.csv)
+          if [ "$line_count" -le 1 ]; then
+            echo "Error: Output CSV appears to be empty or only contains headers"
+            exit 1
+          fi
+          echo "Output CSV contains $line_count lines"
+
+  interoperability-tests:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup toolchain (Java + Python)
+        uses: ./.github/actions/setup-toolchain
+        with:
+          python-version: "3.10"
+
+      - name: Install Python dependencies
+        run: |
+          cd lib/python/opentoken
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          if [ -f dev-requirements.txt ]; then
+            pip install -r dev-requirements.txt
+          fi
+
+      - name: Install interoperability tool dependencies
+        run: |
+          cd tools
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Build Java artifacts
+        run: |
+          cd lib/java/opentoken
+          mvn clean package -DskipTests
+
+      - name: Run interoperability tests
+        id: run-tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/lib/python/opentoken/src/main
+        run: |
+          cd tools/interoperability
+          python java_python_interoperability_test.py
+
+      - name: Upload interoperability artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: interoperability-test-results
+          path: |
+            /tmp/*output*.csv
+            /tmp/*decrypted*.csv
+            tools/interoperability/*.log
+          retention-days: 7
+
+      - name: Summarize interoperability results
+        if: always()
+        run: |
+          if [ "${{ steps.run-tests.outcome }}" = "success" ]; then
+            {
+              echo "## Interoperability Tests Passed"
+              echo
+              echo "Both implementations produced matching encrypted and decrypted tokens."
+              echo
+              echo "**Environment:** Java 21 + Python 3.10 on Ubuntu"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## Interoperability Tests Failed"
+              echo
+              echo "Check the job logs and uploaded artifacts for comparison details."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

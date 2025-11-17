@@ -1,0 +1,195 @@
+name: Create Release on Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    # Run only if PR was merged from release branch
+    if: |
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: get_version
+        run: |
+          set -euo pipefail
+
+          # Get version from .bumpversion.cfg - only the [bumpversion] section
+          VERSION=$(sed -n '/^\[bumpversion\]/,/^\[/p' .bumpversion.cfg | grep "^current_version" | cut -d'=' -f2 | tr -d ' ')
+
+          # sanitize against characters that will break GITHUB_OUTPUT (angle brackets, CRs, newlines)
+          SAFE_VERSION=$(printf '%s' "$VERSION" | tr -d '<>' | tr -d $'\r' | tr -d $'\n')
+          if [ -z "$SAFE_VERSION" ]; then
+            echo "Failed to determine a valid version from .bumpversion.cfg" >&2
+            exit 1
+          fi
+          echo "version=${SAFE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${SAFE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${SAFE_VERSION}"
+          echo "Tag: v${SAFE_VERSION}"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          TAG="v${{ steps.get_version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag $TAG already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag $TAG does not exist"
+          fi
+
+      - name: Check if release exists
+        id: check_release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = 'v${{ steps.get_version.outputs.version }}';
+            try {
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tag
+              });
+              core.setOutput('exists', 'true');
+              console.log(`Release ${tag} already exists`);
+            } catch (error) {
+              if (error.status === 404) {
+                core.setOutput('exists', 'false');
+                console.log(`Release ${tag} does not exist`);
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Create GitHub Release
+        id: create_release
+        if: steps.check_tag.outputs.exists == 'false' && steps.check_release.outputs.exists == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.get_version.outputs.version }}';
+            const tag = 'v' + version;
+
+            // Get the commit SHA
+            const sha = context.sha;
+
+            // Create the tag
+            try {
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${tag}`,
+                sha: sha
+              });
+              console.log(`Created tag ${tag}`);
+            } catch (error) {
+              console.log(`Tag creation error: ${error.message}`);
+              // Tag might already exist, continue anyway
+            }
+
+            // Generate release notes
+            let releaseNotes = '';
+            try {
+              const notes = await github.rest.repos.generateReleaseNotes({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: tag
+              });
+              releaseNotes = notes.data.body;
+            } catch (error) {
+              console.log(`Could not generate release notes: ${error.message}`);
+              releaseNotes = `Release ${version}`;
+            }
+
+            // Create the release
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: tag,
+              body: releaseNotes,
+              draft: false,
+              prerelease: false
+            });
+
+            console.log(`Created release: ${release.data.html_url}`);
+            core.setOutput('release_url', release.data.html_url);
+            core.setOutput('release_id', release.data.id);
+
+      - name: Merge main back to develop
+        if: steps.check_tag.outputs.exists == 'false' && steps.check_release.outputs.exists == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              // Check if develop branch exists
+              const { data: branches } = await github.rest.repos.listBranches({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              
+              const developExists = branches.some(branch => branch.name === 'develop');
+              
+              if (!developExists) {
+                console.log('Develop branch does not exist yet, skipping merge back');
+                return;
+              }
+              
+              // Create a PR to merge main back to develop
+              const pr = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'chore: sync main back to develop after release ${{ steps.get_version.outputs.version }}',
+                head: 'main',
+                base: 'develop',
+                body: `Automated PR to sync \`main\` back to \`develop\` after release \`${{ steps.get_version.outputs.version }}\`.
+                
+                This ensures \`develop\` includes any changes made during the release process.
+                
+                🤖 Auto-generated by release workflow.`
+              });
+              
+              console.log(`Created sync PR: ${pr.data.html_url}`);
+              
+              // Auto-merge if possible (requires branch protection to allow it)
+              try {
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.data.number,
+                  merge_method: 'merge'
+                });
+                console.log('Auto-merged sync PR');
+              } catch (error) {
+                console.log(`Could not auto-merge: ${error.message}. Manual merge may be required.`);
+              }
+            } catch (error) {
+              console.log(`Error in merge back process: ${error.message}`);
+              // Don't fail the workflow if merge back fails
+            }
+
+      - name: Summary
+        if: steps.check_tag.outputs.exists == 'false' && steps.check_release.outputs.exists == 'false'
+        run: |
+          echo "✅ Release v${{ steps.get_version.outputs.version }} created successfully!"
+          echo "🔖 Tag: v${{ steps.get_version.outputs.version }}"
+          echo "📦 Maven and Docker publish workflows will automatically attach artifacts to this release"
