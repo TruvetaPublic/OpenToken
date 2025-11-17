@@ -5,9 +5,11 @@
 import { PersonAttributesReader } from '../io/PersonAttributesReader';
 import { PersonAttributesWriter } from '../io/PersonAttributesWriter';
 import { TokenTransformer } from '../tokentransformer/TokenTransformer';
-import { TokenRegistry } from '../tokens/TokenRegistry';
 import { AttributeLoader } from '../attributes/AttributeLoader';
 import { Metadata } from '../Metadata';
+import { TokenGenerator } from '../tokens/TokenGenerator';
+import { TokenDefinition } from '../tokens/TokenDefinition';
+import { Attribute } from '../attributes/Attribute';
 
 /**
  * Process all person attributes.
@@ -27,8 +29,9 @@ export class PersonAttributesProcessor {
     transformers: TokenTransformer[],
     metadata: Metadata
   ): Promise<void> {
-    const tokens = TokenRegistry.loadAll();
     const attributes = AttributeLoader.load();
+    const tokenDefinition = new TokenDefinition();
+    const tokenGenerator = new TokenGenerator(tokenDefinition, transformers);
     let rowCounter = 0;
 
     // Track invalid attributes and blank tokens
@@ -39,85 +42,32 @@ export class PersonAttributesProcessor {
       const row = await reader.next();
       rowCounter++;
 
-      const rowInvalidAttributes = new Set<string>();
-      const rowBlankTokens = new Set<string>();
+      // Convert row data to person attributes map
+      const personAttributes = new Map<new () => Attribute, string>();
+      
+      for (const attr of attributes) {
+        const attrName = attr.getName();
+        let value = row.get(attrName);
 
-      // For each token definition, generate a token
-      for (const token of tokens) {
-        const tokenId = token.getIdentifier();
-        const definition = token.getDefinition();
-
-        // Build token signature from attribute expressions
-        const signatureParts: string[] = [];
-        for (const expr of definition) {
-          const exprAttributeClass = expr.getAttributeClass();
-          let effectiveValue = '';
-          let found = false;
-
-          for (const attr of Array.from(attributes)) {
-            if (attr.constructor.name !== exprAttributeClass) continue;
-
-            const attrName = attr.getName();
-            let value = row.get(attrName);
-
-            // Also try aliases
-            if (!value) {
-              for (const alias of attr.getAliases()) {
-                value = row.get(alias);
-                if (value) break;
-              }
-            }
-
-            if (value) {
-              if (attr.validate(value)) {
-                const normalized = attr.normalize(value);
-                effectiveValue = expr.getEffectiveValue(normalized);
-                found = true;
-                break;
-              } else {
-                // Track invalid attribute
-                rowInvalidAttributes.add(attrName);
-              }
-            }
+        // Also try aliases
+        if (!value) {
+          for (const alias of attr.getAliases()) {
+            value = row.get(alias);
+            if (value) break;
           }
-
-          if (!found) {
-            // Track that this attribute was missing/invalid for this token
-            rowBlankTokens.add(tokenId);
-          }
-
-          signatureParts.push(effectiveValue);
         }
 
-        const signature = signatureParts.join('|');
-
-        // Check if token is blank (all parts empty)
-        const isBlank = signatureParts.every((part) => part === '');
-        if (isBlank) {
-          rowBlankTokens.add(tokenId);
+        if (value) {
+          personAttributes.set(attr.constructor as new () => Attribute, value);
         }
-
-        // Apply transformers (hash, encrypt)
-        let tokenValue = signature;
-        for (const transformer of transformers) {
-          tokenValue = transformer.transform(tokenValue);
-        }
-
-        // Write the token
-        const outputRecord = new Map<string, string>();
-        outputRecord.set(
-          'RecordId',
-          row.get('RecordId') || row.get('record-id') || `row-${rowCounter}`
-        );
-        outputRecord.set('RuleId', tokenId);
-        outputRecord.set('Token', tokenValue);
-
-        await writer.writeAttributes(outputRecord);
       }
 
+      // Generate all tokens for this row
+      const result = await tokenGenerator.getAllTokens(personAttributes);
+
       // Track invalid attributes
-      if (rowInvalidAttributes.size > 0) {
-        for (const attrName of rowInvalidAttributes) {
+      if (result.getInvalidAttributes().size > 0) {
+        for (const attrName of result.getInvalidAttributes()) {
           invalidAttributeCount.set(
             attrName,
             (invalidAttributeCount.get(attrName) || 0) + 1
@@ -126,13 +76,23 @@ export class PersonAttributesProcessor {
       }
 
       // Track blank tokens
-      if (rowBlankTokens.size > 0) {
-        for (const ruleId of rowBlankTokens) {
+      if (result.getBlankTokensByRule().size > 0) {
+        for (const ruleId of result.getBlankTokensByRule()) {
           blankTokensByRuleCount.set(
             ruleId,
             (blankTokensByRuleCount.get(ruleId) || 0) + 1
           );
         }
+      }
+
+      // Write tokens
+      const recordId = row.get('RecordId') || row.get('record-id') || `row-${rowCounter}`;
+      for (const [ruleId, token] of result.getTokens().entries()) {
+        const outputRecord = new Map<string, string>();
+        outputRecord.set('RecordId', recordId);
+        outputRecord.set('RuleId', ruleId);
+        outputRecord.set('Token', token);
+        await writer.writeAttributes(outputRecord);
       }
 
       if (rowCounter % 1000 === 0) {

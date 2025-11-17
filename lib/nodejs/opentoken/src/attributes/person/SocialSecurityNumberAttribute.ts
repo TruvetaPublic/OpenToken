@@ -24,7 +24,8 @@ import { AttributeUtilities } from '../utilities/AttributeUtilities';
  */
 export class SocialSecurityNumberAttribute extends BaseAttribute {
   private static readonly NAME = 'SocialSecurityNumber';
-  private static readonly ALIASES = ['SocialSecurityNumber', 'SSN'];
+  // Aliases must match Java implementation for cross-language parity
+  private static readonly ALIASES = ['SocialSecurityNumber', 'NationalIdentificationNumber'];
   private static readonly MIN_SSN_LENGTH = 7;
   private static readonly SSN_LENGTH = 9;
 
@@ -38,31 +39,32 @@ export class SocialSecurityNumberAttribute extends BaseAttribute {
    *   - The middle two digits are not "00".
    *   - The last four digits are not "0000".
    */
-  private static readonly SSN_REGEX =
-    /^(?:\d{7,9}(\.0*)?)$|^(?!000|666|9\d\d)(\d{3})-?(?!00)(\d{2})-?(?!0000)(\d{4})$/;
+  // Mirrors Java regex semantics (dynamic decimal separator simplified to '.'):
+  // ^(?:\d{7,9}(\.0*)?)|(?:^(?!000|666|9\d\d)(\d{3})-?(?!00)(\d{2})-?(?!0000)(\d{4})$)
+  private static readonly SSN_REGEX = /^(?:\d{7,9}(\.0*)?)|(?:^(?!000|666|9\d\d)(\d{3})-?(?!00)(\d{2})-?(?!0000)(\d{4})$)/;
 
   private static readonly DIGITS_ONLY_PATTERN = /^\d+$/;
 
+  // Use the exact invalid SSN list (dash formatted) from Java implementation for parity
   private static readonly INVALID_SSNS = new Set([
-    // All zeros is invalid
-    '000000000',
-    // Repeating patterns
-    '111111111',
-    '222222222',
-    '333333333',
-    '444444444',
-    '555555555',
-    '777777777',
-    '888888888',
-    // Common placeholder SSNs (normalized without dashes)
-    '009999999',
-    '010101010',
-    '087654321',
-    '098765432',
-    '099999999',
-    '111223333',
-    '121212121',
-    '123459999',
+    '111-11-1111',
+    '222-22-2222',
+    '333-33-3333',
+    '444-44-4444',
+    '555-55-5555',
+    '777-77-7777',
+    '888-88-8888',
+    '001-23-4567',
+    '009-99-9999',
+    '010-10-1010',
+    '012-34-5678',
+    '087-65-4321',
+    '098-76-5432',
+    '099-99-9999',
+    '111-22-3333',
+    '121-21-2121',
+    '123-45-6789',
+    '123-45-9999'
   ]);
 
   constructor() {
@@ -82,46 +84,44 @@ export class SocialSecurityNumberAttribute extends BaseAttribute {
   }
 
   /**
-   * Normalize the social security number value. Remove any dashes and return
-   * the value as a 9-digit number without dashes. If not possible return the
-   * original but trimmed value.
-   *
-   * @param originalValue - The social security number value.
-   * @returns The normalized SSN as 9 digits without dashes (e.g., "123456789").
+   * Normalize the social security number value. Remove whitespace & dashes,
+   * strip any decimal extension, pad with zeros (if 7-8 digits) then format
+   * as xxx-xx-xxxx. If not possible return the original trimmed value.
    */
   normalize(originalValue: string): string {
     if (!originalValue || originalValue.length === 0) {
       return originalValue;
     }
 
-    // Remove any whitespace
+    // Remove any whitespace characters
     let trimmedValue = originalValue.trim().replace(AttributeUtilities.WHITESPACE, '');
 
-    // Remove any dashes for now
+    // Remove dashes
     let normalizedValue = trimmedValue.replace(/-/g, '');
 
-    // Remove decimal point/separator and all following numbers if present
+    // Remove decimal portion if present
     const decimalIndex = normalizedValue.indexOf('.');
     if (decimalIndex !== -1) {
       normalizedValue = normalizedValue.substring(0, decimalIndex);
     }
 
-    // Check if the string contains only digits
+    // Digits only check
     if (!SocialSecurityNumberAttribute.DIGITS_ONLY_PATTERN.test(normalizedValue)) {
-      return originalValue; // Return original value if it contains non-numeric characters
+      return originalValue.trim();
     }
 
+    // Length check
     if (
       normalizedValue.length < SocialSecurityNumberAttribute.MIN_SSN_LENGTH ||
       normalizedValue.length > SocialSecurityNumberAttribute.SSN_LENGTH
     ) {
-      return originalValue; // Invalid length for SSN
+      return originalValue.trim();
     }
 
     normalizedValue = this.padWithZeros(normalizedValue);
 
-    // Return without dashes (just 9 digits) to match Java/Python behavior
-    return normalizedValue;
+    // Format with dashes (xxx-xx-xxxx)
+    return `${normalizedValue.substring(0, 3)}-${normalizedValue.substring(3, 5)}-${normalizedValue.substring(5)}`;
   }
 
   /**

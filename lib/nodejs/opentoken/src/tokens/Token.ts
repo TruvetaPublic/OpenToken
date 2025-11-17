@@ -23,3 +23,13 @@ export interface Token {
    */
   getDefinition(): AttributeExpression[];
 }
+
+/**
+ * Token namespace for constants.
+ */
+export namespace Token {
+  /**
+   * The blank token constant representing an empty/null token value.
+   */
+  export const BLANK = '0000000000000000000000000000000000000000000000000000000000000000';
+}
