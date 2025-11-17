@@ -32,10 +32,30 @@ import com.truveta.opentoken.io.parquet.TokenParquetWriter;
 import com.truveta.opentoken.processor.PersonAttributesProcessor;
 import com.truveta.opentoken.processor.TokenDecryptionProcessor;
 
+/**
+ * Entry point for the OpenToken command-line application.
+ * <p>
+ * This class orchestrates two primary workflows:
+ * <ul>
+ *   <li><b>Encrypt mode</b>: Reads person attributes (CSV/Parquet), validates and
+ *   normalizes them, generates tokens via HMAC-SHA256 hashing and AES-256 encryption,
+ *   writes tokens to CSV/Parquet, and emits a metadata JSON file.</li>
+ *   <li><b>Decrypt mode</b>: Reads encrypted tokens (CSV/Parquet) and writes
+ *   decrypted tokens to CSV/Parquet.</li>
+ * </ul>
+ * Input and output formats support CSV and Parquet.
+ */
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+    /**
+     * Application entry point. Parses command-line arguments, validates them, and
+     * routes execution to encryption or decryption workflows.
+     *
+     * @param args command-line arguments
+     * @throws IOException if an I/O error occurs while creating readers or writers
+     */
     public static void main(String[] args) throws IOException {
         CommandLineArguments commandLineArguments = loadCommandLineArguments(args);
         String hashingSecret = commandLineArguments.getHashingSecret();
@@ -92,6 +112,20 @@ public class Main {
         }
     }
 
+    /**
+     * Executes the encryption workflow for person attributes.
+     * <p>
+     * Builds a transformer pipeline consisting of hashing and encryption, processes
+     * records read from the input, writes transformed tokens to the output, and
+     * emits a metadata JSON alongside the output.
+     *
+     * @param inputPath      path to the input file containing person attributes
+     * @param outputPath     path to the output file to write tokens
+     * @param inputType      input type ("csv" or "parquet")
+     * @param outputType     output type ("csv" or "parquet")
+     * @param hashingSecret  secret key used for HMAC-based hashing
+     * @param encryptionKey  secret key used for AES-based encryption
+     */
     private static void encryptTokens(String inputPath, String outputPath, String inputType, String outputType,
                                       String hashingSecret, String encryptionKey) {
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
@@ -126,6 +160,15 @@ public class Main {
         }
     }
 
+    /**
+     * Creates a {@link PersonAttributesReader} for the given input type.
+     *
+     * @param inputPath path to the person attributes file
+     * @param inputType input type ("csv" or "parquet")
+     * @return a reader capable of streaming person attributes
+     * @throws IOException if the reader cannot be created
+     * @throws IllegalArgumentException if the input type is unsupported
+     */
     private static PersonAttributesReader createPersonAttributesReader(String inputPath, String inputType)
             throws IOException {
         switch (inputType.toLowerCase()) {
@@ -138,6 +181,15 @@ public class Main {
         }
     }
 
+    /**
+     * Creates a {@link PersonAttributesWriter} for the given output type.
+     *
+     * @param outputPath path to write the transformed tokens file
+     * @param outputType output type ("csv" or "parquet")
+     * @return a writer capable of streaming tokens
+     * @throws IOException if the writer cannot be created
+     * @throws IllegalArgumentException if the output type is unsupported
+     */
     private static PersonAttributesWriter createPersonAttributesWriter(String outputPath,
             String outputType) throws IOException {
         switch (outputType.toLowerCase()) {
@@ -150,6 +202,12 @@ public class Main {
         }
     }
 
+    /**
+     * Parses and loads command-line arguments using JCommander.
+     *
+     * @param args raw command-line arguments
+     * @return populated {@link CommandLineArguments}
+     */
     private static CommandLineArguments loadCommandLineArguments(String[] args) {
         logger.debug("Processing command line arguments. {}", String.join("|", args));
         CommandLineArguments commandLineArguments = new CommandLineArguments();
@@ -158,6 +216,14 @@ public class Main {
         return commandLineArguments;
     }
 
+    /**
+     * Masks a sensitive string by preserving the first three characters and
+     * replacing the remainder with asterisks. Returns the input unchanged if the
+     * input is {@code null} or has length less than or equal to three.
+     *
+     * @param input the original sensitive string
+     * @return a masked representation suitable for logs
+     */
     private static String maskString(String input) {
         if (input == null || input.length() <= 3) {
             return input;
@@ -165,6 +231,18 @@ public class Main {
         return input.substring(0, 3) + "*".repeat(input.length() - 3);
     }
 
+    /**
+     * Executes the decryption workflow for tokens.
+     * <p>
+     * Reads encrypted tokens from the specified input, decrypts them using the
+     * provided encryption key, and writes the result to the specified output.
+     *
+     * @param inputPath     path to the input file containing encrypted tokens
+     * @param outputPath    path to the output file for decrypted tokens
+     * @param inputType     input type ("csv" or "parquet")
+     * @param outputType    output type ("csv" or "parquet")
+     * @param encryptionKey secret key used for AES-based decryption
+     */
     private static void decryptTokens(String inputPath, String outputPath, String inputType, String outputType, 
                                       String encryptionKey) {
         try {
@@ -179,6 +257,15 @@ public class Main {
         }
     }
 
+    /**
+     * Creates a {@link TokenReader} for the given input type.
+     *
+     * @param inputPath path to the token file
+     * @param inputType input type ("csv" or "parquet")
+     * @return a reader capable of streaming tokens
+     * @throws IOException if the reader cannot be created
+     * @throws IllegalArgumentException if the input type is unsupported
+     */
     private static TokenReader createTokenReader(String inputPath, String inputType) throws IOException {
         switch (inputType.toLowerCase()) {
             case CommandLineArguments.TYPE_CSV:
@@ -190,6 +277,15 @@ public class Main {
         }
     }
 
+    /**
+     * Creates a {@link TokenWriter} for the given output type.
+     *
+     * @param outputPath path to write tokens
+     * @param outputType output type ("csv" or "parquet")
+     * @return a writer capable of streaming tokens
+     * @throws IOException if the writer cannot be created
+     * @throws IllegalArgumentException if the output type is unsupported
+     */
     private static TokenWriter createTokenWriter(String outputPath, String outputType) throws IOException {
         switch (outputType.toLowerCase()) {
             case CommandLineArguments.TYPE_CSV:
