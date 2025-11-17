@@ -1,8 +1,8 @@
 # Branch Workflow and Release Process
 
-This document explains the **Gitflow‑based** branch strategy and automated workflows for the OpenToken repository.
+This document explains the **Gitflow-based** branch strategy and automated workflows for the OpenToken repository.
 
-We follow Gitflow’s separation of `main`, `develop`, `dev/*`, and `release/*` branches, with a few automation‑oriented tweaks (notably an automated `main` → `develop` sync after each release).
+We follow Gitflow's separation of `main`, `develop`, `dev/*`, and `release/*` branches, with a few automation-oriented tweaks (notably an automated `main` → `develop` sync after each release).
 
 ## Branch Structure
 
@@ -105,7 +105,8 @@ graph TB
 - **Merges from**: `develop`
 - **Merges to**: `main` only
 
-### `feature/*`
+### `dev/*`
+
 - **Purpose**: Development work
 - **Lifecycle**:
   1. Branch from `develop`

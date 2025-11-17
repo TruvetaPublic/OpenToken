@@ -103,7 +103,7 @@ jobs:
 
           # Use bump2version with --new-version to set the exact version
           # Note: 'patch' is a required positional argument but is overridden by --new-version
-          bump2version --new-version "$VERSION" --allow-dirty --no-commit --no-tag patch
+          bump2version --new-version "$VERSION" --no-commit --no-tag patch
 
           echo "Updated version to $VERSION"
 

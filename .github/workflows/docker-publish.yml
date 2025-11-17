@@ -128,7 +128,7 @@ jobs:
               release_id: releaseId
             });
 
-            const releaseBody = release.data.body + `\n\n---\n\n## Docker Image\n\n\`\`\`\n${fullImage}\n\`\`\`\n\nDigest: \`${digest}\`\n`;
+            const releaseBody = (release.data.body || '') + `\n\n---\n\n## Docker Image\n\n\`\`\`\n${fullImage}\n\`\`\`\n\nDigest: \`${digest}\`\n`;
 
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,

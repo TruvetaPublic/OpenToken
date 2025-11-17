@@ -82,7 +82,8 @@ jobs:
             exit 0
           fi
 
-          if RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/$TARGET_TAG --jq '.id' 2>/tmp/release.err); then
+          ERROR_FILE=$(mktemp)
+          if RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/$TARGET_TAG --jq '.id' 2>"$ERROR_FILE"); then
             if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
               echo "found=true" >> "$GITHUB_OUTPUT"
               echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
@@ -93,13 +94,14 @@ jobs:
               echo "No release found for $TARGET_TAG"
             fi
           else
-            if grep -q 'Not Found' /tmp/release.err; then
+            if grep -q 'Not Found' "$ERROR_FILE"; then
               echo "found=false" >> "$GITHUB_OUTPUT"
               echo "release_id=" >> "$GITHUB_OUTPUT"
               echo "No release found for $TARGET_TAG"
             else
               echo "Unable to query release details"
-              cat /tmp/release.err >&2
+              cat "$ERROR_FILE" >&2
               exit 1
             fi
           fi
+          rm -f "$ERROR_FILE"
