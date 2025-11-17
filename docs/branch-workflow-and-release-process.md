@@ -132,7 +132,7 @@ graph TB
    - Runs `bump2version --new-version x.y.z patch`
    - Updates all version files:
      - `.bumpversion.cfg`
-     - `lib/java/pom.xml`
+     - `lib/java/opentoken/pom.xml`
      - `Dockerfile`
      - `lib/java/opentoken/src/main/java/com/truveta/opentoken/Metadata.java`
      - `lib/python/opentoken/setup.py`
