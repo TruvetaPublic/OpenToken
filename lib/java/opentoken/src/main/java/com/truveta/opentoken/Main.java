@@ -175,7 +175,7 @@ public class Main {
                 TokenDecryptionProcessor.process(reader, writer, decryptor);
             }
         } catch (Exception e) {
-            logger.error("Error during token decryption: ", e);
+            logger.error("Error during token decryption", e);
         }
     }
 
