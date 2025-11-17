@@ -10,6 +10,10 @@ on:
     workflows: ["Create Release on Merge"]
     types: [completed]
 
+# Minimal global token permissions; jobs may elevate as needed
+permissions:
+  contents: read
+
 jobs:
   release-info:
     uses: ./.github/workflows/release-context.yml

@@ -12,6 +12,10 @@ on:
     workflows: ["Create Release on Merge"]
     types: [completed]
 
+# Minimal global token permissions; jobs override as needed
+permissions:
+  contents: read
+
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
