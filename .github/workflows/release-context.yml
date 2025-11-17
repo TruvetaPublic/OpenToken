@@ -55,7 +55,7 @@ jobs:
             CLEAN_TAG=${INPUT_TAG#v}
             VERSION="$CLEAN_TAG"
           else
-            VERSION=$(awk '/^\[bumpversion\]/{flag=1; next} /^\[/{flag=0} flag && /^current_version/{print; exit}' .bumpversion.cfg | cut -d'=' -f2 | tr -d ' ')
+            VERSION=$(sed -n '/^\[bumpversion\]/,/^\[/p' .bumpversion.cfg | grep "^current_version" | cut -d'=' -f2 | tr -d ' ')
           fi
 
           if [ -z "$VERSION" ]; then
