@@ -1,0 +1,64 @@
+name: "Setup Toolchain"
+description: "Install shared Java and/or Python toolchains with caching"
+inputs:
+  enable-java:
+    description: "Whether to set up Java (true/false)"
+    required: false
+    default: "true"
+  java-version:
+    description: "Version string passed to actions/setup-java"
+    required: false
+    default: "21"
+  java-distribution:
+    description: "Distribution for actions/setup-java"
+    required: false
+    default: "corretto"
+  java-cache:
+    description: "Cache strategy for actions/setup-java"
+    required: false
+    default: "maven"
+  enable-python:
+    description: "Whether to set up Python (true/false)"
+    required: false
+    default: "true"
+  python-version:
+    description: "Python version to install"
+    required: false
+    default: "3.10"
+  python-cache:
+    description: "Cache strategy for actions/setup-python"
+    required: false
+    default: "pip"
+  python-cache-dependency-path:
+    description: "Glob or newline-separated list of dependency files for pip caching"
+    required: false
+    default: |
+      **/requirements.txt
+      **/dev-requirements.txt
+runs:
+  using: "composite"
+  steps:
+    - name: Set up JDK
+      if: inputs.enable-java == 'true'
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.java-distribution }}
+        cache: ${{ inputs.java-cache }}
+        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+        settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+    - name: Set up Python
+      if: inputs.enable-python == 'true'
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: ${{ inputs.python-cache }}
+        cache-dependency-path: ${{ inputs.python-cache-dependency-path }}
+
+    - name: Ensure pip cache directory exists
+      if: inputs.enable-python == 'true' && inputs.python-cache == 'pip'
+      shell: bash
+      run: |
+        mkdir -p ~/.cache/pip
+        echo "Created pip cache directory: ~/.cache/pip"

@@ -8,7 +8,7 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 - Two implementations: Java (Maven) & Python (pip)
 - Deterministic token generation logic is equivalent across languages
-- Use this guide for environment setup & day‑to‑day development
+- Use this guide for environment setup & day-to-day development
 - Use the Token & Attribute Registration guide for extending functionality
 
 ## Contents
