@@ -19,6 +19,8 @@ jobs:
 
   build:
     needs: release-info
+    # Only run on successful release workflow runs; otherwise always run
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
