@@ -43,7 +43,7 @@ jobs:
           files: |
             lib/java/opentoken/target/surefire-reports/*.xml
           check_name: Java Test Results
-          comment_mode: update last
+          comment_mode: always
           compare_to_earlier_commit: false
 
       - name: Generate JaCoCo report
@@ -120,7 +120,7 @@ jobs:
           files: |
             lib/python/opentoken/test-results-${{ matrix.python-version }}.xml
           check_name: Python ${{ matrix.python-version }} Test Results
-          comment_mode: update last
+          comment_mode: always
           compare_to_earlier_commit: false
 
       - name: Run CLI smoke test
