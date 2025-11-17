@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /workspaces/OpenToken/lib/python/opentoken
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/../../lib/python/opentoken"
 
 if [ ! -d .venv ]; then
   python -m venv .venv
