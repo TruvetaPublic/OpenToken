@@ -16,7 +16,7 @@ Our approach to person matching relies on building a set of matching tokens (or 
 
 ## Highlights
 
-- Multi-language Support
+- **Multi-language Support**: Java, Python, and Node.js implementations with identical token generation
 - Cryptographically Secure encryption that prevents re-identification
 - Enables straightforward person-matching by comparing 5 deterministic and unique tokens, providing a high degree of confidence in matches
 
@@ -228,6 +228,17 @@ pip install -r requirements.txt -r dev-requirements.txt -e .
 PYTHONPATH=src/main python src/main/opentoken/main.py \
   -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+```
+
+### Node.js  <!-- omit in toc -->
+
+```shell
+cd lib/nodejs/opentoken
+npm install
+npm run build
+npm start -- \
+  -i ../../../resources/sample.csv -o ../../../resources/output.csv \
+  -k "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 ### Docker  <!-- omit in toc -->

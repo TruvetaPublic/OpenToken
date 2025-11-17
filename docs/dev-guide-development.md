@@ -6,8 +6,8 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ## At a Glance
 
-- Two implementations: Java (Maven) & Python (pip)
-- Deterministic token generation logic is equivalent across languages
+- Three implementations: Java (Maven), Python (pip), and Node.js (npm)
+- Deterministic token generation logic is equivalent across all languages
 - Use this guide for environment setup & day‑to‑day development
 - Use the Token & Attribute Registration guide for extending functionality
 
@@ -18,14 +18,16 @@ This guide centralizes contributor-facing information. It covers local setup, la
   - [Contents](#contents)
   - [Prerequisites](#prerequisites)
   - [Project Layout](#project-layout)
-  - [Language Development (Java \& Python)](#language-development-java--python)
+  - [Language Development (Java, Python \& Node.js)](#language-development-java-python--nodejs)
     - [Java](#java)
     - [Python](#python)
+    - [Node.js](#nodejs)
     - [Cross-language Tips](#cross-language-tips)
   - [Token \& Attribute Registration](#token--attribute-registration)
     - [When to Use](#when-to-use)
     - [Java Registration (ServiceLoader SPI)](#java-registration-serviceloader-spi)
     - [Python Registration](#python-registration)
+    - [Node.js Registration](#nodejs-registration)
     - [Cross-language Parity Checklist](#cross-language-parity-checklist)
     - [Version Bump Reminder](#version-bump-reminder)
     - [Quick Reference](#quick-reference)
@@ -48,6 +50,8 @@ This guide centralizes contributor-facing information. It covers local setup, la
 | Maven | 3.8+ | Build Java artifacts (`mvn clean install`) |
 | Python | 3.10+ | For Python implementation & scripts |
 | pip / venv | Latest | Manage Python dependencies |
+| Node.js | 20.x (LTS) | For Node.js/TypeScript implementation |
+| npm | Latest | Manage Node.js dependencies |
 | Docker (optional) | Latest | Build container image |
 
 ## Project Layout
@@ -56,6 +60,7 @@ This guide centralizes contributor-facing information. It covers local setup, la
 lib/
   java/      # Java implementation
   python/    # Python implementation
+  nodejs/    # Node.js/TypeScript implementation
 resources/   # Sample and test data
 tools/       # Utility scripts (hash calculator, mock data, etc.)
 docs/        # All developer documentation (this file!)
@@ -64,9 +69,9 @@ Key Docs:
 
 - Development processes below
 
-## Language Development (Java & Python)
+## Language Development (Java, Python & Node.js)
 
-This section combines the previous standalone Java and Python development sections for easier cross-language parity review.
+This section combines language-specific build and development instructions for easier cross-language parity review.
 
 ### Java
 
@@ -224,16 +229,72 @@ Contributing notes:
 - Follow PEP 8, add type hints.
 - Keep tests in sync with Java changes.
 
+### Node.js
+
+Prerequisites:
+
+- Node.js 20.x LTS or higher
+- npm (comes with Node.js)
+
+Build (from project root):
+
+```shell
+cd lib/nodejs/opentoken && npm install && npm run build
+```
+
+Or from `lib/nodejs/opentoken` directly:
+
+```shell
+npm install
+npm run build
+```
+
+Resulting build: `lib/nodejs/opentoken/dist/` directory with compiled JavaScript.
+
+Using as an npm dependency:
+
+```json
+{
+  "dependencies": {
+    "@truveta/opentoken": "^1.10.0"
+  }
+}
+```
+
+CLI usage:
+
+```shell
+cd lib/nodejs/opentoken
+npm start -- -i input.csv -o output.csv
+# or after npm link:
+opentoken -i input.csv -o output.csv
+```
+
+Testing:
+
+```shell
+npm test              # Run all tests
+npm run test:coverage # Run with coverage report
+```
+
+Code quality:
+
+```shell
+npm run lint      # Check code style
+npm run lint:fix  # Auto-fix issues
+npm run format    # Format code with Prettier
+```
+
 ### Cross-language Tips
 
-| Task | Java Command | Python Command |
-|------|--------------|----------------|
-| Build / Package | `mvn clean install` | `pip install -e .` |
-| Run Tests | `mvn test` | `pytest src/test` |
-| Lint / Style | `mvn checkstyle:check` | (pep8 / flake8 if configured) |
-| Run CLI | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
-| Add Token | SPI entry & class | new module in `tokens/definitions` |
-| Add Attribute | SPI entry & class | class + loader import |
+| Task | Java Command | Python Command | Node.js Command |
+|------|--------------|----------------|-----------------|
+| Build / Package | `mvn clean install` | `pip install -e .` | `npm install && npm run build` |
+| Run Tests | `mvn test` | `pytest src/test` | `npm test` |
+| Lint / Style | `mvn checkstyle:check` | (pep8 / flake8 if configured) | `npm run lint` |
+| Run CLI | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` | `npm start -- ...` |
+| Add Token | SPI entry & class | new module in `tokens/definitions` | class + TokenRegistry import |
+| Add Attribute | SPI entry & class | class + loader import | class + AttributeLoader import |
 
 Maintain the same functional behavior and normalization between languages.
 
@@ -300,20 +361,21 @@ Python Troubleshooting:
 
 ### Cross-language Parity Checklist
 
-- Same normalization logic unaffected.
-- Matching token definitions (order & components) across Java & Python.
+- Same normalization logic across all three languages.
+- Matching token definitions (order & components) across Java, Python, and Node.js.
 - Tests confirming identical hash/encryption output for shared fixtures.
+- Run interoperability tests to validate cross-language consistency.
 
 ### Version Bump Reminder
 Adding or modifying Tokens / Attributes requires a version bump (`bump2version minor` for new features, `patch` for fixes, `major` for breaking changes).
 
 ### Quick Reference
 
-| Operation | Java File(s) | Python File(s) |
-|-----------|--------------|----------------|
-| Add Token | `META-INF/services/...Token` | `tokens/definitions/<new>_token.py` |
-| Add Attribute | `META-INF/services/...Attribute` | `attributes/.../<new>_attribute.py` + `attribute_loader.py` |
-| Rename Implementation | Update service file entries | Rename file & ensure loader/discovery still finds it |
+| Operation | Java File(s) | Python File(s) | Node.js File(s) |
+|-----------|--------------|----------------|-----------------|
+| Add Token | `META-INF/services/...Token` | `tokens/definitions/<new>_token.py` | `tokens/definitions/<New>Token.ts` + `TokenRegistry.ts` |
+| Add Attribute | `META-INF/services/...Attribute` | `attributes/.../<new>_attribute.py` + `attribute_loader.py` | `attributes/.../<New>Attribute.ts` + `AttributeLoader.ts` |
+| Rename Implementation | Update service file entries | Rename file & ensure loader/discovery still finds it | Rename file & update loader imports |
 
 Maintain tests to guard consistency between languages.
 

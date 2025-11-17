@@ -1,4 +1,4 @@
-name: Java-Python Sync Check with Progress Tracking
+name: Multi-Language Sync Check (Java, Python, Node.js)
 
 on:
   pull_request:
@@ -6,6 +6,7 @@ on:
     paths:
       - 'lib/java/opentoken/src/main/java/com/truveta/opentoken/**/*.java'
       - 'lib/python/opentoken/src/**/*.py'
+      - 'lib/nodejs/opentoken/src/**/*.ts'
 
 jobs:
   sync-check:
@@ -28,7 +29,7 @@ jobs:
       with:
         python-version: '3.10'
     
-    - name: Check Java-Python sync with completion tracking
+    - name: Check multi-language sync with completion tracking
       id: sync-check
       run: |
         # Set up git remote for proper base branch comparison
@@ -39,7 +40,7 @@ jobs:
         echo "Checking sync requirements against base branch: origin/$BASE_BRANCH"
         
         # Generate sync report with completion tracking using full PR context
-        SYNC_REPORT=$(python3 tools/java_python_syncer.py \
+        SYNC_REPORT=$(python3 tools/multi_language_syncer.py \
           --format github-checklist \
           --since "origin/$BASE_BRANCH" 2>&1)
         SYNC_EXIT_CODE=$?
@@ -88,25 +89,30 @@ jobs:
           
           let commentBody;
           
-          if (isComplete || syncReport.includes('All Java changes appear to be in sync')) {
+          if (isComplete || syncReport.includes('All changes appear to be in sync')) {
             let finalStatusLine = '';
             if (completed > 0) {
               finalStatusLine = `**Final Status**: ${completionStatus}`;
             }
             
-            commentBody = `## Java-Python Sync Status: Complete!
-            All Java changes in this PR are properly synchronized with Python implementations.
+            commentBody = `## Multi-Language Sync Status: Complete! ✅
+            All changes in this PR are properly synchronized across Java, Python, and Node.js implementations.
             ` + finalStatusLine;
           } else {            
-            commentBody = `## 🔄 Java-Python Sync Progress ${completionStatus}
+            commentBody = `## 🔄 Multi-Language Sync Progress ${completionStatus}
             ${syncReport}
             ### 📋 How to use this checklist:
             - **✓🔄** = File exists and was recently updated ✅ **COMPLETED**
             - **✓⏳** = File exists but needs updates ⏳ **PENDING** 
             - **✗⏳** = File missing and needs to be created ⏳ **PENDING**
             
+            ### 🌐 Languages:
+            - **Java** → Python and Node.js
+            - **Python** → Java and Node.js  
+            - **Node.js** → Java and Python
+            
             ### Multi-commit workflow support:
-            This sync tracker monitors your progress across **all commits in this PR**. As you update Python files, they'll automatically show as 🔄 completed in subsequent workflow runs!
+            This sync tracker monitors your progress across **all commits in this PR**. As you update files, they'll automatically show as 🔄 completed in subsequent workflow runs!
             **Next steps**: Update the ⏳ pending files to complete the sync.`;
           }
           
@@ -119,7 +125,10 @@ jobs:
           
           const syncComments = comments.data.filter(comment => 
             comment.user.type === 'Bot' && 
-            (comment.body.includes('Java-Python Sync') || comment.body.includes('Sync Status') || comment.body.includes('Sync Progress'))
+            (comment.body.includes('Multi-Language Sync') || 
+             comment.body.includes('Java-Python Sync') || 
+             comment.body.includes('Sync Status') || 
+             comment.body.includes('Sync Progress'))
           );
           
           // Delete all previous sync comments
@@ -148,7 +157,7 @@ jobs:
     - name: Set workflow status
       if: steps.sync-check.outputs.SYNC_COMPLETE != 'true'
       run: |
-        echo "Java-Python sync is incomplete"
+        echo "Multi-language sync is incomplete"
         echo "Status: ${{ steps.sync-check.outputs.COMPLETION_STATUS }}"
         echo "Check the PR comment for detailed progress tracking"
         # Don't fail the workflow, just provide information

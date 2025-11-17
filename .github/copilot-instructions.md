@@ -25,11 +25,11 @@ This document provides comprehensive guidance for AI coding agents working on th
 
 ## Architecture Overview
 
-**OpenToken** is a dual-implementation (Java/Python) library for privacy-preserving person matching using cryptographically secure token generation. Tokens are generated from deterministic person attributes (name, birthdate, SSN, etc.) using 5 distinct token rules (T1-T5). Both implementations must produce **identical tokens** for the same normalized input.
+**OpenToken** is a tri-language (Java, Python, Node.js) library for privacy-preserving person matching using cryptographically secure token generation. Tokens are generated from deterministic person attributes (name, birthdate, SSN, etc.) using 5 distinct token rules (T1-T5). All three implementations must produce **identical tokens** for the same normalized input.
 
 ### Core Components
 
-- **Attributes** (`lib/java/.../attributes/`, `lib/python/.../attributes/`): Person data fields with validation & normalization (e.g., `BirthDateAttribute`, `SocialSecurityNumberAttribute`)
+- **Attributes** (`lib/java/.../attributes/`, `lib/python/.../attributes/`, `lib/nodejs/opentoken/src/attributes/`): Person data fields with validation & normalization (e.g., `BirthDateAttribute`, `SocialSecurityNumberAttribute`)
 - **Validators** (`validation/`): Composable validation rules (regex, date ranges, age ranges) applied during attribute processing
 - **Tokens** (`tokens/`): Rules defining which attributes combine to form each of the 5 token types (T1-T5)
 - **I/O Readers/Writers** (`io/`): CSV and Parquet file processors with streaming support
@@ -48,7 +48,12 @@ This document provides comprehensive guidance for AI coding agents working on th
 - `lib/python/opentoken/src/main/opentoken/attributes/attribute_loader.py` → add to `AttributeLoader.load()` set
 - `lib/python/opentoken/src/main/opentoken/tokens/token_registry.py` → add to registry
 
-**Both languages must be updated** or parity breaks. Use `tools/java_python_syncer.py` to verify cross-language sync.
+**Node.js uses explicit imports** in loader files:
+
+- `lib/nodejs/opentoken/src/attributes/AttributeLoader.ts` → add to `AttributeLoader.load()` set
+- `lib/nodejs/opentoken/src/tokens/TokenRegistry.ts` → add to registry
+
+**All three languages must be updated** or parity breaks. Use `tools/multi_language_syncer.py` to verify cross-language sync.
 
 ## Development Workflows
 
@@ -62,6 +67,9 @@ cd lib/java/opentoken && mvn clean install
 cd lib/python/opentoken && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r dev-requirements.txt -e .
 pytest
+
+# Node.js (from lib/nodejs/opentoken/): npm handles install, compile TypeScript, run tests
+cd lib/nodejs/opentoken && npm install && npm run build && npm test
 
 # Note: No unified build script exists - build each language separately
 ```
@@ -173,8 +181,8 @@ Every token generation run produces `.metadata.json` with:
 
 - Token outputs must be **byte-identical** for same input (verified by `tools/interoperability/` tests)
 - Normalization logic must match exactly (e.g., diacritic removal, case conversion)
-- Update `tools/java-python-mapping.json` when adding new classes
-- Run `tools/sync-check.sh` before PR submission
+- Update `tools/multi-language sync via tools/multi_language_syncer.py` when adding new classes
+- Run `tools/tools/multi_language_syncer.py` before PR submission
 
 ## File Structure Patterns
 
@@ -189,6 +197,15 @@ lib/java/opentoken/src/main/java/com/truveta/opentoken/
 └── tokentransformer/   # HashTokenTransformer, EncryptTokenTransformer
 
 lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic naming
+
+lib/nodejs/opentoken/src/  # Mirrors Java structure with TypeScript
+├── attributes/
+│   ├── general/        # DateAttribute, StringAttribute, RecordIdAttribute
+│   ├── person/         # BirthDateAttribute, SexAttribute, SSN, etc.
+│   └── validation/     # RegexValidator, DateRangeValidator, AgeRangeValidator
+├── io/                 # CSV/Parquet readers & writers (async iterators)
+├── tokens/             # Token interface, TokenRegistry, definitions/ (T1-T5)
+└── tokentransformer/   # HashTokenTransformer, EncryptTokenTransformer
 ```
 
 ## Common Pitfalls
@@ -220,14 +237,14 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 - **Java dependencies**: Declared in `pom.xml`, must pass security scans via GitHub Dependabot
 - **Python dependencies**: Managed in `requirements.txt` and `dev-requirements.txt`
 - **Version pinning**: Pin major versions, allow minor/patch updates (`~=` for Python, ranges for Maven)
-- **Vulnerability scanning**: Both implementations use automated security scans (see `.github/workflows/`)
+- **Vulnerability scanning**: All three implementations use automated security scans (see `.github/workflows/`)
 
 ## Git Workflow & PR Standards
 
 ### Before Submitting
 
 1. **Run all builds**: `mvn clean install` (Java) and `pytest` (Python)
-2. **Check cross-language sync**: Run `tools/java_python_syncer.py`
+2. **Check cross-language sync**: Run `tools/multi_language_syncer.py`
 3. **Version bump**: Use `bump2version` (patch/minor/major)
 4. **Code style**: Java Checkstyle must pass, Python follows PEP 8
 5. **Test coverage**: Add tests for new code paths
