@@ -116,6 +116,8 @@ graph TB
 - **Merges from**: `develop`
 - **Merges to**: `develop`
 
+> Why delete `dev/*` but keep `release/x.y.z`? Feature and bugfix branches under `dev/*` are ephemeral implementation vehicles; once their changes are merged they add no long-term forensic value and leaving them increases repository noise. In contrast, each `release/x.y.z` branch captures the exact state used to cut a tagged version and serves as a stable, inspectable baseline for future hotfixes or audits. Keeping release branches enables precise diffing (e.g., against a subsequent hotfix) and reproducible rebuilds, while pruning `dev/*` branches maintains a clean, navigable branch list.
+
 ## Automated Workflows
 
 ### auto-version-bump.yml
