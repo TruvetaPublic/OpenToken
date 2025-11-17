@@ -31,36 +31,21 @@ export class FirstNameAttribute extends BaseAttribute {
   }
 
   normalize(value: string): string {
+    // Replicate Java normalization ordering and conditional retention
     let normalizedValue = AttributeUtilities.normalizeDiacritics(value);
 
-    // Remove common titles and title abbreviations
     const valueWithoutTitle = normalizedValue.replace(FirstNameAttribute.TITLE_PATTERN, '');
-
-    // If the title removal doesn't result in an empty string, use the title-less value
     if (valueWithoutTitle.length > 0) {
       normalizedValue = valueWithoutTitle;
     }
 
-    // Remove generational suffixes
-    const valueWithoutSuffix = normalizedValue.replace(
-      AttributeUtilities.GENERATIONAL_SUFFIX_PATTERN,
-      ''
-    );
-
-    // If the generational suffix removal doesn't result in an empty string, use it
+    const valueWithoutSuffix = normalizedValue.replace(AttributeUtilities.GENERATIONAL_SUFFIX_PATTERN, '');
     if (valueWithoutSuffix.length > 0) {
       normalizedValue = valueWithoutSuffix;
     }
 
-    // Remove trailing periods and middle initials
-    normalizedValue = normalizedValue.replace(
-      FirstNameAttribute.TRAILING_PERIOD_AND_INITIAL_PATTERN,
-      ''
-    );
-
-    // Remove dashes, spaces and other non-alphabetic characters
+    normalizedValue = normalizedValue.replace(FirstNameAttribute.TRAILING_PERIOD_AND_INITIAL_PATTERN, '');
     normalizedValue = normalizedValue.replace(AttributeUtilities.NON_ALPHABETIC_PATTERN, '');
-
     return normalizedValue;
   }
 }

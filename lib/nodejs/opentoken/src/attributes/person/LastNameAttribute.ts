@@ -20,40 +20,46 @@ import { AttributeUtilities } from '../utilities/AttributeUtilities';
  */
 export class LastNameAttribute extends BaseAttribute {
   private static readonly NAME = 'LastName';
-  private static readonly ALIASES = ['LastName', 'FamilyName'];
+  // Align aliases with Java implementation (LastName, Surname)
+  private static readonly ALIASES = ['LastName', 'Surname'];
 
-  // Pattern kept for reference but validation is done inline in validate method
-  // private static readonly LAST_NAME_PATTERN = /^(?:[a-zA-Z]*[aeiouAEIOU][a-zA-Z]*|Ng)$/;
+  // Java LAST_NAME_REGEX replicated for parity
+  private static readonly LAST_NAME_REGEX = /^(?:\s*(?:(?:.{3,})|(?:[^aeiouAEIOU\s][aeiouAEIOU])|(?:[aeiouAEIOU][^aeiouAEIOU\s])|(?:[aeiouAEIOU]{2})|(?:[Nn][Gg]))\s*)$/;
 
   constructor() {
     super(LastNameAttribute.NAME, LastNameAttribute.ALIASES, [
-      new RegexValidator(/.{2,}/), // At least 2 characters
+      new RegexValidator(LastNameAttribute.LAST_NAME_REGEX),
       new NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES),
     ]);
   }
 
   validate(value: string): boolean {
-    if (!super.validate(value)) {
+    // Reject null early
+    if (value == null) {
       return false;
     }
 
-    const normalized = this.normalize(value);
-
-    // For 2-character names, must contain at least one vowel or be "Ng" or "NG"
-    if (normalized.length === 2) {
-      return /[aeiouAEIOU]/.test(normalized) || normalized.toUpperCase() === 'NG';
+    // Reject single letters explicitly (Java logic)
+    const trimmed = value.trim();
+    if (trimmed.length === 1) {
+      return false;
     }
 
-    return true;
+    return super.validate(value);
   }
 
   normalize(value: string): string {
     let normalizedValue = AttributeUtilities.normalizeDiacritics(value);
 
-    // Remove generational suffixes
+    const valueWithoutSuffix = normalizedValue.replace(AttributeUtilities.GENERATIONAL_SUFFIX_PATTERN, '');
+    if (valueWithoutSuffix.length > 0) {
+      normalizedValue = valueWithoutSuffix;
+    }
+
+    // Remove generational suffix again (parity with Java's double application)
     normalizedValue = normalizedValue.replace(AttributeUtilities.GENERATIONAL_SUFFIX_PATTERN, '');
 
-    // Remove dashes, spaces and other non-alphabetic characters
+    // Remove non-alphabetic characters
     normalizedValue = normalizedValue.replace(AttributeUtilities.NON_ALPHABETIC_PATTERN, '');
 
     return normalizedValue;

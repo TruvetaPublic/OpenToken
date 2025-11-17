@@ -49,15 +49,19 @@ export class PersonAttributesProcessor {
         const attrName = attr.getName();
         let value = row.get(attrName);
 
-        // Also try aliases
-        if (!value) {
+        // Also try aliases ONLY when value is truly absent (undefined/null), not when empty string
+        if (value === undefined || value === null) {
           for (const alias of attr.getAliases()) {
-            value = row.get(alias);
-            if (value) break;
+            const aliasValue = row.get(alias);
+            if (aliasValue !== undefined && aliasValue !== null) {
+              value = aliasValue;
+              break;
+            }
           }
         }
 
-        if (value) {
+        // Store even empty string values so that validators can properly flag them as invalid
+        if (value !== undefined && value !== null) {
           personAttributes.set(attr.constructor as new () => Attribute, value);
         }
       }
