@@ -217,7 +217,7 @@ For complete details about all metadata fields, examples, and security considera
 
 ```shell
 cd lib/java/opentoken
-mvn install -DskipTests
+mvn clean install -DskipTests
 java -jar target/opentoken-*.jar \
   -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
