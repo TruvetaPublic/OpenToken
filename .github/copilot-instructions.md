@@ -66,16 +66,6 @@ pytest
 # Note: No unified build script exists - build each language separately
 ```
 
-### Version Bumping (MANDATORY for ALL PRs)
-
-```bash
-bump2version patch   # Bug fixes, minor changes (e.g., adding invalid SSN patterns)
-bump2version minor   # New attributes, new token rules
-bump2version major   # Breaking API changes
-```
-
-This updates `.bumpversion.cfg`, `pom.xml`, `setup.py`, `__init__.py`, `Dockerfile`, and `Metadata.java` automatically. **Never** manually edit version numbers.
-
 ### Branch Management
 
 **Required Branch Format:** `dev/<github-username>/<feature-description>` (e.g., `dev/mattwise-42/additional-attributes`)
@@ -222,21 +212,34 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 - **Version pinning**: Pin major versions, allow minor/patch updates (`~=` for Python, ranges for Maven)
 - **Vulnerability scanning**: Both implementations use automated security scans (see `.github/workflows/`)
 
+## Code Style Guidelines
+
+### Java
+
+- **Always use imported classes**: Never use full namespace declarations (e.g., use `TokenWriter` not `com.truveta.opentoken.io.TokenWriter`)
+- **Import statements**: Add proper imports at the top of the file
+- **Checkstyle compliance**: Run `mvn checkstyle:check` to validate
+- **JavaDoc**: Required for all public classes and methods
+
+### Python
+
+- **PEP 8 compliance**: Follow Python style guidelines
+- **Import organization**: Group imports (standard library, third-party, local)
+- **Docstrings**: Use Google style (Args, Returns, Raises)
+
 ## Git Workflow & PR Standards
 
 ### Before Submitting
 
 1. **Run all builds**: `mvn clean install` (Java) and `pytest` (Python)
 2. **Check cross-language sync**: Run `tools/java_python_syncer.py`
-3. **Version bump**: Use `bump2version` (patch/minor/major)
-4. **Code style**: Java Checkstyle must pass, Python follows PEP 8
-5. **Test coverage**: Add tests for new code paths
+3. **Code style**: Java Checkstyle must pass, Python follows PEP 8
+4. **Test coverage**: Add tests for new code paths
 
 ### PR Checklist
 
 - [ ] Both Java and Python implementations updated (if applicable)
 - [ ] Tests added/updated for changes
-- [ ] Version bumped appropriately
 - [ ] Documentation updated (README, JavaDoc, docstrings)
 - [ ] Service registration files updated (Java: `META-INF/services/`, Python: loaders)
 - [ ] No secrets or sensitive data committed

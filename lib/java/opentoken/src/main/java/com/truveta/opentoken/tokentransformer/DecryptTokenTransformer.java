@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -20,21 +19,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Transforms the token using a AES-256 symmetric encryption.
+ * Transforms the token using AES-256 symmetric decryption.
  * 
  * @see <a href=https://datatracker.ietf.org/doc/html/rfc3826>AES</a>
  */
-public class EncryptTokenTransformer implements TokenTransformer {
+public class DecryptTokenTransformer implements TokenTransformer {
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = LoggerFactory.getLogger(EncryptTokenTransformer.class);
+    private static final Logger logger = LoggerFactory.getLogger(DecryptTokenTransformer.class);
 
     private final SecretKeySpec secretKey;
 
-    private final SecureRandom secureRandom;
-
     /**
-     * Initializes the underlying cipher (AES) with the encryption secret.
+     * Initializes the underlying cipher (AES) with the decryption secret.
      * 
      * @param encryptionKey the encryption key. The key must be 32 characters long.
      * 
@@ -44,23 +41,23 @@ public class EncryptTokenTransformer implements TokenTransformer {
      *                                                          algorithm
      *                                                          parameters.
      */
-    public EncryptTokenTransformer(String encryptionKey)
+    public DecryptTokenTransformer(String encryptionKey)
             throws InvalidKeyException, InvalidAlgorithmParameterException {
         if (encryptionKey.length() != EncryptionConstants.KEY_BYTE_LENGTH) {
             logger.error("Invalid Argument. Key must be {} characters long", EncryptionConstants.KEY_BYTE_LENGTH);
             throw new InvalidKeyException(String.format("Key must be %s characters long", EncryptionConstants.KEY_BYTE_LENGTH));
         }
 
-        secureRandom = new SecureRandom();
-
         this.secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), EncryptionConstants.AES);
     }
 
     /**
-     * Encryption token transformer.
+     * Decryption token transformer.
      * <p>
-     * Encrypts the token using AES-256 symmetric encryption algorithm.
+     * Decrypts the token using AES-256 symmetric decryption algorithm.
      *
+     * @return the decrypted token string.
+     * @param token the encrypted token in base64 format.
      * @throws java.lang.IllegalStateException        the underlying cipher
      *                                                is in a wrong state.
      * @throws javax.crypto.IllegalBlockSizeException if this cipher is a block
@@ -89,24 +86,24 @@ public class EncryptTokenTransformer implements TokenTransformer {
             throws IllegalStateException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException,
             InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
 
-        // Generate random IV (for AES block size)
+        // Decode the base64-encoded token
+        byte[] messageBytes = Base64.getDecoder().decode(token);
+
+        // Extract IV and ciphertext
         byte[] ivBytes = new byte[EncryptionConstants.IV_SIZE];
-        secureRandom.nextBytes(ivBytes);
+        byte[] cipherBytes = new byte[messageBytes.length - EncryptionConstants.IV_SIZE];
+
+        System.arraycopy(messageBytes, 0, ivBytes, 0, EncryptionConstants.IV_SIZE);
+        System.arraycopy(messageBytes, EncryptionConstants.IV_SIZE, cipherBytes, 0, cipherBytes.length);
 
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(EncryptionConstants.TAG_LENGTH_BITS, ivBytes);
 
-        // Initialize AES cipher in GCM mode with no padding for encryption
+        // Initialize AES cipher in GCM mode with no padding for decryption
         Cipher cipher = Cipher.getInstance(EncryptionConstants.ENCRYPTION_ALGORITHM);
-        // Initialize the cipher for encryption
-        cipher.init(Cipher.ENCRYPT_MODE, this.secretKey, gcmParameterSpec);
+        cipher.init(Cipher.DECRYPT_MODE, this.secretKey, gcmParameterSpec);
 
-        byte[] encryptedBytes = cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
+        byte[] decryptedBytes = cipher.doFinal(cipherBytes);
 
-        byte[] messageBytes = new byte[EncryptionConstants.IV_SIZE + encryptedBytes.length];
-
-        System.arraycopy(ivBytes, 0, messageBytes, 0, EncryptionConstants.IV_SIZE);
-        System.arraycopy(encryptedBytes, 0, messageBytes, EncryptionConstants.IV_SIZE, encryptedBytes.length);
-
-        return Base64.getEncoder().encodeToString(messageBytes);
+        return new String(decryptedBytes, StandardCharsets.UTF_8);
     }
 }

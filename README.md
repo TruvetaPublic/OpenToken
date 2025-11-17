@@ -165,6 +165,8 @@ The driver accepts multiple command line arguments:
 
 - `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key.
 
+- `-d | --decrypt`: Optional. When provided, the tool operates in decryption mode. It decrypts tokens from a previously encrypted OpenToken output file. In decryption mode, only the encryption key (`-e`) is required. The input file can be either CSV or Parquet format containing encrypted tokens with columns: `RuleId`, `Token`, and `RecordId`.
+
 The encryption logic is: 
 > $Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))$
 
@@ -209,17 +211,19 @@ For complete details about all metadata fields, examples, and security considera
 
 ## Quick Start
 
-### Java  <!-- omit in toc -->
+### Token Generation (Encryption Mode)  <!-- omit in toc -->
+
+#### Java  <!-- omit in toc -->
 
 ```shell
 cd lib/java/opentoken
-mvn clean install
+mvn clean install -DskipTests
 java -jar target/opentoken-*.jar \
-  -i ../../../resources/sample.csv -t csv -o target/output.csv \
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-### Python  <!-- omit in toc -->
+#### Python  <!-- omit in toc -->
 
 ```shell
 cd lib/python/opentoken
@@ -229,6 +233,31 @@ PYTHONPATH=src/main python src/main/opentoken/main.py \
   -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
+
+### Token Decryption  <!-- omit in toc -->
+
+To decrypt previously encrypted tokens, use the `-d` or `--decrypt` flag. The decryption mode requires only the encryption key that was used to encrypt the tokens.
+
+#### Java  <!-- omit in toc -->
+
+```shell
+cd lib/java/opentoken
+java -jar target/opentoken-*.jar -d \
+  -i ../../../resources/output.csv -t csv -o ../../../resources/decrypted.csv \
+  -e "Secret-Encryption-Key-Goes-Here."
+```
+
+#### Python  <!-- omit in toc -->
+
+```shell
+cd lib/python/opentoken
+source .venv/bin/activate
+python -m opentoken.main -d \
+  -i ../../../resources/output.csv -t csv -o ../../../resources/decrypted.csv \
+  -e "Secret-Encryption-Key-Goes-Here."
+```
+
+**Note:** Decryption mode supports both CSV and Parquet input/output formats. The decrypted output will contain the HMAC-SHA256 hashed tokens (base64 encoded) before AES encryption. Cross-language compatibility is supported - tokens encrypted by Java can be decrypted by Python and vice versa.
 
 ### Docker  <!-- omit in toc -->
 

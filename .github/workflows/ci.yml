@@ -42,6 +42,9 @@ jobs:
         with:
           files: |
             lib/java/opentoken/target/surefire-reports/*.xml
+          check_name: Java Test Results
+          comment_mode: always
+          compare_to_earlier_commit: false
 
       - name: Generate JaCoCo report
         run: cd lib/java/opentoken && mvn jacoco:report
@@ -75,6 +78,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: write
+      pull-requests: write
       actions: read
       packages: write
     strategy:
@@ -106,7 +111,17 @@ jobs:
 
       - name: Test with pytest
         run: |
-          PYTHONPATH=lib/python/opentoken/src/main pytest lib/python/opentoken/src/test
+          PYTHONPATH=lib/python/opentoken/src/main pytest lib/python/opentoken/src/test --junitxml=lib/python/opentoken/test-results-${{ matrix.python-version }}.xml --junitxml=lib/python/opentoken/test-results-${{ matrix.python-version }}.xml
+
+      - name: Publish Python test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: |
+            lib/python/opentoken/test-results-${{ matrix.python-version }}.xml
+          check_name: Python ${{ matrix.python-version }} Test Results
+          comment_mode: always
+          compare_to_earlier_commit: false
 
       - name: Run CLI smoke test
         run: |
