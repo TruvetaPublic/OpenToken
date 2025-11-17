@@ -13,6 +13,7 @@
         "GitHub.vscode-pull-request-github",
         "shengchen.vscode-checkstyle",
         "GitHub.vscode-github-actions",
-        "GitHub.copilot-chat"
+        "GitHub.copilot-chat",
+        "ms-python.python"
     ]
 }
