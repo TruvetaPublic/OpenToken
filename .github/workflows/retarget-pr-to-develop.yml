@@ -13,10 +13,11 @@ permissions:
 jobs:
   retarget:
     runs-on: ubuntu-latest
-    # Only run if the PR targets main and is NOT from a release branch
+    # Only run if the PR targets main, is NOT from a release branch, and is from the same repository (not a fork)
     if: |
       github.event.pull_request.base.ref == 'main' &&
-      !startsWith(github.event.pull_request.head.ref, 'release/')
+      !startsWith(github.event.pull_request.head.ref, 'release/') &&
+      github.event.pull_request.head.repo.full_name == github.repository
     
     steps:
       - name: Retarget PR to develop
