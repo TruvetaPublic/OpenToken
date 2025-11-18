@@ -251,7 +251,7 @@ To decrypt previously encrypted tokens, use the `-d` or `--decrypt` flag. The de
 cd lib/java/opentoken
 mvn clean install -DskipTests
 java -jar target/opentoken-*.jar -d \
-  -i ../../../resources/output.csv -t csv -o ../../../resources/decrypted.csv \
+  -i ../../../resources/output.csv -t csv -o ../../../resources/hashed-output.csv \
   -e "Secret-Encryption-Key-Goes-Here."
 ```
 
@@ -261,7 +261,7 @@ java -jar target/opentoken-*.jar -d \
 cd lib/python/opentoken
 python -m venv .venv && source .venv/bin/activate
 python -m opentoken.main -d \
-  -i ../../../resources/output.csv -t csv -o ../../../resources/decrypted.csv \
+  -i ../../../resources/output.csv -t csv -o ../../../resources/hashed-output.csv \
   -e "Secret-Encryption-Key-Goes-Here."
 ```
 
