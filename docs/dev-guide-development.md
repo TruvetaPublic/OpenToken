@@ -6,8 +6,9 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ## At a Glance
 
-- Two implementations: Java (Maven) & Python (pip)
+- Three packages: Java (Maven), Python (core), PySpark bridge
 - Deterministic token generation logic is equivalent across languages
+- PySpark bridge enables large-scale distributed token generation & overlap analysis
 - Use this guide for environment setup & day-to-day development
 - Use the Token & Attribute Registration guide for extending functionality
 
@@ -18,9 +19,10 @@ This guide centralizes contributor-facing information. It covers local setup, la
   - [Contents](#contents)
   - [Prerequisites](#prerequisites)
   - [Project Layout](#project-layout)
-  - [Language Development (Java \& Python)](#language-development-java--python)
+  - [Language Development (Java, Python \& PySpark)](#language-development-java-python--pyspark)
     - [Java](#java)
     - [Python](#python)
+    - [PySpark Bridge](#pyspark-bridge)
     - [Cross-language Tips](#cross-language-tips)
   - [Token \& Attribute Registration](#token--attribute-registration)
     - [When to Use](#when-to-use)
@@ -42,13 +44,13 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ## Prerequisites
 
-| Tool | Recommended Version | Notes |
-| ---- | ------------------- | ----- |
-| Java JDK | 21.x | Required for Java module & CLI JAR (outputs Java 11 compatible bytecode) |
-| Maven | 3.8+ | Build Java artifacts (`mvn clean install`) |
-| Python | 3.10+ | For Python implementation & scripts |
-| pip / venv | Latest | Manage Python dependencies |
-| Docker (optional) | Latest | Build container image |
+| Tool              | Recommended Version | Notes                                                                    |
+| ----------------- | ------------------- | ------------------------------------------------------------------------ |
+| Java JDK          | 21.x                | Required for Java module & CLI JAR (outputs Java 11 compatible bytecode) |
+| Maven             | 3.8+                | Build Java artifacts (`mvn clean install`)                               |
+| Python            | 3.10+               | For Python implementation & scripts                                      |
+| pip / venv        | Latest              | Manage Python dependencies                                               |
+| Docker (optional) | Latest              | Build container image                                                    |
 
 ## Project Layout
 
@@ -64,7 +66,7 @@ Key Docs:
 
 - Development processes below
 
-## Language Development (Java & Python)
+## Language Development (Java, Python & PySpark)
 
 This section combines the previous standalone Java and Python development sections for easier cross-language parity review.
 
@@ -80,11 +82,13 @@ Build (from project root):
 ```shell
 cd lib/java/opentoken && mvn clean install
 ```
+
 Or from `lib/java/opentoken` directly:
 
 ```shell
 mvn clean install
 ```
+
 Resulting JAR: `lib/java/opentoken/target/opentoken-*.jar`.
 
 Using as a Maven dependency:
@@ -102,6 +106,7 @@ CLI usage:
 ```shell
 cd lib/java/opentoken && java -jar target/opentoken-*.jar [OPTIONS]
 ```
+
 Arguments:
 
 - `-i, --input <path>` Input file
@@ -183,6 +188,7 @@ CLI usage (from project root):
 ```shell
 PYTHONPATH=lib/python/opentoken/src/main python3 lib/python/opentoken/src/main/opentoken/main.py [OPTIONS]
 ```
+
 Arguments mirror Java implementation.
 
 Example:
@@ -224,16 +230,84 @@ Contributing notes:
 - Follow PEP 8, add type hints.
 - Keep tests in sync with Java changes.
 
+### PySpark Bridge
+
+The PySpark bridge (`lib/python/opentoken-pyspark`) provides a distributed processing interface for generating tokens and performing dataset overlap analysis using Spark DataFrames.
+
+Purpose:
+
+- Efficient token generation on large datasets (partitioned execution)
+- Supports custom token definitions (T6+) in Spark pipelines
+- Provides overlap analysis utilities (`OverlapAnalyzer`) for measuring cohort intersection
+
+Prerequisites:
+
+- Python 3.10+
+- Java (required by PySpark)
+- PySpark (installed via package requirements)
+
+Install (from repo root):
+
+```shell
+pip install -r lib/python/opentoken-pyspark/requirements.txt -r lib/python/opentoken-pyspark/dev-requirements.txt
+pip install -e lib/python/opentoken-pyspark
+```
+
+Basic Usage:
+
+```python
+from pyspark.sql import SparkSession
+from opentoken_pyspark import OpenTokenProcessor
+
+spark = SparkSession.builder.master("local[2]").appName("OpenTokenExample").getOrCreate()
+df = spark.read.csv("people.csv", header=True)
+processor = OpenTokenProcessor("HashingKey", "Secret-Encryption-Key-Goes-Here.")
+token_df = processor.process_dataframe(df)
+token_df.show()
+```
+
+Custom Token Definitions (example adding T6):
+
+```python
+from opentoken.notebook_helpers import TokenBuilder, CustomTokenDefinition
+from opentoken_pyspark import OpenTokenProcessor
+
+t6 = TokenBuilder("T6") \
+  .add("last_name", "T|U") \
+  .add("first_name", "T|U") \
+  .add("birth_date", "T|D") \
+  .build()
+
+definition = CustomTokenDefinition().add_token(t6)
+processor = OpenTokenProcessor(
+  hashing_secret="HashingKey",
+  encryption_key="Secret-Encryption-Key-Goes-Here.",
+  token_definition=definition
+)
+token_df = processor.process_dataframe(df)
+```
+
+Testing:
+
+```shell
+cd lib/python/opentoken-pyspark
+pytest src/test
+```
+
+Notebook Guides:
+
+- See `lib/python/opentoken-pyspark/notebooks/` for example workflows (custom tokens & overlap analysis).
+
 ### Cross-language Tips
 
-| Task | Java Command | Python Command |
-|------|--------------|----------------|
-| Build / Package | `mvn clean install` | `pip install -e .` |
-| Run Tests | `mvn test` | `pytest src/test` |
-| Lint / Style | `mvn checkstyle:check` | (pep8 / flake8 if configured) |
-| Run CLI | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
-| Add Token | SPI entry & class | new module in `tokens/definitions` |
-| Add Attribute | SPI entry & class | class + loader import |
+| Task            | Java Command                               | Python Command                         |
+| --------------- | ------------------------------------------ | -------------------------------------- |
+| Build / Package | `mvn clean install`                        | `pip install -e .`                     |
+| Run Tests       | `mvn test`                                 | `pytest src/test`                      |
+| Lint / Style    | `mvn checkstyle:check`                     | (pep8 / flake8 if configured)          |
+| Run CLI         | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
+| Add Token       | SPI entry & class                          | new module in `tokens/definitions`     |
+| Add Attribute   | SPI entry & class                          | class + loader import                  |
 
 Maintain the same functional behavior and normalization between languages.
 
@@ -305,15 +379,16 @@ Python Troubleshooting:
 - Tests confirming identical hash/encryption output for shared fixtures.
 
 ### Version Bump Reminder
+ 
 Adding or modifying Tokens / Attributes requires a version bump (`bump2version minor` for new features, `patch` for fixes, `major` for breaking changes).
 
 ### Quick Reference
 
-| Operation | Java File(s) | Python File(s) |
-|-----------|--------------|----------------|
-| Add Token | `META-INF/services/...Token` | `tokens/definitions/<new>_token.py` |
-| Add Attribute | `META-INF/services/...Attribute` | `attributes/.../<new>_attribute.py` + `attribute_loader.py` |
-| Rename Implementation | Update service file entries | Rename file & ensure loader/discovery still finds it |
+| Operation             | Java File(s)                     | Python File(s)                                              |
+| --------------------- | -------------------------------- | ----------------------------------------------------------- |
+| Add Token             | `META-INF/services/...Token`     | `tokens/definitions/<new>_token.py`                         |
+| Add Attribute         | `META-INF/services/...Attribute` | `attributes/.../<new>_attribute.py` + `attribute_loader.py` |
+| Rename Implementation | Update service file entries      | Rename file & ensure loader/discovery still finds it        |
 
 Maintain tests to guard consistency between languages.
 
@@ -329,6 +404,9 @@ Maintain tests to guard consistency between languages.
 
 # Python
 (cd lib/python/opentoken && pytest src/test)
+
+# PySpark Bridge
+(cd lib/python/opentoken-pyspark && pytest src/test)
 ```
 
 ### Docker Image
@@ -347,14 +425,14 @@ java -jar target/opentoken-*.jar -i input.csv -t csv -o output.csv -h HashingKey
 
 Arguments:
 
-| Flag | Description |
-| ---- | ----------- |
-| `-t, --type` | Input file type (`csv` or `parquet`) |
-| `-i, --input` | Input file path |
-| `-o, --output` | Output file path |
-| `-ot, --output-type` | (Optional) Output file type (defaults to input) |
-| `-h, --hashingsecret` | Hashing secret for HMAC-SHA256 |
-| `-e, --encryptionkey` | AES-256 encryption key |
+| Flag                  | Description                                     |
+| --------------------- | ----------------------------------------------- |
+| `-t, --type`          | Input file type (`csv` or `parquet`)            |
+| `-i, --input`         | Input file path                                 |
+| `-o, --output`        | Output file path                                |
+| `-ot, --output-type`  | (Optional) Output file type (defaults to input) |
+| `-h, --hashingsecret` | Hashing secret for HMAC-SHA256                  |
+| `-e, --encryptionkey` | AES-256 encryption key                          |
 
 ## Development Container
 
@@ -389,12 +467,12 @@ Before opening a PR:
 
 ## Troubleshooting
 
-| Issue | Hint |
-| ----- | ---- |
-| Java class not discovered | Confirm fully qualified name in `META-INF/services/*` file & no trailing spaces |
-| Python attribute not loaded | Ensure it is imported & added in `attribute_loader.py` |
+| Issue                            | Hint                                                                                |
+| -------------------------------- | ----------------------------------------------------------------------------------- |
+| Java class not discovered        | Confirm fully qualified name in `META-INF/services/*` file & no trailing spaces     |
+| Python attribute not loaded      | Ensure it is imported & added in `attribute_loader.py`                              |
 | Token mismatch between languages | Verify hashing & encryption secrets are identical and normalization logic unchanged |
-| Build fails on Checkstyle | Run `mvn -q checkstyle:check` locally & fix warnings |
+| Build fails on Checkstyle        | Run `mvn -q checkstyle:check` locally & fix warnings                                |
 
 
 ---
