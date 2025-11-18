@@ -220,49 +220,6 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
         raise
 
 
-def build_token_transformers(args: CommandLineArguments) -> List[TokenTransformer]:
-    """
-    Encrypt tokens from person attributes and write to output file.
-    
-    Args:
-        input_path: Path to input file with person attributes.
-        output_path: Path to output file for encrypted tokens.
-        input_type: Type of input file (csv or parquet).
-        output_type: Type of output file (csv or parquet).
-        hashing_secret: Secret for hashing tokens.
-        encryption_key: Key for encrypting tokens.
-    """
-    token_transformer_list: List[TokenTransformer] = []
-    try:
-        token_transformer_list.append(HashTokenTransformer(hashing_secret))
-        token_transformer_list.append(EncryptTokenTransformer(encryption_key))
-    except Exception as e:
-        logger.error("Error in initializing the transformer. Execution halted.", exc_info=e)
-        return
-
-    try:
-        with _create_person_attributes_reader(input_path, input_type) as reader, \
-             _create_person_attributes_writer(output_path, output_type) as writer:
-
-            # Create initial metadata with system information
-            metadata = Metadata()
-            metadata_map = metadata.initialize()
-
-            # Set secrets separately
-            metadata.add_hashed_secret(Metadata.HASHING_SECRET_HASH, hashing_secret)
-            metadata.add_hashed_secret(Metadata.ENCRYPTION_SECRET_HASH, encryption_key)
-
-            # Process data and get updated metadata
-            PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
-
-            # Write the metadata to file
-            metadata_writer = MetadataJsonWriter(output_path)
-            metadata_writer.write(metadata_map)
-
-    except Exception as e:
-        logger.error("Error in processing the input file. Execution halted.", exc_info=e)
-
-
 def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str, encryption_key: str):
     """
     Decrypt tokens from input file and write to output file.
