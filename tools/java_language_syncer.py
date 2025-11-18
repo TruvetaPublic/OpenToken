@@ -483,7 +483,7 @@ class JavaLanguageSyncer:
                 return "✅ All Java changes appear to be in sync!"
             else:
                 print("No Java changes detected.")
-                return
+                return None
 
         # Determine which languages to check
         languages_to_check = target_languages if target_languages else list(self.language_handlers.keys())
@@ -619,6 +619,8 @@ class JavaLanguageSyncer:
             # Save enhanced report
             for lang, data in all_language_mappings.items():
                 self.save_enhanced_report(lang, data['mappings'], data['changes'])
+            
+            return None
 
     def format_github_checklist(self, all_language_mappings, since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
         """Format as GitHub checklist with completion status for multiple languages
