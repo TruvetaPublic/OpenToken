@@ -42,9 +42,9 @@ public class TokenCSVWriter implements TokenWriter {
 
         this.writer = new BufferedWriter(new FileWriter(filePath));
 
-        // Write header
+        // Write header with LF line ending to match Python output
         writer.write(TokenConstants.RULE_ID + "," + TokenConstants.TOKEN + "," + TokenConstants.RECORD_ID);
-        writer.newLine();
+        writer.write('\n');
     }
 
     /**
@@ -60,7 +60,7 @@ public class TokenCSVWriter implements TokenWriter {
         String recordId = data.getOrDefault(TokenConstants.RECORD_ID, "");
 
         writer.write(String.format("%s,%s,%s", ruleId, token, recordId));
-        writer.newLine();
+        writer.write('\n'); // Use LF line ending to match Python output
     }
 
     @Override

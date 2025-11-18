@@ -34,7 +34,11 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
      */
     public PersonAttributesCSVWriter(String filePath) throws IOException {
         fileWriter = new BufferedWriter(new FileWriter(filePath));
-        csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+        // Use LF line endings to match Python output
+        CSVFormat format = CSVFormat.Builder.create(CSVFormat.DEFAULT)
+                .setRecordSeparator('\n')
+                .get();
+        csvPrinter = new CSVPrinter(fileWriter, format);
     }
 
     @Override
