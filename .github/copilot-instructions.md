@@ -81,14 +81,17 @@ When starting work on a new feature or task, always check if a feature branch ex
    git config user.name  # Fallback if GitHub API unavailable
    ```
 
-2. **Create feature branch:**
+2. **Create feature branch (from `develop`):**
 
-   ```bash
-   # Format: dev/<username>/<feature-name>
-   # Example: dev/mattwise-42/add-middle-name-attribute
-   git checkout -b "dev/<username>/<feature-name>" main
-   git push -u origin "dev/<username>/<feature-name>"
-   ```
+```bash
+# Base branch for feature work is always develop (not main)
+git checkout develop
+git pull origin develop
+# Format: dev/<username>/<feature-name>
+# Example: dev/mattwise-42/add-middle-name-attribute
+git checkout -b "dev/<username>/<feature-name>" develop
+git push -u origin "dev/<username>/<feature-name>"
+```
 
 3. **Feature name conventions:**
    - Use kebab-case (lowercase with hyphens)
@@ -99,12 +102,21 @@ When starting work on a new feature or task, always check if a feature branch ex
      - `update-birth-date-range`
      - `improve-test-coverage`
 
-**Branch Creation Decision Tree:**
+**Branch Creation & PR Target Decision Tree:**
 
-- If on `main` branch and starting new work → Create feature branch
+- If on `develop` and starting new work → Create feature branch
+- If on `main` → Switch to `develop` before creating feature branch
 - If on existing feature branch for same task → Continue on current branch
-- If on unrelated feature branch → Switch to main, then create new feature branch
-- If branch name doesn't match format → Warn user and suggest creating properly named branch
+- If on unrelated feature branch → `git stash` (if needed), switch to `develop`, then create new feature branch
+- If branch name doesn't match format → Warn user and suggest proper rename/recreate
+- Standard PR target: `develop` (never `main` for regular feature work)
+- Exceptions: Release/hotfix processes may merge to `main` then sync back to `develop`
+
+**PR Targeting Guidelines:**
+
+- All feature / refactor / docs / test PRs target `develop`
+- Do not open PRs directly against `main` unless performing an approved release or emergency hotfix
+- After a hotfix merged to `main`, open sync PR from `main` → `develop`
 
 **Example Workflow:**
 
@@ -163,7 +175,7 @@ Every token generation run produces `.metadata.json` with:
 
 - Token outputs must be **byte-identical** for same input (verified by `tools/interoperability/` tests)
 - Normalization logic must match exactly (e.g., diacritic removal, case conversion)
-- Update `tools/java-python-mapping.json` when adding new classes
+- Update `tools/java-language-mappings.json` when adding new classes (source-centric: `critical_java_files`, `directory_roots`, per-language `overrides`)
 - Run `tools/sync-check.sh` before PR submission
 
 ## File Structure Patterns
