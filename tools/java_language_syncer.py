@@ -431,15 +431,13 @@ class JavaLanguageSyncer:
         try:
             # Use same logic as Java changes for PR base comparison
             if since_commit == "HEAD~1":
-                try:
-                    merge_base_result = subprocess.run([
-                        'git', 'merge-base', 'HEAD', 'origin/main'
-                    ], capture_output=True, text=True, cwd=self.root_dir)
-                    
-                    if merge_base_result.returncode == 0:
-                        since_commit = merge_base_result.stdout.strip()
-                except subprocess.CalledProcessError:
-                    pass
+                # subprocess.run without check=True will not raise CalledProcessError;
+                # we simply inspect the return code and fallback silently if it fails.
+                merge_base_result = subprocess.run([
+                    'git', 'merge-base', 'HEAD', 'origin/main'
+                ], capture_output=True, text=True, cwd=self.root_dir)
+                if merge_base_result.returncode == 0 and merge_base_result.stdout.strip():
+                    since_commit = merge_base_result.stdout.strip()
             
             result = subprocess.run([
                 'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', f'{base_path}/'

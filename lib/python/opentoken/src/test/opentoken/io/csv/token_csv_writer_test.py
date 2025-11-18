@@ -5,8 +5,6 @@ Copyright (c) Truveta. All rights reserved.
 import os
 import tempfile
 
-import pytest
-
 from opentoken.io.csv.token_csv_writer import TokenCSVWriter
 from opentoken.processor.token_constants import TokenConstants
 

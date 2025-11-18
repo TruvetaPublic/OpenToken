@@ -2,15 +2,12 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-import base64
 import pickle
 
 import pytest
 
 from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
-from opentoken.tokentransformer.token_transformer import TokenTransformer
-
 
 class TestDecryptTokenTransformer:
     """Test cases for DecryptTokenTransformer."""

@@ -20,5 +20,6 @@
     "chat.tools.autoApprove": true,
     "chat.mcp.access": "all",
     "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": true
+    "python.testing.unittestEnabled": true,
+    "python.analysis.typeCheckingMode": "basic"
 }
