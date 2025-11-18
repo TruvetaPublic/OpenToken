@@ -15,19 +15,19 @@ This tool is essential for maintaining consistency between the Java and Python i
 python3 tools/java_python_syncer.py
 
 # Check against specific branch/commit
-python3 tools/java_python_syncer.py --since origin/main
+python3 tools/java_language_syncer.py --since origin/main
 
 # Generate GitHub-style checklist
-python3 tools/java_python_syncer.py --format github-checklist
+python3 tools/java_language_syncer.py --format github-checklist
 
 # Output as JSON for automation
-python3 tools/java_python_syncer.py --format json
+python3 tools/java_language_syncer.py --format json
 
 # Comprehensive health check
-python3 tools/java_python_syncer.py --health-check
+python3 tools/java_language_syncer.py --health-check
 
 # Validate configuration only
-python3 tools/java_python_syncer.py --validate-only
+python3 tools/java_language_syncer.py --validate-only
 ```
 
 #### GitHub Actions Integration
@@ -168,7 +168,7 @@ The enhanced workflow (`.github/workflows/java-python-sync-enhanced.yml`) provid
 4. **Status Reporting**: Provides both workflow logs and PR comments
 
 ### Related Files
-- `tools/java_python_syncer.py` - Main tool implementation
+- `tools/java_language_syncer.py` - Main tool implementation
 - `tools/java-python-mapping.json` - Configuration file
 - `tools/sync-check-enhanced.sh` - Shell wrapper script
 - `.github/workflows/java-python-sync-enhanced.yml` - GitHub Actions workflow

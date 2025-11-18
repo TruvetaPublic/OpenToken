@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Java-Python Synchronization Checker (Enhanced)
-# Wrapper script for java_python_syncer.py with completion tracking
+# Java Multi-Language Synchronization Checker
+# Wrapper script for java_language_syncer.py with completion tracking
 
 # Default values
 OUTPUT_FORMAT="console"
@@ -9,6 +9,7 @@ SINCE_COMMIT="HEAD~1"
 CREATE_ISSUE=false
 VERBOSE=false
 QUIET=false
+TARGET_LANGUAGES=""
 
 # Colors for output
 RED='\033[0;31m'
@@ -28,14 +29,16 @@ show_usage() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
-Java-Python Synchronization Checker with Completion Tracking
-Detects Java file changes and identifies corresponding Python files that need updates.
+Java Multi-Language Synchronization Checker with Completion Tracking
+Detects Java file changes and identifies corresponding target language files that need updates.
 Tracks completion status across multiple commits in PRs.
 
 OPTIONS:
     -f, --format FORMAT     Output format: console, github-checklist, json (default: console)
     -s, --since COMMIT      Compare changes since this commit/branch (default: HEAD~1)
                            Use 'origin/main' for full PR comparison
+    -l, --languages LANGS   Comma-separated list of languages to check (e.g., python,nodejs)
+                           Default: all enabled languages
     -i, --issue            Create GitHub issue for sync tasks (requires gh CLI)
     -v, --verbose          Enable verbose output
     -q, --quiet            Suppress info messages
@@ -48,6 +51,9 @@ EXAMPLES:
     # Check all changes in current PR against main branch
     $0 --since origin/main --format github-checklist
 
+    # Check only Python sync status
+    $0 --languages python --since origin/main
+
     # Generate JSON report for automation
     $0 --format json --since origin/main
 
@@ -58,7 +64,7 @@ EXAMPLES:
     $0 --quiet --format json
 
 COMPLETION TRACKING FEATURES:
-    The enhanced tool now tracks which Python files have been recently modified,
+    The enhanced tool now tracks which target language files have been recently modified,
     helping you see progress on sync items across multiple commits in a PR.
     
     Status indicators:
@@ -72,7 +78,7 @@ COMPLETION TRACKING FEATURES:
 
 WORKFLOW FOR MULTI-COMMIT PRs:
     1. Make Java changes → tool shows sync checklist
-    2. Make some Python updates → tool shows progress
+    2. Make some target language updates → tool shows progress
     3. Continue until all items are 🔄 (completed)
 
 EOF
@@ -91,6 +97,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -s|--since)
             SINCE_COMMIT="$2"
+            shift 2
+            ;;
+        -l|--languages)
+            TARGET_LANGUAGES="$2"
             shift 2
             ;;
         -i|--issue)
@@ -139,14 +149,14 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Check if the syncer script exists
-if [[ ! -f "tools/java_python_syncer.py" ]]; then
-    log_error "Syncer script not found: tools/java_python_syncer.py"
+if [[ ! -f "tools/java_language_syncer.py" ]]; then
+    log_error "Syncer script not found: tools/java_language_syncer.py"
     exit 1
 fi
 
 # Check if the mapping file exists
-if [[ ! -f "tools/java-python-mapping.json" ]]; then
-    log_error "Mapping file not found: tools/java-python-mapping.json"
+if [[ ! -f "tools/java-language-mappings.json" ]]; then
+    log_error "Mapping file not found: tools/java-language-mappings.json"
     exit 1
 fi
 
@@ -164,9 +174,14 @@ fi
 
 # Run the enhanced sync checker
 SYNC_RESULT=""
+LANG_ARGS=""
+if [[ -n "$TARGET_LANGUAGES" ]]; then
+    LANG_ARGS="--languages $TARGET_LANGUAGES"
+fi
+
 if [[ $OUTPUT_FORMAT == "github-checklist" ]]; then
     # Capture output for potential issue creation
-    SYNC_RESULT=$(python3 tools/java_python_syncer.py --format "$OUTPUT_FORMAT" --since "$SINCE_COMMIT" 2>&1)
+    SYNC_RESULT=$(python3 tools/java_language_syncer.py --format "$OUTPUT_FORMAT" --since "$SINCE_COMMIT" $LANG_ARGS 2>&1)
     SYNC_EXIT_CODE=$?
     
     # Always show the result for checklist format
@@ -174,9 +189,9 @@ if [[ $OUTPUT_FORMAT == "github-checklist" ]]; then
 else
     # Run normally
     if [[ $VERBOSE == true ]]; then
-        python3 tools/java_python_syncer.py --format "$OUTPUT_FORMAT" --since "$SINCE_COMMIT"
+        python3 tools/java_language_syncer.py --format "$OUTPUT_FORMAT" --since "$SINCE_COMMIT" $LANG_ARGS
     else
-        python3 tools/java_python_syncer.py --format "$OUTPUT_FORMAT" --since "$SINCE_COMMIT" 2>/dev/null
+        python3 tools/java_language_syncer.py --format "$OUTPUT_FORMAT" --since "$SINCE_COMMIT" $LANG_ARGS 2>/dev/null
     fi
     SYNC_EXIT_CODE=$?
 fi
@@ -196,18 +211,18 @@ if [[ $CREATE_ISSUE == true ]]; then
             if [[ -n "$SYNC_RESULT" ]]; then
                 # Use the already captured result
                 gh issue create \
-                    --title "Java-Python Sync Required (Auto-generated)" \
+                    --title "Java Multi-Language Sync Required (Auto-generated)" \
                     --body "$SYNC_RESULT" \
-                    --label "python-sync-needed,auto-generated" 2>/dev/null && \
+                    --label "language-sync-needed,auto-generated" 2>/dev/null && \
                 log_success "GitHub issue created successfully!" || \
                 log_warning "Failed to create GitHub issue"
             else
                 # Generate checklist format for issue
-                ISSUE_CONTENT=$(python3 tools/java_python_syncer.py --format github-checklist --since "$SINCE_COMMIT" 2>/dev/null)
+                ISSUE_CONTENT=$(python3 tools/java_language_syncer.py --format github-checklist --since "$SINCE_COMMIT" $LANG_ARGS 2>/dev/null)
                 gh issue create \
-                    --title "Java-Python Sync Required (Auto-generated)" \
+                    --title "Java Multi-Language Sync Required (Auto-generated)" \
                     --body "$ISSUE_CONTENT" \
-                    --label "python-sync-needed,auto-generated" 2>/dev/null && \
+                    --label "language-sync-needed,auto-generated" 2>/dev/null && \
                 log_success "GitHub issue created successfully!" || \
                 log_warning "Failed to create GitHub issue"
             fi

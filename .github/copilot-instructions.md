@@ -48,7 +48,7 @@ This document provides comprehensive guidance for AI coding agents working on th
 - `lib/python/opentoken/src/main/opentoken/attributes/attribute_loader.py` → add to `AttributeLoader.load()` set
 - `lib/python/opentoken/src/main/opentoken/tokens/token_registry.py` → add to registry
 
-**Both languages must be updated** or parity breaks. Use `tools/java_python_syncer.py` to verify cross-language sync.
+**Both languages must be updated** or parity breaks. Use `tools/java_language_syncer.py` to verify cross-language sync.
 
 ## Development Workflows
 
@@ -232,7 +232,7 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 ### Before Submitting
 
 1. **Run all builds**: `mvn clean install` (Java) and `pytest` (Python)
-2. **Check cross-language sync**: Run `tools/java_python_syncer.py`
+2. **Check cross-language sync**: Run `tools/java_language_syncer.py`
 3. **Code style**: Java Checkstyle must pass, Python follows PEP 8
 4. **Test coverage**: Add tests for new code paths
 
