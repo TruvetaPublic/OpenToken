@@ -2,6 +2,24 @@
     "source_language": "java",
     "source_base_path": "lib/java/opentoken/src/main/java/com/truveta/opentoken/",
     "auto_generate_unmapped": true,
+    "critical_java_files": [
+        {"path": "Main.java", "priority": "high", "manual_review": true, "description": "Main entry point - critical for CLI compatibility"},
+        {"path": "Metadata.java", "priority": "high", "manual_review": true},
+        {"path": "CommandLineArguments.java", "priority": "high", "manual_review": true},
+        {"path": "processor/PersonAttributesProcessor.java", "priority": "high"},
+        {"path": "processor/TokenConstants.java", "priority": "high"},
+        {"path": "processor/TokenDecryptionProcessor.java", "priority": "high"},
+        {"path": "tokentransformer/DecryptTokenTransformer.java", "priority": "high"},
+        {"path": "tokentransformer/EncryptTokenTransformer.java", "priority": "high"},
+        {"path": "tokentransformer/EncryptionConstants.java", "priority": "high"}
+    ],
+    "directory_roots": [
+        {"path": "attributes/", "priority": "medium", "auto_sync": true},
+        {"path": "tokens/", "priority": "medium", "auto_sync": true},
+        {"path": "tokentransformer/", "priority": "medium", "auto_sync": true},
+        {"path": "io/", "priority": "low", "auto_sync": true},
+        {"path": "../test/java/com/truveta/opentoken/", "priority": "medium", "auto_sync": true, "is_test": true}
+    ],
     "target_languages": {
         "python": {
             "enabled": true,
@@ -10,6 +28,9 @@
             "file_extension": ".py",
             "test_pattern": "{name}_test.py",
             "test_directory_mapping": "lib/java/opentoken/src/test/java/com/truveta/opentoken/ -> lib/python/opentoken/src/test/opentoken/",
+            "overrides": {
+                "critical_files": {}
+            },
             "critical_files": {
                 "lib/java/opentoken/src/main/java/com/truveta/opentoken/Main.java": {
                     "target_file": "lib/python/opentoken/src/main/opentoken/main.py",
@@ -146,6 +167,40 @@
                 "**/*.properties",
                 "**/resources/**"
             ]
+        },
+        "nodejs": {
+            "enabled": false,
+            "base_path": "lib/nodejs/opentoken",
+            "naming_convention": "camelCase",
+            "file_extension": ".js",
+            "test_pattern": "{name}.test.js",
+            "critical_files": {},
+            "directory_mappings": {
+                "lib/java/opentoken/src/main/java/com/truveta/opentoken/": {
+                    "target_directory": "lib/nodejs/opentoken/src/",
+                    "sync_priority": "low",
+                    "description": "Placeholder mapping root for future NodeJS implementation",
+                    "auto_sync": true
+                }
+            },
+            "ignore_patterns": []
+        },
+        "csharp": {
+            "enabled": false,
+            "base_path": "lib/csharp/opentoken",
+            "naming_convention": "pascal_case",
+            "file_extension": ".cs",
+            "test_pattern": "{name}Tests.cs",
+            "critical_files": {},
+            "directory_mappings": {
+                "lib/java/opentoken/src/main/java/com/truveta/opentoken/": {
+                    "target_directory": "lib/csharp/opentoken/src/",
+                    "sync_priority": "low",
+                    "description": "Placeholder mapping root for future C# implementation",
+                    "auto_sync": true
+                }
+            },
+            "ignore_patterns": []
         }
     },
     "sync_rules": {

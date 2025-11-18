@@ -13,6 +13,9 @@ import re
 import fnmatch
 from abc import ABC, abstractmethod
 
+# Constants
+DEFAULT_SINCE_COMMIT = "HEAD~1"
+
 
 class LanguageHandler(ABC):
     """Base class for language-specific sync logic"""
@@ -91,6 +94,76 @@ class PythonHandler(LanguageHandler):
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
+class NodeJSHandler(LanguageHandler):
+    """Node.js-specific logic (camelCase, .js extension)"""
+
+    def convert_java_to_target_naming(self, java_name):
+        # Test classes: SomeThingTest.java -> someThing.test.js
+        if java_name.endswith('Test.java'):
+            base = java_name[:-9]  # remove Test.java
+            camel = base[0].lower() + base[1:]
+            return camel + '.test.js'
+        elif java_name.endswith('.java'):
+            base = java_name[:-5]
+            camel = base[0].lower() + base[1:]
+            return camel + '.js'
+        return java_name
+
+    def convert_java_to_target_path(self, java_path):
+        # Replace Java source roots with Node.js source root
+        if "lib/java/opentoken/src/main/java/com/truveta/opentoken/" in java_path:
+            node_path = java_path.replace(
+                "lib/java/opentoken/src/main/java/com/truveta/opentoken/",
+                "lib/nodejs/opentoken/src/"
+            )
+        elif "lib/java/opentoken/src/test/java/com/truveta/opentoken/" in java_path:
+            node_path = java_path.replace(
+                "lib/java/opentoken/src/test/java/com/truveta/opentoken/",
+                "lib/nodejs/opentoken/test/"
+            )
+        else:
+            node_path = java_path
+
+        if node_path.endswith('.java'):
+            directory, filename = node_path.rsplit('/', 1)
+            return directory + '/' + self.convert_java_to_target_naming(filename)
+        return node_path
+
+
+class CSharpHandler(LanguageHandler):
+    """C#-specific logic (PascalCase, .cs extension)"""
+
+    def convert_java_to_target_naming(self, java_name):
+        # Test classes: SomeThingTest.java -> SomeThingTests.cs (convention)
+        if java_name.endswith('Test.java'):
+            base = java_name[:-9]  # remove Test.java
+            return base + 'Tests.cs'
+        elif java_name.endswith('.java'):
+            base = java_name[:-5]
+            return base + '.cs'
+        return java_name
+
+    def convert_java_to_target_path(self, java_path):
+        # Replace Java source roots with hypothetical C# project structure
+        if "lib/java/opentoken/src/main/java/com/truveta/opentoken/" in java_path:
+            cs_path = java_path.replace(
+                "lib/java/opentoken/src/main/java/com/truveta/opentoken/",
+                "lib/csharp/OpenToken/src/"
+            )
+        elif "lib/java/opentoken/src/test/java/com/truveta/opentoken/" in java_path:
+            cs_path = java_path.replace(
+                "lib/java/opentoken/src/test/java/com/truveta/opentoken/",
+                "lib/csharp/OpenToken/tests/"
+            )
+        else:
+            cs_path = java_path
+
+        if cs_path.endswith('.java'):
+            directory, filename = cs_path.rsplit('/', 1)
+            return directory + '/' + self.convert_java_to_target_naming(filename)
+        return cs_path
+
+
 class JavaLanguageSyncer:
     """Multi-language sync checker with Java as source of truth"""
     
@@ -115,9 +188,10 @@ class JavaLanguageSyncer:
             if config.get('enabled', False):
                 if lang == 'python':
                     handlers[lang] = PythonHandler(lang, config)
-                # Future: Add other language handlers here
-                # elif lang == 'nodejs':
-                #     handlers[lang] = NodeJSHandler(lang, config)
+                elif lang == 'nodejs':
+                    handlers[lang] = NodeJSHandler(lang, config)
+                elif lang == 'csharp':
+                    handlers[lang] = CSharpHandler(lang, config)
         
         return handlers
 
@@ -216,7 +290,7 @@ class JavaLanguageSyncer:
         
         return len(issues) == 0
     
-    def get_java_changes(self, since_commit="HEAD~1"):
+    def get_java_changes(self, since_commit=DEFAULT_SINCE_COMMIT):
         """Get list of changed Java files since specified commit with timestamps
 
         Args:
@@ -253,7 +327,7 @@ class JavaLanguageSyncer:
         except subprocess.CalledProcessError:
             return []
 
-    def get_file_last_modified_commit(self, file_path, since_commit="HEAD~1"):
+    def get_file_last_modified_commit(self, file_path, since_commit=DEFAULT_SINCE_COMMIT):
         """Get the most recent commit that modified a specific file
         
         Args:
@@ -279,7 +353,7 @@ class JavaLanguageSyncer:
         except subprocess.CalledProcessError:
             return None
 
-    def is_target_file_up_to_date(self, java_file, target_file, since_commit="HEAD~1", check_both_modified=False):
+    def is_target_file_up_to_date(self, java_file, target_file, since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
         """Check if target language file is up-to-date relative to Java file changes
         
         Args:
@@ -338,7 +412,7 @@ class JavaLanguageSyncer:
         
         return filtered_files
 
-    def get_target_language_changes(self, language, since_commit="HEAD~1"):
+    def get_target_language_changes(self, language, since_commit=DEFAULT_SINCE_COMMIT):
         """Get list of changed files for a target language since specified commit
         
         Args:
@@ -389,7 +463,7 @@ class JavaLanguageSyncer:
         target_path = self.root_dir / target_file
         return target_path.exists()
 
-    def generate_sync_report(self, output_format="console", since_commit="HEAD~1", check_both_modified=False, target_languages=None):
+    def generate_sync_report(self, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, target_languages=None):
         """Generate a report of files that need syncing
         
         Args:
@@ -445,7 +519,7 @@ class JavaLanguageSyncer:
 
         return self.format_output(all_language_mappings, output_format, since_commit, check_both_modified)
 
-    def format_output(self, all_language_mappings, output_format="console", since_commit="HEAD~1", check_both_modified=False):
+    def format_output(self, all_language_mappings, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
         """Format the output based on the specified format
         
         Args:
@@ -544,9 +618,9 @@ class JavaLanguageSyncer:
             
             # Save enhanced report
             for lang, data in all_language_mappings.items():
-                self.save_enhanced_report(lang, data['mappings'], data['changes'], since_commit)
+                self.save_enhanced_report(lang, data['mappings'], data['changes'])
 
-    def format_github_checklist(self, all_language_mappings, since_commit="HEAD~1", check_both_modified=False):
+    def format_github_checklist(self, all_language_mappings, since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
         """Format as GitHub checklist with completion status for multiple languages
         
         Args:
@@ -619,14 +693,13 @@ class JavaLanguageSyncer:
         
         return output
 
-    def save_enhanced_report(self, language, mappings, target_changes, since_commit="HEAD~1"):
+    def save_enhanced_report(self, language, mappings, target_changes):
         """Save enhanced report with completion tracking for a specific language
         
         Args:
             language: The target language name.
             mappings: The mapping information between Java and target language files.
             target_changes: The list of changed target language files.
-            since_commit: The commit to compare since (unused but kept for API consistency).
             
         Returns:
             None
@@ -688,7 +761,49 @@ class JavaLanguageSyncer:
         Returns:
             A mapping configuration for the Java file, or None if not found.
         """
-        # First check exact matches in critical files
+        source_base = self.mappings.get("source_base_path", "")
+        rel_path = java_file[len(source_base):] if java_file.startswith(source_base) else java_file
+
+        # 1. Source-centric critical files
+        critical_list = self.mappings.get("critical_java_files", [])
+        if critical_list:
+            overrides = lang_config.get("overrides", {}).get("critical_files", {})
+            for cf in critical_list:
+                cf_path = cf.get("path")
+                if cf_path == rel_path or cf_path == java_file:
+                    # Determine target file (override or handler-derived)
+                    if cf_path in overrides:
+                        target_file = overrides[cf_path]
+                    else:
+                        target_file = handler.convert_java_to_target_path(java_file)
+                    return {
+                        "target_files": [target_file],
+                        "sync_priority": cf.get("priority", "medium"),
+                        "description": cf.get("description", f"Critical file {rel_path}"),
+                        "auto_sync": False,
+                        "manual_review": cf.get("manual_review", False)
+                    }
+
+        # 2. Source-centric directory roots
+        dir_roots = self.mappings.get("directory_roots", [])
+        if dir_roots:
+            for root in dir_roots:
+                root_path = root.get("path")
+                # Support relative root (under source_base) or absolute java path
+                if root_path.startswith("lib/java/"):
+                    full_root = root_path
+                else:
+                    full_root = source_base + root_path
+                if java_file.startswith(full_root):
+                    target_file = handler.convert_java_to_target_path(java_file)
+                    return {
+                        "target_files": [target_file],
+                        "sync_priority": root.get("priority", "medium"),
+                        "description": f"Directory root mapping for {rel_path}",
+                        "auto_sync": root.get("auto_sync", True)
+                    }
+
+        # 3. Legacy per-language critical files
         if "critical_files" in lang_config:
             for exact_file, mapping in lang_config["critical_files"].items():
                 if java_file == exact_file:
@@ -699,13 +814,11 @@ class JavaLanguageSyncer:
                         "auto_sync": mapping.get("auto_sync", False)
                     }
 
-        # Then check directory mappings
+        # 4. Legacy per-language directory mappings
         if "directory_mappings" in lang_config:
             for dir_pattern, mapping in lang_config["directory_mappings"].items():
                 if java_file.startswith(dir_pattern):
-                    # Convert the java file path using the handler
                     target_file = handler.convert_java_to_target_path(java_file)
-                    
                     return {
                         "target_files": [target_file],
                         "sync_priority": mapping.get("sync_priority", "medium"),
@@ -713,7 +826,7 @@ class JavaLanguageSyncer:
                         "auto_sync": mapping.get("auto_sync", True)
                     }
 
-        # Fallback: auto-generate if enabled
+        # 5. Fallback auto-generate
         if self.mappings.get("auto_generate_unmapped", True):
             target_file = handler.convert_java_to_target_path(java_file)
             return {
@@ -722,7 +835,6 @@ class JavaLanguageSyncer:
                 "description": f"Auto-generated mapping for {java_file}",
                 "auto_sync": True
             }
-
         return None
 
 
