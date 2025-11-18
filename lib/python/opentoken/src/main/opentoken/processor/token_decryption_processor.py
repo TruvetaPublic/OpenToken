@@ -22,10 +22,6 @@ class TokenDecryptionProcessor:
     decrypt them, and write the decrypted tokens to the output data source.
     """
 
-    def __init__(self):
-        """Initialize the processor."""
-        pass
-
     @staticmethod
     def process(reader: TokenReader, writer: TokenWriter, decryptor: DecryptTokenTransformer):
         """

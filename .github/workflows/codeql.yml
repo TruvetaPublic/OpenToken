@@ -13,9 +13,9 @@ name: "CodeQL Advanced"
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "develop"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "develop"]
   schedule:
     - cron: "35 3 * * 1"
 
@@ -62,12 +62,10 @@ jobs:
         uses: actions/checkout@v4
 
       # Set up Java 21 for Maven build
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - name: Setup toolchain (Java)
+        uses: ./.github/actions/setup-toolchain
         with:
-          java-version: "21"
-          distribution: "corretto"
-          cache: maven
+          enable-python: false
 
       # Add any setup steps before running the `github/codeql-action/init` action.
       # This includes steps like installing compilers or runtimes (`actions/setup-node`

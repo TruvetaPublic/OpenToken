@@ -23,9 +23,9 @@ import com.truveta.opentoken.processor.TokenConstants;
  */
 public class TokenCSVWriter implements TokenWriter {
     private static final Logger logger = LoggerFactory.getLogger(TokenCSVWriter.class);
-    
+
     private final BufferedWriter writer;
-    
+
     /**
      * Initialize the class with the output file in CSV format.
      * 
@@ -39,29 +39,30 @@ public class TokenCSVWriter implements TokenWriter {
         if (parentDir != null) {
             Files.createDirectories(parentDir);
         }
-        
+
         this.writer = new BufferedWriter(new FileWriter(filePath));
-        
+
         // Write header
         writer.write(TokenConstants.RULE_ID + "," + TokenConstants.TOKEN + "," + TokenConstants.RECORD_ID);
         writer.newLine();
     }
-    
+
     /**
      * Write a token row to the CSV file.
      * 
      * @param data A map containing RuleId, Token, and RecordId.
      * @throws IOException If an I/O error occurs.
      */
+    @Override
     public void writeToken(Map<String, String> data) throws IOException {
         String ruleId = data.getOrDefault(TokenConstants.RULE_ID, "");
         String token = data.getOrDefault(TokenConstants.TOKEN, "");
         String recordId = data.getOrDefault(TokenConstants.RECORD_ID, "");
-        
+
         writer.write(String.format("%s,%s,%s", ruleId, token, recordId));
         writer.newLine();
     }
-    
+
     @Override
     public void close() throws IOException {
         if (writer != null) {

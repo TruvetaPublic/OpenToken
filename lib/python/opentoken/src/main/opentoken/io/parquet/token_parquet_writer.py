@@ -65,7 +65,8 @@ class TokenParquetWriter(TokenWriter):
             table = pa.Table.from_pylist(self.rows)
             
             # Write to Parquet file
-            pq.write_table(table, self.file_path)
+            # Use snappy compression to mirror Java implementation
+            pq.write_table(table, self.file_path, compression='snappy')
             
         except Exception as e:
             logger.error(f"Error in writing to Parquet file: {e}")

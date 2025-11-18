@@ -225,71 +225,69 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
 
 def build_token_transformers(args: CommandLineArguments) -> List[TokenTransformer]:
     """
-    Build the list of token transformers based on command line arguments.
-
+    Encrypt tokens from person attributes and write to output file.
+    
     Args:
-        args: Command line arguments.
-
-    Returns:
-        List of token transformers.
+        input_path: Path to input file with person attributes.
+        output_path: Path to output file for encrypted tokens.
+        input_type: Type of input file (csv or parquet).
+        output_type: Type of output file (csv or parquet).
+        hashing_secret: Secret for hashing tokens.
+        encryption_key: Key for encrypting tokens.
     """
-    transformers = []
+    token_transformer_list: List[TokenTransformer] = []
+    try:
+        token_transformer_list.append(HashTokenTransformer(hashing_secret))
+        token_transformer_list.append(EncryptTokenTransformer(encryption_key))
+    except Exception as e:
+        logger.error("Error in initializing the transformer. Execution halted.", exc_info=e)
+        return
 
-    # Add hash transformer if hashing secret is provided
-    if args.hashing_secret:
-        logger.info("Adding hash token transformer")
-        transformers.append(HashTokenTransformer(args.hashing_secret))
+    try:
+        with _create_person_attributes_reader(input_path, input_type) as reader, \
+             _create_person_attributes_writer(output_path, output_type) as writer:
 
-    # Add encrypt transformer if encryption key is provided
-    if args.encryption_key:
-        logger.info("Adding encrypt token transformer")
-        transformers.append(EncryptTokenTransformer(args.encryption_key))
+            # Create initial metadata with system information
+            metadata = Metadata()
+            metadata_map = metadata.initialize()
 
-    return transformers
+            # Set secrets separately
+            metadata.add_hashed_secret(Metadata.HASHING_SECRET_HASH, hashing_secret)
+            metadata.add_hashed_secret(Metadata.ENCRYPTION_SECRET_HASH, encryption_key)
+
+            # Process data and get updated metadata
+            PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
+
+            # Write the metadata to file
+            metadata_writer = MetadataJsonWriter(output_path)
+            metadata_writer.write(metadata_map)
+
+    except Exception as e:
+        logger.error("Error in processing the input file. Execution halted.", exc_info=e)
 
 
-def create_reader(input_path: str, input_type: str):
+def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str, encryption_key: str):
     """
-    Create the appropriate reader based on input type.
-
+    Decrypt tokens from input file and write to output file.
+    
     Args:
-        input_path: Path to the input file.
-        input_type: Type of the input file.
-
-    Returns:
-        PersonAttributesReader instance.
-
-    Raises:
-        ValueError: If the input type is not supported.
+        input_path: Path to input file with encrypted tokens.
+        output_path: Path to output file for decrypted tokens.
+        input_type: Type of input file (csv or parquet).
+        output_type: Type of output file (csv or parquet).
+        encryption_key: Encryption key for decryption.
     """
-    if input_type == CommandLineArguments.TYPE_CSV:
-        return PersonAttributesCSVReader(input_path)
-    elif input_type == CommandLineArguments.TYPE_PARQUET:
-        return PersonAttributesParquetReader(input_path)
-    else:
-        raise ValueError(f"Unsupported input type: {input_type}")
-
-
-def create_writer(output_path: str, output_type: str):
-    """
-    Create the appropriate writer based on output type.
-
-    Args:
-        output_path: Path to the output file.
-        output_type: Type of the output file.
-
-    Returns:
-        PersonAttributesWriter instance.
-
-    Raises:
-        ValueError: If the output type is not supported.
-    """
-    if output_type == CommandLineArguments.TYPE_CSV:
-        return PersonAttributesCSVWriter(output_path)
-    elif output_type == CommandLineArguments.TYPE_PARQUET:
-        return PersonAttributesParquetWriter(output_path)
-    else:
-        raise ValueError(f"Unsupported output type: {output_type}")
+    try:
+        decryptor = DecryptTokenTransformer(encryption_key)
+        
+        with _create_token_reader(input_path, input_type) as reader, \
+             _create_token_writer(output_path, output_type) as writer:
+            TokenDecryptionProcessor.process(reader, writer, decryptor)
+                
+    except Exception as e:
+        # Mirror Java behavior: log error and continue without raising
+        logger.error("Error during token decryption", exc_info=e)
+        return
 
 
 if __name__ == "__main__":

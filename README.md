@@ -169,6 +169,8 @@ The driver accepts multiple command line arguments:
 
 - `--hash-only`: Optional. When provided, the tool operates in hash-only mode. It generates tokens using HMAC-SHA256 hashing only, skipping the AES encryption step. In hash-only mode, only the hashing secret (`-h`) is required; the encryption key (`-e`) is not needed. This mode is useful for token matching scenarios where encryption is not necessary.
 
+- `-d | --decrypt`: Optional. When provided, the tool operates in decryption mode. It decrypts tokens from a previously encrypted OpenToken output file. In decryption mode, only the encryption key (`-e`) is required. The input file can be either CSV or Parquet format containing encrypted tokens with columns: `RuleId`, `Token`, and `RecordId`.
+
 The encryption logic is: 
 > $Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))$
 
@@ -222,7 +224,7 @@ For complete details about all metadata fields, examples, and security considera
 
 ```shell
 cd lib/java/opentoken
-mvn install -DskipTests
+mvn clean install -DskipTests
 java -jar target/opentoken-*.jar \
   -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."

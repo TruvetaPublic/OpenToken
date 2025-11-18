@@ -1,0 +1,170 @@
+name: Auto Version Bump
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-version-bump:
+    runs-on: ubuntu-latest
+    # Only run for release branches
+    if: startsWith(github.event.pull_request.head.ref, 'release/')
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Extract version from branch name
+        id: extract_version
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          # Extract version from release/x.y.z format
+          VERSION=$(echo "$BRANCH_NAME" | sed 's|release/||')
+
+          # Validate version format (x.y.z)
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Branch name must be in format release/x.y.z (e.g., release/1.12.0)"
+            echo "Got: $BRANCH_NAME"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Check current version
+        id: check_version
+        run: |
+          # Parse current version from Python package __init__.py
+          CURRENT_VERSION=$(python3 <<'EOF'
+          import re
+          import sys
+          try:
+              with open('lib/python/opentoken/src/main/opentoken/__init__.py', 'r') as f:
+                  content = f.read()
+              match = re.search(r'__version__\s*=\s*["\']([0-9]+\.[0-9]+\.[0-9]+(?:[^"\']*)?)["\']', content)
+              if match:
+                  print(match.group(1))
+              else:
+                  print('', file=sys.stderr)
+                  print('ERROR: No __version__ found in file', file=sys.stderr)
+          except (FileNotFoundError, IOError) as e:
+              print('', file=sys.stderr)
+              print(f'ERROR: Cannot read file: {e}', file=sys.stderr)
+          except Exception as e:
+              print('', file=sys.stderr)
+              print(f'ERROR: Unexpected error: {e}', file=sys.stderr)
+          EOF
+          )
+
+          if [ -z "$CURRENT_VERSION" ]; then
+            echo "ERROR: Could not parse current version from lib/python/opentoken/src/main/opentoken/__init__.py"
+            exit 1
+          fi
+
+          TARGET_VERSION="${{ steps.extract_version.outputs.version }}"
+
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "target=$TARGET_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+          echo "Target version: $TARGET_VERSION"
+
+          if [ "$CURRENT_VERSION" = "$TARGET_VERSION" ]; then
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+            echo "Version is already up to date!"
+          else
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+            echo "Version needs to be updated"
+          fi
+
+      - name: Setup toolchain (Python)
+        if: steps.check_version.outputs.needs_update == 'true'
+        uses: ./.github/actions/setup-toolchain
+        with:
+          enable-java: false
+          enable-python: true
+          python-version: "3.10"
+
+      - name: Install bump2version
+        if: steps.check_version.outputs.needs_update == 'true'
+        run: pip install bump2version
+
+      - name: Update version
+        if: steps.check_version.outputs.needs_update == 'true'
+        run: |
+          VERSION="${{ steps.extract_version.outputs.version }}"
+
+          # Use bump2version with --new-version to set the exact version
+          # Note: 'patch' is a required positional argument but is overridden by --new-version
+          bump2version --new-version "$VERSION" --no-commit --no-tag patch
+
+          echo "Updated version to $VERSION"
+
+      - name: Configure Git
+        if: steps.check_version.outputs.needs_update == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit version changes
+        if: steps.check_version.outputs.needs_update == 'true'
+        run: |
+          VERSION="${{ steps.extract_version.outputs.version }}"
+
+          # Check if there are changes to commit
+          if [[ -n $(git status -s) ]]; then
+            git add .
+            git commit -m "chore: bump version to $VERSION"
+            git push origin ${{ github.event.pull_request.head.ref }}
+            echo "Version updated and pushed to release branch"
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Add comment to PR
+        if: steps.check_version.outputs.needs_update == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🤖 **Version Auto-Updated**
+              
+              Version has been automatically updated to \`${{ steps.extract_version.outputs.version }}\` based on the release branch name.
+              
+              Updated files:
+              - \`.bumpversion.cfg\`
+              - \`lib/java/opentoken/pom.xml\`
+              - \`Dockerfile\`
+              - \`lib/java/opentoken/src/main/java/com/truveta/opentoken/Metadata.java\`
+              - \`lib/python/opentoken/setup.py\`
+              - \`lib/python/opentoken/src/main/opentoken/__init__.py\`
+              - \`lib/python/opentoken/src/main/opentoken/metadata.py\`
+              
+              Please review the changes before merging.`
+            });
+
+      - name: Version already up-to-date comment
+        if: steps.check_version.outputs.needs_update == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ **Version Check Passed**
+              
+              Version is already set to \`${{ steps.extract_version.outputs.version }}\` - no update needed.`
+            });

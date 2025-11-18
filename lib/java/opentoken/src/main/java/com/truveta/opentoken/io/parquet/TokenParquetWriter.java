@@ -30,10 +30,10 @@ import com.truveta.opentoken.processor.TokenConstants;
  */
 public class TokenParquetWriter implements TokenWriter {
     private static final Logger logger = LoggerFactory.getLogger(TokenParquetWriter.class);
-    
+
     private final ParquetWriter<Group> writer;
     private final SimpleGroupFactory groupFactory;
-    
+
     /**
      * Initialize the class with the output file in Parquet format.
      * 
@@ -47,45 +47,50 @@ public class TokenParquetWriter implements TokenWriter {
         if (parentDir != null) {
             Files.createDirectories(parentDir);
         }
-        
+
         // Define schema
         MessageType schema = Types.buildMessage()
-            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.RULE_ID)
-            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.TOKEN)
-            .required(PrimitiveType.PrimitiveTypeName.BINARY).as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.RECORD_ID)
-            .named("TokenSchema");
-        
+                .required(PrimitiveType.PrimitiveTypeName.BINARY)
+                .as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.RULE_ID)
+                .required(PrimitiveType.PrimitiveTypeName.BINARY)
+                .as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.TOKEN)
+                .required(PrimitiveType.PrimitiveTypeName.BINARY)
+                .as(org.apache.parquet.schema.LogicalTypeAnnotation.stringType()).named(TokenConstants.RECORD_ID)
+                .named("TokenSchema");
+
         this.groupFactory = new SimpleGroupFactory(schema);
-        
+
         Configuration conf = new Configuration();
         GroupWriteSupport.setSchema(schema, conf);
-        
-        this.writer = org.apache.parquet.hadoop.example.ExampleParquetWriter.builder(new org.apache.hadoop.fs.Path(filePath))
-            .withConf(conf)
-            .withCompressionCodec(CompressionCodecName.SNAPPY)
-            .withType(schema)
-            .build();
+
+        this.writer = org.apache.parquet.hadoop.example.ExampleParquetWriter
+                .builder(new org.apache.hadoop.fs.Path(filePath))
+                .withConf(conf)
+                .withCompressionCodec(CompressionCodecName.SNAPPY)
+                .withType(schema)
+                .build();
     }
-    
+
     /**
      * Write a token row to the Parquet file.
      * 
      * @param data A map containing RuleId, Token, and RecordId.
      * @throws IOException If an I/O error occurs.
      */
+    @Override
     public void writeToken(Map<String, String> data) throws IOException {
         String ruleId = data.getOrDefault(TokenConstants.RULE_ID, "");
         String token = data.getOrDefault(TokenConstants.TOKEN, "");
         String recordId = data.getOrDefault(TokenConstants.RECORD_ID, "");
-        
+
         Group group = groupFactory.newGroup()
-            .append(TokenConstants.RULE_ID, ruleId)
-            .append(TokenConstants.TOKEN, token)
-            .append(TokenConstants.RECORD_ID, recordId);
-        
+                .append(TokenConstants.RULE_ID, ruleId)
+                .append(TokenConstants.TOKEN, token)
+                .append(TokenConstants.RECORD_ID, recordId);
+
         writer.write(group);
     }
-    
+
     @Override
     public void close() throws IOException {
         if (writer != null) {
