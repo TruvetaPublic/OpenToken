@@ -10,11 +10,11 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 import re
-import fnmatch
 from abc import ABC, abstractmethod
 
 # Constants
 DEFAULT_SINCE_COMMIT = "HEAD~1"
+NO_CHANGES_MESSAGE = "No Java changes detected."
 
 
 class LanguageHandler(ABC):
@@ -474,7 +474,7 @@ class JavaLanguageSyncer:
             target_languages: List of specific languages to check, or None for all enabled languages.
         
         Returns:
-            A report of files that need syncing.
+            str: A formatted report string (even for console output).
         """
         changed_files = self.get_java_changes(since_commit)
 
@@ -482,8 +482,8 @@ class JavaLanguageSyncer:
             if output_format == "github-checklist":
                 return "✅ All Java changes appear to be in sync!"
             else:
-                print("No Java changes detected.")
-                return None
+                print(NO_CHANGES_MESSAGE)
+                return NO_CHANGES_MESSAGE
 
         # Determine which languages to check
         languages_to_check = target_languages if target_languages else list(self.language_handlers.keys())
@@ -530,7 +530,7 @@ class JavaLanguageSyncer:
                 If False, checks that target was modified after Java (timestamp-based).
             
         Returns:
-            A formatted output based on the specified format.
+            str: The formatted output string (console/json/github-checklist).
         """
         if output_format == "github-checklist":
             return self.format_github_checklist(all_language_mappings, since_commit, check_both_modified)
@@ -619,8 +619,7 @@ class JavaLanguageSyncer:
             # Save enhanced report
             for lang, data in all_language_mappings.items():
                 self.save_enhanced_report(lang, data['mappings'], data['changes'])
-            
-            return None
+            return output
 
     def format_github_checklist(self, all_language_mappings, since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
         """Format as GitHub checklist with completion status for multiple languages
@@ -906,8 +905,7 @@ Examples:
         print(result)
         # Check if sync is complete - fail if not
         if "0 completed)" not in result and "completed)" in result:
-            # Extract completion status
-            import re
+            # Extract completion status using already imported 're'
             match = re.search(r'\((\d+)/(\d+) completed\)', result)
             if match:
                 completed = int(match.group(1))
