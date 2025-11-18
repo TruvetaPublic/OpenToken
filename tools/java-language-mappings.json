@@ -3,22 +3,74 @@
     "source_base_path": "lib/java/opentoken/src/main/java/com/truveta/opentoken/",
     "auto_generate_unmapped": true,
     "critical_java_files": [
-        {"path": "Main.java", "priority": "high", "manual_review": true, "description": "Main entry point - critical for CLI compatibility"},
-        {"path": "Metadata.java", "priority": "high", "manual_review": true},
-        {"path": "CommandLineArguments.java", "priority": "high", "manual_review": true},
-        {"path": "processor/PersonAttributesProcessor.java", "priority": "high"},
-        {"path": "processor/TokenConstants.java", "priority": "high"},
-        {"path": "processor/TokenDecryptionProcessor.java", "priority": "high"},
-        {"path": "tokentransformer/DecryptTokenTransformer.java", "priority": "high"},
-        {"path": "tokentransformer/EncryptTokenTransformer.java", "priority": "high"},
-        {"path": "tokentransformer/EncryptionConstants.java", "priority": "high"}
+        {
+            "path": "Main.java",
+            "priority": "high",
+            "manual_review": true,
+            "description": "Main entry point - critical for CLI compatibility"
+        },
+        {
+            "path": "Metadata.java",
+            "priority": "high",
+            "manual_review": true
+        },
+        {
+            "path": "CommandLineArguments.java",
+            "priority": "high",
+            "manual_review": true
+        },
+        {
+            "path": "processor/PersonAttributesProcessor.java",
+            "priority": "high"
+        },
+        {
+            "path": "processor/TokenConstants.java",
+            "priority": "high"
+        },
+        {
+            "path": "processor/TokenDecryptionProcessor.java",
+            "priority": "high"
+        },
+        {
+            "path": "tokentransformer/DecryptTokenTransformer.java",
+            "priority": "high"
+        },
+        {
+            "path": "tokentransformer/EncryptTokenTransformer.java",
+            "priority": "high"
+        },
+        {
+            "path": "tokentransformer/EncryptionConstants.java",
+            "priority": "high"
+        }
     ],
     "directory_roots": [
-        {"path": "attributes/", "priority": "medium", "auto_sync": true},
-        {"path": "tokens/", "priority": "medium", "auto_sync": true},
-        {"path": "tokentransformer/", "priority": "medium", "auto_sync": true},
-        {"path": "io/", "priority": "low", "auto_sync": true},
-        {"path": "../test/java/com/truveta/opentoken/", "priority": "medium", "auto_sync": true, "is_test": true}
+        {
+            "path": "attributes/",
+            "priority": "medium",
+            "auto_sync": true
+        },
+        {
+            "path": "tokens/",
+            "priority": "medium",
+            "auto_sync": true
+        },
+        {
+            "path": "tokentransformer/",
+            "priority": "medium",
+            "auto_sync": true
+        },
+        {
+            "path": "io/",
+            "priority": "low",
+            "auto_sync": true
+        },
+        {
+            "path": "../test/java/com/truveta/opentoken/",
+            "priority": "medium",
+            "auto_sync": true,
+            "is_test": true
+        }
     ],
     "target_languages": {
         "python": {
