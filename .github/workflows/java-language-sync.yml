@@ -1,4 +1,4 @@
-name: Java-Python Sync Check with Progress Tracking
+name: Java Multi-Language Sync Check
 
 on:
   pull_request:
@@ -6,6 +6,8 @@ on:
     paths:
       - "lib/java/opentoken/src/main/java/com/truveta/opentoken/**/*.java"
       - "lib/python/opentoken/src/**/*.py"
+      - "lib/nodejs/opentoken/src/**/*.js"
+      - "lib/nodejs/opentoken/src/**/*.ts"
 
 jobs:
   sync-check:
@@ -30,7 +32,7 @@ jobs:
           enable-python: true
           python-version: "3.10"
 
-      - name: Check Java-Python sync with completion tracking
+      - name: Check Java multi-language sync
         id: sync-check
         run: |
           # Set up git remote for proper base branch comparison
@@ -38,11 +40,12 @@ jobs:
           git fetch origin ${{ github.event.pull_request.base.ref }}
 
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          echo "Checking sync requirements against base branch: origin/$BASE_BRANCH"
+          echo "Checking Java multi-language sync against: origin/$BASE_BRANCH"
 
-          # Generate sync report with completion tracking using full PR context
-          SYNC_REPORT=$(python3 tools/java_python_syncer.py \
+          # Generate sync report checking that both Java and target language files were modified
+          SYNC_REPORT=$(python3 tools/java_language_syncer.py \
             --format github-checklist \
+            --check-both-modified \
             --since "origin/$BASE_BRANCH" 2>&1)
           SYNC_EXIT_CODE=$?
 
@@ -96,20 +99,20 @@ jobs:
                 finalStatusLine = `**Final Status**: ${completionStatus}`;
               }
               
-              commentBody = `## Java-Python Sync Status: Complete!
-              All Java changes in this PR are properly synchronized with Python implementations.
+              commentBody = `## ✅ Java Multi-Language Sync Status: Complete!
+              All Java changes in this PR have corresponding target language file modifications.
               ` + finalStatusLine;
             } else {            
-              commentBody = `## 🔄 Java-Python Sync Progress ${completionStatus}
+              commentBody = `## 🔄 Java Multi-Language Sync Progress ${completionStatus}
               ${syncReport}
               ### 📋 How to use this checklist:
-              - **✓🔄** = File exists and was recently updated ✅ **COMPLETED**
-              - **✓⏳** = File exists but needs updates ⏳ **PENDING** 
-              - **✗⏳** = File missing and needs to be created ⏳ **PENDING**
+              - **✅ SYNCED** = Both Java and target language files modified in this PR ✅ **COMPLETED**
+              - **⏳ NEEDS SYNC** = Java modified but target language not updated yet ⏳ **PENDING** 
+              - **❌ MISSING** = Target language file doesn't exist and needs to be created ⏳ **PENDING**
               
               ### Multi-commit workflow support:
-              This sync tracker monitors your progress across **all commits in this PR**. As you update Python files, they'll automatically show as 🔄 completed in subsequent workflow runs!
-              **Next steps**: Update the ⏳ pending files to complete the sync.`;
+              This sync tracker monitors your progress across **all commits in this PR**. When you modify the corresponding target language files, they'll automatically show as ✅ SYNCED in subsequent workflow runs!
+              **Next steps**: Modify the ⏳ pending target language files to complete the sync.`;
             }
 
             // Find and delete previous sync comments to keep history clean
@@ -121,7 +124,7 @@ jobs:
 
             const syncComments = comments.data.filter(comment => 
               comment.user.type === 'Bot' && 
-              (comment.body.includes('Java-Python Sync') || comment.body.includes('Sync Status') || comment.body.includes('Sync Progress'))
+              (comment.body.includes('Java Multi-Language Sync') || comment.body.includes('Java-Python Sync') || comment.body.includes('Sync Status') || comment.body.includes('Sync Progress'))
             );
 
             // Delete all previous sync comments
@@ -147,11 +150,13 @@ jobs:
             });
             console.log('Created new sync comment');
 
-      - name: Set workflow status
+      - name: Fail workflow if sync is incomplete
         if: steps.sync-check.outputs.SYNC_COMPLETE != 'true'
         run: |
-          echo "Java-Python sync is incomplete"
+          echo "❌ Java multi-language sync is incomplete"
           echo "Status: ${{ steps.sync-check.outputs.COMPLETION_STATUS }}"
-          echo "Check the PR comment for detailed progress tracking"
-          # Don't fail the workflow, just provide information
-          exit 0
+          echo "Completed: ${{ steps.sync-check.outputs.COMPLETED }}/${{ steps.sync-check.outputs.TOTAL }}"
+          echo ""
+          echo "Please update the corresponding target language files before merging."
+          echo "Check the PR comment for detailed sync requirements."
+          exit 1
