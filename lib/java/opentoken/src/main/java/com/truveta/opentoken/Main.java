@@ -147,12 +147,9 @@ public class Main {
             // Set hashing secret
             metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
 
-            // Set encryption secret and mark encryption status
+            // Set encryption secret if applicable
             if (!hashOnlyMode) {
                 metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
-                metadataMap.put("encryption_used", true);
-            } else {
-                metadataMap.put("encryption_used", false);
             }
 
             // Process data and get updated metadata

@@ -182,12 +182,9 @@ def _process_tokens(input_path: str, output_path: str, input_type: str, output_t
             # Set hashing secret
             metadata.add_hashed_secret(Metadata.HASHING_SECRET_HASH, hashing_secret)
             
-            # Set encryption secret and mark encryption status
+            # Set encryption secret if applicable
             if not hash_only_mode:
                 metadata.add_hashed_secret(Metadata.ENCRYPTION_SECRET_HASH, encryption_key)
-                metadata_map["encryption_used"] = True
-            else:
-                metadata_map["encryption_used"] = False
 
             # Process data and get updated metadata
             PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)

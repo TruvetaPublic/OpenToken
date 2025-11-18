@@ -249,6 +249,7 @@ To decrypt previously encrypted tokens, use the `-d` or `--decrypt` flag. The de
 
 ```shell
 cd lib/java/opentoken
+mvn clean install -DskipTests
 java -jar target/opentoken-*.jar -d \
   -i ../../../resources/output.csv -t csv -o ../../../resources/decrypted.csv \
   -e "Secret-Encryption-Key-Goes-Here."
@@ -258,7 +259,7 @@ java -jar target/opentoken-*.jar -d \
 
 ```shell
 cd lib/python/opentoken
-source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate
 python -m opentoken.main -d \
   -i ../../../resources/output.csv -t csv -o ../../../resources/decrypted.csv \
   -e "Secret-Encryption-Key-Goes-Here."
@@ -274,6 +275,7 @@ To generate tokens with HMAC-SHA256 hashing only (skipping the AES encryption st
 
 ```shell
 cd lib/java/opentoken
+mvn clean install -DskipTests
 java -jar target/opentoken-*.jar --hash-only \
   -i ../../../resources/sample.csv -t csv -o ../../../resources/hashed-output.csv \
   -h "HashingKey"
@@ -283,7 +285,7 @@ java -jar target/opentoken-*.jar --hash-only \
 
 ```shell
 cd lib/python/opentoken
-source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate
 PYTHONPATH=src/main python src/main/opentoken/main.py --hash-only \
   -i ../../../resources/sample.csv -t csv -o ../../../resources/hashed-output.csv \
   -h "HashingKey"

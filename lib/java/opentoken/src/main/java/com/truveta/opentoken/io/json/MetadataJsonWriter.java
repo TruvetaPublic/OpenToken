@@ -46,8 +46,16 @@ public class MetadataJsonWriter implements MetadataWriter {
         // Write the metadata map directly as JSON
         int lastDotIndex = outputFilePath.lastIndexOf('.');
         String basePath = lastDotIndex > 0 ? outputFilePath.substring(0, lastDotIndex) : outputFilePath;
+
+        // Write with pretty printing and then fix the separator format to match Python
+        String jsonString = objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(metadataMap);
+
+        // Replace " : " with ": " to match Python's json.dump format (no space before colon)
+        jsonString = jsonString.replace(" : ", ": ");
+
         Files.write(
                 Paths.get(basePath + Metadata.METADATA_FILE_EXTENSION),
-                objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(metadataMap));
+                jsonString.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 }
