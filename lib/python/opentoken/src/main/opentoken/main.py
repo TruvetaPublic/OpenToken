@@ -219,30 +219,5 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
         logger.error(f"Error during token decryption: {e}")
         raise
 
-
-def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str, encryption_key: str):
-    """
-    Decrypt tokens from input file and write to output file.
-    
-    Args:
-        input_path: Path to input file with encrypted tokens.
-        output_path: Path to output file for decrypted tokens.
-        input_type: Type of input file (csv or parquet).
-        output_type: Type of output file (csv or parquet).
-        encryption_key: Encryption key for decryption.
-    """
-    try:
-        decryptor = DecryptTokenTransformer(encryption_key)
-        
-        with _create_token_reader(input_path, input_type) as reader, \
-             _create_token_writer(output_path, output_type) as writer:
-            TokenDecryptionProcessor.process(reader, writer, decryptor)
-                
-    except Exception as e:
-        # Mirror Java behavior: log error and continue without raising
-        logger.error("Error during token decryption", exc_info=e)
-        return
-
-
 if __name__ == "__main__":
     main()
