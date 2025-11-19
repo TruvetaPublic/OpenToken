@@ -403,4 +403,72 @@ class PersonAttributesProcessorIntegrationTest {
         byte[] decryptedBytes = cipher.doFinal(cipherBytes);
         return new String(decryptedBytes, StandardCharsets.UTF_8);
     }
+
+    /**
+     * This test verifies that hash-only mode (without encryption) works correctly
+     * and produces consistent tokens across runs.
+     */
+    @Test
+    void testHashOnlyMode() throws Exception {
+        String tmpInputFile = Files.createTempFile("person_attributes_hashonly", ".csv").toString();
+        String tmpOutputFile = Files.createTempFile("person_attributes_hashonly_out", ".csv").toString();
+
+        // Person attributes to be used for token generation
+        Map<String, String> personAttributes = new HashMap<>();
+        personAttributes.put("FirstName", "Bob");
+        personAttributes.put("LastName", "Builder");
+        personAttributes.put("SocialSecurityNumber", "456-78-9012");
+        personAttributes.put("PostalCode", "12345");
+        personAttributes.put("BirthDate", "1990-05-15");
+        personAttributes.put("Sex", "Male");
+
+        try {
+            // Create test CSV file
+            createTestCSVFile(tmpInputFile, personAttributes);
+
+            // Use only hash transformer (no encryption)
+            List<TokenTransformer> tokenTransformerList = new ArrayList<>();
+            tokenTransformerList.add(new HashTokenTransformer(hashKey));
+
+            // Process the file with hash-only transformers
+            ArrayList<Map<String, String>> results = readCSV_fromPersonAttributesProcessor(
+                    tmpInputFile, tokenTransformerList);
+
+            // Verify that exactly 5 tokens are generated per record (T1-T5)
+            assertEquals(5, results.size(), "Should generate exactly 5 tokens per record in hash-only mode");
+
+            // Verify token structure
+            for (Map<String, String> token : results) {
+                assertTrue(token.containsKey("RecordId"), "Token must contain RecordId");
+                assertTrue(token.containsKey("RuleId"), "Token must contain RuleId");
+                assertTrue(token.containsKey("Token"), "Token must contain Token");
+
+                String ruleId = token.get("RuleId");
+                assertTrue(ruleId.matches("T[1-5]"), "RuleId should follow T1-T5 pattern");
+
+                String tokenValue = token.get("Token");
+                // In hash-only mode, tokens should be base64-encoded HMAC-SHA256 hashes
+                // Valid tokens are 44 characters long (base64 encoding of 32-byte SHA256)
+                // Blank tokens are 64 zeros
+                assertTrue(tokenValue.length() == 44 || tokenValue.length() == 64, 
+                    "Hash-only tokens should be 44 characters (valid) or 64 (blank)");
+            }
+
+            // Process the same file again to verify consistency
+            ArrayList<Map<String, String>> results2 = readCSV_fromPersonAttributesProcessor(
+                    tmpInputFile, tokenTransformerList);
+
+            // Verify that hash-only mode produces consistent tokens across runs
+            assertEquals(results.size(), results2.size(), "Should produce same number of tokens");
+            for (int i = 0; i < results.size(); i++) {
+                assertEquals(results.get(i).get("Token"), results2.get(i).get("Token"),
+                    "Hash-only mode should produce identical tokens for same input");
+            }
+
+        } finally {
+            // Clean up temporary files
+            Files.deleteIfExists(Paths.get(tmpInputFile));
+            Files.deleteIfExists(Paths.get(tmpOutputFile));
+        }
+    }
 }

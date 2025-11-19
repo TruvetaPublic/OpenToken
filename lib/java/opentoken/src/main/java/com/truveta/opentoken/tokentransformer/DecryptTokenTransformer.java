@@ -45,7 +45,8 @@ public class DecryptTokenTransformer implements TokenTransformer {
             throws InvalidKeyException, InvalidAlgorithmParameterException {
         if (encryptionKey.length() != EncryptionConstants.KEY_BYTE_LENGTH) {
             logger.error("Invalid Argument. Key must be {} characters long", EncryptionConstants.KEY_BYTE_LENGTH);
-            throw new InvalidKeyException(String.format("Key must be %s characters long", EncryptionConstants.KEY_BYTE_LENGTH));
+            throw new InvalidKeyException(
+                    String.format("Key must be %s characters long", EncryptionConstants.KEY_BYTE_LENGTH));
         }
 
         this.secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), EncryptionConstants.AES);

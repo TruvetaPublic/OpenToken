@@ -65,12 +65,14 @@ public class Main {
         String outputPath = commandLineArguments.getOutputPath();
         String outputType = commandLineArguments.getOutputType();
         boolean decryptMode = commandLineArguments.isDecrypt();
-        
+        boolean hashOnlyMode = commandLineArguments.isHashOnly();
+
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType; // defaulting to input type if not provided
         }
 
         logger.info("Decrypt Mode: {}", decryptMode);
+        logger.info("Hash-Only Mode: {}", hashOnlyMode);
         if (logger.isInfoEnabled()) {
             logger.info("Hashing Secret: {}", maskString(hashingSecret));
             logger.info("Encryption Key: {}", maskString(encryptionKey));
@@ -85,7 +87,8 @@ public class Main {
             logger.error("Only csv and parquet input types are supported!");
             return;
         }
-        if (!(CommandLineArguments.TYPE_CSV.equals(outputType) || CommandLineArguments.TYPE_PARQUET.equals(outputType))) {
+        if (!(CommandLineArguments.TYPE_CSV.equals(outputType)
+                || CommandLineArguments.TYPE_PARQUET.equals(outputType))) {
             logger.error("Only csv and parquet output types are supported!");
             return;
         }
@@ -97,41 +100,38 @@ public class Main {
                 logger.error("Encryption key must be specified for decryption");
                 return;
             }
-            
+
             decryptTokens(inputPath, outputPath, inputType, outputType, encryptionKey);
             logger.info("Token decryption completed successfully.");
         } else {
-            // Encrypt mode - validate and process person attributes
-            if (hashingSecret == null || hashingSecret.isBlank() || encryptionKey == null
-                    || encryptionKey.isBlank()) {
-                logger.error("Hashing secret and encryption key must be specified");
+            // Token generation mode - validate and process person attributes
+            // Hashing secret is always required
+            if (hashingSecret == null || hashingSecret.isBlank()) {
+                logger.error("Hashing secret must be specified");
                 return;
             }
 
-            encryptTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey);
+            // Encryption key is only required when not in hash-only mode
+            if (!hashOnlyMode && (encryptionKey == null || encryptionKey.isBlank())) {
+                logger.error("Encryption key must be specified (or use --hash-only to skip encryption)");
+                return;
+            }
+
+            processTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey, hashOnlyMode);
         }
     }
 
-    /**
-     * Executes the encryption workflow for person attributes.
-     * <p>
-     * Builds a transformer pipeline consisting of hashing and encryption, processes
-     * records read from the input, writes transformed tokens to the output, and
-     * emits a metadata JSON alongside the output.
-     *
-     * @param inputPath      path to the input file containing person attributes
-     * @param outputPath     path to the output file to write tokens
-     * @param inputType      input type ("csv" or "parquet")
-     * @param outputType     output type ("csv" or "parquet")
-     * @param hashingSecret  secret key used for HMAC-based hashing
-     * @param encryptionKey  secret key used for AES-based encryption
-     */
-    private static void encryptTokens(String inputPath, String outputPath, String inputType, String outputType,
-                                      String hashingSecret, String encryptionKey) {
+    private static void processTokens(String inputPath, String outputPath, String inputType, String outputType,
+            String hashingSecret, String encryptionKey, boolean hashOnlyMode) {
         List<TokenTransformer> tokenTransformerList = new ArrayList<>();
         try {
+            // Always add hash transformer
             tokenTransformerList.add(new HashTokenTransformer(hashingSecret));
-            tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
+
+            // Only add encryption transformer if not in hash-only mode
+            if (!hashOnlyMode) {
+                tokenTransformerList.add(new EncryptTokenTransformer(encryptionKey));
+            }
         } catch (Exception e) {
             logger.error("Error in initializing the transformer. Execution halted. ", e);
             return;
@@ -144,9 +144,13 @@ public class Main {
             Metadata metadata = new Metadata();
             Map<String, Object> metadataMap = metadata.initialize();
 
-            // Set secrets separately
+            // Set hashing secret
             metadata.addHashedSecret(Metadata.HASHING_SECRET_HASH, hashingSecret);
-            metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
+
+            // Set encryption secret if applicable
+            if (!hashOnlyMode) {
+                metadata.addHashedSecret(Metadata.ENCRYPTION_SECRET_HASH, encryptionKey);
+            }
 
             // Process data and get updated metadata
             PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
@@ -243,17 +247,17 @@ public class Main {
      * @param outputType    output type ("csv" or "parquet")
      * @param encryptionKey secret key used for AES-based decryption
      */
-    private static void decryptTokens(String inputPath, String outputPath, String inputType, String outputType, 
-                                      String encryptionKey) {
+    private static void decryptTokens(String inputPath, String outputPath, String inputType, String outputType,
+            String encryptionKey) {
         try {
             DecryptTokenTransformer decryptor = new DecryptTokenTransformer(encryptionKey);
-            
+
             try (TokenReader reader = createTokenReader(inputPath, inputType);
-                 TokenWriter writer = createTokenWriter(outputPath, outputType)) {
+                    TokenWriter writer = createTokenWriter(outputPath, outputType)) {
                 TokenDecryptionProcessor.process(reader, writer, decryptor);
             }
         } catch (Exception e) {
-            logger.error("Error during token decryption", e);
+            logger.error("Error during token decryption: ", e);
         }
     }
 
