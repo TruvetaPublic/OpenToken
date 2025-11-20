@@ -7,6 +7,10 @@ on:
     branches: ["main", "develop"]
   workflow_dispatch:
 
+env:
+  MIN_COVERAGE_OVERALL: "60"
+  MIN_COVERAGE_CHANGED_FILES: "60"
+
 jobs:
   java-tests:
     runs-on: ubuntu-latest
@@ -59,6 +63,8 @@ jobs:
             lib/java/opentoken/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           title: Code Coverage
+          min-coverage-overall: ${{ env.MIN_COVERAGE_OVERALL }}
+          min-coverage-changed-files: ${{ env.MIN_COVERAGE_CHANGED_FILES }}
           pass-emoji: ":green_circle:"
           fail-emoji: ":red_circle:"
           update-comment: true
