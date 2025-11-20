@@ -8,8 +8,10 @@ on:
   workflow_dispatch:
 
 env:
-  MIN_COVERAGE_OVERALL: "60"
-  MIN_COVERAGE_CHANGED_FILES: "80"
+  MIN_COVERAGE_OVERALL: 60
+  MIN_COVERAGE_CHANGED_FILES: 80
+  MIN_COVERAGE_OVERALL_RATIO: 0.6
+  MIN_COVERAGE_CHANGED_FILES_RATIO: 0.8
 
 jobs:
   java-tests:
@@ -36,7 +38,7 @@ jobs:
         if: success() || failure()
         uses: scacap/action-surefire-report@v1
 
-      - name: Publish unit test results
+      - name: Publish Java unit test results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
@@ -56,7 +58,7 @@ jobs:
           path: |
             lib/java/opentoken/target/site/jacoco/*
 
-      - name: Add code coverage to PR
+      - name: Add Java code coverage to PR
         uses: madrapps/jacoco-report@v1.7.1
         with:
           paths: |
@@ -67,6 +69,7 @@ jobs:
           min-coverage-changed-files: ${{ env.MIN_COVERAGE_CHANGED_FILES }}
           pass-emoji: ":green_circle:"
           fail-emoji: ":red_circle:"
+          update-comment: true
 
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@v3
@@ -111,9 +114,17 @@ jobs:
 
       - name: Test with pytest
         run: |
-          PYTHONPATH=lib/python/opentoken/src/main pytest lib/python/opentoken/src/test --junitxml=lib/python/opentoken/test-results-${{ matrix.python-version }}.xml --junitxml=lib/python/opentoken/test-results-${{ matrix.python-version }}.xml
+          PYTHONPATH=lib/python/opentoken/src/main pytest lib/python/opentoken/src/test --junitxml=lib/python/opentoken/test-results-${{ matrix.python-version }}.xml --cov=lib/python/opentoken/src/main --cov-report=xml:lib/python/opentoken/coverage.xml --cov-report=html:lib/python/opentoken/htmlcov
 
-      - name: Publish Python test results
+      - name: Upload Python coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-code-coverage-${{ matrix.python-version }}
+          path: |
+            lib/python/opentoken/coverage.xml
+            lib/python/opentoken/htmlcov/*
+
+      - name: Publish Python unit test results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
@@ -122,6 +133,16 @@ jobs:
           check_name: Python ${{ matrix.python-version }} Test Results
           comment_mode: always
           compare_to_earlier_commit: false
+
+      - name: Add Python code coverage to PR
+        if: matrix.python-version == '3.10'
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: lib/python/opentoken/coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
+          thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+          thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
 
       - name: Run CLI smoke test
         run: |
