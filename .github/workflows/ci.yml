@@ -10,6 +10,8 @@ on:
 env:
   MIN_COVERAGE_OVERALL: 60
   MIN_COVERAGE_CHANGED_FILES: 60
+  MIN_COVERAGE_OVERALL_RATIO: 0.6
+  MIN_COVERAGE_CHANGED_FILES_RATIO: 0.6
 
 jobs:
   java-tests:
@@ -138,9 +140,9 @@ jobs:
         with:
           coverageFile: lib/python/opentoken/coverage.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          thresholdAll: ${{ env.MIN_COVERAGE_OVERALL / 100.0 }}
-          thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES / 100.0 }}
-          thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES / 100.0 }}
+          thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
+          thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+          thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
 
       - name: Run CLI smoke test
         run: |
