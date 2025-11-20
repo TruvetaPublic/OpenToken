@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 env:
-  MIN_COVERAGE_OVERALL: "60"
-  MIN_COVERAGE_CHANGED_FILES: "60"
+  MIN_COVERAGE_OVERALL: "0.6"
+  MIN_COVERAGE_CHANGED_FILES: "0.6"
 
 jobs:
   java-tests:
