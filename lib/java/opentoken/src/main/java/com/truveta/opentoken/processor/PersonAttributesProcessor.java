@@ -101,8 +101,9 @@ public final class PersonAttributesProcessor {
 
         metadataMap.put(TOTAL_ROWS, rowCounter);
         metadataMap.put(TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, rowIssueCounter);
-        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, invalidAttributeCount);
-        metadataMap.put(BLANK_TOKENS_BY_RULE, blankTokensByRuleCount);
+        // Alphabetize attribute and token rule keys for deterministic metadata output
+        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, new java.util.TreeMap<>(invalidAttributeCount));
+        metadataMap.put(BLANK_TOKENS_BY_RULE, new java.util.TreeMap<>(blankTokensByRuleCount));
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
 
         blankTokensByRuleCount

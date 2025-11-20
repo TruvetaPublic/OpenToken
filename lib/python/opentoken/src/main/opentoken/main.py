@@ -43,8 +43,10 @@ def main():
     output_path = command_line_arguments.output_path
     output_type = command_line_arguments.output_type if command_line_arguments.output_type else input_type
     decrypt_mode = command_line_arguments.decrypt
+    hash_only_mode = command_line_arguments.hash_only
 
     logger.info(f"Decrypt Mode: {decrypt_mode}")
+    logger.info(f"Hash-Only Mode: {hash_only_mode}")
     logger.info(f"Hashing Secret: {_mask_string(hashing_secret)}")
     logger.info(f"Encryption Key: {_mask_string(encryption_key)}")
     logger.info(f"Input Path: {input_path}")
@@ -70,13 +72,18 @@ def main():
         _decrypt_tokens(input_path, output_path, input_type, output_type, encryption_key)
         logger.info("Token decryption completed successfully.")
     else:
-        # Encrypt mode - validate and process person attributes
-        if (not hashing_secret or not hashing_secret.strip() or
-                not encryption_key or not encryption_key.strip()):
-            logger.error("Hashing secret and encryption key must be specified")
+        # Token generation mode - validate and process person attributes
+        # Hashing secret is always required
+        if not hashing_secret or not hashing_secret.strip():
+            logger.error("Hashing secret must be specified")
+            return
+        
+        # Encryption key is only required when not in hash-only mode
+        if not hash_only_mode and (not encryption_key or not encryption_key.strip()):
+            logger.error("Encryption key must be specified (or use --hash-only to skip encryption)")
             return
 
-        _encrypt_tokens(input_path, output_path, input_type, output_type, hashing_secret, encryption_key)
+        _process_tokens(input_path, output_path, input_type, output_type, hashing_secret, encryption_key, hash_only_mode)
 
 
 def _create_person_attributes_reader(input_path: str, input_type: str):
@@ -138,23 +145,28 @@ def _mask_string(input_str: str) -> str:
     return input_str[:3] + "*" * (len(input_str) - 3)
 
 
-def _encrypt_tokens(input_path: str, output_path: str, input_type: str, output_type: str,
-                    hashing_secret: str, encryption_key: str):
+def _process_tokens(input_path: str, output_path: str, input_type: str, output_type: str,
+                    hashing_secret: str, encryption_key: str, hash_only_mode: bool):
     """
-    Encrypt tokens from person attributes and write to output file.
+    Process tokens from person attributes and write to output file.
     
     Args:
         input_path: Path to input file with person attributes.
-        output_path: Path to output file for encrypted tokens.
+        output_path: Path to output file for tokens.
         input_type: Type of input file (csv or parquet).
         output_type: Type of output file (csv or parquet).
         hashing_secret: Secret for hashing tokens.
-        encryption_key: Key for encrypting tokens.
+        encryption_key: Key for encrypting tokens (not used in hash-only mode).
+        hash_only_mode: If True, skip encryption step.
     """
     token_transformer_list: List[TokenTransformer] = []
     try:
+        # Always add hash transformer
         token_transformer_list.append(HashTokenTransformer(hashing_secret))
-        token_transformer_list.append(EncryptTokenTransformer(encryption_key))
+        
+        # Only add encryption transformer if not in hash-only mode
+        if not hash_only_mode:
+            token_transformer_list.append(EncryptTokenTransformer(encryption_key))
     except Exception as e:
         logger.error("Error in initializing the transformer. Execution halted.", exc_info=e)
         return
@@ -167,9 +179,12 @@ def _encrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
             metadata = Metadata()
             metadata_map = metadata.initialize()
 
-            # Set secrets separately
+            # Set hashing secret
             metadata.add_hashed_secret(Metadata.HASHING_SECRET_HASH, hashing_secret)
-            metadata.add_hashed_secret(Metadata.ENCRYPTION_SECRET_HASH, encryption_key)
+            
+            # Set encryption secret if applicable
+            if not hash_only_mode:
+                metadata.add_hashed_secret(Metadata.ENCRYPTION_SECRET_HASH, encryption_key)
 
             # Process data and get updated metadata
             PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
@@ -201,10 +216,8 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
             TokenDecryptionProcessor.process(reader, writer, decryptor)
                 
     except Exception as e:
-        # Mirror Java behavior: log error and continue without raising
-        logger.error("Error during token decryption", exc_info=e)
-        return
-
+        logger.error(f"Error during token decryption: {e}")
+        raise
 
 if __name__ == "__main__":
     main()

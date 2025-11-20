@@ -23,13 +23,13 @@ This guide centralizes contributor-facing information. It covers local setup, la
     - [Java](#java)
     - [Python](#python)
     - [PySpark Bridge](#pyspark-bridge)
+    - [Multi-Language Sync Tool](#multi-language-sync-tool)
     - [Cross-language Tips](#cross-language-tips)
   - [Token \& Attribute Registration](#token--attribute-registration)
     - [When to Use](#when-to-use)
     - [Java Registration (ServiceLoader SPI)](#java-registration-serviceloader-spi)
     - [Python Registration](#python-registration)
     - [Cross-language Parity Checklist](#cross-language-parity-checklist)
-    - [Version Bump Reminder](#version-bump-reminder)
     - [Quick Reference](#quick-reference)
   - [Building \& Testing](#building--testing)
     - [Full Multi-language Build](#full-multi-language-build)
@@ -297,6 +297,29 @@ pytest src/test
 Notebook Guides:
 
 - See `lib/python/opentoken-pyspark/notebooks/` for example workflows (custom tokens & overlap analysis).
+### Multi-Language Sync Tool
+
+Java is the source of truth. The sync tool (`tools/java_language_syncer.py`) evaluates changed Java files against enabled target languages (currently Python). It will fail PR workflows if any modified Java file lacks a corresponding, up-to-date target implementation.
+
+Key concepts:
+
+- Source-centric config: `tools/java-language-mappings.json` defines `critical_java_files` (with optional priorities/manual review) and `directory_roots` for broad coverage.
+- Language overrides: Target-specific adjustments live under `target_languages.<lang>.overrides.critical_files`.
+- Auto-generation: If `auto_generate_unmapped` is true, unmapped Java files still produce inferred target paths via handlers.
+- Sync status logic: A target file is considered synced if it was modified after the Java file (timestamp) or, in simplified mode, if both were touched in the PR.
+- Disabled scaffolds: Node.js and C# handlers exist; enabling them requires setting `enabled: true` and supplying base path + conventions.
+
+Usage examples:
+
+```bash
+python3 tools/java_language_syncer.py --format console
+python3 tools/java_language_syncer.py --format github-checklist --since origin/main
+python3 tools/java_language_syncer.py --health-check
+```
+
+CI enforcement: The GitHub Actions workflow (`java-language-sync.yml`) posts a checklist and fails if completion < total.
+
+When adding attributes/tokens: update Java first, run sync tool, then implement Python parity before merging.
 
 ### Cross-language Tips
 
@@ -377,10 +400,6 @@ Python Troubleshooting:
 - Same normalization logic unaffected.
 - Matching token definitions (order & components) across Java & Python.
 - Tests confirming identical hash/encryption output for shared fixtures.
-
-### Version Bump Reminder
- 
-Adding or modifying Tokens / Attributes requires a version bump (`bump2version minor` for new features, `patch` for fixes, `major` for breaking changes).
 
 ### Quick Reference
 

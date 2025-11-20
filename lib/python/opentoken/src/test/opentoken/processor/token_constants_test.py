@@ -2,8 +2,6 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-import pytest
-
 from opentoken.processor.token_constants import TokenConstants
 
 

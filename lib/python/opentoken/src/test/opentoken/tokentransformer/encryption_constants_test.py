@@ -1,9 +1,6 @@
 """
 Copyright (c) Truveta. All rights reserved.
 """
-
-import pytest
-
 from opentoken.tokentransformer.encryption_constants import EncryptionConstants
 
 

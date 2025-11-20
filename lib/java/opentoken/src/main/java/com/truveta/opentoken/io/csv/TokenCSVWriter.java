@@ -23,9 +23,9 @@ import com.truveta.opentoken.processor.TokenConstants;
  */
 public class TokenCSVWriter implements TokenWriter {
     private static final Logger logger = LoggerFactory.getLogger(TokenCSVWriter.class);
-    
+
     private final BufferedWriter writer;
-    
+
     /**
      * Initialize the class with the output file in CSV format.
      * 
@@ -39,14 +39,14 @@ public class TokenCSVWriter implements TokenWriter {
         if (parentDir != null) {
             Files.createDirectories(parentDir);
         }
-        
+
         this.writer = new BufferedWriter(new FileWriter(filePath));
-        
-        // Write header
+
+        // Write header with LF line ending to match Python output
         writer.write(TokenConstants.RULE_ID + "," + TokenConstants.TOKEN + "," + TokenConstants.RECORD_ID);
-        writer.newLine();
+        writer.write('\n');
     }
-    
+
     /**
      * Write a token row to the CSV file.
      * 
@@ -58,11 +58,11 @@ public class TokenCSVWriter implements TokenWriter {
         String ruleId = data.getOrDefault(TokenConstants.RULE_ID, "");
         String token = data.getOrDefault(TokenConstants.TOKEN, "");
         String recordId = data.getOrDefault(TokenConstants.RECORD_ID, "");
-        
+
         writer.write(String.format("%s,%s,%s", ruleId, token, recordId));
-        writer.newLine();
+        writer.write('\n'); // Use LF line ending to match Python output
     }
-    
+
     @Override
     public void close() throws IOException {
         if (writer != null) {

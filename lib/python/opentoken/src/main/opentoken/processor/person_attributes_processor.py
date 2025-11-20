@@ -108,8 +108,9 @@ class PersonAttributesProcessor:
         if metadata_map is not None:
             metadata_map[PersonAttributesProcessor.TOTAL_ROWS] = row_counter
             metadata_map[PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES] = total_invalid_records
-            metadata_map[PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE] = dict(invalid_attribute_count)
-            metadata_map[PersonAttributesProcessor.BLANK_TOKENS_BY_RULE] = dict(blank_tokens_by_rule_count)
+            # Alphabetize attribute and token rule keys for deterministic metadata output
+            metadata_map[PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE] = dict(sorted(invalid_attribute_count.items()))
+            metadata_map[PersonAttributesProcessor.BLANK_TOKENS_BY_RULE] = dict(sorted(blank_tokens_by_rule_count.items()))
 
     @staticmethod
     def _write_tokens(writer: PersonAttributesWriter,
