@@ -8,7 +8,7 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 - Two implementations: Java (Maven) & Python (pip)
 - Deterministic token generation logic is equivalent across languages
-- Use this guide for environment setup & day‑to‑day development
+- Use this guide for environment setup & day-to-day development
 - Use the Token & Attribute Registration guide for extending functionality
 
 ## Contents
@@ -42,13 +42,13 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ## Prerequisites
 
-| Tool | Recommended Version | Notes |
-| ---- | ------------------- | ----- |
-| Java JDK | 21.x | Required for Java module & CLI JAR (outputs Java 11 compatible bytecode) |
-| Maven | 3.8+ | Build Java artifacts (`mvn clean install`) |
-| Python | 3.10+ | For Python implementation & scripts |
-| pip / venv | Latest | Manage Python dependencies |
-| Docker (optional) | Latest | Build container image |
+| Tool              | Recommended Version | Notes                                                                    |
+| ----------------- | ------------------- | ------------------------------------------------------------------------ |
+| Java JDK          | 21.x                | Required for Java module & CLI JAR (outputs Java 11 compatible bytecode) |
+| Maven             | 3.8+                | Build Java artifacts (`mvn clean install`)                               |
+| Python            | 3.10+               | For Python implementation & scripts                                      |
+| pip / venv        | Latest              | Manage Python dependencies                                               |
+| Docker (optional) | Latest              | Build container image                                                    |
 
 ## Project Layout
 
@@ -224,16 +224,40 @@ Contributing notes:
 - Follow PEP 8, add type hints.
 - Keep tests in sync with Java changes.
 
+### Multi-Language Sync Tool
+
+Java is the source of truth. The sync tool (`tools/java_language_syncer.py`) evaluates changed Java files against enabled target languages (currently Python). It will fail PR workflows if any modified Java file lacks a corresponding, up-to-date target implementation.
+
+Key concepts:
+
+- Source-centric config: `tools/java-language-mappings.json` defines `critical_java_files` (with optional priorities/manual review) and `directory_roots` for broad coverage.
+- Language overrides: Target-specific adjustments live under `target_languages.<lang>.overrides.critical_files`.
+- Auto-generation: If `auto_generate_unmapped` is true, unmapped Java files still produce inferred target paths via handlers.
+- Sync status logic: A target file is considered synced if it was modified after the Java file (timestamp) or, in simplified mode, if both were touched in the PR.
+- Disabled scaffolds: Node.js and C# handlers exist; enabling them requires setting `enabled: true` and supplying base path + conventions.
+
+Usage examples:
+
+```bash
+python3 tools/java_language_syncer.py --format console
+python3 tools/java_language_syncer.py --format github-checklist --since origin/main
+python3 tools/java_language_syncer.py --health-check
+```
+
+CI enforcement: The GitHub Actions workflow (`java-language-sync.yml`) posts a checklist and fails if completion < total.
+
+When adding attributes/tokens: update Java first, run sync tool, then implement Python parity before merging.
+
 ### Cross-language Tips
 
-| Task | Java Command | Python Command |
-|------|--------------|----------------|
-| Build / Package | `mvn clean install` | `pip install -e .` |
-| Run Tests | `mvn test` | `pytest src/test` |
-| Lint / Style | `mvn checkstyle:check` | (pep8 / flake8 if configured) |
-| Run CLI | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
-| Add Token | SPI entry & class | new module in `tokens/definitions` |
-| Add Attribute | SPI entry & class | class + loader import |
+| Task            | Java Command                               | Python Command                         |
+| --------------- | ------------------------------------------ | -------------------------------------- |
+| Build / Package | `mvn clean install`                        | `pip install -e .`                     |
+| Run Tests       | `mvn test`                                 | `pytest src/test`                      |
+| Lint / Style    | `mvn checkstyle:check`                     | (pep8 / flake8 if configured)          |
+| Run CLI         | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
+| Add Token       | SPI entry & class                          | new module in `tokens/definitions`     |
+| Add Attribute   | SPI entry & class                          | class + loader import                  |
 
 Maintain the same functional behavior and normalization between languages.
 
@@ -305,15 +329,16 @@ Python Troubleshooting:
 - Tests confirming identical hash/encryption output for shared fixtures.
 
 ### Version Bump Reminder
+
 Adding or modifying Tokens / Attributes requires a version bump (`bump2version minor` for new features, `patch` for fixes, `major` for breaking changes).
 
 ### Quick Reference
 
-| Operation | Java File(s) | Python File(s) |
-|-----------|--------------|----------------|
-| Add Token | `META-INF/services/...Token` | `tokens/definitions/<new>_token.py` |
-| Add Attribute | `META-INF/services/...Attribute` | `attributes/.../<new>_attribute.py` + `attribute_loader.py` |
-| Rename Implementation | Update service file entries | Rename file & ensure loader/discovery still finds it |
+| Operation             | Java File(s)                     | Python File(s)                                              |
+| --------------------- | -------------------------------- | ----------------------------------------------------------- |
+| Add Token             | `META-INF/services/...Token`     | `tokens/definitions/<new>_token.py`                         |
+| Add Attribute         | `META-INF/services/...Attribute` | `attributes/.../<new>_attribute.py` + `attribute_loader.py` |
+| Rename Implementation | Update service file entries      | Rename file & ensure loader/discovery still finds it        |
 
 Maintain tests to guard consistency between languages.
 
@@ -347,14 +372,14 @@ java -jar target/opentoken-*.jar -i input.csv -t csv -o output.csv -h HashingKey
 
 Arguments:
 
-| Flag | Description |
-| ---- | ----------- |
-| `-t, --type` | Input file type (`csv` or `parquet`) |
-| `-i, --input` | Input file path |
-| `-o, --output` | Output file path |
-| `-ot, --output-type` | (Optional) Output file type (defaults to input) |
-| `-h, --hashingsecret` | Hashing secret for HMAC-SHA256 |
-| `-e, --encryptionkey` | AES-256 encryption key |
+| Flag                  | Description                                     |
+| --------------------- | ----------------------------------------------- |
+| `-t, --type`          | Input file type (`csv` or `parquet`)            |
+| `-i, --input`         | Input file path                                 |
+| `-o, --output`        | Output file path                                |
+| `-ot, --output-type`  | (Optional) Output file type (defaults to input) |
+| `-h, --hashingsecret` | Hashing secret for HMAC-SHA256                  |
+| `-e, --encryptionkey` | AES-256 encryption key                          |
 
 ## Development Container
 
@@ -389,12 +414,12 @@ Before opening a PR:
 
 ## Troubleshooting
 
-| Issue | Hint |
-| ----- | ---- |
-| Java class not discovered | Confirm fully qualified name in `META-INF/services/*` file & no trailing spaces |
-| Python attribute not loaded | Ensure it is imported & added in `attribute_loader.py` |
+| Issue                            | Hint                                                                                |
+| -------------------------------- | ----------------------------------------------------------------------------------- |
+| Java class not discovered        | Confirm fully qualified name in `META-INF/services/*` file & no trailing spaces     |
+| Python attribute not loaded      | Ensure it is imported & added in `attribute_loader.py`                              |
 | Token mismatch between languages | Verify hashing & encryption secrets are identical and normalization logic unchanged |
-| Build fails on Checkstyle | Run `mvn -q checkstyle:check` locally & fix warnings |
+| Build fails on Checkstyle        | Run `mvn -q checkstyle:check` locally & fix warnings                                |
 
 
 ---

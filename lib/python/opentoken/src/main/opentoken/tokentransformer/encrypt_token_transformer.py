@@ -7,6 +7,7 @@ import secrets
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from opentoken.tokentransformer.token_transformer import TokenTransformer
+from opentoken.tokentransformer.encryption_constants import EncryptionConstants
 
 
 logger = logging.getLogger(__name__)
@@ -19,12 +20,6 @@ class EncryptTokenTransformer(TokenTransformer):
     See: https://datatracker.ietf.org/doc/html/rfc3826 (AES)
     """
 
-    AES = "AES"
-    ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding"
-    KEY_BYTE_LENGTH = 32
-    IV_SIZE = 12
-    TAG_LENGTH_BITS = 128
-
     def __init__(self, encryption_key: str):
         """
         Initializes the underlying cipher (AES) with the encryption secret.
@@ -35,9 +30,9 @@ class EncryptTokenTransformer(TokenTransformer):
         Raises:
             ValueError: If the encryption key is not 32 characters long.
         """
-        if len(encryption_key) != self.KEY_BYTE_LENGTH:
-            logger.error(f"Invalid Argument. Key must be {self.KEY_BYTE_LENGTH} characters long")
-            raise ValueError(f"Key must be {self.KEY_BYTE_LENGTH} characters long")
+        if len(encryption_key) != EncryptionConstants.KEY_BYTE_LENGTH:
+            logger.error(f"Invalid Argument. Key must be {EncryptionConstants.KEY_BYTE_LENGTH} characters long")
+            raise ValueError(f"Key must be {EncryptionConstants.KEY_BYTE_LENGTH} characters long")
 
         self.encryption_key = encryption_key.encode('utf-8')
 
@@ -58,7 +53,7 @@ class EncryptTokenTransformer(TokenTransformer):
         """
         try:
             # Generate random IV (for AES GCM mode)
-            iv_bytes = secrets.token_bytes(self.IV_SIZE)
+            iv_bytes = secrets.token_bytes(EncryptionConstants.IV_SIZE)
 
             # Create cipher
             cipher = Cipher(

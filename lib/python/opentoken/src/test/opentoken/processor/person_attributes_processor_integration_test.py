@@ -384,3 +384,77 @@ class TestPersonAttributesProcessorIntegration:
         decrypted_bytes = decryptor.update(cipher_bytes) + decryptor.finalize()
 
         return decrypted_bytes.decode('utf-8')
+
+    def test_hash_only_mode(self):
+        """
+        This test verifies that hash-only mode (without encryption) works correctly
+        and produces consistent tokens across runs.
+        """
+        tmp_input_file = None
+        tmp_output_file = None
+
+        try:
+            # Create temporary files
+            with tempfile.NamedTemporaryFile(mode='w', suffix='_hashonly.csv', delete=False) as f:
+                tmp_input_file = f.name
+            with tempfile.NamedTemporaryFile(mode='w', suffix='_hashonly_out.csv', delete=False) as f:
+                tmp_output_file = f.name
+
+            # Person attributes to be used for token generation
+            person_attributes = {
+                "FirstName": "Bob",
+                "LastName": "Builder",
+                "SocialSecurityNumber": "456-78-9012",
+                "PostalCode": "12345",
+                "BirthDate": "1990-05-15",
+                "Sex": "Male"
+            }
+
+            # Create test CSV file
+            self.create_test_csv_file(tmp_input_file, person_attributes)
+
+            # Use only hash transformer (no encryption)
+            token_transformer_list = [HashTokenTransformer(self.hash_key)]
+
+            # Process the file with hash-only transformers
+            results = self.read_csv_from_person_attributes_processor(
+                tmp_input_file, token_transformer_list
+            )
+
+            # Verify that exactly 5 tokens are generated per record (T1-T5)
+            assert len(results) == 5, "Should generate exactly 5 tokens per record in hash-only mode"
+
+            # Verify token structure
+            for token in results:
+                assert "RecordId" in token, "Token must contain RecordId"
+                assert "RuleId" in token, "Token must contain RuleId"
+                assert "Token" in token, "Token must contain Token"
+
+                rule_id = token.get("RuleId")
+                assert rule_id in ["T1", "T2", "T3", "T4", "T5"], \
+                    f"RuleId should follow T1-T5 pattern, got: {rule_id}"
+
+                token_value = token.get("Token")
+                # In hash-only mode, tokens should be base64-encoded HMAC-SHA256 hashes
+                # Valid tokens are 44 characters long (base64 encoding of 32-byte SHA256)
+                # Blank tokens are 64 zeros
+                assert len(token_value) == 44 or len(token_value) == 64, \
+                    f"Hash-only tokens should be 44 characters (valid) or 64 (blank), got {len(token_value)}"
+
+            # Process the same file again to verify consistency
+            results2 = self.read_csv_from_person_attributes_processor(
+                tmp_input_file, token_transformer_list
+            )
+
+            # Verify that hash-only mode produces consistent tokens across runs
+            assert len(results) == len(results2), "Should produce same number of tokens"
+            for i in range(len(results)):
+                assert results[i].get("Token") == results2[i].get("Token"), \
+                    "Hash-only mode should produce identical tokens for same input"
+
+        finally:
+            # Clean up temporary files
+            temp_files = [tmp_input_file, tmp_output_file]
+            for temp_file in temp_files:
+                if temp_file and os.path.exists(temp_file):
+                    os.remove(temp_file)

@@ -1,11 +1,20 @@
 name: Docker Publish
 
 on:
+  # PRs: build for validation only (no release attachment)
   pull_request:
-    branches: ["main"]
+    branches: ["main", "develop"]
+  # Publish after a release is created/published
   release:
-    types: [created, published, released]
-  # Added pull_request trigger - pull requests now trigger builds for validation
+    types: [created, published]
+  # Or when the release workflow completes
+  workflow_run:
+    workflows: ["Create Release on Merge"]
+    types: [completed]
+
+# Minimal global token permissions; jobs override as needed
+permissions:
+  contents: read
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -14,26 +23,33 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  release-info:
+    uses: ./.github/workflows/release-context.yml
+    secrets: inherit
+    with:
+      lookup-release: ${{ github.event_name == 'release' || github.event_name == 'workflow_run' }}
+
   build:
+    needs: release-info
+    # Only run on successful release workflow runs, otherwise always run
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
 
+    env:
+      VERSION: ${{ needs.release-info.outputs['version'] }}
+      TAG: ${{ needs.release-info.outputs['tag'] }}
+      RELEASE_FOUND: ${{ needs.release-info.outputs['release-found'] }}
+      RELEASE_ID: ${{ needs.release-info.outputs['release-id'] }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Get version from release tag
-        id: get_version
-        run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "Detected version: ${VERSION}"
 
       # Install the cosign tool for signing images (only needed for releases)
       # https://github.com/sigstore/cosign-installer
@@ -81,6 +97,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64/v8
 
       # Sign the resulting Docker image digest
       # This will only write to the public Rekor transparency log when the Docker
@@ -96,3 +113,36 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+      - name: Upload Docker image details to release
+        if: env.RELEASE_FOUND == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ env.VERSION }}';
+            const registry = '${{ env.REGISTRY }}';
+            const fullImage = `${registry}/${{ github.repository }}:${version}`;
+            const digest = '${{ steps.build-and-push.outputs.digest }}';
+
+            const releaseId = '${{ env.RELEASE_ID }}';
+            if (!releaseId) {
+              console.log('No release ID provided, skipping upload');
+              return;
+            }
+
+            // Get current release to append to its body
+            const release = await github.rest.repos.getRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId
+            });
+
+            const releaseBody = (release.data.body || '') + `\n\n---\n\n## Docker Image\n\n\`\`\`\n${fullImage}\n\`\`\`\n\nDigest: \`${digest}\`\n`;
+
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+              body: releaseBody
+            });
+            console.log(`Updated release v${version} with Docker image information`);

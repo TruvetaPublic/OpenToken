@@ -1,0 +1,109 @@
+name: Release Context
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      release-tag:
+        description: "Optional tag (e.g., v1.2.3) provided by the caller"
+        required: false
+        type: string
+        default: ""
+      lookup-release:
+        description: "Whether to look up the matching GitHub Release"
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      version:
+        description: "Semantic version without the v prefix"
+        value: ${{ jobs.release-info.outputs.version }}
+      tag:
+        description: "Tag name with v prefix"
+        value: ${{ jobs.release-info.outputs.tag }}
+      release-found:
+        description: "Whether a GitHub Release already exists for this tag"
+        value: ${{ jobs.release-info.outputs.release-found }}
+      release-id:
+        description: "GitHub Release identifier when available"
+        value: ${{ jobs.release-info.outputs.release-id }}
+
+jobs:
+  release-info:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      release-found: ${{ steps.release-summary.outputs.found }}
+      release-id: ${{ steps.release-summary.outputs.release_id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version and tag
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          INPUT_TAG="${{ inputs.release-tag }}"
+          if [ -n "$INPUT_TAG" ]; then
+            CLEAN_TAG=${INPUT_TAG#v}
+            VERSION="$CLEAN_TAG"
+          else
+            VERSION=$(sed -n '/^\[bumpversion\]/,/^\[/p' .bumpversion.cfg | grep "^current_version" | cut -d'=' -f2 | tr -d ' ')
+          fi
+
+          if [ -z "$VERSION" ]; then
+            echo "Unable to determine version" >&2
+            exit 1
+          fi
+
+          TAG="v${VERSION}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved version $VERSION (tag $TAG)"
+
+      - name: Resolve GitHub release (optional)
+        id: release-summary
+        shell: bash
+        env:
+          LOOKUP_RELEASE: ${{ inputs.lookup-release && 'true' || 'false' }}
+          TARGET_TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "$LOOKUP_RELEASE" != "true" ]; then
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "release_id=" >> "$GITHUB_OUTPUT"
+            echo "Release lookup skipped"
+            exit 0
+          fi
+
+          ERROR_FILE=$(mktemp)
+          if RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/$TARGET_TAG --jq '.id' 2>"$ERROR_FILE"); then
+            if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
+              echo "found=true" >> "$GITHUB_OUTPUT"
+              echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+              echo "Found release $TARGET_TAG (ID $RELEASE_ID)"
+            else
+              echo "found=false" >> "$GITHUB_OUTPUT"
+              echo "release_id=" >> "$GITHUB_OUTPUT"
+              echo "No release found for $TARGET_TAG"
+            fi
+          else
+            if grep -q 'Not Found' "$ERROR_FILE"; then
+              echo "found=false" >> "$GITHUB_OUTPUT"
+              echo "release_id=" >> "$GITHUB_OUTPUT"
+              echo "No release found for $TARGET_TAG"
+            else
+              echo "Unable to query release details"
+              cat "$ERROR_FILE" >&2
+              exit 1
+            fi
+          fi
+          rm -f "$ERROR_FILE"

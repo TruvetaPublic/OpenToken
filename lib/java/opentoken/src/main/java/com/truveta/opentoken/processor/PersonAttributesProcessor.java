@@ -33,10 +33,6 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
  */
 public final class PersonAttributesProcessor {
 
-    private static final String TOKEN = "Token";
-    private static final String RULE_ID = "RuleId";
-    private static final String RECORD_ID = "RecordId";
-
     public static final String TOTAL_ROWS = "TotalRows";
     public static final String TOTAL_ROWS_WITH_INVALID_ATTRIBUTES = "TotalRowsWithInvalidAttributes";
     public static final String INVALID_ATTRIBUTES_BY_TYPE = "InvalidAttributesByType";
@@ -105,8 +101,9 @@ public final class PersonAttributesProcessor {
 
         metadataMap.put(TOTAL_ROWS, rowCounter);
         metadataMap.put(TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, rowIssueCounter);
-        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, invalidAttributeCount);
-        metadataMap.put(BLANK_TOKENS_BY_RULE, blankTokensByRuleCount);
+        // Alphabetize attribute and token rule keys for deterministic metadata output
+        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, new java.util.TreeMap<>(invalidAttributeCount));
+        metadataMap.put(BLANK_TOKENS_BY_RULE, new java.util.TreeMap<>(blankTokensByRuleCount));
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
 
         blankTokensByRuleCount
@@ -130,9 +127,9 @@ public final class PersonAttributesProcessor {
 
         for (String tokenId : tokenIds) {
             var rowResult = new HashMap<String, String>();
-            rowResult.put(RECORD_ID, recordId);
-            rowResult.put(RULE_ID, tokenId);
-            rowResult.put(TOKEN, tokenGeneratorResult.getTokens().get(tokenId));
+            rowResult.put(TokenConstants.RECORD_ID, recordId);
+            rowResult.put(TokenConstants.RULE_ID, tokenId);
+            rowResult.put(TokenConstants.TOKEN, tokenGeneratorResult.getTokens().get(tokenId));
 
             try {
                 writer.writeAttributes(rowResult);

@@ -20,6 +20,8 @@ class CommandLineArguments:
         self.input_type: str = ""
         self.output_path: str = ""
         self.output_type: str = ""
+        self.decrypt: bool = False
+        self.hash_only: bool = False
 
     @classmethod
     def parse_args(cls, args: Optional[list] = None) -> 'CommandLineArguments':
@@ -82,6 +84,24 @@ class CommandLineArguments:
             default=""
         )
 
+        parser.add_argument(
+            "-d", "--decrypt",
+            dest="decrypt",
+            help="Decrypt mode. Decrypts tokens from input file.",
+            action="store_true",
+            required=False,
+            default=False
+        )
+
+        parser.add_argument(
+            "--hash-only",
+            dest="hash_only",
+            help="Hash-only mode. Generates tokens with hashing only, skipping encryption.",
+            action="store_true",
+            required=False,
+            default=False
+        )
+
         parsed_args = parser.parse_args(args)
 
         # Create instance and populate with parsed values
@@ -92,6 +112,8 @@ class CommandLineArguments:
         instance.input_type = parsed_args.input_type
         instance.output_path = parsed_args.output_path
         instance.output_type = parsed_args.output_type
+        instance.decrypt = parsed_args.decrypt
+        instance.hash_only = parsed_args.hash_only
 
         return instance
 
