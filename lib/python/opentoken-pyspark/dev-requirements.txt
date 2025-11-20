@@ -1,0 +1,13 @@
+# Testing frameworks
+pytest
+
+# Code quality and linting
+flake8
+
+# Jupyter support
+jupyter
+notebook
+ipykernel
+
+# Include production requirements
+-r requirements.txt
