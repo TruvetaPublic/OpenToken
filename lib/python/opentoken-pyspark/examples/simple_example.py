@@ -6,7 +6,7 @@ This script shows how to use the OpenToken PySpark bridge to generate
 tokens from person data in a PySpark DataFrame.
 
 Prerequisites:
-    pip install -e ../python
+    pip install -e ../opentoken-pyspark
     pip install -e .
 
 Usage:
@@ -26,6 +26,14 @@ def main():
         .appName("OpenTokenSimpleExample") \
         .master("local[2]") \
         .config("spark.sql.shuffle.partitions", "2") \
+        .config(
+            "spark.driver.extraJavaOptions",
+            "--add-opens=java.base/java.nio=ALL-UNNAMED --add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+        ) \
+        .config(
+            "spark.executor.extraJavaOptions",
+            "--add-opens=java.base/java.nio=ALL-UNNAMED --add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+        ) \
         .getOrCreate()
 
     print(f"Spark version: {spark.version}\n")

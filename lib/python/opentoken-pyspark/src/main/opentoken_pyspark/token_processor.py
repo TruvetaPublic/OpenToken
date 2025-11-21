@@ -135,6 +135,9 @@ class OpenTokenProcessor:
         Raises:
             ValueError: If required columns are missing or invalid
         """
+        # Validate Python-side deps (PyArrow/Pandas) for clearer errors before UDF runs
+        self._validate_python_env()
+
         # Validate input DataFrame
         self._validate_dataframe(df)
 
@@ -257,6 +260,40 @@ class OpenTokenProcessor:
         )
 
         return result_df
+
+    def _validate_python_env(self) -> None:
+        """
+        Validate Python dependency versions that affect Arrow/Pandas UDFs.
+
+        Raises a clear, actionable error instead of a low-level EOFError from
+        the Python worker when PyArrow/Pandas are incompatible with PySpark.
+        """
+        try:
+            import pyspark  # type: ignore
+            import pyarrow as pa  # type: ignore
+            import pandas as _pd  # type: ignore
+        except Exception as e:
+            raise RuntimeError(
+                "Missing required dependencies for PySpark UDFs. Ensure pyspark, pyarrow, and pandas are installed."
+            ) from e
+
+        # Minimal guards for known incompatibilities.
+        try:
+            spark_ver = tuple(int(x) for x in pyspark.__version__.split(".")[:2])
+        except Exception:
+            spark_ver = (0, 0)
+
+        try:
+            pa_major = int(pa.__version__.split(".")[0])
+        except Exception:
+            pa_major = 0
+
+        # Spark 3.5.x commonly breaks with very new PyArrow (>=20)
+        if spark_ver == (3, 5) and pa_major >= 20:
+            raise RuntimeError(
+                f"Incompatible PyArrow {pa.__version__} detected with PySpark {pyspark.__version__}. "
+                "Install a Spark-3.5 compatible PyArrow, e.g.: pip install 'pyarrow<16'"
+            )
 
     @classmethod
     def _get_required_attribute_groups(cls) -> Dict[str, list]:

@@ -4,5 +4,9 @@ pyspark==3.5.6
 # Cryptography for token decryption in overlap analysis
 pycryptodome>=3.18.0
 
+# Data interchange for Pandas UDFs (align with Spark 3.5.x)
+pandas>=1.5,<2.4
+pyarrow<16
+
 # OpenToken core library (local install required)
 # Install with: pip install -e ../opentoken

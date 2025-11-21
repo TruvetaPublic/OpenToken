@@ -4,10 +4,4 @@ pytest
 # Code quality and linting
 flake8
 
-# Development tools
-bump2version
-
-# Include production requirements
--r requirements.txt
-
 pycryptodome

@@ -8,6 +8,3 @@ flake8
 jupyter
 notebook
 ipykernel
-
-# Include production requirements
--r requirements.txt
