@@ -8,6 +8,7 @@ from collections import defaultdict
 from typing import Dict, List, Type, Any
 
 from opentoken.attributes.attribute import Attribute
+from opentoken.attributes.attribute_loader import AttributeLoader
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.io.person_attributes_reader import PersonAttributesReader
 from opentoken.io.person_attributes_writer import PersonAttributesWriter
@@ -196,7 +197,6 @@ class PersonAttributesProcessor:
         Returns:
             A dictionary with all attribute names initialized to 0
         """
-        from opentoken.attributes.attribute_loader import AttributeLoader
         invalid_attribute_count: Dict[str, int] = {}
         attributes = AttributeLoader.load()
         for attribute in attributes:
