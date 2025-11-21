@@ -26,8 +26,12 @@ import org.mockito.Mock;
 
 import com.truveta.opentoken.attributes.Attribute;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
 import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SexAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.tokens.TokenGenerator;
@@ -118,17 +122,81 @@ class PersonAttributesProcessorTest {
                 "Metadata should contain totalRowsWithInvalidAttributes key");
         assertTrue(metadataMap.containsKey(PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE),
                 "Metadata should contain invalidAttributesByType key");
+        assertTrue(metadataMap.containsKey(PersonAttributesProcessor.BLANK_TOKENS_BY_RULE),
+                "Metadata should contain blankTokensByRule key");
 
         // Verify values
         assertEquals(1L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS), "Total rows should be 1");
         assertEquals(0L, metadataMap.get(PersonAttributesProcessor.TOTAL_ROWS_WITH_INVALID_ATTRIBUTES),
                 "Total rows with invalid attributes should be 0");
 
-        // The invalid attributes map should be an empty Map object
+        // The invalid attributes map should contain all attributes with zero counts
         @SuppressWarnings("unchecked")
         Map<String, Long> invalidAttributesMap = (Map<String, Long>) metadataMap
                 .get(PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE);
-        assertTrue(invalidAttributesMap.isEmpty(), "Invalid attributes map should be empty");
+        assertFalse(invalidAttributesMap.isEmpty(), "Invalid attributes map should contain all attributes initialized to 0");
+        
+        // Verify all invalid attribute values are 0 (no invalid attributes in this test)
+        for (Long count : invalidAttributesMap.values()) {
+            assertEquals(0L, count, "All attribute counts should be 0 with valid data");
+        }
+        
+        // Verify blank tokens map contains all token rules
+        @SuppressWarnings("unchecked")
+        Map<String, Long> blankTokensMap = (Map<String, Long>) metadataMap
+                .get(PersonAttributesProcessor.BLANK_TOKENS_BY_RULE);
+        assertFalse(blankTokensMap.isEmpty(), "Blank tokens map should contain all token rules initialized to 0");
+        
+        // Note: This test data (FirstName, LastName only) will generate blank tokens
+        // because required attributes like Sex, BirthDate, SSN, PostalCode are missing
+        // So we just verify that the map is present and contains entries, not that all are 0
+        assertTrue(blankTokensMap.size() > 0, "Blank tokens map should have entries for all token rules");
+    }
+
+    @Test
+    void testMetadataMap_HappyPath_AllAttributesPresent() throws IOException {
+        List<TokenTransformer> tokenTransformerList = Collections
+                .singletonList(mock(HashTokenTransformer.class));
+        // Provide all required attributes so no blank tokens are generated
+        Map<Class<? extends Attribute>, String> data = Map.of(
+                RecordIdAttribute.class, "TestRecordId",
+                FirstNameAttribute.class, "John",
+                LastNameAttribute.class, "Spencer",
+                SocialSecurityNumberAttribute.class, "234-56-7890",
+                BirthDateAttribute.class, "1990-01-15",
+                SexAttribute.class, "Male",
+                PostalCodeAttribute.class, "98052");
+
+        when(reader.hasNext()).thenReturn(true, false);
+        when(reader.next()).thenReturn(data);
+
+        Map<String, Object> metadataMap = new Metadata().initialize();
+
+        PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
+
+        // Verify invalid attributes map contains all attributes with zero counts (happy path)
+        @SuppressWarnings("unchecked")
+        Map<String, Long> invalidAttributesMap = (Map<String, Long>) metadataMap
+                .get(PersonAttributesProcessor.INVALID_ATTRIBUTES_BY_TYPE);
+        assertFalse(invalidAttributesMap.isEmpty(), 
+                "Invalid attributes map should contain all attributes initialized to 0");
+        
+        // Verify all invalid attribute values are 0 in the happy path
+        for (Long count : invalidAttributesMap.values()) {
+            assertEquals(0L, count, "All attribute counts should be 0 in happy path");
+        }
+        
+        // Verify blank tokens map contains all token rules with zero counts (happy path)
+        @SuppressWarnings("unchecked")
+        Map<String, Long> blankTokensMap = (Map<String, Long>) metadataMap
+                .get(PersonAttributesProcessor.BLANK_TOKENS_BY_RULE);
+        assertFalse(blankTokensMap.isEmpty(), 
+                "Blank tokens map should contain all token rules initialized to 0");
+        
+        // Verify all blank token counts are 0 in the happy path (all required attributes present)
+        for (Long count : blankTokensMap.values()) {
+            assertEquals(0L, count, "All token rule counts should be 0 in happy path");
+        }
     }
 
     @Test
