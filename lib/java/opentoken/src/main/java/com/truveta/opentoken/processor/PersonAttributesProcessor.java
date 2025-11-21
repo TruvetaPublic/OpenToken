@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.AttributeLoader;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
@@ -178,7 +179,7 @@ public final class PersonAttributesProcessor {
      */
     private static Map<String, Long> initializeInvalidAttributeCount() {
         Map<String, Long> invalidAttributeCount = new HashMap<>();
-        Set<Attribute> attributes = com.truveta.opentoken.attributes.AttributeLoader.load();
+        Set<Attribute> attributes = AttributeLoader.load();
         for (Attribute attribute : attributes) {
             invalidAttributeCount.put(attribute.getName(), 0L);
         }
