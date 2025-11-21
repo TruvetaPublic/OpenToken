@@ -62,14 +62,15 @@ public final class PersonAttributesProcessor {
             List<TokenTransformer> tokenTransformerList, Map<String, Object> metadataMap) throws IOException {
 
         // TokenGenerator code
-        TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
+        TokenDefinition tokenDefinition = new TokenDefinition();
+        TokenGenerator tokenGenerator = new TokenGenerator(tokenDefinition, tokenTransformerList);
 
         Map<Class<? extends Attribute>, String> row;
         TokenGeneratorResult tokenGeneratorResult;
 
         long rowCounter = 0;
-        Map<String, Long> invalidAttributeCount = new HashMap<>();
-        Map<String, Long> blankTokensByRuleCount = new HashMap<>();
+        Map<String, Long> invalidAttributeCount = initializeInvalidAttributeCount();
+        Map<String, Long> blankTokensByRuleCount = initializeBlankTokensByRuleCount(tokenDefinition);
 
         while (reader.hasNext()) {
             row = reader.next();
@@ -167,5 +168,35 @@ public final class PersonAttributesProcessor {
                 blankTokensByRuleCount.merge(ruleId, 1L, Long::sum);
             }
         }
+    }
+
+    /**
+     * Initialize the invalid attribute count map with all registered attributes set to 0.
+     * This ensures that all attribute types appear in the metadata even in happy path scenarios.
+     *
+     * @return a map with all attribute names initialized to 0
+     */
+    private static Map<String, Long> initializeInvalidAttributeCount() {
+        Map<String, Long> invalidAttributeCount = new HashMap<>();
+        Set<Attribute> attributes = com.truveta.opentoken.attributes.AttributeLoader.load();
+        for (Attribute attribute : attributes) {
+            invalidAttributeCount.put(attribute.getName(), 0L);
+        }
+        return invalidAttributeCount;
+    }
+
+    /**
+     * Initialize the blank tokens by rule count map with all token identifiers set to 0.
+     * This ensures that all token rules appear in the metadata even in happy path scenarios.
+     *
+     * @param tokenDefinition the token definition containing all token identifiers
+     * @return a map with all token identifiers initialized to 0
+     */
+    private static Map<String, Long> initializeBlankTokensByRuleCount(TokenDefinition tokenDefinition) {
+        Map<String, Long> blankTokensByRuleCount = new HashMap<>();
+        for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
+            blankTokensByRuleCount.put(tokenId, 0L);
+        }
+        return blankTokensByRuleCount;
     }
 }

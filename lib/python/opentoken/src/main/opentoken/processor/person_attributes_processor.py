@@ -56,11 +56,12 @@ class PersonAttributesProcessor:
             metadata_map: Optional metadata map to update with processing statistics.
         """
         # TokenGenerator code
-        token_generator = TokenGenerator(TokenDefinition(), token_transformer_list)
+        token_definition = TokenDefinition()
+        token_generator = TokenGenerator(token_definition, token_transformer_list)
 
         row_counter = 0
-        invalid_attribute_count: Dict[str, int] = defaultdict(int)
-        blank_tokens_by_rule_count: Dict[str, int] = defaultdict(int)
+        invalid_attribute_count: Dict[str, int] = PersonAttributesProcessor._initialize_invalid_attribute_count()
+        blank_tokens_by_rule_count: Dict[str, int] = PersonAttributesProcessor._initialize_blank_tokens_by_rule_count(token_definition)
 
         try:
             for row in reader:
@@ -185,3 +186,36 @@ class PersonAttributesProcessor:
 
             for rule_id in token_generator_result.blank_tokens_by_rule:
                 blank_tokens_by_rule_count[rule_id] += 1
+
+    @staticmethod
+    def _initialize_invalid_attribute_count() -> Dict[str, int]:
+        """
+        Initialize the invalid attribute count dictionary with all registered attributes set to 0.
+        This ensures that all attribute types appear in the metadata even in happy path scenarios.
+
+        Returns:
+            A dictionary with all attribute names initialized to 0
+        """
+        from opentoken.attributes.attribute_loader import AttributeLoader
+        invalid_attribute_count: Dict[str, int] = {}
+        attributes = AttributeLoader.load()
+        for attribute in attributes:
+            invalid_attribute_count[attribute.get_name()] = 0
+        return invalid_attribute_count
+
+    @staticmethod
+    def _initialize_blank_tokens_by_rule_count(token_definition: TokenDefinition) -> Dict[str, int]:
+        """
+        Initialize the blank tokens by rule count dictionary with all token identifiers set to 0.
+        This ensures that all token rules appear in the metadata even in happy path scenarios.
+
+        Args:
+            token_definition: The token definition containing all token identifiers
+
+        Returns:
+            A dictionary with all token identifiers initialized to 0
+        """
+        blank_tokens_by_rule_count: Dict[str, int] = {}
+        for token_id in token_definition.get_token_identifiers():
+            blank_tokens_by_rule_count[token_id] = 0
+        return blank_tokens_by_rule_count
