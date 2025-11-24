@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -104,8 +105,8 @@ public final class PersonAttributesProcessor {
         metadataMap.put(TOTAL_ROWS, rowCounter);
         metadataMap.put(TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, rowIssueCounter);
         // Alphabetize attribute and token rule keys for deterministic metadata output
-        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, new java.util.TreeMap<>(invalidAttributeCount));
-        metadataMap.put(BLANK_TOKENS_BY_RULE, new java.util.TreeMap<>(blankTokensByRuleCount));
+        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, new TreeMap<>(invalidAttributeCount));
+        metadataMap.put(BLANK_TOKENS_BY_RULE, new TreeMap<>(blankTokensByRuleCount));
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
 
         blankTokensByRuleCount
