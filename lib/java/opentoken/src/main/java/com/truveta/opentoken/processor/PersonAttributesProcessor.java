@@ -97,7 +97,8 @@ public final class PersonAttributesProcessor {
 
         logger.info(String.format("Processed a total of %,d records", rowCounter));
 
-        invalidAttributeCount
+        // Log invalid attribute statistics in alphabetical order
+        new TreeMap<>(invalidAttributeCount)
                 .forEach((key, value) -> logger
                         .info(String.format("Total invalid Attribute count for [%s]: %,d", key, value)));
         long rowIssueCounter = invalidAttributeCount.values().stream()
@@ -110,7 +111,8 @@ public final class PersonAttributesProcessor {
         metadataMap.put(BLANK_TOKENS_BY_RULE, new TreeMap<>(blankTokensByRuleCount));
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
 
-        blankTokensByRuleCount
+        // Log blank token statistics in alphabetical order
+        new TreeMap<>(blankTokensByRuleCount)
                 .forEach((key, value) -> logger
                         .info(String.format("Total blank tokens for rule [%s]: %,d", key, value)));
         long blankTokensTotal = blankTokensByRuleCount.values().stream()

@@ -90,15 +90,15 @@ class PersonAttributesProcessor:
 
         logger.info(f"Processed a total of {row_counter:,} records")
 
-        # Log invalid attribute statistics
-        for attribute_name, count in invalid_attribute_count.items():
+        # Log invalid attribute statistics in alphabetical order
+        for attribute_name, count in sorted(invalid_attribute_count.items()):
             logger.info(f"Total invalid Attribute count for [{attribute_name}]: {count:,}")
 
         total_invalid_records = sum(invalid_attribute_count.values())
         logger.info(f"Total number of records with invalid attributes: {total_invalid_records:,}")
 
-        # Log blank token statistics
-        for rule_id, count in blank_tokens_by_rule_count.items():
+        # Log blank token statistics in alphabetical order
+        for rule_id, count in sorted(blank_tokens_by_rule_count.items()):
             logger.info(f"Total blank tokens for rule [{rule_id}]: {count:,}")
 
         total_blank_tokens = sum(blank_tokens_by_rule_count.values())
