@@ -4,11 +4,9 @@ Copyright (c) Truveta. All rights reserved.
 
 import logging
 import uuid
-from collections import defaultdict
-from typing import Dict, List, Type, Any
+from typing import Dict, List, Type, Any, Set
 
 from opentoken.attributes.attribute import Attribute
-from opentoken.attributes.attribute_loader import AttributeLoader
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.io.person_attributes_reader import PersonAttributesReader
 from opentoken.io.person_attributes_writer import PersonAttributesWriter
@@ -61,7 +59,7 @@ class PersonAttributesProcessor:
         token_generator = TokenGenerator(token_definition, token_transformer_list)
 
         row_counter = 0
-        invalid_attribute_count: Dict[str, int] = PersonAttributesProcessor._initialize_invalid_attribute_count()
+        invalid_attribute_count: Dict[str, int] = PersonAttributesProcessor._initialize_invalid_attribute_count(token_definition)
         blank_tokens_by_rule_count: Dict[str, int] = PersonAttributesProcessor._initialize_blank_tokens_by_rule_count(token_definition)
 
         try:
@@ -189,18 +187,36 @@ class PersonAttributesProcessor:
                 blank_tokens_by_rule_count[rule_id] += 1
 
     @staticmethod
-    def _initialize_invalid_attribute_count() -> Dict[str, int]:
+    def _initialize_invalid_attribute_count(token_definition: TokenDefinition) -> Dict[str, int]:
         """
-        Initialize the invalid attribute count dictionary with all registered attributes set to 0.
-        This ensures that all attribute types appear in the metadata even in happy path scenarios.
+        Initialize the invalid attribute count dictionary with attributes used in the token definition set to 0.
+        This ensures that all attribute types used in token generation appear in the metadata 
+        even in happy path scenarios.
+
+        Args:
+            token_definition: The token definition containing all token rules and their attribute expressions
 
         Returns:
-            A dictionary with all attribute names initialized to 0
+            A dictionary with all attribute names used in token definitions initialized to 0
         """
         invalid_attribute_count: Dict[str, int] = {}
-        attributes = AttributeLoader.load()
-        for attribute in attributes:
-            invalid_attribute_count[attribute.get_name()] = 0
+        attribute_classes: Set[Type[Attribute]] = set()
+        
+        # Collect all unique attribute classes from all token definitions
+        for token_id in token_definition.get_token_identifiers():
+            expressions = token_definition.get_token_definition(token_id)
+            if expressions:
+                for expr in expressions:
+                    attribute_classes.add(expr.attribute_class)
+        
+        # Create instances and get names
+        for attr_class in attribute_classes:
+            try:
+                attribute = attr_class()
+                invalid_attribute_count[attribute.get_name()] = 0
+            except Exception as e:
+                logger.warning(f"Failed to instantiate attribute class: {attr_class.__name__}: {e}")
+        
         return invalid_attribute_count
 
     @staticmethod

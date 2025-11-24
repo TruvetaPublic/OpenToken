@@ -5,6 +5,7 @@ package com.truveta.opentoken.processor;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.attributes.Attribute;
-import com.truveta.opentoken.attributes.AttributeLoader;
+import com.truveta.opentoken.attributes.AttributeExpression;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
@@ -71,7 +72,7 @@ public final class PersonAttributesProcessor {
         TokenGeneratorResult tokenGeneratorResult;
 
         long rowCounter = 0;
-        Map<String, Long> invalidAttributeCount = initializeInvalidAttributeCount();
+        Map<String, Long> invalidAttributeCount = initializeInvalidAttributeCount(tokenDefinition);
         Map<String, Long> blankTokensByRuleCount = initializeBlankTokensByRuleCount(tokenDefinition);
 
         while (reader.hasNext()) {
@@ -173,17 +174,37 @@ public final class PersonAttributesProcessor {
     }
 
     /**
-     * Initialize the invalid attribute count map with all registered attributes set to 0.
-     * This ensures that all attribute types appear in the metadata even in happy path scenarios.
+     * Initialize the invalid attribute count map with attributes used in the token definition set to 0.
+     * This ensures that all attribute types used in token generation appear in the metadata 
+     * even in happy path scenarios.
      *
-     * @return a map with all attribute names initialized to 0
+     * @param tokenDefinition the token definition containing all token rules and their attribute expressions
+     * @return a map with all attribute names used in token definitions initialized to 0
      */
-    private static Map<String, Long> initializeInvalidAttributeCount() {
+    private static Map<String, Long> initializeInvalidAttributeCount(TokenDefinition tokenDefinition) {
         Map<String, Long> invalidAttributeCount = new HashMap<>();
-        Set<Attribute> attributes = AttributeLoader.load();
-        for (Attribute attribute : attributes) {
-            invalidAttributeCount.put(attribute.getName(), 0L);
+        Set<Class<? extends Attribute>> attributeClasses = new HashSet<>();
+        
+        // Collect all unique attribute classes from all token definitions
+        for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
+            List<AttributeExpression> expressions = tokenDefinition.getTokenDefinition(tokenId);
+            if (expressions != null) {
+                for (AttributeExpression expr : expressions) {
+                    attributeClasses.add(expr.getAttributeClass());
+                }
+            }
         }
+        
+        // Create instances and get names
+        for (Class<? extends Attribute> attrClass : attributeClasses) {
+            try {
+                Attribute attribute = attrClass.getDeclaredConstructor().newInstance();
+                invalidAttributeCount.put(attribute.getName(), 0L);
+            } catch (Exception e) {
+                logger.warn("Failed to instantiate attribute class: " + attrClass.getName(), e);
+            }
+        }
+        
         return invalidAttributeCount;
     }
 
