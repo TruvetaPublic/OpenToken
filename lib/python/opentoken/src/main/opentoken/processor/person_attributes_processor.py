@@ -4,8 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 
 import logging
 import uuid
-from collections import defaultdict
-from typing import Dict, List, Type, Any
+from typing import Dict, List, Type, Any, Set
 
 from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
@@ -56,11 +55,12 @@ class PersonAttributesProcessor:
             metadata_map: Optional metadata map to update with processing statistics.
         """
         # TokenGenerator code
-        token_generator = TokenGenerator(TokenDefinition(), token_transformer_list)
+        token_definition = TokenDefinition()
+        token_generator = TokenGenerator(token_definition, token_transformer_list)
 
         row_counter = 0
-        invalid_attribute_count: Dict[str, int] = defaultdict(int)
-        blank_tokens_by_rule_count: Dict[str, int] = defaultdict(int)
+        invalid_attribute_count: Dict[str, int] = PersonAttributesProcessor._initialize_invalid_attribute_count(token_definition)
+        blank_tokens_by_rule_count: Dict[str, int] = PersonAttributesProcessor._initialize_blank_tokens_by_rule_count(token_definition)
 
         try:
             for row in reader:
@@ -90,15 +90,15 @@ class PersonAttributesProcessor:
 
         logger.info(f"Processed a total of {row_counter:,} records")
 
-        # Log invalid attribute statistics
-        for attribute_name, count in invalid_attribute_count.items():
+        # Log invalid attribute statistics in alphabetical order
+        for attribute_name, count in sorted(invalid_attribute_count.items()):
             logger.info(f"Total invalid Attribute count for [{attribute_name}]: {count:,}")
 
         total_invalid_records = sum(invalid_attribute_count.values())
         logger.info(f"Total number of records with invalid attributes: {total_invalid_records:,}")
 
-        # Log blank token statistics
-        for rule_id, count in blank_tokens_by_rule_count.items():
+        # Log blank token statistics in alphabetical order
+        for rule_id, count in sorted(blank_tokens_by_rule_count.items()):
             logger.info(f"Total blank tokens for rule [{rule_id}]: {count:,}")
 
         total_blank_tokens = sum(blank_tokens_by_rule_count.values())
@@ -185,3 +185,53 @@ class PersonAttributesProcessor:
 
             for rule_id in token_generator_result.blank_tokens_by_rule:
                 blank_tokens_by_rule_count[rule_id] += 1
+
+    @staticmethod
+    def _initialize_invalid_attribute_count(token_definition: TokenDefinition) -> Dict[str, int]:
+        """
+        Initialize the invalid attribute count dictionary with attributes used in the token definition set to 0.
+        This ensures that all attribute types used in token generation appear in the metadata 
+        even in happy path scenarios.
+
+        Args:
+            token_definition: The token definition containing all token rules and their attribute expressions
+
+        Returns:
+            A dictionary with all attribute names used in token definitions initialized to 0
+        """
+        invalid_attribute_count: Dict[str, int] = {}
+        attribute_classes: Set[Type[Attribute]] = set()
+        
+        # Collect all unique attribute classes from all token definitions
+        for token_id in token_definition.get_token_identifiers():
+            expressions = token_definition.get_token_definition(token_id)
+            if expressions:
+                for expr in expressions:
+                    attribute_classes.add(expr.attribute_class)
+        
+        # Create instances and get names
+        for attr_class in attribute_classes:
+            try:
+                attribute = attr_class()
+                invalid_attribute_count[attribute.get_name()] = 0
+            except Exception as e:
+                logger.warning(f"Failed to instantiate attribute class: {attr_class.__name__}: {e}")
+        
+        return invalid_attribute_count
+
+    @staticmethod
+    def _initialize_blank_tokens_by_rule_count(token_definition: TokenDefinition) -> Dict[str, int]:
+        """
+        Initialize the blank tokens by rule count dictionary with all token identifiers set to 0.
+        This ensures that all token rules appear in the metadata even in happy path scenarios.
+
+        Args:
+            token_definition: The token definition containing all token identifiers
+
+        Returns:
+            A dictionary with all token identifiers initialized to 0
+        """
+        blank_tokens_by_rule_count: Dict[str, int] = {}
+        for token_id in token_definition.get_token_identifiers():
+            blank_tokens_by_rule_count[token_id] = 0
+        return blank_tokens_by_rule_count
