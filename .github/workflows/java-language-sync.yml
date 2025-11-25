@@ -59,13 +59,18 @@ jobs:
             COMPLETION_STATUS=$(echo "$SYNC_REPORT" | grep -o "([0-9]*/[0-9]* completed)" | head -1)
             echo "COMPLETION_STATUS=$COMPLETION_STATUS" >> $GITHUB_OUTPUT
             
-            # Extract numbers for progress calculation
-            COMPLETED=$(echo "$COMPLETION_STATUS" | grep -o "^[0-9]*" || echo "0")
-            TOTAL=$(echo "$COMPLETION_STATUS" | grep -o "/[0-9]*" | grep -o "[0-9]*" || echo "1")
+            # Extract numbers for progress calculation using sed for more reliable parsing
+            COMPLETED=$(echo "$COMPLETION_STATUS" | sed -n 's/^(\([0-9]*\)\/\([0-9]*\) completed)$/\1/p')
+            TOTAL=$(echo "$COMPLETION_STATUS" | sed -n 's/^(\([0-9]*\)\/\([0-9]*\) completed)$/\2/p')
+            
+            # Default to 0 and 1 if extraction fails
+            COMPLETED=${COMPLETED:-0}
+            TOTAL=${TOTAL:-1}
+            
             echo "COMPLETED=$COMPLETED" >> $GITHUB_OUTPUT
             echo "TOTAL=$TOTAL" >> $GITHUB_OUTPUT
             
-            if [ "$COMPLETED" -eq "$TOTAL" ]; then
+            if [ "$COMPLETED" -eq "$TOTAL" ] && [ "$COMPLETED" -gt 0 ]; then
               echo "SYNC_COMPLETE=true" >> $GITHUB_OUTPUT
             else
               echo "SYNC_COMPLETE=false" >> $GITHUB_OUTPUT
