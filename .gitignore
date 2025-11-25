@@ -55,3 +55,7 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+
+# Maven local configuration files
+settings.xml
+toolchains.xml

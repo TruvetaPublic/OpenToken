@@ -11,6 +11,7 @@
     "FirstName": 1,
     "LastName": 2,
     "PostalCode": 2,
+    "Sex": 0,
     "SocialSecurityNumber": 4
   },
   "BlankTokensByRule": {

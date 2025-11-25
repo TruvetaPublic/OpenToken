@@ -5,9 +5,11 @@ package com.truveta.opentoken.processor;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -16,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.AttributeExpression;
 import com.truveta.opentoken.attributes.general.RecordIdAttribute;
 import com.truveta.opentoken.io.PersonAttributesReader;
 import com.truveta.opentoken.io.PersonAttributesWriter;
@@ -62,14 +65,15 @@ public final class PersonAttributesProcessor {
             List<TokenTransformer> tokenTransformerList, Map<String, Object> metadataMap) throws IOException {
 
         // TokenGenerator code
-        TokenGenerator tokenGenerator = new TokenGenerator(new TokenDefinition(), tokenTransformerList);
+        TokenDefinition tokenDefinition = new TokenDefinition();
+        TokenGenerator tokenGenerator = new TokenGenerator(tokenDefinition, tokenTransformerList);
 
         Map<Class<? extends Attribute>, String> row;
         TokenGeneratorResult tokenGeneratorResult;
 
         long rowCounter = 0;
-        Map<String, Long> invalidAttributeCount = new HashMap<>();
-        Map<String, Long> blankTokensByRuleCount = new HashMap<>();
+        Map<String, Long> invalidAttributeCount = initializeInvalidAttributeCount(tokenDefinition);
+        Map<String, Long> blankTokensByRuleCount = initializeBlankTokensByRuleCount(tokenDefinition);
 
         while (reader.hasNext()) {
             row = reader.next();
@@ -93,7 +97,8 @@ public final class PersonAttributesProcessor {
 
         logger.info(String.format("Processed a total of %,d records", rowCounter));
 
-        invalidAttributeCount
+        // Log invalid attribute statistics in alphabetical order
+        new TreeMap<>(invalidAttributeCount)
                 .forEach((key, value) -> logger
                         .info(String.format("Total invalid Attribute count for [%s]: %,d", key, value)));
         long rowIssueCounter = invalidAttributeCount.values().stream()
@@ -102,11 +107,12 @@ public final class PersonAttributesProcessor {
         metadataMap.put(TOTAL_ROWS, rowCounter);
         metadataMap.put(TOTAL_ROWS_WITH_INVALID_ATTRIBUTES, rowIssueCounter);
         // Alphabetize attribute and token rule keys for deterministic metadata output
-        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, new java.util.TreeMap<>(invalidAttributeCount));
-        metadataMap.put(BLANK_TOKENS_BY_RULE, new java.util.TreeMap<>(blankTokensByRuleCount));
+        metadataMap.put(INVALID_ATTRIBUTES_BY_TYPE, new TreeMap<>(invalidAttributeCount));
+        metadataMap.put(BLANK_TOKENS_BY_RULE, new TreeMap<>(blankTokensByRuleCount));
         logger.info(String.format("Total number of records with invalid attributes: %,d", rowIssueCounter));
 
-        blankTokensByRuleCount
+        // Log blank token statistics in alphabetical order
+        new TreeMap<>(blankTokensByRuleCount)
                 .forEach((key, value) -> logger
                         .info(String.format("Total blank tokens for rule [%s]: %,d", key, value)));
         long blankTokensTotal = blankTokensByRuleCount.values().stream()
@@ -167,5 +173,55 @@ public final class PersonAttributesProcessor {
                 blankTokensByRuleCount.merge(ruleId, 1L, Long::sum);
             }
         }
+    }
+
+    /**
+     * Initialize the invalid attribute count map with attributes used in the token definition set to 0.
+     * This ensures that all attribute types used in token generation appear in the metadata 
+     * even in happy path scenarios.
+     *
+     * @param tokenDefinition the token definition containing all token rules and their attribute expressions
+     * @return a map with all attribute names used in token definitions initialized to 0
+     */
+    private static Map<String, Long> initializeInvalidAttributeCount(TokenDefinition tokenDefinition) {
+        Map<String, Long> invalidAttributeCount = new HashMap<>();
+        Set<Class<? extends Attribute>> attributeClasses = new HashSet<>();
+        
+        // Collect all unique attribute classes from all token definitions
+        for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
+            List<AttributeExpression> expressions = tokenDefinition.getTokenDefinition(tokenId);
+            if (expressions != null) {
+                for (AttributeExpression expr : expressions) {
+                    attributeClasses.add(expr.getAttributeClass());
+                }
+            }
+        }
+        
+        // Create instances and get names
+        for (Class<? extends Attribute> attrClass : attributeClasses) {
+            try {
+                Attribute attribute = attrClass.getDeclaredConstructor().newInstance();
+                invalidAttributeCount.put(attribute.getName(), 0L);
+            } catch (Exception e) {
+                logger.warn("Failed to instantiate attribute class: " + attrClass.getName(), e);
+            }
+        }
+        
+        return invalidAttributeCount;
+    }
+
+    /**
+     * Initialize the blank tokens by rule count map with all token identifiers set to 0.
+     * This ensures that all token rules appear in the metadata even in happy path scenarios.
+     *
+     * @param tokenDefinition the token definition containing all token identifiers
+     * @return a map with all token identifiers initialized to 0
+     */
+    private static Map<String, Long> initializeBlankTokensByRuleCount(TokenDefinition tokenDefinition) {
+        Map<String, Long> blankTokensByRuleCount = new HashMap<>();
+        for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
+            blankTokensByRuleCount.put(tokenId, 0L);
+        }
+        return blankTokensByRuleCount;
     }
 }
