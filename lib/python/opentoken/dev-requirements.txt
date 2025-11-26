@@ -3,5 +3,6 @@ pytest
 
 # Code quality and linting
 flake8
+autoflake
 
 pycryptodome

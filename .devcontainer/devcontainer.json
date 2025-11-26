@@ -41,7 +41,9 @@
                 "shengchen.vscode-checkstyle",
                 "GitHub.vscode-github-actions",
                 "GitHub.copilot-chat",
-                "ms-python.python"
+                "ms-python.python",
+                "ms-toolsai.jupyter",
+                "mikoz.autoflake-extension"
             ],
             "settings": {
                 "sonarlint.ls.javaHome": "/usr/local/sdkman/candidates/java/21.0.9-ms"

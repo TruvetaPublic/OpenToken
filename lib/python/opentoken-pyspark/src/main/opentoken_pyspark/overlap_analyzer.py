@@ -5,11 +5,12 @@ Dataset overlap analyzer for comparing tokenized datasets.
 """
 
 import logging
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, lit, when, count, sum as spark_sum
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import unpad
+from pyspark.sql.functions import col, lit, when, count, sum as spark_sum, udf
+from pyspark.sql.types import StringType
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
 import base64
 
 
@@ -50,22 +51,43 @@ class OpenTokenOverlapAnalyzer:
 
     def _decrypt_token(self, encrypted_token: str) -> str:
         """
-        Decrypt an encrypted token.
+        Decrypt an encrypted token using AES-256 GCM.
 
         Args:
-            encrypted_token: Base64-encoded encrypted token
+            encrypted_token: Base64-encoded encrypted token (IV || ciphertext || tag)
 
         Returns:
             Decrypted token string
+
+        Note:
+            Uses AES-GCM with 12-byte IV and 16-byte authentication tag,
+            matching the encryption used by OpenToken EncryptTokenTransformer.
         """
         try:
-            encrypted_data = base64.b64decode(encrypted_token)
-            iv = encrypted_data[:16]
-            ciphertext = encrypted_data[16:]
+            # Decode the base64-encoded token
+            message_bytes = base64.b64decode(encrypted_token)
 
-            cipher = AES.new(self.encryption_key, AES.MODE_CBC, iv)
-            decrypted = unpad(cipher.decrypt(ciphertext), AES.block_size)
-            return decrypted.decode('utf-8')
+            # Extract IV (12 bytes), ciphertext, and tag (16 bytes)
+            IV_SIZE = 12
+            TAG_LENGTH = 16
+            
+            iv_bytes = message_bytes[:IV_SIZE]
+            ciphertext_and_tag = message_bytes[IV_SIZE:]
+            ciphertext = ciphertext_and_tag[:-TAG_LENGTH]
+            tag = ciphertext_and_tag[-TAG_LENGTH:]
+
+            # Create cipher for decryption using GCM mode
+            cipher = Cipher(
+                algorithms.AES(self.encryption_key),
+                modes.GCM(iv_bytes, tag),
+                backend=default_backend()
+            )
+
+            # Decrypt the token
+            decryptor = cipher.decryptor()
+            decrypted_bytes = decryptor.update(ciphertext) + decryptor.finalize()
+
+            return decrypted_bytes.decode('utf-8')
         except Exception as e:
             logger.warning(f"Failed to decrypt token: {e}")
             return None
@@ -129,10 +151,22 @@ class OpenTokenOverlapAnalyzer:
         total_records_df1 = dataset1.select("RecordId").distinct().count()
         total_records_df2 = dataset2.select("RecordId").distinct().count()
 
-        # Join on Token and RuleId to find matches
-        matches = df1_filtered.alias("df1").join(
-            df2_filtered.alias("df2"),
-            (col("df1.Token") == col("df2.Token")) & (col("df1.RuleId") == col("df2.RuleId")),
+        # Create UDF for decrypting tokens
+        # Note: We need to decrypt because encrypted tokens use random IVs,
+        # so identical data produces different encrypted values each time
+        decrypt_udf = udf(self._decrypt_token, StringType())
+
+        # Decrypt tokens before comparing
+        df1_decrypted = df1_filtered.withColumn("DecryptedToken", decrypt_udf(col("Token")))
+        df2_decrypted = df2_filtered.withColumn("DecryptedToken", decrypt_udf(col("Token")))
+
+        # Join on decrypted Token and RuleId to find matches
+        matches = df1_decrypted.alias("df1").join(
+            df2_decrypted.alias("df2"),
+            (col("df1.DecryptedToken") == col("df2.DecryptedToken")) & 
+            (col("df1.RuleId") == col("df2.RuleId")) &
+            (col("df1.DecryptedToken").isNotNull()) &  # Exclude failed decryptions
+            (col("df2.DecryptedToken").isNotNull()),
             "inner"
         ).select(
             col("df1.RecordId").alias(f"{dataset1_name}_RecordId"),

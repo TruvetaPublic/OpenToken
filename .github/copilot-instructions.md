@@ -247,6 +247,7 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 2. **Check cross-language sync**: Run `tools/java_language_syncer.py`
 3. **Code style**: Java Checkstyle must pass, Python follows PEP 8
 4. **Test coverage**: Add tests for new code paths
+5. **Clear Jupyter notebook outputs**: Before committing or merging PRs, clear all cell outputs from notebooks to avoid committing execution results, large data, or secrets. Use "Clear All Outputs" in VS Code or `jupyter nbconvert --clear-output --inplace <notebook.ipynb>`
 
 ### PR Checklist
 
