@@ -33,20 +33,34 @@ For detailed installation instructions, troubleshooting, and alternative install
 ### Prerequisites
 
 - Python 3.10 or higher
-- PySpark 3.0.0 or higher
 - OpenToken core library
-- Java 8 or higher (required by PySpark)
+
+**Version Compatibility:**
+
+Choose the appropriate combination based on your Java version:
+
+| Java Version | PySpark Version | PyArrow Version | Notes |
+|--------------|----------------|-----------------|-------|
+| **Java 21** | **4.0.1+** | **17.0.0+** | **Recommended** - Native Java 21 support |
+| Java 8-17 | 3.5.x | <20 | Legacy support - use if you cannot upgrade Java |
+
+**Important:** PySpark 3.5.x is not compatible with Java 21. If you're using Java 21, you must use PySpark 4.0.1+ with PyArrow 17.0.0+.
 
 ## Quick Start
 
+### Java 21 Setup (PySpark 4.0.1+)
+
 ```python
+import sys
+import os
 from pyspark.sql import SparkSession
 from opentoken_pyspark import OpenTokenProcessor
 
-# Create Spark session
+# Create Spark session (PySpark 4.0.1+ handles Java 21 natively)
 spark = SparkSession.builder \
     .appName("OpenTokenExample") \
     .master("local[*]") \
+    .config("spark.executorEnv.PYTHONPATH", os.pathsep.join(sys.path)) \
     .getOrCreate()
 
 # Load your data
@@ -64,6 +78,41 @@ tokens_df = processor.process_dataframe(df)
 # View results
 tokens_df.show()
 ```
+
+### Java 8-17 Setup (PySpark 3.5.x)
+
+If you're using Java 8-17 and cannot upgrade to Java 21:
+
+```python
+import sys
+import os
+from pyspark.sql import SparkSession
+from opentoken_pyspark import OpenTokenProcessor
+
+# Create Spark session (PySpark 3.5.x with PyArrow <20)
+spark = SparkSession.builder \
+    .appName("OpenTokenExample") \
+    .master("local[*]") \
+    .config("spark.executorEnv.PYTHONPATH", os.pathsep.join(sys.path)) \
+    .getOrCreate()
+
+# Load your data
+df = spark.read.csv("data.csv", header=True)
+
+# Initialize processor with your secrets
+processor = OpenTokenProcessor(
+    hashing_secret="your-hashing-secret",
+    encryption_key="your-encryption-key"
+)
+
+# Generate tokens
+tokens_df = processor.process_dataframe(df)
+
+# View results
+tokens_df.show()
+```
+
+**Note:** Ensure you have PyArrow <20 installed: `pip install 'pyarrow>=15.0.0,<20'`
 
 ## Input DataFrame Requirements
 

@@ -288,12 +288,22 @@ class OpenTokenProcessor:
         except Exception:
             pa_major = 0
 
-        # Spark 3.5.x commonly breaks with very new PyArrow (>=20)
-        if spark_ver == (3, 5) and pa_major >= 20:
-            raise RuntimeError(
-                f"Incompatible PyArrow {pa.__version__} detected with PySpark {pyspark.__version__}. "
-                "Install a Spark-3.5 compatible PyArrow, e.g.: pip install 'pyarrow<16'"
-            )
+        # Validate PyArrow compatibility based on PySpark version
+        if spark_ver >= (4, 0):
+            # Spark 4.0+ requires PyArrow 17+
+            if pa_major < 17:
+                raise RuntimeError(
+                    f"Incompatible PyArrow {pa.__version__} detected with PySpark {pyspark.__version__}. "
+                    "PySpark 4.0+ requires PyArrow 17+: pip install 'pyarrow>=17.0.0'"
+                )
+        elif spark_ver == (3, 5):
+            # Spark 3.5.x has issues with PyArrow 20+ on Java 21
+            if pa_major >= 20:
+                raise RuntimeError(
+                    f"Incompatible PyArrow {pa.__version__} detected with PySpark {pyspark.__version__}. "
+                    "PySpark 3.5.x requires PyArrow <20 or upgrade to PySpark 4.0.1+: "
+                    "pip install 'pyarrow>=17.0.0,<20' or pip install 'pyspark>=4.0.1' 'pyarrow>=17.0.0'"
+                )
 
     @classmethod
     def _get_required_attribute_groups(cls) -> Dict[str, list]:

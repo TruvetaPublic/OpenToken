@@ -22,19 +22,17 @@ def main():
 
     # Initialize Spark session
     print("Initializing Spark session...")
-    spark = SparkSession.builder \
-        .appName("OpenTokenSimpleExample") \
-        .master("local[2]") \
-        .config("spark.sql.shuffle.partitions", "2") \
-        .config(
-            "spark.driver.extraJavaOptions",
-            "--add-opens=java.base/java.nio=ALL-UNNAMED --add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
-        ) \
-        .config(
-            "spark.executor.extraJavaOptions",
-            "--add-opens=java.base/java.nio=ALL-UNNAMED --add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
-        ) \
-        .getOrCreate()
+    # Spark 4.0.1+ provides native Java 21 support with improved Arrow integration.
+    # The executorEnv.PYTHONPATH configuration ensures pandas/pyarrow are available to executors.
+    import sys
+    import os
+    
+    spark = (SparkSession.builder
+             .appName("OpenTokenSimpleExample")
+             .master("local[2]")
+             .config("spark.sql.shuffle.partitions", "2")
+             .config("spark.executorEnv.PYTHONPATH", os.pathsep.join(sys.path))
+             .getOrCreate())
 
     print(f"Spark version: {spark.version}\n")
 

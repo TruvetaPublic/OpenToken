@@ -243,8 +243,13 @@ Purpose:
 Prerequisites:
 
 - Python 3.10+
-- Java (required by PySpark)
-- PySpark (installed via package requirements)
+
+**Version Compatibility (choose based on your Java version):**
+
+| Java Version | PySpark Version | PyArrow Version | Notes |
+|--------------|----------------|-----------------|-------|
+| **Java 21** | **4.0.1+** | **17.0.0+** | **Recommended** - Native Java 21 support |
+| Java 8-17 | 3.5.x | <20 | Legacy support - use if you cannot upgrade Java |
 
 Install (from repo root):
 
