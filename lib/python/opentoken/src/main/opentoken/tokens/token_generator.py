@@ -8,6 +8,7 @@ from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.attribute_loader import AttributeLoader
 from opentoken.tokens.base_token_definition import BaseTokenDefinition
 from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
+from opentoken.tokens.tokenizer.tokenizer import Tokenizer
 from opentoken.tokens.token import Token
 from opentoken.tokens.token_generator_result import TokenGeneratorResult
 from opentoken.tokens.token_generation_exception import TokenGenerationException
@@ -20,13 +21,15 @@ logger = logging.getLogger(__name__)
 class TokenGenerator:
     """Generates both the token signature and the token itself."""
 
-    def __init__(self, token_definition: BaseTokenDefinition, token_transformer_list: List[TokenTransformer]):
+    def __init__(self, token_definition: BaseTokenDefinition, token_transformer_list: List[TokenTransformer],
+                 tokenizer: Optional[Tokenizer] = None):
         """
         Initialize the token generator.
 
         Args:
             token_definition: The token definition.
             token_transformer_list: A list of token transformers.
+            tokenizer: Optional tokenizer to use. If None, defaults to SHA256Tokenizer.
         """
         self.token_definition = token_definition
         self.token_transformer_list = token_transformer_list
@@ -37,7 +40,8 @@ class TokenGenerator:
             self.attribute_instance_map[type(attribute)] = attribute
 
         try:
-            self.tokenizer = SHA256Tokenizer(token_transformer_list)
+            # Use provided tokenizer or default to SHA256Tokenizer
+            self.tokenizer = tokenizer if tokenizer is not None else SHA256Tokenizer(token_transformer_list)
         except Exception as e:
             logger.error("Error initializing tokenizer with hashing secret", exc_info=e)
             raise

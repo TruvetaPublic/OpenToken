@@ -24,6 +24,8 @@ from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.tokens.token_definition import TokenDefinition
 from opentoken.tokens.base_token_definition import BaseTokenDefinition
 from opentoken.tokens.token_generator import TokenGenerator
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
+from opentoken.tokens.tokenizer.passthrough_tokenizer import PassthroughTokenizer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
 
@@ -69,14 +71,14 @@ class OpenTokenProcessor:
         cls.COLUMN_MAPPINGS = mappings
         return mappings
 
-    def __init__(self, hashing_secret: str, encryption_key: str,
+    def __init__(self, hashing_secret: Optional[str] = None, encryption_key: Optional[str] = None,
                  token_definition: Optional[BaseTokenDefinition] = None):
         """
         Initialize the OpenToken processor with secrets.
 
         Args:
-            hashing_secret: Secret for HMAC-SHA256 hashing
-            encryption_key: Key for AES-256 encryption
+            hashing_secret: Optional secret for HMAC-SHA256 hashing. If None, tokens will be plain concatenated strings.
+            encryption_key: Optional key for AES-256 encryption. If None, tokens will not be encrypted.
             token_definition: Optional custom token definition. If None, uses default tokens (T1-T5).
                              Use this to pass custom tokens created with TokenBuilder or CustomTokenDefinition.
 
@@ -84,8 +86,14 @@ class OpenTokenProcessor:
             ValueError: If secrets are empty or invalid
 
         Example:
-            >>> # Using default tokens
+            >>> # Using default tokens with hashing and encryption
             >>> processor = OpenTokenProcessor("hash-secret", "encryption-key-32-characters!!")
+            >>>
+            >>> # Using only hashing (no encryption)
+            >>> processor = OpenTokenProcessor(hashing_secret="hash-secret")
+            >>>
+            >>> # Using plain concatenated strings (no hashing or encryption)
+            >>> processor = OpenTokenProcessor()
             >>>
             >>> # Using custom token definition
             >>> from opentoken.notebook_helpers import TokenBuilder, CustomTokenDefinition
@@ -93,10 +101,10 @@ class OpenTokenProcessor:
             >>> custom_def = CustomTokenDefinition().add_token(custom_token)
             >>> processor = OpenTokenProcessor("hash-secret", "encryption-key-32-chars!!", custom_def)
         """
-        if not hashing_secret or not hashing_secret.strip():
-            raise ValueError("Hashing secret cannot be empty")
-        if not encryption_key or not encryption_key.strip():
-            raise ValueError("Encryption key cannot be empty")
+        if hashing_secret is not None and (not hashing_secret or not hashing_secret.strip()):
+            raise ValueError("Hashing secret cannot be empty string (use None to skip hashing)")
+        if encryption_key is not None and (not encryption_key or not encryption_key.strip()):
+            raise ValueError("Encryption key cannot be empty string (use None to skip encryption)")
 
         self.hashing_secret = hashing_secret
         self.encryption_key = encryption_key
@@ -107,8 +115,10 @@ class OpenTokenProcessor:
 
         # Validate secrets can initialize transformers
         try:
-            HashTokenTransformer(hashing_secret)
-            EncryptTokenTransformer(encryption_key)
+            if hashing_secret is not None:
+                HashTokenTransformer(hashing_secret)
+            if encryption_key is not None:
+                EncryptTokenTransformer(encryption_key)
         except Exception as e:
             logger.error("Error initializing token transformers", exc_info=e)
             raise ValueError(f"Invalid secrets provided: {e}")
@@ -169,18 +179,28 @@ class OpenTokenProcessor:
             This function is executed on each partition of the DataFrame
             in parallel across the Spark cluster.
             """
-            # Initialize token transformers
-            token_transformer_list = [
-                HashTokenTransformer(hashing_secret),
-                EncryptTokenTransformer(encryption_key)
-            ]
+            # Initialize token transformers and tokenizer based on secrets
+            token_transformer_list = []
+            tokenizer = None
+            
+            if hashing_secret is not None:
+                # Use SHA256 tokenizer with optional encryption
+                token_transformer_list.append(HashTokenTransformer(hashing_secret))
+                if encryption_key is not None:
+                    token_transformer_list.append(EncryptTokenTransformer(encryption_key))
+                tokenizer = SHA256Tokenizer(token_transformer_list)
+            else:
+                # Use passthrough tokenizer (plain text) with optional encryption
+                if encryption_key is not None:
+                    token_transformer_list.append(EncryptTokenTransformer(encryption_key))
+                tokenizer = PassthroughTokenizer(token_transformer_list)
 
             # Use custom token definition if provided, otherwise use default
             definition = token_definition if token_definition is not None else TokenDefinition()
 
-            # Initialize token generator
+            # Initialize token generator with custom tokenizer
             token_generator = TokenGenerator(
-                definition, token_transformer_list
+                definition, token_transformer_list, tokenizer
             )
 
             results = []
