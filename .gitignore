@@ -59,3 +59,6 @@ venv/
 # Maven local configuration files
 settings.xml
 toolchains.xml
+
+# Notebook output
+output/

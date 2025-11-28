@@ -25,4 +25,4 @@ ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 USER vscode
 
-RUN pip install pytest flake8 bump2version --break-system-packages
+RUN pip install pytest autoflake flake8 bump2version --break-system-packages
