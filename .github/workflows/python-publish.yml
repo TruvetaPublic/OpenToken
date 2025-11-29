@@ -1,0 +1,146 @@
+# Build Python packages (opentoken & opentoken-pyspark) and attach artifacts to release.
+# NOTE: PyPI publication intentionally disabled until readiness confirmed.
+# Triggers mirror the Maven publish workflow: on release creation/publish or completion of release workflow.
+
+name: Python Package
+
+on:
+  release:
+    types: [created, published]
+  workflow_run:
+    workflows: ["Create Release on Merge"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-info:
+    uses: ./.github/workflows/release-context.yml
+    secrets: inherit
+    with:
+      lookup-release: true
+
+  build:
+    needs: release-info
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    env:
+      VERSION: ${{ needs.release-info.outputs['version'] }}
+      TAG: ${{ needs.release-info.outputs['tag'] }}
+      RELEASE_FOUND: ${{ needs.release-info.outputs['release-found'] }}
+      RELEASE_ID: ${{ needs.release-info.outputs['release-id'] }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup toolchain (Python only)
+        uses: ./.github/actions/setup-toolchain
+        with:
+          enable-java: false
+          enable-python: true
+          python-version: "3.10"
+
+      - name: Upgrade pip & install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build
+
+      - name: Build opentoken distribution (wheel + sdist)
+        working-directory: lib/python/opentoken
+        run: python -m build --wheel --sdist
+
+      - name: Build opentoken-pyspark distribution (wheel + sdist)
+        working-directory: lib/python/opentoken-pyspark
+        run: python -m build --wheel --sdist
+
+      # PyPI publish steps removed per request (can be re-enabled later).
+
+      - name: Upload built distributions as workflow artifacts (for debugging)
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-packages-${{ env.TAG }}
+          path: |
+            lib/python/opentoken/dist/*.whl
+            lib/python/opentoken/dist/*.tar.gz
+            lib/python/opentoken-pyspark/dist/*.whl
+            lib/python/opentoken-pyspark/dist/*.tar.gz
+
+      - name: Attach distributions to release
+        if: env.RELEASE_FOUND == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const tag = '${{ env.TAG }}';
+            const dirs = [
+              'lib/python/opentoken/dist',
+              'lib/python/opentoken-pyspark/dist'
+            ];
+
+            console.log(`[DEBUG] Starting Python artifact upload process`);
+            console.log(`[DEBUG] Tag: ${tag}`);
+
+            let releaseId = '${{ env.RELEASE_ID }}';
+            console.log(`[DEBUG] Initial releaseId: ${releaseId}`);
+
+            if (!releaseId) {
+              console.log(`[DEBUG] releaseId empty; querying release by tag ${tag}`);
+              try {
+                const release = await github.rest.repos.getReleaseByTag({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag: tag
+                });
+                releaseId = release.data.id;
+                console.log(`[DEBUG] Found release with ID ${releaseId}`);
+              } catch (error) {
+                console.log(`✗ No release found for tag ${tag}`);
+                console.log(`[DEBUG] Error: ${error.message}`);
+                return;
+              }
+            }
+
+            const files = [];
+            for (const d of dirs) {
+              if (!fs.existsSync(d)) {
+                console.log(`[DEBUG] Directory missing: ${d}`);
+                continue;
+              }
+              const found = fs.readdirSync(d).filter(f => (f.endsWith('.whl') || f.endsWith('.tar.gz')));
+              console.log(`[DEBUG] ${d} -> ${found.length} distributables`);
+              for (const f of found) files.push(path.join(d, f));
+            }
+
+            if (files.length === 0) {
+              console.log('✗ No Python artifacts found to upload');
+              return;
+            }
+
+            console.log(`[DEBUG] Uploading ${files.length} artifacts to release ID ${releaseId}`);
+            for (const filePath of files) {
+              try {
+                const name = path.basename(filePath);
+                const size = fs.statSync(filePath).size;
+                console.log(`[DEBUG] Uploading ${name} (${size} bytes)`);
+                const resp = await github.rest.repos.uploadReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: releaseId,
+                  name,
+                  data: fs.readFileSync(filePath)
+                });
+                console.log(`✓ Uploaded ${name} (asset id ${resp.data.id})`);
+              } catch (error) {
+                console.log(`✗ Failed to upload ${filePath}: ${error.message}`);
+                if (error.status) console.log(`[DEBUG] HTTP Status: ${error.status}`);
+              }
+            }
+            console.log('[DEBUG] Python artifact upload complete');
