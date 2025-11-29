@@ -5,8 +5,9 @@ PySpark token processor for distributed token generation.
 """
 
 import logging
-from typing import Dict, Type, Optional
+from typing import Dict, Type, Optional, Mapping, cast, Any
 from pyspark.sql import DataFrame
+from pyspark.sql.column import Column
 from pyspark.sql.functions import pandas_udf, col
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType
 import pandas as pd
@@ -44,7 +45,7 @@ class OpenTokenProcessor:
 
     # Standard column mappings (column name -> attribute class)
     # Built dynamically from attribute classes
-    COLUMN_MAPPINGS: Dict[str, Type[Attribute]] = None
+    COLUMN_MAPPINGS: Optional[Dict[str, Type[Attribute]]] = None
 
     @classmethod
     def _build_column_mappings(cls) -> Dict[str, Type[Attribute]]:
@@ -102,9 +103,9 @@ class OpenTokenProcessor:
             >>> processor = OpenTokenProcessor("hash-secret", "encryption-key-32-chars!!", custom_def)
         """
         if hashing_secret is not None and (not hashing_secret or not hashing_secret.strip()):
-            raise ValueError("Hashing secret cannot be empty string (use None to skip hashing)")
+            raise ValueError("Hashing secret cannot be empty or whitespace-only (use None to skip hashing)")
         if encryption_key is not None and (not encryption_key or not encryption_key.strip()):
-            raise ValueError("Encryption key cannot be empty string (use None to skip encryption)")
+            raise ValueError("Encryption key cannot be empty or whitespace-only (use None to skip encryption)")
 
         self.hashing_secret = hashing_secret
         self.encryption_key = encryption_key
@@ -163,7 +164,8 @@ class OpenTokenProcessor:
         ]))
 
         # Create a pandas UDF for token generation
-        @pandas_udf(token_schema)
+        # Use keyword argument for return type to satisfy type checkers
+        @pandas_udf(returnType=token_schema)  # type: ignore[call-arg]
         def generate_tokens_udf(  # pragma: no cover
             record_id_series: pd.Series,
             first_name_series: pd.Series,
@@ -210,7 +212,8 @@ class OpenTokenProcessor:
             # Process each row in the batch
             for idx in range(len(record_id_series)):
                 # Build person attributes dictionary
-                person_attrs = {
+                # Allow None for missing fields locally; cast to Mapping[str] for call
+                person_attrs: Dict[Type[Attribute], Optional[str]] = {
                     RecordIdAttribute: str(record_id_series.iloc[idx])
                     if pd.notna(record_id_series.iloc[idx]) else None,
                     FirstNameAttribute: str(first_name_series.iloc[idx])
@@ -229,7 +232,9 @@ class OpenTokenProcessor:
 
                 # Generate tokens for this record
                 try:
-                    token_result = token_generator.get_all_tokens(person_attrs)
+                    token_result = token_generator.get_all_tokens(
+                        cast(Mapping[Type[Attribute], str], person_attrs)  # type: ignore[arg-type]
+                    )
 
                     # Convert to list of dicts for this record
                     tokens_list = [
@@ -259,14 +264,17 @@ class OpenTokenProcessor:
             col(column_mapping["SocialSecurityNumber"]).alias("SocialSecurityNumber")
         ).withColumn(
             "tokens",
-            generate_tokens_udf(
-                col("RecordId"),
-                col("FirstName"),
-                col("LastName"),
-                col("BirthDate"),
-                col("Sex"),
-                col("PostalCode"),
-                col("SocialSecurityNumber")
+            cast(
+                Column,
+                generate_tokens_udf(
+                    cast(Any, col("RecordId")),
+                    cast(Any, col("FirstName")),
+                    cast(Any, col("LastName")),
+                    cast(Any, col("BirthDate")),
+                    cast(Any, col("Sex")),
+                    cast(Any, col("PostalCode")),
+                    cast(Any, col("SocialSecurityNumber"))
+                )  # type: ignore[arg-type]
             )
         )
 

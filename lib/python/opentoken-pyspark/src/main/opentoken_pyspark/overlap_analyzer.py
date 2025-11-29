@@ -5,7 +5,7 @@ Dataset overlap analyzer for comparing tokenized datasets.
 """
 
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, count, udf
 from pyspark.sql.types import StringType
@@ -104,7 +104,7 @@ class OpenTokenOverlapAnalyzer:
         matching_rules: List[str],
         dataset1_name: str = "Dataset1",
         dataset2_name: str = "Dataset2"
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """
         Analyze overlap between two tokenized datasets based on matching rules.
 
@@ -241,7 +241,7 @@ class OpenTokenOverlapAnalyzer:
         rule_sets: List[List[str]],
         dataset1_name: str = "Dataset1",
         dataset2_name: str = "Dataset2"
-    ) -> List[Dict[str, any]]:
+    ) -> List[Dict[str, Any]]:
         """
         Compare datasets using multiple different matching rule sets.
 
@@ -273,7 +273,7 @@ class OpenTokenOverlapAnalyzer:
             results.append(result)
         return results
 
-    def print_summary(self, results: Dict[str, any]) -> None:
+    def print_summary(self, results: Dict[str, Any]) -> None:
         """
         Print a formatted summary of overlap analysis results.
 
