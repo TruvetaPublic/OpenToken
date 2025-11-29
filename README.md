@@ -147,6 +147,12 @@ If tokens are generated for persons from multiple data sources, person matching 
 
 ![open-token-system](./docs/images/open-token-system.jpg)
 
+### PySpark Bridge <!-- omit in toc -->
+
+For large-scale, distributed token generation and dataset overlap analysis, use the PySpark bridge library located at lib/python/opentoken-pyspark. It provides a `Spark`-friendly processor and helper utilities.
+
+Getting started examples are available in the notebooks: lib/python/opentoken-pyspark/notebooks/ (e.g., Custom_Token_Definition_Guide.ipynb, Dataset_Overlap_Analysis_Guide.ipynb).
+
 ## Usage
 
 ### Arguments  <!-- omit in toc -->
