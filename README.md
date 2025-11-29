@@ -43,31 +43,6 @@ Tokens are cryptographically secure hashes computed from multiple deterministic 
 > U(X) = uppercase(X)<br>
 > attribute-N = take first N characters from the `attribute`
 
-### Token Encryption Process <!-- omit in toc -->
-
-A token signature is generated first for every token generation rule. The token signature is then cryptographically hashed and hex encoded to generate the token.
-
-> $Token(R) = Hex(Sha256(TokenSignature(R)))$ where R is the rule ID.<br>
-> The token is then transformed further using the formula below:<br>
-> $Base64(AESEncrypt(Base64(HMACSHA256(Token(R)))))$<br>
-
-### Token Processing Modes <!-- omit in toc -->
-
-OpenToken now supports three processing modes. All modes produce cross-language identical output (Java ↔ Python) given the same normalized inputs and secrets.
-
-| Mode | Description | Formula | Required Secrets | Output Characteristics |
-| ---- | ----------- | ------- | ---------------- | ---------------------- |
-| Plain | Raw concatenated token signature (debug only; not privacy-preserving) | `TokenSignature(R)` | None | Human-readable (`DOE|JOHN|1990-01-15|981|MALE`) |
-| Hash Only | Deterministic HMAC-SHA256 over SHA-256 signature | `Base64(HMACSHA256(Hex(Sha256(TokenSignature(R)))))` | Hashing Secret | 44-char Base64 hashed tokens |
-| Hash + Encrypt | Full production pipeline (hash then encrypt) | `Base64(AESEncrypt(Base64(HMACSHA256(Hex(Sha256(TokenSignature(R)))))))` | Hashing Secret + Encryption Key | 96-char Base64 encrypted tokens |
-
-Usage guidance:
-- Plain mode SHOULD NEVER be used in production or with real PHI/PII—only for development/verification of token signature composition.
-- Hash Only mode is acceptable in environments where reversible encryption is not needed but hashed tokens are still required for privacy-preserving matching.
-- Hash + Encrypt is the recommended production mode for maximal protection (defense-in-depth).
-
-Java: Provide transformers and optionally a `PassthroughTokenizer` for plain mode.
-Python: Omit `hashing_secret` and `encryption_key` in `OpenTokenProcessor` for plain mode; omit only `encryption_key` for hash-only.
 
 ### Example <!-- omit in toc -->
 
@@ -94,13 +69,6 @@ The token generation rules above generate the following token signatures:
 
 Plain / Hash-Only comparison (same sample record):
 
-| Mode | Token Signature | Token Output |
-| ---- | --------------- | ------------ |
-| Plain | `DOE|JOHN|MALE|2000-01-01` | `DOE|JOHN|MALE|2000-01-01` |
-| Hash Only | `DOE|JOHN|MALE|2000-01-01` | `3Iiu67dEAbjF4YPbniH+5OUXVbJYl4GaF2MN27eekOI=` |
-| Hash + Encrypt | `DOE|JOHN|MALE|2000-01-01` | `Gn7t1Zj16E5Qy+z9iINtczP6fRDYta6C0XFrQtpjnVQSEZ5pQXAzo02Aa9LS9oNMOog6Ssw9GZE6fvJrX2sQ/cThSkB6m91L` |
-
-> The token signature is identical across modes; only the transformation pipeline differs.
 
 ### Data Flow  <!-- omit in toc -->
 
@@ -110,13 +78,13 @@ Plain / Hash-Only comparison (same sample record):
 
 The person attributes are validated before normalization. The validation rules are as follows:
 
-| Attribute Name         | Validation Rule                                                                                                                                                                                                                                                                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `FirstName`            | Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                                                                                                                 |
-| `LastName`             | Must be at least 2 characters long. For 2-character names, must contain at least one vowel or be "Ng". Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                          |
-| `BirthDate`            | Must be after January 1, 1910. Cannot be in the future (after today's date). Must be in a valid date format.                                                                                                                                                                                                                                           |
+| Attribute Name         | Validation Rule                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FirstName`            | Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `LastName`             | Must be at least 2 characters long. For 2-character names, must contain at least one vowel or be "Ng". Cannot be a placeholder value (e.g., "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", etc.). Must not be null or empty.                                                                                                                                                                                                                                                                                                                                                                    |
+| `BirthDate`            | Must be after January 1, 1910. Cannot be in the future (after today's date). Must be in a valid date format.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `PostalCode`           | Must be a valid US ZIP code (3, 4, 5, or 9 digits) or Canadian postal code (3, 4, 5, or 6 characters). **US ZIP codes:** `ddd` (ZIP-3, padded to `ddd00`), `dddd` (ZIP-4, padded to `dddd0`), `ddddd` or `ddddd-dddd`. **Canadian postal codes:** `AdA` (3-char, padded to `AdA 000`), `AdAd` or `AdA d` (4-char, padded to `AdA dA0`), `AdAdA` or `AdA dA` (5-char, padded to `AdA dA0`), or `AdA dAd` (full format). Invalid ZIP-3 codes: US `000`, `555`, `888`; Canadian `K1A`, `M7A`, `H0H`. Cannot be common placeholder values like `11111`, `12345`, `54321`, `98765` for US or `A1A 1A1`, `X0X 0X0` for Canadian codes. |
-| `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.                                                                                                    |
+| `SocialSecurityNumber` | Area cannot be `000`, `666` or `900-999`. Group cannot be `00`. Serial cannot be `0000`. Cannot be one of the following invalid sequences: `111-11-1111`, `222-22-2222`, `333-33-3333`, `444-44-4444`, `555-55-5555`, `777-77-7777`, `888-88-8888`.                                                                                                                                                                                                                                                                                                                                                                              |
 
 ### Normalization of Person Attributes  <!-- omit in toc -->
 
@@ -137,15 +105,15 @@ All attribute values get normalized as part of their processing after validation
 - Removes non-alphabetic characters (e.g., "O'Keefe" → "OKeefe")
 - Normalizes diacritics (e.g., "García" → "Garcia")
 
-| Attribute Name           | Normalized Format                                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `record-id`              | Any unique string identifier (optional - auto-generated UUID if not provided)                                |
-| `first-name`             | Any string (after normalization as described above)                                                          |
-| `last-name`              | Any string (after normalization as described above)                                                          |
+| Attribute Name           | Normalized Format                                                                                                                                                                                                                                                                                                                       |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `record-id`              | Any unique string identifier (optional - auto-generated UUID if not provided)                                                                                                                                                                                                                                                           |
+| `first-name`             | Any string (after normalization as described above)                                                                                                                                                                                                                                                                                     |
+| `last-name`              | Any string (after normalization as described above)                                                                                                                                                                                                                                                                                     |
 | `postal-code`            | US: `ddddd` where `d` is a numeric digit (0-9). Canadian: `AdA dAd` where `A` is a letter and `d` is a digit. Partial postal codes are automatically padded during normalization: US ZIP-3 (`ddd` → `ddd00`), ZIP-4 (`dddd` → `dddd0`); Canadian 3-char (`AdA` → `AdA 000`), 4-char (`AdAd` → `AdA dA0`), 5-char (`AdAdA` → `AdA dA0`). |
-| `sex`                    | `Male\|Female`                                                                                               |
-| `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31)                                                          |
-| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9) |
+| `sex`                    | `Male\|Female`                                                                                                                                                                                                                                                                                                                          |
+| `birth-date`             | `YYYY-MM-DD` where `MM` is (01-12), `DD` is (01-31)                                                                                                                                                                                                                                                                                     |
+| `social-security-number` | `ddddddddd` where `d` is a numeric digit (0-9)                                                                                                                                                                                                                                                                                          |
 
 ### How Token Matching Works  <!-- omit in toc -->
 
@@ -209,15 +177,15 @@ The hash-only logic is:
 
 The input file (in csv format) must contain at least the following columns and values (one each):
 
-| Accepted Column Names                              | Required | Accepted Values                                                                                                       |
-| -------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| RecordId, Id                                       | Optional | Any unique string identifier. If not provided, a unique UUID will be automatically generated for each row.           |
-| FirstName, GivenName                               | Required | Any string value                                                                                                      |
-| LastName, Surname                                  | Required | Any string value                                                                                                      |
-| PostalCode, ZipCode, ZIP3, ZIP4, ZIP5                    | Required | US: 3 (ZIP-3), 4, 5, or 9 digit ZIP code `ddd`, `ddddd` or `ddddd-dddd`. Canadian: 3 (ZIP-3) or 6 character postal code `AdA` or `AdAdAd` (with or without space). ZIP-3 codes are automatically padded to full length. |
-| Sex, Gender                                        | Required | `Male`, `M`, `Female`, `F`                                                                                            |
-| BirthDate, DateOfBirth                             | Required | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                        |
-| SocialSecurityNumber, NationalIdentificationNumber | Required | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                            |
+| Accepted Column Names                              | Required | Accepted Values                                                                                                                                                                                                         |
+| -------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RecordId, Id                                       | Optional | Any unique string identifier. If not provided, a unique UUID will be automatically generated for each row.                                                                                                              |
+| FirstName, GivenName                               | Required | Any string value                                                                                                                                                                                                        |
+| LastName, Surname                                  | Required | Any string value                                                                                                                                                                                                        |
+| PostalCode, ZipCode, ZIP3, ZIP4, ZIP5              | Required | US: 3 (ZIP-3), 4, 5, or 9 digit ZIP code `ddd`, `ddddd` or `ddddd-dddd`. Canadian: 3 (ZIP-3) or 6 character postal code `AdA` or `AdAdAd` (with or without space). ZIP-3 codes are automatically padded to full length. |
+| Sex, Gender                                        | Required | `Male`, `M`, `Female`, `F`                                                                                                                                                                                              |
+| BirthDate, DateOfBirth                             | Required | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                                                                                                                          |
+| SocialSecurityNumber, NationalIdentificationNumber | Required | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                                                                                                                              |
 
 **Note 1:** RecordId is optional. When not provided in the input file, the system automatically generates a unique UUID for each record in the output. Auto-generated UUIDs are suitable for initial overlap analysis, but for linkage of actual data records, providing real RecordIds from your source data is recommended.
 
