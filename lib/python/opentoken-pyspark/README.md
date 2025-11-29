@@ -20,15 +20,13 @@ The OpenToken PySpark Bridge provides a seamless interface between PySpark DataF
 
 ```bash
 # First, install the OpenToken core library
-cd lib/python
+cd lib/python/opentoken
 pip install -e .
 
 # Then install the PySpark bridge
-cd ../python-pyspark
+cd ../opentoken-pyspark
 pip install -e .
 ```
-
-For detailed installation instructions, troubleshooting, and alternative installation methods, see [INSTALL.md](INSTALL.md).
 
 ### Prerequisites
 
@@ -186,6 +184,12 @@ cd notebooks
 jupyter notebook Custom_Token_Definition_Guide.ipynb
 ```
 
+**Dataset Overlap Analysis:**
+```bash
+cd notebooks
+jupyter notebook Dataset_Overlap_Analysis_Guide.ipynb
+```
+
 ## Dataset Overlap Analysis
 
 The `OpenTokenOverlapAnalyzer` class helps identify matching records between two tokenized datasets based on encrypted tokens.
@@ -261,7 +265,7 @@ for result in results:
 Run the test suite:
 
 ```bash
-# From the python-pyspark directory
+# From the opentoken-pyspark directory
 pytest
 ```
 
