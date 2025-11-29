@@ -25,6 +25,8 @@ This guide centralizes contributor-facing information. It covers local setup, la
     - [PySpark Bridge](#pyspark-bridge)
     - [Multi-Language Sync Tool](#multi-language-sync-tool)
     - [Cross-language Tips](#cross-language-tips)
+  - [Token Processing Modes](#token-processing-modes)
+    - [Selecting a Mode](#selecting-a-mode)
   - [Token \& Attribute Registration](#token--attribute-registration)
     - [When to Use](#when-to-use)
     - [Java Registration (ServiceLoader SPI)](#java-registration-serviceloader-spi)
@@ -338,6 +340,71 @@ When adding attributes/tokens: update Java first, run sync tool, then implement 
 | Add Attribute   | SPI entry & class                          | class + loader import                  |
 
 Maintain the same functional behavior and normalization between languages.
+
+## Token Processing Modes
+
+OpenToken now supports three processing modes across Java, Python, and the PySpark bridge. These modes determine how raw token signatures are transformed:
+
+| Mode        | Secrets Required                                | Transform Pipeline                                 | Output Example (T1)                | Deterministic Across Runs | Recommended Use                     |
+|-------------|-------------------------------------------------|----------------------------------------------------|------------------------------------|---------------------------|-------------------------------------|
+| Plain       | None (not currently exposed via CLI)            | Concatenate normalized attribute expressions only  | `DOE|JOHN|1990-01-15|MALE|98101`   | Yes (given same input)    | Debugging, rule design, docs demos  |
+| Hash-only   | Hashing secret only               | HMAC-SHA256(signature)                            | 64 hex chars (SHA-256 digest)      | Yes                       | Low-risk internal matching          |
+| Encrypted   | Hashing secret + encryption key   | HMAC-SHA256 → AES-256-GCM (random IV per token)    | Base64 blob (length varies)        | Yes (post-decrypt hash)   | Production / privacy-preserving use |
+
+Notes:
+
+- The underlying signature (before hashing) is produced by ordered attribute expressions for each token rule (e.g., T1–T5 or custom T6+). Plain mode exposes this directly for inspection.
+- Encryption uses AES-256-GCM with a random IV; identical hashed inputs yield different encrypted outputs each run. Matching encrypted tokens across datasets therefore requires either: (a) decryption with the shared key or (b) generating hash-only tokens for overlap workflows. Do NOT attempt to match encrypted blobs directly.
+- Tokenizer polymorphism: Java & Python `TokenGenerator` accept an injectable tokenizer. Defaults to SHA-256; when plain mode is active a `PassthroughTokenizer` is used so downstream transformers (if any) receive the raw signature.
+- Security: Plain and hash-only modes reduce protection. Never use plain mode for sharing PHI; hash-only may leak structural frequency information. Encrypted mode is required for external distribution.
+
+### Selecting a Mode
+
+Java CLI:
+
+```shell
+# Encrypted (default when both secrets provided)
+java -jar opentoken.jar -i input.csv -t csv -o out.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+
+# Hash-only (omit encryption key)
+java -jar opentoken.jar -i input.csv -t csv -o out.csv -h "HashingKey"
+```
+
+Python CLI:
+
+```shell
+# Encrypted
+python main.py -i resources/sample.csv -t csv -o output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+
+# Hash-only
+python main.py -i resources/sample.csv -t csv -o output.csv -h "HashingKey"
+```
+
+PySpark Bridge (programmatic):
+
+```python
+from opentoken_pyspark import OpenTokenProcessor
+
+# Encrypted
+processor = OpenTokenProcessor("HashingKey", "Secret-Encryption-Key-Goes-Here.")
+
+# Hash-only: pass encryption_key=None (or empty), if constructor updated accordingly
+processor = OpenTokenProcessor("HashingKey", "")  # treat empty as no encryption
+
+# Plain mode: currently not exposed via CLI; programmatic use requires constructing a TokenGenerator with a Passthrough tokenizer (not yet wired through OpenTokenProcessor helper).
+```
+
+Contributor Guidelines:
+
+- When modifying token generation logic, ensure plain mode outputs remain exactly the concatenation used for hashing (critical for reproducibility in docs & debugging).
+- Any new attribute transformation must affect all three modes consistently (the difference is in post-processing, not normalization).
+- Tests: Add/extend tests verifying identical plain signatures across Java & Python for a shared fixture dataset.
+- Overlap workflows: Prefer hash-only tokens or decrypt encrypted tokens before comparison (random IV prevents ciphertext matching).
+
+Future Enhancements (open for contribution):
+
+- Dedicated CLI option to output all three representations simultaneously (e.g., `--emit plain,hash,encrypted`).
+- Optional deterministic encryption mode for research (NOT recommended for production; would need clear security disclaimers).
 
 ## Token & Attribute Registration
 

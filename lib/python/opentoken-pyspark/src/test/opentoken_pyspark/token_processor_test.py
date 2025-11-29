@@ -7,7 +7,7 @@ Tests for OpenToken PySpark token processor.
 import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType
-from opentoken_pyspark import OpenTokenProcessor
+from opentoken_pyspark import OpenTokenProcessor, OpenTokenOverlapAnalyzer
 
 
 @pytest.fixture(scope="module")
@@ -147,41 +147,39 @@ class TestOpenTokenProcessor:
             processor.process_dataframe(None)
 
     def test_tokens_are_consistent(self, spark, sample_data):
-        """Test that the same input produces the same tokens."""
-        processor = OpenTokenProcessor("HashingKey", "Secret-Encryption-Key-Goes-Here.")
+        """Test that the same input produces the same underlying hashed tokens.
 
-        # Create DataFrame
+        Encrypted token ciphertext differs due to random IV; decrypt before comparison.
+        """
+        encryption_key = "Secret-Encryption-Key-Goes-Here."
+        processor = OpenTokenProcessor("HashingKey", encryption_key)
+        analyzer = OpenTokenOverlapAnalyzer(encryption_key)
+
         df = spark.createDataFrame(sample_data)
-
-        # Process twice
         result1 = processor.process_dataframe(df).collect()
         result2 = processor.process_dataframe(df).collect()
 
-        # Convert to sets for comparison (order might differ)
-        tokens1 = {(r.RecordId, r.RuleId, r.Token) for r in result1}
-        tokens2 = {(r.RecordId, r.RuleId, r.Token) for r in result2}
-
-        # Should be identical
-        assert tokens1 == tokens2
+        # Decrypt tokens to compare deterministic hashed content
+        decrypted1 = {(r.RecordId, r.RuleId, analyzer._decrypt_token(r.Token)) for r in result1}
+        decrypted2 = {(r.RecordId, r.RuleId, analyzer._decrypt_token(r.Token)) for r in result2}
+        assert decrypted1 == decrypted2
 
     def test_different_secrets_produce_different_tokens(self, spark, sample_data):
-        """Test that different secrets produce different tokens."""
-        processor1 = OpenTokenProcessor("HashingKey1", "EncryptionKey1")
-        processor2 = OpenTokenProcessor("HashingKey2", "EncryptionKey2")
+        """Different hashing secrets should yield different decrypted hashed tokens."""
+        key1 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"  # 32 chars
+        key2 = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"  # 32 chars
+        processor1 = OpenTokenProcessor("HashingKey1", key1)
+        processor2 = OpenTokenProcessor("HashingKey2", key2)
+        analyzer1 = OpenTokenOverlapAnalyzer(key1)
+        analyzer2 = OpenTokenOverlapAnalyzer(key2)
 
-        # Create DataFrame
         df = spark.createDataFrame(sample_data)
-
-        # Process with different secrets
         result1 = processor1.process_dataframe(df).collect()
         result2 = processor2.process_dataframe(df).collect()
 
-        # Get tokens for the same record and rule
-        tokens1 = {(r.RecordId, r.RuleId, r.Token) for r in result1}
-        tokens2 = {(r.RecordId, r.RuleId, r.Token) for r in result2}
-
-        # Tokens should be different
-        assert tokens1 != tokens2
+        decrypted1 = {(r.RecordId, r.RuleId, analyzer1._decrypt_token(r.Token)) for r in result1}
+        decrypted2 = {(r.RecordId, r.RuleId, analyzer2._decrypt_token(r.Token)) for r in result2}
+        assert decrypted1 != decrypted2
 
     def test_column_mapping(self, spark):
         """Test that column mapping works correctly."""
@@ -238,7 +236,7 @@ class TestOpenTokenProcessor:
 
     def test_custom_token_definition(self, spark, sample_data):
         """Test using custom token definition with processor."""
-        from opentoken.notebook_helpers import TokenBuilder, CustomTokenDefinition
+        from opentoken_pyspark.notebook_helpers import TokenBuilder, CustomTokenDefinition
 
         # Create a custom T6 token
         t6_token = TokenBuilder("T6") \
@@ -272,7 +270,7 @@ class TestOpenTokenProcessor:
 
     def test_multiple_custom_tokens(self, spark, sample_data):
         """Test using multiple custom tokens."""
-        from opentoken.notebook_helpers import TokenBuilder, CustomTokenDefinition
+        from opentoken_pyspark.notebook_helpers import TokenBuilder, CustomTokenDefinition
 
         # Create two custom tokens
         t6_token = TokenBuilder("T6") \

@@ -21,7 +21,8 @@ def spark():
 @pytest.fixture
 def encryption_key():
     """Standard 32-character encryption key for testing."""
-    return "test-encryption-key-32-chars!!"
+    # Use exactly 32 ASCII characters
+    return "12345678901234567890123456789012"
 
 
 @pytest.fixture

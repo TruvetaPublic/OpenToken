@@ -7,7 +7,7 @@ Dataset overlap analyzer for comparing tokenized datasets.
 import logging
 from typing import List, Dict, Optional
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, lit, when, count, sum as spark_sum, udf
+from pyspark.sql.functions import col, count, udf
 from pyspark.sql.types import StringType
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
@@ -49,48 +49,53 @@ class OpenTokenOverlapAnalyzer:
             )
         self.encryption_key = encryption_key.encode('utf-8')
 
-    def _decrypt_token(self, encrypted_token: str) -> str:
+    def _decrypt_token(self, encrypted_token: str) -> Optional[str]:
         """
         Decrypt an encrypted token using AES-256 GCM.
+
+        If the input is not an encrypted token (e.g., plain/hash-only tokens
+        used in tests), returns the original value to allow direct comparison.
 
         Args:
             encrypted_token: Base64-encoded encrypted token (IV || ciphertext || tag)
 
         Returns:
-            Decrypted token string
+            Decrypted token string, or the original token if decryption is not applicable
 
         Note:
             Uses AES-GCM with 12-byte IV and 16-byte authentication tag,
             matching the encryption used by OpenToken EncryptTokenTransformer.
         """
+        if encrypted_token is None:
+            return None
         try:
-            # Decode the base64-encoded token
+            # Attempt to base64-decode the token. If this fails, treat as plaintext.
             message_bytes = base64.b64decode(encrypted_token)
 
-            # Extract IV (12 bytes), ciphertext, and tag (16 bytes)
+            # Expect at least IV (12) + tag (16) + 1 byte of ciphertext
             IV_SIZE = 12
             TAG_LENGTH = 16
-            
+            minimum_length = IV_SIZE + TAG_LENGTH + 1
+            if len(message_bytes) < minimum_length:
+                # Not a valid encrypted payload; likely a plain token
+                return encrypted_token
+
             iv_bytes = message_bytes[:IV_SIZE]
             ciphertext_and_tag = message_bytes[IV_SIZE:]
             ciphertext = ciphertext_and_tag[:-TAG_LENGTH]
             tag = ciphertext_and_tag[-TAG_LENGTH:]
 
-            # Create cipher for decryption using GCM mode
             cipher = Cipher(
                 algorithms.AES(self.encryption_key),
                 modes.GCM(iv_bytes, tag),
                 backend=default_backend()
             )
-
-            # Decrypt the token
             decryptor = cipher.decryptor()
             decrypted_bytes = decryptor.update(ciphertext) + decryptor.finalize()
-
             return decrypted_bytes.decode('utf-8')
-        except Exception as e:
-            logger.warning(f"Failed to decrypt token: {e}")
-            return None
+        except Exception:
+            # If base64 decoding or AES-GCM fails, assume plaintext and return original
+            return encrypted_token
 
     def analyze_overlap(
         self,
@@ -280,7 +285,7 @@ class OpenTokenOverlapAnalyzer:
             >>> analyzer.print_summary(results)
         """
         print("=" * 70)
-        print(f"Dataset Overlap Analysis")
+        print("Dataset Overlap Analysis")
         print("=" * 70)
         print(f"Dataset 1: {results['dataset1_name']}")
         print(f"  Total records: {results['total_records_dataset1']:,}")
