@@ -49,7 +49,7 @@ public class TokenGenerator implements Serializable {
      * @deprecated Use {@link #TokenGenerator(BaseTokenDefinition, Tokenizer)} instead.
      *             This constructor will be removed in a future release.
      */
-    @Deprecated(since = "1.11.0", forRemoval = true)
+    @Deprecated(since = "1.12.0", forRemoval = true)
     public TokenGenerator(BaseTokenDefinition tokenDefinition, List<TokenTransformer> tokenTransformerList) {
         this(tokenDefinition, new SHA256Tokenizer(tokenTransformerList));
     }
