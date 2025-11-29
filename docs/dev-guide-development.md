@@ -248,10 +248,10 @@ Prerequisites:
 
 **Version Compatibility (choose based on your Java version):**
 
-| Java Version | PySpark Version | PyArrow Version | Notes |
-|--------------|----------------|-----------------|-------|
-| **Java 21** | **4.0.1+** | **17.0.0+** | **Recommended** - Native Java 21 support |
-| Java 8-17 | 3.5.x | <20 | Legacy support - use if you cannot upgrade Java |
+| Java Version | PySpark Version | PyArrow Version | Notes                                           |
+| ------------ | --------------- | --------------- | ----------------------------------------------- |
+| **Java 21**  | **4.0.1+**      | **17.0.0+**     | **Recommended** - Native Java 21 support        |
+| Java 8-17    | 3.5.x           | <20             | Legacy support - use if you cannot upgrade Java |
 
 Install (from repo root):
 
@@ -276,8 +276,8 @@ token_df.show()
 Custom Token Definitions (example adding T6):
 
 ```python
-from opentoken.notebook_helpers import TokenBuilder, CustomTokenDefinition
 from opentoken_pyspark import OpenTokenProcessor
+from opentoken_pyspark.notebook_helpers import TokenBuilder, CustomTokenDefinition
 
 t6 = TokenBuilder("T6") \
   .add("last_name", "T|U") \
@@ -345,11 +345,11 @@ Maintain the same functional behavior and normalization between languages.
 
 OpenToken now supports three processing modes across Java, Python, and the PySpark bridge. These modes determine how raw token signatures are transformed:
 
-| Mode        | Secrets Required                                | Transform Pipeline                                 | Output Example (T1)                | Deterministic Across Runs | Recommended Use                     |
-|-------------|-------------------------------------------------|----------------------------------------------------|------------------------------------|---------------------------|-------------------------------------|
-| Plain       | None (not currently exposed via CLI)            | Concatenate normalized attribute expressions only  | `DOE|JOHN|1990-01-15|MALE|98101`   | Yes (given same input)    | Debugging, rule design, docs demos  |
-| Hash-only   | Hashing secret only               | HMAC-SHA256(signature)                            | 64 hex chars (SHA-256 digest)      | Yes                       | Low-risk internal matching          |
-| Encrypted   | Hashing secret + encryption key   | HMAC-SHA256 → AES-256-GCM (random IV per token)    | Base64 blob (length varies)        | Yes (post-decrypt hash)   | Production / privacy-preserving use |
+| Mode      | Secrets Required                     | Transform Pipeline                                | Output Example (T1)           | Deterministic Across Runs | Recommended Use                     |
+| --------- | ------------------------------------ | ------------------------------------------------- | ----------------------------- | ------------------------- | ----------------------------------- |
+| Plain     | None (not currently exposed via CLI) | Concatenate normalized attribute expressions only | `DOE                          | JOHN                      | 1990-01-15                          | MALE | 98101` | Yes (given same input) | Debugging, rule design, docs demos |
+| Hash-only | Hashing secret only                  | HMAC-SHA256(signature)                            | 64 hex chars (SHA-256 digest) | Yes                       | Low-risk internal matching          |
+| Encrypted | Hashing secret + encryption key      | HMAC-SHA256 → AES-256-GCM (random IV per token)   | Base64 blob (length varies)   | Yes (post-decrypt hash)   | Production / privacy-preserving use |
 
 Notes:
 

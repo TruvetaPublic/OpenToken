@@ -39,10 +39,10 @@ For detailed installation instructions, troubleshooting, and alternative install
 
 Choose the appropriate combination based on your Java version:
 
-| Java Version | PySpark Version | PyArrow Version | Notes |
-|--------------|----------------|-----------------|-------|
-| **Java 21** | **4.0.1+** | **17.0.0+** | **Recommended** - Native Java 21 support |
-| Java 8-17 | 3.5.x | <20 | Legacy support - use if you cannot upgrade Java |
+| Java Version | PySpark Version | PyArrow Version | Notes                                           |
+| ------------ | --------------- | --------------- | ----------------------------------------------- |
+| **Java 21**  | **4.0.1+**      | **17.0.0+**     | **Recommended** - Native Java 21 support        |
+| Java 8-17    | 3.5.x           | <20             | Legacy support - use if you cannot upgrade Java |
 
 **Important:** PySpark 3.5.x is not compatible with Java 21. If you're using Java 21, you must use PySpark 4.0.1+ with PyArrow 17.0.0+.
 
@@ -118,15 +118,15 @@ tokens_df.show()
 
 Your input DataFrame must contain the following columns (alternative names are supported):
 
-| Standard Name | Alternative Names | Description |
-|--------------|-------------------|-------------|
-| RecordId | Id | Unique identifier (optional - auto-generated if not provided) |
-| FirstName | GivenName | Person's first name |
-| LastName | Surname | Person's last name |
-| BirthDate | DateOfBirth | Date of birth in YYYY-MM-DD format |
-| Sex | Gender | Sex/Gender (Male, Female, M, F) |
-| PostalCode | ZipCode | US ZIP code or Canadian postal code |
-| SocialSecurityNumber | NationalIdentificationNumber | SSN or national ID number |
+| Standard Name        | Alternative Names            | Description                                                   |
+| -------------------- | ---------------------------- | ------------------------------------------------------------- |
+| RecordId             | Id                           | Unique identifier (optional - auto-generated if not provided) |
+| FirstName            | GivenName                    | Person's first name                                           |
+| LastName             | Surname                      | Person's last name                                            |
+| BirthDate            | DateOfBirth                  | Date of birth in YYYY-MM-DD format                            |
+| Sex                  | Gender                       | Sex/Gender (Male, Female, M, F)                               |
+| PostalCode           | ZipCode                      | US ZIP code or Canadian postal code                           |
+| SocialSecurityNumber | NationalIdentificationNumber | SSN or national ID number                                     |
 
 ## Output Format
 
@@ -140,11 +140,11 @@ Each input record produces multiple output rows (one per token rule).
 
 ## Using Custom Token Definitions
 
-You can define custom tokens using the `opentoken.notebook_helpers` module and pass them to the processor:
+You can define custom tokens using the `opentoken_pyspark.notebook_helpers` module and pass them to the processor:
 
 ```python
-from opentoken.notebook_helpers import TokenBuilder, CustomTokenDefinition
 from opentoken_pyspark import OpenTokenProcessor
+from opentoken_pyspark.notebook_helpers import TokenBuilder, CustomTokenDefinition
 
 # Method 1: Using TokenBuilder
 custom_token = TokenBuilder("T6") \
