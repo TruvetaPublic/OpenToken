@@ -239,7 +239,7 @@ The PySpark bridge (`lib/python/opentoken-pyspark`) provides a distributed proce
 Purpose:
 
 - Efficient token generation on large datasets (partitioned execution)
-- Supports custom token definitions (T6+) in Spark pipelines
+- Supports custom token definitions in Spark pipelines
 - Provides overlap analysis utilities (`OverlapAnalyzer`) for measuring cohort intersection
 
 Prerequisites:
@@ -343,13 +343,13 @@ Maintain the same functional behavior and normalization between languages.
 
 ## Token Processing Modes
 
-OpenToken now supports three processing modes across Java, Python, and the PySpark bridge. These modes determine how raw token signatures are transformed:
+OpenToken supports three processing modes across Java, Python, and the PySpark bridge. These modes determine how raw token signatures are transformed:
 
-| Mode      | Secrets Required                     | Transform Pipeline                                | Output Example (T1)           | Deterministic Across Runs | Recommended Use                     |
-| --------- | ------------------------------------ | ------------------------------------------------- | ----------------------------- | ------------------------- | ----------------------------------- |
-| Plain     | None (not currently exposed via CLI) | Concatenate normalized attribute expressions only | `DOE                          | JOHN                      | 1990-01-15                          | MALE | 98101` | Yes (given same input) | Debugging, rule design, docs demos |
-| Hash-only | Hashing secret only                  | HMAC-SHA256(signature)                            | 64 hex chars (SHA-256 digest) | Yes                       | Low-risk internal matching          |
-| Encrypted | Hashing secret + encryption key      | HMAC-SHA256 → AES-256-GCM (random IV per token)   | Base64 blob (length varies)   | Yes (post-decrypt hash)   | Production / privacy-preserving use |
+| Mode      | Secrets Required                     | Transform Pipeline                                | Output Example (T1)                  | Deterministic Across Runs | Recommended Use                     |
+| --------- | ------------------------------------ | ------------------------------------------------- | ------------------------------------ | ------------------------- | ----------------------------------- |
+| Plain     | None (not currently exposed via CLI) | Concatenate normalized attribute expressions only | `DOE\|JOHN\|1990-01-15\|MALE\|98101` | Yes (given same input)    | Debugging, rule design, docs demos  |
+| Hash-only | Hashing secret only                  | HMAC-SHA256(signature)                            | 64 hex chars (SHA-256 digest)        | Yes                       | Low-risk internal matching          |
+| Encrypted | Hashing secret + encryption key      | HMAC-SHA256 → AES-256-GCM (random IV per token)   | Base64 blob (length varies)          | Yes (post-decrypt hash)   | Production / privacy-preserving use |
 
 Notes:
 
