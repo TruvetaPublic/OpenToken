@@ -3,7 +3,6 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 from typing import Dict, Type
-import pytest
 
 from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
@@ -29,7 +28,7 @@ class TestTokenGeneratorBlankTokens:
         self.token_definition = TokenDefinition()
         self.token_transformer_list = [NoOperationTokenTransformer()]
 
-        self.token_generator = TokenGenerator(self.token_definition, self.token_transformer_list)
+        self.token_generator = TokenGenerator.from_transformers(self.token_definition, self.token_transformer_list)
 
     def test_blank_tokens_tracking_with_invalid_attributes(self):
         """Test blank token tracking when attributes are missing for token generation."""

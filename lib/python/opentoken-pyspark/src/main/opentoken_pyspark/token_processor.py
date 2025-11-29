@@ -203,9 +203,7 @@ class OpenTokenProcessor:
             definition = token_definition if token_definition is not None else TokenDefinition()
 
             # Initialize token generator with custom tokenizer
-            token_generator = TokenGenerator(
-                definition, token_transformer_list, tokenizer
-            )
+            token_generator = TokenGenerator(definition, tokenizer)
 
             results = []
 

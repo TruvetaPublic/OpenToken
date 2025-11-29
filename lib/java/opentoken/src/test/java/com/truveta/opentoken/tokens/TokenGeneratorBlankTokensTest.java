@@ -23,6 +23,7 @@ import com.truveta.opentoken.attributes.person.SexAttribute;
 import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
 import com.truveta.opentoken.attributes.person.BirthDateAttribute;
 import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.NoOperationTokenTransformer;
 
 class TokenGeneratorBlankTokensTest {
@@ -32,7 +33,8 @@ class TokenGeneratorBlankTokensTest {
     @BeforeEach
     void setUp() {
         tokenGenerator = new TokenGenerator(new TokenDefinition(),
-                java.util.Collections.singletonList(new NoOperationTokenTransformer()));
+                new SHA256Tokenizer(
+                        java.util.Collections.singletonList(new NoOperationTokenTransformer())));
     }
 
     @Test

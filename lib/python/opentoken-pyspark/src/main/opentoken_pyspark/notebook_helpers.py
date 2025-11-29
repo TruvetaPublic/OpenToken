@@ -189,7 +189,7 @@ def create_token_generator(
         EncryptTokenTransformer(encryption_key)
     ]
 
-    return TokenGenerator(token_definition, token_transformers)
+    return TokenGenerator.from_transformers(token_definition, token_transformers)
 
 
 def quick_token(

@@ -1,5 +1,14 @@
 # OpenToken AI Coding Agent Instructions
 
+## ⚠️ CRITICAL JAVA CODING RULE - READ FIRST
+
+**NEVER use fully qualified class names in Java code.** ALWAYS add import statements and use short class names.
+
+- ❌ **WRONG**: `new com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer(transformers)`
+- ✅ **CORRECT**: Add `import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;` at top, then use `new SHA256Tokenizer(transformers)`
+
+This rule applies to ALL Java code - constructors, method calls, type declarations, etc. See [Code Style Guidelines](#code-style-guidelines) for details.
+
 ## Overview
 
 This document provides comprehensive guidance for AI coding agents working on the OpenToken project. Follow these instructions to ensure code quality, consistency, and compatibility across both Java and Python implementations.
@@ -195,11 +204,12 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 
 ## Common Pitfalls
 
-1. **Forgetting service registration**: Java won't discover attributes without `META-INF/services` entry
-2. **Python loader not updated**: `AttributeLoader.load()` returns hardcoded set, not auto-discovered
-3. **Validation vs normalization order**: Always normalize first, then validate the normalized value
-4. **Thread-safety in validators**: Pre-compile regex patterns, avoid mutable state
-5. **Checkstyle failures**: Run `mvn checkstyle:check` separately to catch before full build
+1. **Using fully qualified class names**: NEVER use `com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer` in code - ALWAYS add import statement and use `SHA256Tokenizer`
+2. **Forgetting service registration**: Java won't discover attributes without `META-INF/services` entry
+3. **Python loader not updated**: `AttributeLoader.load()` returns hardcoded set, not auto-discovered
+4. **Validation vs normalization order**: Always normalize first, then validate the normalized value
+5. **Thread-safety in validators**: Pre-compile regex patterns, avoid mutable state
+6. **Checkstyle failures**: Run `mvn checkstyle:check` separately to catch before full build
 
 ## Documentation Requirements
 
@@ -226,11 +236,21 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 
 ## Code Style Guidelines
 
-### Java
+### Java (CRITICAL - Read First)
 
-- **Always use imported classes**: Never use full namespace declarations (e.g., use `TokenWriter` not `com.truveta.opentoken.io.TokenWriter`)
-- **Import statements**: Add proper imports at the top of the file
-- **Checkstyle compliance**: Run `mvn checkstyle:check` to validate
+**⚠️ MANDATORY IMPORT RULE - NEVER VIOLATE THIS:**
+
+- **ALWAYS add import statements and use short class names**:
+  - ✅ CORRECT: Add `import com.truveta.opentoken.io.TokenWriter;` then use `TokenWriter`
+  - ❌ WRONG: `com.truveta.opentoken.io.TokenWriter` (fully qualified name in code)
+  - ✅ CORRECT: Add `import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;` then use `new SHA256Tokenizer()`
+  - ❌ WRONG: `new com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer()` (fully qualified in code)
+- **When editing Java code:**
+  1. First, check existing imports at top of file
+  2. If class not imported, add import statement in alphabetical order
+  3. Then use short class name throughout the code
+  4. NEVER write fully qualified class names in method bodies or constructors
+- **Checkstyle compliance**: Run `mvn checkstyle:check` to validate (will catch style violations)
 - **JavaDoc**: Required for all public classes and methods
 
 ### Python

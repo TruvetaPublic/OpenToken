@@ -36,7 +36,6 @@ class PersonAttributesProcessor:
 
     def __init__(self):
         """Private constructor to prevent instantiation."""
-        pass
 
     @staticmethod
     def process(reader: PersonAttributesReader,
@@ -56,7 +55,7 @@ class PersonAttributesProcessor:
         """
         # TokenGenerator code
         token_definition = TokenDefinition()
-        token_generator = TokenGenerator(token_definition, token_transformer_list)
+        token_generator = TokenGenerator.from_transformers(token_definition, token_transformer_list)
 
         row_counter = 0
         invalid_attribute_count: Dict[str, int] = PersonAttributesProcessor._initialize_invalid_attribute_count(token_definition)

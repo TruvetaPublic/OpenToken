@@ -35,8 +35,8 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
 public class TokenGenerator implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final transient Logger logger = LoggerFactory.getLogger(TokenGenerator.class);
+
     private Tokenizer tokenizer;
-    private List<TokenTransformer> tokenTransformerList;
     private BaseTokenDefinition tokenDefinition;
 
     private Map<Class<? extends Attribute>, Attribute> attributeInstanceMap;
@@ -46,36 +46,26 @@ public class TokenGenerator implements Serializable {
      * 
      * @param tokenDefinition      the token definition.
      * @param tokenTransformerList a list of token transformers.
+     * @deprecated Use {@link #TokenGenerator(BaseTokenDefinition, Tokenizer)} instead.
+     *             This constructor will be removed in a future release.
      */
+    @Deprecated(since = "1.11.0", forRemoval = true)
     public TokenGenerator(BaseTokenDefinition tokenDefinition, List<TokenTransformer> tokenTransformerList) {
-        this(tokenDefinition, tokenTransformerList, null);
+        this(tokenDefinition, new SHA256Tokenizer(tokenTransformerList));
     }
 
     /**
      * Initializes the token generator with an explicit tokenizer.
-     * <p>
-     * If the {@code tokenizer} argument is {@code null}, the generator will default
-     * to using {@link SHA256Tokenizer}. Supplying a {@link PassthroughTokenizer}
-     * enables generation of plain (unhashed) token signatures that can still be
-     * optionally transformed (e.g. encrypted) by the provided transformer list.
-     * </p>
      *
      * @param tokenDefinition      the token definition.
-     * @param tokenTransformerList a list of token transformers (e.g. hash, encrypt).
      * @param tokenizer            optional tokenizer implementation. Use
      *                             {@link PassthroughTokenizer} for plain mode.
      */
-    public TokenGenerator(BaseTokenDefinition tokenDefinition, List<TokenTransformer> tokenTransformerList,
-            Tokenizer tokenizer) {
+    public TokenGenerator(BaseTokenDefinition tokenDefinition, Tokenizer tokenizer) {
         this.tokenDefinition = tokenDefinition;
-        this.tokenTransformerList = tokenTransformerList;
         this.attributeInstanceMap = new HashMap<>();
         AttributeLoader.load().forEach(attribute -> attributeInstanceMap.put(attribute.getClass(), attribute));
-        try {
-            this.tokenizer = (tokenizer == null) ? new SHA256Tokenizer(tokenTransformerList) : tokenizer;
-        } catch (Exception e) {
-            logger.error("Error initializing tokenizer", e);
-        }
+        this.tokenizer = tokenizer;
     }
 
     /*

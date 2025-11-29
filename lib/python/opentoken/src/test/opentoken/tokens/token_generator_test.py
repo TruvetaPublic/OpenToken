@@ -32,7 +32,7 @@ class TestTokenGenerator:
                 FirstNameAttribute(), 
                 LastNameAttribute()
             }
-            self.token_generator = TokenGenerator(self.token_definition, self.token_transformer_list)
+            self.token_generator = TokenGenerator.from_transformers(self.token_definition, self.token_transformer_list)
         
         # Inject mock tokenizer
         self.token_generator.tokenizer = self.tokenizer
