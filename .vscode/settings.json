@@ -20,6 +20,15 @@
     "chat.tools.autoApprove": true,
     "chat.mcp.access": "all",
     "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestArgs": [
+        "lib/python/opentoken/src/test",
+        "lib/python/opentoken-pyspark/src/test"
+    ],
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "python.testing.pytestPath": "pytest",
+    "python.defaultInterpreterPath": "",
+    // Optional: make Test Explorer grouping consistent (Test Explorer extension may use this)
+    "testing.showInlineOutput": true,
     "python.analysis.typeCheckingMode": "basic"
 }
