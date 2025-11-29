@@ -63,5 +63,9 @@ toolchains.xml
 # Notebook output
 output/
 
+# Python wheel output
+dist/
+build/
+
 .coverage
 coverage.xml
