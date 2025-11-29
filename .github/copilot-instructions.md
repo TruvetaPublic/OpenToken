@@ -273,25 +273,13 @@ Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`
 
 ### Draft Pull Requests (Mandatory)
 
-All new pull requests MUST be created in **draft** mode. The agent should never open a non-draft ("ready for review") PR initially. Convert the PR to "ready" only after:
-1. CI checks (build, tests, lint, security scans) have passed.
-2. Cross-language parity verification (if applicable) has been performed.
-3. The PR description includes the completed checklist and any remaining action items.
-
-Rationale:
-- Prevents premature reviewer notifications.
-- Ensures incomplete work or missing tests are not immediately surfaced as ready.
-- Aligns with the project’s expectation of high-quality, parity-validated changes.
+All new pull requests MUST be created in **draft** mode. The agent should never open a non-draft ("ready for review") PR initially. C
 
 Agent Rules:
+
 - Always set `draft: true` when invoking pull request creation tools.
 - If a PR was accidentally opened as ready, immediately update it to draft and leave a comment noting the correction.
 - Do not convert out of draft automatically; wait for explicit user request or all readiness conditions met.
-
-Sample Title Pattern (still use conventional commits):
-`feat: add middle name attribute (draft)` — the `(draft)` suffix is optional; draft status alone is sufficient.
-
-When converting to ready, remove any temporary suffixes from the title.
 
 ## Debugging & Troubleshooting
 
