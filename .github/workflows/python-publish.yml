@@ -52,11 +52,11 @@ jobs:
 
       - name: Build opentoken distribution (wheel + sdist)
         working-directory: lib/python/opentoken
-        run: python -m build --wheel --sdist
+        run: python -m build
 
       - name: Build opentoken-pyspark distribution (wheel + sdist)
         working-directory: lib/python/opentoken-pyspark
-        run: python -m build --wheel --sdist
+        run: python -m build
 
       # PyPI publish steps removed per request (can be re-enabled later).
 
