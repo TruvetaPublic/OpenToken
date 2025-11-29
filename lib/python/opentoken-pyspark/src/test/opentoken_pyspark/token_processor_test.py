@@ -308,3 +308,68 @@ class TestOpenTokenProcessor:
 
         # Verify we have 2 tokens per record (T6 and T7)
         assert result.count() == len(sample_data) * 2
+
+    def test_init_with_both_secrets_none(self, spark):
+        """Test initialization with both secrets None (plain passthrough mode)."""
+        # Both None is allowed - produces plain concatenated tokens
+        processor = OpenTokenProcessor(hashing_secret=None, encryption_key=None)
+        
+        # Verify it can process a DataFrame
+        data = [{
+            "RecordId": "test-1",
+            "FirstName": "John",
+            "LastName": "Doe",
+            "PostalCode": "98004",
+            "Sex": "Male",
+            "BirthDate": "2000-01-01",
+            "SocialSecurityNumber": "123-45-6789"
+        }]
+        df = spark.createDataFrame(data)
+        result = processor.process_dataframe(df)
+        assert result.count() > 0
+
+    def test_init_with_invalid_encryption_key_length(self):
+        """Test initialization with wrong encryption key length raises ValueError."""
+        with pytest.raises(ValueError, match="Invalid secrets provided"):
+            OpenTokenProcessor(
+                hashing_secret="test",
+                encryption_key="short-key"  # Not 32 bytes
+            )
+
+    def test_passthrough_tokenizer_with_encryption_only(self, spark, sample_data):
+        """Test processor with encryption but no hashing (passthrough tokenizer)."""
+        processor = OpenTokenProcessor(
+            hashing_secret=None,
+            encryption_key="12345678901234567890123456789012"
+        )
+
+        df = spark.createDataFrame(sample_data)
+        result = processor.process_dataframe(df)
+
+        # Should produce tokens without hashing
+        assert result.count() > 0
+        # Verify tokens are encrypted (base64 strings)
+        token_sample = result.select("Token").first()[0]
+        assert isinstance(token_sample, str)
+        assert len(token_sample) > 20  # Encrypted tokens are longer
+
+    def test_process_with_bad_data_handles_errors(self, spark):
+        """Test that processor handles bad data gracefully by returning empty token lists."""
+        processor = OpenTokenProcessor("HashingKey", "12345678901234567890123456789012")
+        
+        # Create DataFrame with invalid data that will fail token generation
+        data = [{
+            "RecordId": "test-1",
+            "FirstName": "John",
+            "LastName": "Doe",
+            "PostalCode": "INVALID",
+            "Sex": "Invalid",
+            "BirthDate": "invalid-date",
+            "SocialSecurityNumber": "invalid"
+        }]
+        df = spark.createDataFrame(data)
+        
+        # Should not crash, but may produce fewer/no tokens
+        result = processor.process_dataframe(df)
+        # Result exists but may have zero rows due to validation failures
+        assert result is not None

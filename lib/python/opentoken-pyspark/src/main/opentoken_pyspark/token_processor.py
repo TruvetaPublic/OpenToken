@@ -164,7 +164,7 @@ class OpenTokenProcessor:
 
         # Create a pandas UDF for token generation
         @pandas_udf(token_schema)
-        def generate_tokens_udf(
+        def generate_tokens_udf(  # pragma: no cover
             record_id_series: pd.Series,
             first_name_series: pd.Series,
             last_name_series: pd.Series,
@@ -178,6 +178,10 @@ class OpenTokenProcessor:
 
             This function is executed on each partition of the DataFrame
             in parallel across the Spark cluster.
+            
+            Note: Coverage tracking cannot instrument code executed inside Spark
+            worker processes, so this function is marked with pragma: no cover.
+            The logic is tested indirectly through integration tests.
             """
             # Initialize token transformers and tokenizer based on secrets
             token_transformer_list = []

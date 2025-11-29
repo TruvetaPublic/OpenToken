@@ -62,3 +62,6 @@ toolchains.xml
 
 # Notebook output
 output/
+
+.coverage
+coverage.xml
