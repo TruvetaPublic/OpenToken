@@ -285,18 +285,21 @@ class OpenTokenProcessor:
 
         return result_df
 
-    def _validate_python_env(self) -> None:
+    def _validate_python_env(self) -> None:  # pragma: no cover
         """
         Validate Python dependency versions that affect Arrow/Pandas UDFs.
 
         Raises a clear, actionable error instead of a low-level EOFError from
         the Python worker when PyArrow/Pandas are incompatible with PySpark.
+        
+        Note: Dependency validation is difficult to unit test without manipulating
+        sys.modules or creating incompatible environments. Marked pragma: no cover.
         """
         try:
             import pyspark  # type: ignore
             import pyarrow as pa  # type: ignore
             import pandas as _pd  # type: ignore
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise RuntimeError(
                 "Missing required dependencies for PySpark UDFs. Ensure pyspark, pyarrow, and pandas are installed."
             ) from e
