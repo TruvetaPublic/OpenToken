@@ -294,14 +294,6 @@ This architecture balances the benefits of distributed computing with the crypto
 
 ## Related Documentation
 
-- [OpenToken Core Library](../python/README.md)
-- [Main OpenToken Documentation](../../README.md)
-- [Development Guide](../../docs/dev-guide-development.md)
-
-## Contributing
-
-Contributions are welcome! Please see the main OpenToken contributing guidelines.
-
-## License
-
-Copyright (c) Truveta. All rights reserved.
+- [OpenToken Core Library](../opentoken/) - Python core implementation
+- [Main OpenToken Documentation](../../../README.md) - Project overview and setup
+- [Development Guide](../../../docs/dev-guide-development.md) - Contributor documentation
