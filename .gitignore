@@ -69,3 +69,4 @@ build/
 
 .coverage
 coverage.xml
+tools/sync-report-*.json
