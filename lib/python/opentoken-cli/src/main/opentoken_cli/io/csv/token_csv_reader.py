@@ -7,7 +7,7 @@ import logging
 from typing import Iterator, Dict
 
 from opentoken_cli.io.token_reader import TokenReader
-from opentoken.processor.token_constants import TokenConstants
+from opentoken_cli.processor.token_constants import TokenConstants
 
 
 logger = logging.getLogger(__name__)

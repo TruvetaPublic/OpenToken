@@ -326,6 +326,8 @@ jobs:
           if [ -f dev-requirements.txt ]; then
             pip install -r dev-requirements.txt
           fi
+          cd ../opentoken-cli
+          pip install -r requirements.txt
 
       - name: Install interoperability tool dependencies
         run: |
@@ -342,7 +344,7 @@ jobs:
       - name: Run interoperability tests
         id: run-tests
         env:
-          PYTHONPATH: ${{ github.workspace }}/lib/python/opentoken/src/main
+          PYTHONPATH: ${{ github.workspace }}/lib/python/opentoken/src/main:${{ github.workspace }}/lib/python/opentoken-cli/src/main
         run: |
           cd tools/interoperability
           python java_python_interoperability_test.py

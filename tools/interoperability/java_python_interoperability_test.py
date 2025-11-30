@@ -26,12 +26,12 @@ class OpenTokenCLI:
     
     def __init__(self):
         self.project_root = Path(__file__).parent.parent.parent
-        java_jar_dir = self.project_root / "lib/java/opentoken/target"
-        jar_files = list(java_jar_dir.glob("opentoken-*.jar"))
+        java_jar_dir = self.project_root / "lib/java/opentoken-cli/target"
+        jar_files = list(java_jar_dir.glob("opentoken-cli-*.jar"))
         if not jar_files:
-            raise FileNotFoundError(f"No OpenToken JAR found in {java_jar_dir}")
+            raise FileNotFoundError(f"No OpenToken CLI JAR found in {java_jar_dir}")
         self.java_jar_path = jar_files[0]
-        self.python_main = self.project_root / "lib/python/opentoken/src/main/opentoken/main.py"
+        self.python_main = self.project_root / "lib/python/opentoken-cli/src/main/opentoken_cli/main.py"
         self.sample_csv = self.project_root / "resources/sample.csv"
         self.decryptor_path = self.project_root / "tools/decryptor/decryptor.py"
         
@@ -81,7 +81,7 @@ class PythonCLI(OpenTokenCLI):
             "-e", self.encryption_key
         ]
         
-        env = {**os.environ, "PYTHONPATH": str(self.project_root / "lib/python/opentoken/src/main")}
+        env = {**os.environ, "PYTHONPATH": str(self.project_root / "lib/python/opentoken/src/main") + ":" + str(self.project_root / "lib/python/opentoken-cli/src/main")}
         
         print("Running Python\n")
         result = subprocess.run(cmd, capture_output=True, text=True, 
