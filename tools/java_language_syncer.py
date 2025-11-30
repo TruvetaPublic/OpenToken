@@ -503,7 +503,7 @@ class JavaLanguageSyncer:
         target_path = self.root_dir / target_file
         return target_path.exists()
 
-    def generate_sync_report(self, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, target_languages=None):
+    def generate_sync_report(self, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, target_languages=None, compact=False):
         """Generate a report of files that need syncing
         
         Args:
@@ -512,6 +512,7 @@ class JavaLanguageSyncer:
             check_both_modified: If True, simply checks that both files were modified in the PR.
                 If False, checks that target was modified after Java (timestamp-based).
             target_languages: List of specific languages to check, or None for all enabled languages.
+            compact: If True, only show failures and summary (for cleaner PR comments).
         
         Returns:
             str: A formatted report string (even for console output).
@@ -557,9 +558,9 @@ class JavaLanguageSyncer:
                 'changes': lang_changes
             }
 
-        return self.format_output(all_language_mappings, output_format, since_commit, check_both_modified)
+        return self.format_output(all_language_mappings, output_format, since_commit, check_both_modified, compact)
 
-    def format_output(self, all_language_mappings, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
+    def format_output(self, all_language_mappings, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, compact=False):
         """Format the output based on the specified format
         
         Args:
@@ -568,12 +569,13 @@ class JavaLanguageSyncer:
             since_commit: The commit to compare since.
             check_both_modified: If True, simply checks that both files were modified in the PR.
                 If False, checks that target was modified after Java (timestamp-based).
+            compact: If True, only show failures and summary (for cleaner PR comments).
             
         Returns:
             str: The formatted output string (console/json/github-checklist).
         """
         if output_format == "github-checklist":
-            return self.format_github_checklist(all_language_mappings, since_commit, check_both_modified)
+            return self.format_github_checklist(all_language_mappings, since_commit, check_both_modified, compact)
         elif output_format == "json":
             # Update JSON format to also use timestamp-based logic
             result = {}
@@ -661,7 +663,7 @@ class JavaLanguageSyncer:
                 self.save_enhanced_report(lang, data['mappings'], data['changes'])
             return output
 
-    def format_github_checklist(self, all_language_mappings, since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
+    def format_github_checklist(self, all_language_mappings, since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, compact=False):
         """Format as GitHub checklist with completion status for multiple languages
         
         Args:
@@ -669,6 +671,7 @@ class JavaLanguageSyncer:
             since_commit: The commit to compare since.
             check_both_modified: If True, simply checks that both files were modified in the PR.
                 If False, checks that target was modified after Java (timestamp-based).
+            compact: If True, only show failures and summary (for cleaner PR comments).
             
         Returns:
             A formatted GitHub checklist.
@@ -679,6 +682,7 @@ class JavaLanguageSyncer:
         grand_total = 0
         grand_completed = 0
         output = "## Java Multi-Language Sync Status\n\n"
+        failed_items = []  # Collect failed items for compact mode
         
         for lang, data in all_language_mappings.items():
             mappings = data['mappings']
@@ -688,48 +692,83 @@ class JavaLanguageSyncer:
             
             total_items = 0
             completed_items = 0
-            
-            output += f"### 🔄 {lang.upper()} ({len(mappings)} Java files)\n\n"
+            lang_failed_items = []
             
             for mapping in mappings:
                 java_file = mapping['java_file']
                 target_files = mapping['target_files']
                 
-                output += f"#### 📁 `{java_file}`\n"
                 for target_file in target_files:
                     total_items += 1
                     exists = self.check_target_file_exists(target_file)
                     is_up_to_date = self.is_target_file_up_to_date(java_file, target_file, since_commit, check_both_modified)
                     
                     if is_up_to_date:
-                        checkbox = "- [x]"
-                        status = "✅ SYNCED"
                         completed_items += 1
-                    elif exists:
-                        checkbox = "- [ ]"
-                        status = "⏳ NEEDS SYNC"
                     else:
-                        checkbox = "- [ ]"
-                        status = "❌ MISSING"
-                    
-                    output += f"{checkbox} **{status}**: `{target_file}`\n"
-                output += "\n"
-            
-            # Language-specific progress
-            output += f"**{lang.upper()} Progress**: {completed_items}/{total_items} completed\n\n"
-            output += "---\n\n"
+                        status = "⏳ NEEDS SYNC" if exists else "❌ MISSING"
+                        lang_failed_items.append({
+                            'java_file': java_file,
+                            'target_file': target_file,
+                            'status': status
+                        })
             
             grand_total += total_items
             grand_completed += completed_items
+            
+            if compact:
+                # In compact mode, only add failed items section if there are failures
+                if lang_failed_items:
+                    failed_items.extend(lang_failed_items)
+            else:
+                # Full output mode - show all files
+                output += f"### 🔄 {lang.upper()} ({len(mappings)} Java files)\n\n"
+                
+                for mapping in mappings:
+                    java_file = mapping['java_file']
+                    target_files = mapping['target_files']
+                    
+                    output += f"#### 📁 `{java_file}`\n"
+                    for target_file in target_files:
+                        exists = self.check_target_file_exists(target_file)
+                        is_up_to_date = self.is_target_file_up_to_date(java_file, target_file, since_commit, check_both_modified)
+                        
+                        if is_up_to_date:
+                            checkbox = "- [x]"
+                            status = "✅ SYNCED"
+                        elif exists:
+                            checkbox = "- [ ]"
+                            status = "⏳ NEEDS SYNC"
+                        else:
+                            checkbox = "- [ ]"
+                            status = "❌ MISSING"
+                        
+                        output += f"{checkbox} **{status}**: `{target_file}`\n"
+                    output += "\n"
+                
+                # Language-specific progress
+                output += f"**{lang.upper()} Progress**: {completed_items}/{total_items} completed\n\n"
+                output += "---\n\n"
         
-        # Overall summary
+        # Build compact output
+        if compact:
+            if failed_items:
+                output += f"**{len(failed_items)} items need attention:**\n\n"
+                for item in failed_items:
+                    output += f"- [ ] **{item['status']}**: `{item['target_file']}`\n"
+                    output += f"  - Source: `{item['java_file']}`\n"
+                output += "\n"
+            else:
+                output += "All files are in sync! ✅\n\n"
+        
+        # Overall summary (always shown)
         output = output.replace(
             "## Java Multi-Language Sync Status\n\n",
             f"## Java Multi-Language Sync Status ({grand_completed}/{grand_total} completed)\n\n"
         )
         
-        if grand_completed > 0:
-            percentage = round((grand_completed / grand_total) * 100, 1) if grand_total > 0 else 100
+        if grand_total > 0:
+            percentage = round((grand_completed / grand_total) * 100, 1)
             output += f"\n### 📊 Overall Progress: {grand_completed}/{grand_total} ({percentage}%)\n"
         
         return output
@@ -912,6 +951,8 @@ Examples:
                         help='Compare changes since this commit/branch')
     parser.add_argument('--check-both-modified', action='store_true',
                         help='Check that both Java and target files were modified in the PR (simpler check)')
+    parser.add_argument('--compact', action='store_true',
+                        help='Show only failures and summary (for cleaner PR comments)')
     parser.add_argument('--languages', 
                         help='Comma-separated list of target languages to check (default: all enabled)')
     parser.add_argument('--health-check', action='store_true',
@@ -948,7 +989,8 @@ Examples:
         output_format=args.format, 
         since_commit=args.since,
         check_both_modified=args.check_both_modified,
-        target_languages=target_languages
+        target_languages=target_languages,
+        compact=args.compact
     )
     
     if args.format == "github-checklist":

@@ -315,14 +315,14 @@ Use the provided scripts to automatically build and run OpenToken via Docker:
 **Bash (Linux/Mac):**
 
 ```bash
-./run-opentoken.sh -i /path/to/input.csv -o /path/to/output.csv -t csv \
+./run-opentoken.sh -i ./resources/sample.csv -o ./resources/output.csv -t csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 **PowerShell (Windows):**
 
 ```powershell
-.\run-opentoken.ps1 -i D:\Data\input.csv -o D:\Data\output.csv -FileType csv `
+.\run-opentoken.ps1 -i .\resources\sample.csv -o .\resources\output.csv -FileType csv `
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
