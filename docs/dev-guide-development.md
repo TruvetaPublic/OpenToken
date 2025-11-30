@@ -376,14 +376,14 @@ When adding attributes/tokens: update Java first, run sync tool, then implement 
 
 ### Cross-language Tips
 
-| Task            | Java Command                                     | Python Command                           |
-| --------------- | ------------------------------------------------ | ---------------------------------------- |
-| Build / Package | `cd lib/java && mvn clean install`               | `pip install -e .`                       |
-| Run Tests       | `mvn test`                                       | `pytest src/test`                        |
-| Lint / Style    | `mvn checkstyle:check`                           | (pep8 / flake8 if configured)            |
+| Task            | Java Command                                             | Python Command                     |
+| --------------- | -------------------------------------------------------- | ---------------------------------- |
+| Build / Package | `cd lib/java && mvn clean install`                       | `pip install -e .`                 |
+| Run Tests       | `mvn test`                                               | `pytest src/test`                  |
+| Lint / Style    | `mvn checkstyle:check`                                   | (pep8 / flake8 if configured)      |
 | Run CLI         | `java -jar opentoken-cli/target/opentoken-cli-*.jar ...` | `python -m opentoken_cli.main ...` |
-| Add Token       | SPI entry & class                                | new module in `tokens/definitions`       |
-| Add Attribute   | SPI entry & class                                | class + loader import                    |
+| Add Token       | SPI entry & class                                        | new module in `tokens/definitions` |
+| Add Attribute   | SPI entry & class                                        | class + loader import              |
 
 Maintain the same functional behavior and normalization between languages.
 
