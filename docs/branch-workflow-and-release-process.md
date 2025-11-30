@@ -132,12 +132,15 @@ graph TB
    - Runs `bump2version --new-version x.y.z patch`
    - Updates all version files:
      - `.bumpversion.cfg`
-     - `lib/java/opentoken/pom.xml`
+     - `lib/java/opentoken/pom.xml` (core module)
+     - `lib/java/opentoken-cli/pom.xml` (CLI module)
+     - `lib/java/pom.xml` (parent POM)
      - `Dockerfile`
      - `lib/java/opentoken/src/main/java/com/truveta/opentoken/Metadata.java`
      - `lib/python/opentoken/setup.py`
      - `lib/python/opentoken/src/main/opentoken/__init__.py`
      - `lib/python/opentoken/src/main/opentoken/metadata.py`
+     - `lib/python/opentoken-cli/setup.py`
    - Commits changes to release branch
    - Comments on PR with update summary
 5. If already up-to-date:

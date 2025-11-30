@@ -229,20 +229,25 @@ For complete details about all metadata fields, examples, and security considera
 #### Java  <!-- omit in toc -->
 
 ```shell
-cd lib/java/opentoken
+cd lib/java
 mvn clean install -DskipTests
-java -jar target/opentoken-*.jar \
-  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
+java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  -i ../../resources/sample.csv -t csv -o ../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 #### Python  <!-- omit in toc -->
 
 ```shell
+# Install core library first
 cd lib/python/opentoken
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r dev-requirements.txt -e .
-PYTHONPATH=src/main python src/main/opentoken/main.py \
+
+# Install and run CLI
+cd ../opentoken-cli
+pip install -r requirements.txt -e .
+python -m opentoken_cli.main \
   -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
@@ -254,19 +259,20 @@ To decrypt previously encrypted tokens, use the `-d` or `--decrypt` flag. The de
 #### Java  <!-- omit in toc -->
 
 ```shell
-cd lib/java/opentoken
+cd lib/java
 mvn clean install -DskipTests
-java -jar target/opentoken-*.jar -d \
-  -i ../../../resources/output.csv -t csv -o ../../../resources/hashed-output.csv \
+java -jar opentoken-cli/target/opentoken-cli-*.jar -d \
+  -i ../../resources/output.csv -t csv -o ../../resources/hashed-output.csv \
   -e "Secret-Encryption-Key-Goes-Here."
 ```
 
 #### Python  <!-- omit in toc -->
 
 ```shell
-cd lib/python/opentoken
+cd lib/python/opentoken-cli
 python -m venv .venv && source .venv/bin/activate
-python -m opentoken.main -d \
+pip install -r requirements.txt -e . -e ../opentoken
+python -m opentoken_cli.main -d \
   -i ../../../resources/output.csv -t csv -o ../../../resources/hashed-output.csv \
   -e "Secret-Encryption-Key-Goes-Here."
 ```
@@ -280,19 +286,20 @@ To generate tokens with HMAC-SHA256 hashing only (skipping the AES encryption st
 #### Java  <!-- omit in toc -->
 
 ```shell
-cd lib/java/opentoken
+cd lib/java
 mvn clean install -DskipTests
-java -jar target/opentoken-*.jar --hash-only \
-  -i ../../../resources/sample.csv -t csv -o ../../../resources/hashed-output.csv \
+java -jar opentoken-cli/target/opentoken-cli-*.jar --hash-only \
+  -i ../../resources/sample.csv -t csv -o ../../resources/hashed-output.csv \
   -h "HashingKey"
 ```
 
 #### Python  <!-- omit in toc -->
 
 ```shell
-cd lib/python/opentoken
+cd lib/python/opentoken-cli
 python -m venv .venv && source .venv/bin/activate
-PYTHONPATH=src/main python src/main/opentoken/main.py --hash-only \
+pip install -r requirements.txt -e . -e ../opentoken
+python -m opentoken_cli.main --hash-only \
   -i ../../../resources/sample.csv -t csv -o ../../../resources/hashed-output.csv \
   -h "HashingKey"
 ```
@@ -366,11 +373,17 @@ Quick parity note: Java and Python implementations produce identical tokens for 
 
 ```
 lib/
-├── java/        # Java implementation (Maven)
-├── python/      # Python implementation (pip)
-tools/           # Utility scripts and tools
-docs/            # Documentation
-.devcontainer/   # Development container configuration
+├── java/
+│   ├── pom.xml              # Parent POM (multi-module Maven build)
+│   ├── opentoken/           # Core tokenization library
+│   └── opentoken-cli/       # CLI application with I/O support (CSV, Parquet)
+├── python/
+│   ├── opentoken/           # Core tokenization library
+│   ├── opentoken-cli/       # CLI application with I/O support
+│   └── opentoken-pyspark/   # PySpark bridge for distributed processing
+tools/                       # Utility scripts and tools
+docs/                        # Documentation
+.devcontainer/               # Development container configuration
 ```
 
 ### Development Environment  <!-- omit in toc -->

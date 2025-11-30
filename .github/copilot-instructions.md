@@ -41,7 +41,7 @@ This document provides comprehensive guidance for AI coding agents working on th
 - **Attributes** (`lib/java/.../attributes/`, `lib/python/.../attributes/`): Person data fields with validation & normalization (e.g., `BirthDateAttribute`, `SocialSecurityNumberAttribute`)
 - **Validators** (`validation/`): Composable validation rules (regex, date ranges, age ranges) applied during attribute processing
 - **Tokens** (`tokens/`): Rules defining which attributes combine to form each of the 5 token types (T1-T5)
-- **I/O Readers/Writers** (`io/`): CSV and Parquet file processors with streaming support
+- **I/O Readers/Writers** (`opentoken-cli/.../io/`): CSV and Parquet file processors with streaming support (in CLI package)
 - **Token Transformers** (`tokentransformer/`): HMAC-SHA256 hashing + AES-256 encryption pipeline
 
 ### Registration Pattern (Critical)
@@ -64,12 +64,17 @@ This document provides comprehensive guidance for AI coding agents working on th
 ### Build & Test
 
 ```bash
-# Java (from lib/java/opentoken/): Maven handles compile, Checkstyle, JaCoCo coverage, sanity checks
-cd lib/java/opentoken && mvn clean install
+# Java (from lib/java/): Maven handles compile, Checkstyle, JaCoCo coverage, sanity checks
+# Builds both opentoken (core) and opentoken-cli modules
+cd lib/java && mvn clean install
 
 # Python (from lib/python/opentoken/): Creates venv, installs deps, runs pytest
 cd lib/python/opentoken && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r dev-requirements.txt -e .
+pytest
+
+# Python CLI (from lib/python/opentoken-cli/):
+cd lib/python/opentoken-cli && pip install -r requirements.txt -r dev-requirements.txt -e .
 pytest
 
 # Note: No unified build script exists - build each language separately
@@ -191,16 +196,25 @@ Every token generation run produces `.metadata.json` with:
 ## File Structure Patterns
 
 ```
-lib/java/opentoken/src/main/java/com/truveta/opentoken/
-├── attributes/
-│   ├── general/        # DateAttribute, StringAttribute, RecordIdAttribute
-│   ├── person/         # BirthDateAttribute, SexAttribute, SSN, etc.
-│   └── validation/     # RegexValidator, DateRangeValidator, AgeRangeValidator
-├── io/                 # CSV/Parquet readers & writers (streaming iterators)
-├── tokens/             # Token interface, TokenRegistry, definitions/ (T1-T5)
-└── tokentransformer/   # HashTokenTransformer, EncryptTokenTransformer
+lib/java/
+├── pom.xml                     # Parent POM (multi-module Maven build)
+├── opentoken/                  # Core tokenization library
+│   └── src/main/java/com/truveta/opentoken/
+│       ├── attributes/
+│       │   ├── general/        # DateAttribute, StringAttribute, RecordIdAttribute
+│       │   ├── person/         # BirthDateAttribute, SexAttribute, SSN, etc.
+│       │   └── validation/     # RegexValidator, DateRangeValidator, AgeRangeValidator
+│       ├── tokens/             # Token interface, TokenRegistry, definitions/ (T1-T5)
+│       └── tokentransformer/   # HashTokenTransformer, EncryptTokenTransformer
+└── opentoken-cli/              # CLI application with I/O support
+    └── src/main/java/com/truveta/opentoken/
+        ├── io/                 # CSV/Parquet readers & writers (streaming iterators)
+        └── Main.java           # CLI entry point
 
-lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic naming
+lib/python/
+├── opentoken/                  # Core tokenization library (mirrors Java structure)
+├── opentoken-cli/              # CLI application with I/O support
+└── opentoken-pyspark/          # PySpark bridge for distributed processing
 ```
 
 ## Common Pitfalls
