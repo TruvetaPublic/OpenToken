@@ -61,13 +61,25 @@ class PythonHandler(LanguageHandler):
     
     def convert_java_to_target_path(self, java_path):
         """Convert Java file path to Python path"""
-        # Handle main source files
-        if "lib/java/opentoken/src/main/java/com/truveta/opentoken/" in java_path:
+        # Handle CLI main source files
+        if "lib/java/opentoken-cli/src/main/java/com/truveta/opentoken/cli/" in java_path:
+            python_path = java_path.replace(
+                "lib/java/opentoken-cli/src/main/java/com/truveta/opentoken/cli/",
+                "lib/python/opentoken-cli/src/main/opentoken_cli/"
+            )
+        # Handle CLI test files
+        elif "lib/java/opentoken-cli/src/test/java/com/truveta/opentoken/cli/" in java_path:
+            python_path = java_path.replace(
+                "lib/java/opentoken-cli/src/test/java/com/truveta/opentoken/cli/",
+                "lib/python/opentoken-cli/src/test/opentoken_cli/"
+            )
+        # Handle core main source files
+        elif "lib/java/opentoken/src/main/java/com/truveta/opentoken/" in java_path:
             python_path = java_path.replace(
                 "lib/java/opentoken/src/main/java/com/truveta/opentoken/",
                 "lib/python/opentoken/src/main/opentoken/"
             )
-        # Handle test files
+        # Handle core test files
         elif "lib/java/opentoken/src/test/java/com/truveta/opentoken/" in java_path:
             python_path = java_path.replace(
                 "lib/java/opentoken/src/test/java/com/truveta/opentoken/",
@@ -315,15 +327,33 @@ class JavaLanguageSyncer:
                     # Fallback to HEAD~1 if merge-base fails
                     pass
             
+            # Get changes from core library (exclude deleted files)
             result = subprocess.run([
-                'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', 'lib/java/opentoken/src/'
+                'git', 'diff', '--name-status', f'{since_commit}', 'HEAD', '--', 'lib/java/opentoken/src/'
             ], capture_output=True, text=True, cwd=self.root_dir)
 
+            all_files = []
             if result.returncode == 0:
-                all_files = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-                # Filter out ignored files
-                return self._filter_ignored_files(all_files)
-            return []
+                for line in result.stdout.splitlines():
+                    if line.strip():
+                        parts = line.split('\t')
+                        if len(parts) >= 2 and parts[0] != 'D':  # Exclude deleted files
+                            all_files.append(parts[1])
+            
+            # Also get changes from CLI package (exclude deleted files)
+            result_cli = subprocess.run([
+                'git', 'diff', '--name-status', f'{since_commit}', 'HEAD', '--', 'lib/java/opentoken-cli/src/'
+            ], capture_output=True, text=True, cwd=self.root_dir)
+
+            if result_cli.returncode == 0:
+                for line in result_cli.stdout.splitlines():
+                    if line.strip():
+                        parts = line.split('\t')
+                        if len(parts) >= 2 and parts[0] != 'D':  # Exclude deleted files
+                            all_files.append(parts[1])
+            
+            # Filter out ignored files
+            return self._filter_ignored_files(all_files)
         except subprocess.CalledProcessError:
             return []
 
@@ -439,12 +469,24 @@ class JavaLanguageSyncer:
                 if merge_base_result.returncode == 0 and merge_base_result.stdout.strip():
                     since_commit = merge_base_result.stdout.strip()
             
+            all_changes = []
             result = subprocess.run([
                 'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', f'{base_path}/'
             ], capture_output=True, text=True, cwd=self.root_dir)
 
             if result.returncode == 0:
-                return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+                all_changes.extend([line.strip() for line in result.stdout.splitlines() if line.strip()])
+            
+            # Also check CLI base path if it exists
+            cli_base_path = lang_config.get('cli_base_path', '')
+            if cli_base_path:
+                result_cli = subprocess.run([
+                    'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', f'{cli_base_path}/'
+                ], capture_output=True, text=True, cwd=self.root_dir)
+                if result_cli.returncode == 0:
+                    all_changes.extend([line.strip() for line in result_cli.stdout.splitlines() if line.strip()])
+            
+            return all_changes
             return []
         except subprocess.CalledProcessError:
             return []
@@ -761,10 +803,18 @@ class JavaLanguageSyncer:
             A mapping configuration for the Java file, or None if not found.
         """
         source_base = self.mappings.get("source_base_path", "")
-        rel_path = java_file[len(source_base):] if java_file.startswith(source_base) else java_file
+        cli_source_base = self.mappings.get("cli_source_base_path", "")
+        
+        # Determine if this is a CLI file
+        is_cli_file = cli_source_base and java_file.startswith("lib/java/opentoken-cli/")
+        
+        if is_cli_file:
+            rel_path = java_file[len(cli_source_base):] if java_file.startswith(cli_source_base) else java_file
+        else:
+            rel_path = java_file[len(source_base):] if java_file.startswith(source_base) else java_file
 
-        # 1. Source-centric critical files
-        critical_list = self.mappings.get("critical_java_files", [])
+        # 1. Source-centric critical files (check both core and CLI)
+        critical_list = self.mappings.get("critical_cli_files" if is_cli_file else "critical_java_files", [])
         if critical_list:
             overrides = lang_config.get("overrides", {}).get("critical_files", {})
             for cf in critical_list:
@@ -783,8 +833,8 @@ class JavaLanguageSyncer:
                         "manual_review": cf.get("manual_review", False)
                     }
 
-        # 2. Source-centric directory roots
-        dir_roots = self.mappings.get("directory_roots", [])
+        # 2. Source-centric directory roots (check both core and CLI)
+        dir_roots = self.mappings.get("cli_directory_roots" if is_cli_file else "directory_roots", [])
         if dir_roots:
             for root in dir_roots:
                 root_path = root.get("path")
@@ -792,7 +842,7 @@ class JavaLanguageSyncer:
                 if root_path.startswith("lib/java/"):
                     full_root = root_path
                 else:
-                    full_root = source_base + root_path
+                    full_root = (cli_source_base if is_cli_file else source_base) + root_path
                 if java_file.startswith(full_root):
                     target_file = handler.convert_java_to_target_path(java_file)
                     return {
@@ -802,9 +852,10 @@ class JavaLanguageSyncer:
                         "auto_sync": root.get("auto_sync", True)
                     }
 
-        # 3. Legacy per-language critical files
-        if "critical_files" in lang_config:
-            for exact_file, mapping in lang_config["critical_files"].items():
+        # 3. Legacy per-language critical files (check both core and CLI)
+        critical_files_key = "critical_cli_files" if is_cli_file else "critical_files"
+        if critical_files_key in lang_config:
+            for exact_file, mapping in lang_config[critical_files_key].items():
                 if java_file == exact_file:
                     return {
                         "target_files": [mapping["target_file"]],
@@ -813,9 +864,10 @@ class JavaLanguageSyncer:
                         "auto_sync": mapping.get("auto_sync", False)
                     }
 
-        # 4. Legacy per-language directory mappings
-        if "directory_mappings" in lang_config:
-            for dir_pattern, mapping in lang_config["directory_mappings"].items():
+        # 4. Legacy per-language directory mappings (check both core and CLI)
+        dir_mappings_key = "cli_directory_mappings" if is_cli_file else "directory_mappings"
+        if dir_mappings_key in lang_config:
+            for dir_pattern, mapping in lang_config[dir_mappings_key].items():
                 if java_file.startswith(dir_pattern):
                     target_file = handler.convert_java_to_target_path(java_file)
                     return {
