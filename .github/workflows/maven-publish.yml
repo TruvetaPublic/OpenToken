@@ -45,11 +45,12 @@ jobs:
           enable-python: false
 
       - name: Build with Maven
-        run: cd lib/java/opentoken && mvn -B package --file pom.xml
+        run: cd lib/java && mvn -B package --file pom.xml
 
-      # Change run command to only run lib/java/opentoken, this is temporary
       - name: Publish to GitHub Packages Apache Maven
-        run: cd lib/java/opentoken && mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+        run: |
+          cd lib/java/opentoken && mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+          cd ../opentoken-cli && mvn deploy -s $GITHUB_WORKSPACE/settings.xml
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -62,17 +63,10 @@ jobs:
             const path = require('path');
 
             const tag = '${{ env.TAG }}';
-            const artifactDir = 'lib/java/opentoken/target';
+            const artifactDirs = ['lib/java/opentoken/target', 'lib/java/opentoken-cli/target'];
 
             console.log(`[DEBUG] Starting artifact upload process`);
             console.log(`[DEBUG] Tag: ${tag}`);
-            console.log(`[DEBUG] Artifact directory: ${artifactDir}`);
-            console.log(`[DEBUG] Artifact directory exists: ${fs.existsSync(artifactDir)}`);
-
-            if (!fs.existsSync(artifactDir)) {
-              console.log(`✗ No artifacts directory found at ${artifactDir}`);
-              return;
-            }
 
             // Get or find the release
             let releaseId = '${{ env.RELEASE_ID }}';
@@ -95,38 +89,43 @@ jobs:
               }
             }
 
-            const files = fs.readdirSync(artifactDir).filter(f => 
-              (f.endsWith('.jar') || f.endsWith('.pom')) && !f.endsWith('javadoc.jar') && !f.endsWith('sources.jar') && !f.startsWith('original-')
-            );
-
-            console.log(`[DEBUG] Found ${files.length} artifacts to upload:`);
-            files.forEach(f => console.log(`  - ${f}`));
-
-            if (files.length === 0) {
-              console.log(`✗ No artifacts found to upload`);
-              return;
-            }
-
             console.log(`[DEBUG] Uploading to release ID: ${releaseId}`);
-            for (const file of files) {
-              try {
-                const filePath = path.join(artifactDir, file);
-                const fileSize = fs.statSync(filePath).size;
-                console.log(`[DEBUG] Uploading ${file} (${fileSize} bytes)...`);
 
-                const response = await github.rest.repos.uploadReleaseAsset({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  release_id: releaseId,
-                  name: file,
-                  data: fs.readFileSync(filePath)
-                });
-                console.log(`✓ Successfully uploaded ${file}`);
-                console.log(`[DEBUG] Asset ID: ${response.data.id}`);
-              } catch (error) {
-                console.log(`✗ Error uploading ${file}: ${error.message}`);
-                if (error.status) {
-                  console.log(`[DEBUG] HTTP Status: ${error.status}`);
+            for (const artifactDir of artifactDirs) {
+              console.log(`[DEBUG] Processing artifact directory: ${artifactDir}`);
+              
+              if (!fs.existsSync(artifactDir)) {
+                console.log(`✗ No artifacts directory found at ${artifactDir}`);
+                continue;
+              }
+
+              const files = fs.readdirSync(artifactDir).filter(f => 
+                (f.endsWith('.jar') || f.endsWith('.pom')) && !f.endsWith('javadoc.jar') && !f.endsWith('sources.jar') && !f.startsWith('original-')
+              );
+
+              console.log(`[DEBUG] Found ${files.length} artifacts to upload from ${artifactDir}:`);
+              files.forEach(f => console.log(`  - ${f}`));
+
+              for (const file of files) {
+                try {
+                  const filePath = path.join(artifactDir, file);
+                  const fileSize = fs.statSync(filePath).size;
+                  console.log(`[DEBUG] Uploading ${file} (${fileSize} bytes)...`);
+
+                  const response = await github.rest.repos.uploadReleaseAsset({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    release_id: releaseId,
+                    name: file,
+                    data: fs.readFileSync(filePath)
+                  });
+                  console.log(`✓ Successfully uploaded ${file}`);
+                  console.log(`[DEBUG] Asset ID: ${response.data.id}`);
+                } catch (error) {
+                  console.log(`✗ Error uploading ${file}: ${error.message}`);
+                  if (error.status) {
+                    console.log(`[DEBUG] HTTP Status: ${error.status}`);
+                  }
                 }
               }
             }
