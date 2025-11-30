@@ -155,6 +155,7 @@ fi
 3. **Normalization happens before validation**: `normalize()` must handle edge cases (whitespace, case, diacritics)
 4. **Thread-safety required**: Use `DateTimeFormatter` (Java) not `SimpleDateFormat`; avoid mutable shared state
 5. **Test pattern**: Include serialization test, thread-safety test (100 threads), boundary value tests
+6. **Code coverage**: New attributes must have ≥80% test coverage (see [Code Coverage Requirements](#code-coverage-requirements))
 
 ### Test Structure
 
@@ -266,13 +267,14 @@ lib/python/opentoken/src/main/opentoken/  # Mirrors Java structure with Pythonic
 1. **Run all builds**: `mvn clean install` (Java) and `pytest` (Python)
 2. **Check cross-language sync**: Run `tools/java_language_syncer.py`
 3. **Code style**: Java Checkstyle must pass, Python follows PEP 8
-4. **Test coverage**: Add tests for new code paths
+4. **Test coverage**: Add tests for new code paths with **≥80% coverage** (see [Code Coverage Requirements](#code-coverage-requirements))
 5. **Clear Jupyter notebook outputs**: Before committing or merging PRs, clear all cell outputs from notebooks to avoid committing execution results, large data, or secrets. Use "Clear All Outputs" in VS Code or `jupyter nbconvert --clear-output --inplace <notebook.ipynb>`
 
 ### PR Checklist
 
 - [ ] Both Java and Python implementations updated (if applicable)
 - [ ] Tests added/updated for changes
+- [ ] **New code has ≥80% test coverage** (Java: JaCoCo, Python: pytest-cov)
 - [ ] Documentation updated (README, JavaDoc, docstrings)
 - [ ] Service registration files updated (Java: `META-INF/services/`, Python: loaders)
 - [ ] No secrets or sensitive data committed
@@ -325,6 +327,35 @@ Ensure editable install for local development.
 **Integration tests**: `PersonAttributesProcessorIntegrationTest.java` tests full pipeline
 **Interoperability tests**: Verify Java/Python produce identical tokens
 **Sanity checks**: Maven runs end-to-end CSV/Parquet tests post-build
+
+### Code Coverage Requirements
+
+**⚠️ MANDATORY: All new code must have at least 80% code coverage by unit tests.**
+
+This requirement applies to all supported languages:
+
+- **Java**: JaCoCo is used for coverage analysis. Run `mvn verify` to generate coverage reports in `target/site/jacoco/`
+- **Python**: pytest-cov is used for coverage analysis. Run `pytest --cov=opentoken --cov-report=html` to generate coverage reports
+
+**Coverage expectations:**
+
+- New classes/modules: ≥80% line coverage
+- New methods/functions: ≥80% branch coverage
+- Bug fixes: Add tests that reproduce the bug before fixing
+- Critical paths (token generation, validation, normalization): Target 90%+ coverage
+
+**How to verify coverage:**
+
+```bash
+# Java: Generate and view coverage report
+cd lib/java/opentoken && mvn verify
+# Open target/site/jacoco/index.html in browser
+
+# Python: Generate and view coverage report
+cd lib/python/opentoken && source .venv/bin/activate
+pytest --cov=opentoken --cov-report=html --cov-report=term
+# Open htmlcov/index.html in browser
+```
 
 ### Performance Considerations
 
