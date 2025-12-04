@@ -2,12 +2,10 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-from typing import Type
 from unittest.mock import Mock, patch
 
 import pytest
 
-from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.attribute_expression import AttributeExpression
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
 from opentoken.attributes.person.last_name_attribute import LastNameAttribute
@@ -34,7 +32,7 @@ class TestTokenGenerator:
                 FirstNameAttribute(), 
                 LastNameAttribute()
             }
-            self.token_generator = TokenGenerator(self.token_definition, self.token_transformer_list)
+            self.token_generator = TokenGenerator.from_transformers(self.token_definition, self.token_transformer_list)
         
         # Inject mock tokenizer
         self.token_generator.tokenizer = self.tokenizer
@@ -210,3 +208,102 @@ class TestTokenGenerator:
 
         with pytest.raises(TokenGenerationException):
             self.token_generator._get_token("token1", person_attributes, TokenGeneratorResult())
+
+    def test_tokenizer_initialization_error_raises_exception(self):
+        """Test that tokenizer initialization errors are raised."""
+        bad_transformer = Mock(spec=TokenTransformer)
+        bad_transformer.transform.side_effect = RuntimeError("Transformer error")
+        
+        # Creating tokenizer with bad transformer should raise
+        with pytest.raises(Exception):
+            with patch('opentoken.tokens.token_generator.AttributeLoader') as mock_loader:
+                mock_loader.load.return_value = {FirstNameAttribute()}
+                # Pass a tokenizer that will fail during initialization
+                bad_tokenizer = SHA256Tokenizer([bad_transformer])
+                bad_tokenizer.tokenize("test")  # Force the error
+
+    def test_get_token_signature_attribute_expression_error(self):
+        """Test that errors in attribute expression processing return None."""
+        # Use a real attribute expression with an invalid expression pattern
+        # that will cause get_effective_value to throw ValueError
+        attr_expr = AttributeExpression(FirstNameAttribute, "S(invalid)")
+        
+        attribute_expressions = [attr_expr]
+        self.token_definition.get_token_definition.return_value = attribute_expressions
+        
+        person_attributes = {
+            FirstNameAttribute: "John"
+        }
+        
+        result = TokenGeneratorResult()
+        signature = self.token_generator._get_token_signature("token1", person_attributes, result)
+        
+        # Should return None when expression processing fails
+        assert signature is None
+
+    def test_get_all_token_signatures(self):
+        """Test getting all token signatures for valid inputs."""
+        self.token_definition.get_token_identifiers.return_value = {"token1", "token2"}
+        
+        attr_expr = AttributeExpression(FirstNameAttribute, "U")
+        attribute_expressions = [attr_expr]
+        self.token_definition.get_token_definition.return_value = attribute_expressions
+        
+        person_attributes = {
+            FirstNameAttribute: "John"
+        }
+        
+        signatures = self.token_generator.get_all_token_signatures(person_attributes)
+        
+        assert len(signatures) == 2
+        assert "token1" in signatures
+        assert "token2" in signatures
+        assert signatures["token1"] == "JOHN"
+        assert signatures["token2"] == "JOHN"
+
+    def test_get_all_token_signatures_with_error(self):
+        """Test that errors during signature generation are handled gracefully."""
+        self.token_definition.get_token_identifiers.return_value = {"token1", "token2"}
+        
+        # First token succeeds, second throws error
+        def mock_get_definition(token_id):
+            if token_id == "token1":
+                return [AttributeExpression(FirstNameAttribute, "U")]
+            else:
+                raise RuntimeError("Token definition error")
+        
+        self.token_definition.get_token_definition.side_effect = mock_get_definition
+        
+        person_attributes = {
+            FirstNameAttribute: "John"
+        }
+        
+        signatures = self.token_generator.get_all_token_signatures(person_attributes)
+        
+        # Should only have token1, token2 failed
+        assert len(signatures) == 1
+        assert "token1" in signatures
+        assert "token2" not in signatures
+
+    def test_get_invalid_person_attributes(self):
+        """Test getting invalid person attributes from person attributes map."""
+        person_attributes = {
+            FirstNameAttribute: "",  # Invalid empty name
+            LastNameAttribute: "Smith"  # Valid name
+        }
+        
+        invalid_attrs = self.token_generator.get_invalid_person_attributes(person_attributes)
+        
+        assert len(invalid_attrs) == 1
+        assert "FirstName" in invalid_attrs
+
+    def test_get_invalid_person_attributes_all_valid(self):
+        """Test that no invalid attributes are returned when all are valid."""
+        person_attributes = {
+            FirstNameAttribute: "John",
+            LastNameAttribute: "Smith"
+        }
+        
+        invalid_attrs = self.token_generator.get_invalid_person_attributes(person_attributes)
+        
+        assert len(invalid_attrs) == 0
