@@ -23,6 +23,7 @@ import com.truveta.opentoken.attributes.person.FirstNameAttribute;
 import com.truveta.opentoken.attributes.person.LastNameAttribute;
 import com.truveta.opentoken.attributes.person.SexAttribute;
 import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 class TokenGeneratorIntegrationTest {
@@ -42,7 +43,7 @@ class TokenGeneratorIntegrationTest {
         tokenDefinition = new TokenDefinition();
         tokenTransformerList = new ArrayList<TokenTransformer>();
 
-        tokenGenerator = new TokenGenerator(tokenDefinition, tokenTransformerList);
+        tokenGenerator = new TokenGenerator(tokenDefinition, new SHA256Tokenizer(tokenTransformerList));
     }
 
     @Test

@@ -49,7 +49,7 @@ class TokenGeneratorTest {
         tokenTransformerList = new ArrayList<>();
         tokenizer = mock(SHA256Tokenizer.class);
 
-        tokenGenerator = new TokenGenerator(tokenDefinition, tokenTransformerList);
+        tokenGenerator = new TokenGenerator(tokenDefinition, new SHA256Tokenizer(tokenTransformerList));
         tokenGenerator.setTokenizer(tokenizer); // Inject mock tokenizer
 
     }

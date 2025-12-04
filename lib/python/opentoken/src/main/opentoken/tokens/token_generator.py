@@ -8,6 +8,7 @@ from opentoken.attributes.attribute import Attribute
 from opentoken.attributes.attribute_loader import AttributeLoader
 from opentoken.tokens.base_token_definition import BaseTokenDefinition
 from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
+from opentoken.tokens.tokenizer.tokenizer import Tokenizer
 from opentoken.tokens.token import Token
 from opentoken.tokens.token_generator_result import TokenGeneratorResult
 from opentoken.tokens.token_generation_exception import TokenGenerationException
@@ -20,27 +21,37 @@ logger = logging.getLogger(__name__)
 class TokenGenerator:
     """Generates both the token signature and the token itself."""
 
-    def __init__(self, token_definition: BaseTokenDefinition, token_transformer_list: List[TokenTransformer]):
+    @classmethod
+    def from_transformers(cls, token_definition: BaseTokenDefinition, 
+                         token_transformer_list: List[TokenTransformer]) -> 'TokenGenerator':
         """
-        Initialize the token generator.
+        Convenience constructor that creates a TokenGenerator with SHA256Tokenizer.
 
         Args:
             token_definition: The token definition.
             token_transformer_list: A list of token transformers.
+
+        Returns:
+            A TokenGenerator instance with SHA256Tokenizer.
+        """
+        return cls(token_definition, SHA256Tokenizer(token_transformer_list))
+
+    def __init__(self, token_definition: BaseTokenDefinition, tokenizer: Tokenizer):
+        """
+        Initialize the token generator with an explicit tokenizer.
+
+        Args:
+            token_definition: The token definition.
+            tokenizer: Tokenizer implementation. Use PassthroughTokenizer for plain mode.
         """
         self.token_definition = token_definition
-        self.token_transformer_list = token_transformer_list
         self.attribute_instance_map: Dict[Type[Attribute], Attribute] = {}
 
         # Load attributes
         for attribute in AttributeLoader.load():
             self.attribute_instance_map[type(attribute)] = attribute
 
-        try:
-            self.tokenizer = SHA256Tokenizer(token_transformer_list)
-        except Exception as e:
-            logger.error("Error initializing tokenizer with hashing secret", exc_info=e)
-            raise
+        self.tokenizer = tokenizer
 
     def _get_token_signature(self, token_id: str, person_attributes: Dict[Type[Attribute], str],
                              result: TokenGeneratorResult) -> Optional[str]:

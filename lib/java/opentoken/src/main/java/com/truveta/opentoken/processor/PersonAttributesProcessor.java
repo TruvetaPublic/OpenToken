@@ -25,6 +25,7 @@ import com.truveta.opentoken.io.PersonAttributesWriter;
 import com.truveta.opentoken.tokens.TokenDefinition;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokens.TokenGeneratorResult;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 /**
@@ -64,9 +65,9 @@ public final class PersonAttributesProcessor {
     public static void process(PersonAttributesReader reader, PersonAttributesWriter writer,
             List<TokenTransformer> tokenTransformerList, Map<String, Object> metadataMap) throws IOException {
 
-        // TokenGenerator code
         TokenDefinition tokenDefinition = new TokenDefinition();
-        TokenGenerator tokenGenerator = new TokenGenerator(tokenDefinition, tokenTransformerList);
+        TokenGenerator tokenGenerator = new TokenGenerator(tokenDefinition,
+                new SHA256Tokenizer(tokenTransformerList));
 
         Map<Class<? extends Attribute>, String> row;
         TokenGeneratorResult tokenGeneratorResult;
@@ -186,7 +187,7 @@ public final class PersonAttributesProcessor {
     private static Map<String, Long> initializeInvalidAttributeCount(TokenDefinition tokenDefinition) {
         Map<String, Long> invalidAttributeCount = new HashMap<>();
         Set<Class<? extends Attribute>> attributeClasses = new HashSet<>();
-        
+
         // Collect all unique attribute classes from all token definitions
         for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
             List<AttributeExpression> expressions = tokenDefinition.getTokenDefinition(tokenId);
@@ -196,7 +197,7 @@ public final class PersonAttributesProcessor {
                 }
             }
         }
-        
+
         // Create instances and get names
         for (Class<? extends Attribute> attrClass : attributeClasses) {
             try {
@@ -206,7 +207,7 @@ public final class PersonAttributesProcessor {
                 logger.warn("Failed to instantiate attribute class: " + attrClass.getName(), e);
             }
         }
-        
+
         return invalidAttributeCount;
     }
 

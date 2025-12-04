@@ -6,8 +6,9 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ## At a Glance
 
-- Two implementations: Java (Maven) & Python (pip)
+- Three packages: Java (Maven), Python (core), PySpark bridge
 - Deterministic token generation logic is equivalent across languages
+- PySpark bridge enables large-scale distributed token generation & overlap analysis
 - Use this guide for environment setup & day-to-day development
 - Use the Token & Attribute Registration guide for extending functionality
 
@@ -18,16 +19,18 @@ This guide centralizes contributor-facing information. It covers local setup, la
   - [Contents](#contents)
   - [Prerequisites](#prerequisites)
   - [Project Layout](#project-layout)
-  - [Language Development (Java \& Python)](#language-development-java--python)
+  - [Language Development (Java, Python \& PySpark)](#language-development-java-python--pyspark)
     - [Java](#java)
     - [Python](#python)
+    - [PySpark Bridge](#pyspark-bridge)
+    - [Multi-Language Sync Tool](#multi-language-sync-tool)
     - [Cross-language Tips](#cross-language-tips)
+  - [Token Processing Modes](#token-processing-modes)
   - [Token \& Attribute Registration](#token--attribute-registration)
     - [When to Use](#when-to-use)
     - [Java Registration (ServiceLoader SPI)](#java-registration-serviceloader-spi)
     - [Python Registration](#python-registration)
     - [Cross-language Parity Checklist](#cross-language-parity-checklist)
-    - [Version Bump Reminder](#version-bump-reminder)
     - [Quick Reference](#quick-reference)
   - [Building \& Testing](#building--testing)
     - [Full Multi-language Build](#full-multi-language-build)
@@ -64,7 +67,7 @@ Key Docs:
 
 - Development processes below
 
-## Language Development (Java & Python)
+## Language Development (Java, Python & PySpark)
 
 This section combines the previous standalone Java and Python development sections for easier cross-language parity review.
 
@@ -80,11 +83,13 @@ Build (from project root):
 ```shell
 cd lib/java/opentoken && mvn clean install
 ```
+
 Or from `lib/java/opentoken` directly:
 
 ```shell
 mvn clean install
 ```
+
 Resulting JAR: `lib/java/opentoken/target/opentoken-*.jar`.
 
 Using as a Maven dependency:
@@ -102,6 +107,7 @@ CLI usage:
 ```shell
 cd lib/java/opentoken && java -jar target/opentoken-*.jar [OPTIONS]
 ```
+
 Arguments:
 
 - `-i, --input <path>` Input file
@@ -183,6 +189,7 @@ CLI usage (from project root):
 ```shell
 PYTHONPATH=lib/python/opentoken/src/main python3 lib/python/opentoken/src/main/opentoken/main.py [OPTIONS]
 ```
+
 Arguments mirror Java implementation.
 
 Example:
@@ -224,6 +231,78 @@ Contributing notes:
 - Follow PEP 8, add type hints.
 - Keep tests in sync with Java changes.
 
+### PySpark Bridge
+
+The PySpark bridge (`lib/python/opentoken-pyspark`) provides a distributed processing interface for generating tokens and performing dataset overlap analysis using Spark DataFrames.
+
+Purpose:
+
+- Efficient token generation on large datasets (partitioned execution)
+- Supports custom token definitions in Spark pipelines
+- Provides overlap analysis utilities (`OverlapAnalyzer`) for measuring cohort intersection
+
+Prerequisites:
+
+- Python 3.10+
+
+**Version Compatibility (choose based on your Java version):**
+
+| Java Version | PySpark Version | PyArrow Version | Notes                                           |
+| ------------ | --------------- | --------------- | ----------------------------------------------- |
+| **Java 21**  | **4.0.1+**      | **17.0.0+**     | **Recommended** - Native Java 21 support        |
+| Java 8-17    | 3.5.x           | <20             | Legacy support - use if you cannot upgrade Java |
+
+Install (from repo root):
+
+```shell
+pip install -r lib/python/opentoken-pyspark/requirements.txt -r lib/python/opentoken-pyspark/dev-requirements.txt
+pip install -e lib/python/opentoken-pyspark
+```
+
+Basic Usage:
+
+```python
+from pyspark.sql import SparkSession
+from opentoken_pyspark import OpenTokenProcessor
+
+spark = SparkSession.builder.master("local[2]").appName("OpenTokenExample").getOrCreate()
+df = spark.read.csv("people.csv", header=True)
+processor = OpenTokenProcessor("HashingKey", "Secret-Encryption-Key-Goes-Here.")
+token_df = processor.process_dataframe(df)
+token_df.show()
+```
+
+Custom Token Definitions (example adding T6):
+
+```python
+from opentoken_pyspark import OpenTokenProcessor
+from opentoken_pyspark.notebook_helpers import TokenBuilder, CustomTokenDefinition
+
+t6 = TokenBuilder("T6") \
+  .add("last_name", "T|U") \
+  .add("first_name", "T|U") \
+  .add("birth_date", "T|D") \
+  .build()
+
+definition = CustomTokenDefinition().add_token(t6)
+processor = OpenTokenProcessor(
+  hashing_secret="HashingKey",
+  encryption_key="Secret-Encryption-Key-Goes-Here.",
+  token_definition=definition
+)
+token_df = processor.process_dataframe(df)
+```
+
+Testing:
+
+```shell
+cd lib/python/opentoken-pyspark
+pytest src/test
+```
+
+Notebook Guides:
+
+- See `lib/python/opentoken-pyspark/notebooks/` for example workflows (custom tokens & overlap analysis).
 ### Multi-Language Sync Tool
 
 Java is the source of truth. The sync tool (`tools/java_language_syncer.py`) evaluates changed Java files against enabled target languages (currently Python). It will fail PR workflows if any modified Java file lacks a corresponding, up-to-date target implementation.
@@ -260,6 +339,23 @@ When adding attributes/tokens: update Java first, run sync tool, then implement 
 | Add Attribute   | SPI entry & class                          | class + loader import                  |
 
 Maintain the same functional behavior and normalization between languages.
+
+## Token Processing Modes
+
+OpenToken supports three processing modes across Java, Python, and the PySpark bridge. These modes determine how raw token signatures are transformed:
+
+| Mode      | Secrets Required                     | Transform Pipeline                                | Output Example (T1)                  | Deterministic Across Runs | Recommended Use                     |
+| --------- | ------------------------------------ | ------------------------------------------------- | ------------------------------------ | ------------------------- | ----------------------------------- |
+| Plain     | None (not currently exposed via CLI) | Concatenate normalized attribute expressions only | `DOE\|JOHN\|1990-01-15\|MALE\|98101` | Yes (given same input)    | Debugging, rule design, docs demos  |
+| Hash-only | Hashing secret only                  | HMAC-SHA256(signature)                            | 64 hex chars (SHA-256 digest)        | Yes                       | Low-risk internal matching          |
+| Encrypted | Hashing secret + encryption key      | HMAC-SHA256 → AES-256-GCM (random IV per token)   | Base64 blob (length varies)          | Yes (post-decrypt hash)   | Production / privacy-preserving use |
+
+Notes:
+
+- The underlying signature (before hashing) is produced by ordered attribute expressions for each token rule (e.g., T1–T5 or custom T6+). Plain mode exposes this directly for inspection.
+- Encryption uses AES-256-GCM with a random IV; identical hashed inputs yield different encrypted outputs each run. Matching encrypted tokens across datasets therefore requires either: (a) decryption with the shared key or (b) generating hash-only tokens for overlap workflows. Do NOT attempt to match encrypted blobs directly.
+- Tokenizer polymorphism: Java & Python `TokenGenerator` accept an injectable tokenizer. Defaults to SHA-256; when plain mode is active a `PassthroughTokenizer` is used so downstream transformers (if any) receive the raw signature.
+- Security: Plain and hash-only modes reduce protection. Never use plain mode for sharing PHI; hash-only may leak structural frequency information. Encrypted mode is required for external distribution.
 
 ## Token & Attribute Registration
 
@@ -328,10 +424,6 @@ Python Troubleshooting:
 - Matching token definitions (order & components) across Java & Python.
 - Tests confirming identical hash/encryption output for shared fixtures.
 
-### Version Bump Reminder
-
-Adding or modifying Tokens / Attributes requires a version bump (`bump2version minor` for new features, `patch` for fixes, `major` for breaking changes).
-
 ### Quick Reference
 
 | Operation             | Java File(s)                     | Python File(s)                                              |
@@ -354,6 +446,9 @@ Maintain tests to guard consistency between languages.
 
 # Python
 (cd lib/python/opentoken && pytest src/test)
+
+# PySpark Bridge
+(cd lib/python/opentoken-pyspark && pytest src/test)
 ```
 
 ### Docker Image

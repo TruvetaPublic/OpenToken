@@ -41,7 +41,9 @@
                 "shengchen.vscode-checkstyle",
                 "GitHub.vscode-github-actions",
                 "GitHub.copilot-chat",
-                "ms-python.python"
+                "ms-python.python",
+                "ms-toolsai.jupyter",
+                "mikoz.autoflake-extension"
             ],
             "settings": {
                 "sonarlint.ls.javaHome": "/usr/local/sdkman/candidates/java/21.0.9-ms"
@@ -49,9 +51,9 @@
         }
     },
     "mounts": [],
-    "containerEnv": {},
-    "postCreateCommand": {},
-    "postStartCommand": {
-        "initialize-python-env": "/bin/bash .devcontainer/scripts/setup_python_env.sh"
-    }
+    "containerEnv": {
+        "PYSPARK_SUBMIT_ARGS": "--driver-memory 8g --executor-memory 8g --conf spark.driver.maxResultSize=4g --conf spark.memory.fraction=0.7 pyspark-shell"
+    },
+    "postCreateCommand": "/bin/bash .devcontainer/scripts/setup_python_env.sh",
+    "postStartCommand": {}
 }

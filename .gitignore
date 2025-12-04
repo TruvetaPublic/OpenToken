@@ -59,3 +59,13 @@ venv/
 # Maven local configuration files
 settings.xml
 toolchains.xml
+
+# Notebook output
+output/
+
+# Python wheel output
+dist/
+build/
+
+.coverage
+coverage.xml
