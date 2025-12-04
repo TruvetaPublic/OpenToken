@@ -23,6 +23,10 @@ The OpenToken PySpark Bridge provides a seamless interface between PySpark DataF
 cd lib/python/opentoken
 pip install -e .
 
+# Optionally install the CLI if you need command-line tokenization
+cd ../opentoken-cli
+pip install -e .
+
 # Then install the PySpark bridge
 cd ../opentoken-pyspark
 pip install -e .
@@ -295,5 +299,6 @@ This architecture balances the benefits of distributed computing with the crypto
 ## Related Documentation
 
 - [OpenToken Core Library](../opentoken/) - Python core implementation
+- [OpenToken CLI](../opentoken-cli/) - Python CLI with I/O support (CSV, Parquet)
 - [Main OpenToken Documentation](../../../README.md) - Project overview and setup
 - [Development Guide](../../../docs/dev-guide-development.md) - Contributor documentation
