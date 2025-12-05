@@ -27,9 +27,11 @@ echo "Installing Python packages..."
 cd "$REPO_ROOT/lib/python"
 pip install --no-cache-dir \
   -r opentoken/requirements.txt \
+  -r opentoken-cli/requirements.txt \
   -r opentoken-pyspark/requirements.txt \
   -r dev-requirements.txt \
   -e opentoken \
+  -e opentoken-cli \
   -e opentoken-pyspark
 
 echo "✓ Python environment setup complete"

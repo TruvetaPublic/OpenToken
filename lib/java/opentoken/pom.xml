@@ -1,439 +1,105 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.truveta</groupId>
+    <parent>
+        <groupId>com.truveta</groupId>
+        <artifactId>opentoken-parent</artifactId>
+        <version>${revision}</version>
+    </parent>
+
     <artifactId>opentoken</artifactId>
     <packaging>jar</packaging>
-    <version>${revision}</version>
 
     <name>opentoken</name>
+    <description>OpenToken Core Library - Privacy-preserving person matching using cryptographically secure token generation</description>
     <url>http://www.truveta.com</url>
-
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/TruvetaPublic/OpenToken</url>
-        </repository>
-    </distributionManagement>
 
     <properties>
         <revision>1.11.0</revision>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>21</java.version>
-        <maven.compiler.release>11</maven.compiler.release>
-        <jersey.version>3.1.1</jersey.version>
-        <jetty.version>11.0.16</jetty.version>
-        <junit.jupiter.version>5.13.4</junit.jupiter.version>
-        <surefire.plugin.version>3.5.4</surefire.plugin.version>
-        <mockito.version>5.20.0</mockito.version>
     </properties>
 
     <dependencies>
-        <!-- Junit 5 -->
+        <!-- JUnit 5 -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.42</version>
             <scope>provided</scope>
         </dependency>
+
         <!-- Javax Validation -->
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
-            <version>2.0.1.Final</version>
         </dependency>
+
+        <!-- Commons Codec (for hashing) -->
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.20.0</version>
         </dependency>
-        <!-- Args parsing -->
-        <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
-            <version>1.82</version>
-        </dependency>
-        <!-- DateUtils -->
+
+        <!-- Commons Lang3 (string utilities) -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.18.0</version>
         </dependency>
-        <!-- Csv -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>1.14.1</version>
-        </dependency>
-        <!-- Parquet -->
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>3.4.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-reload4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-handler</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty-server</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- Sec Finding Override for hadoop-common: -->
-        <dependency>
-            <groupId>com.nimbusds</groupId>
-            <artifactId>nimbus-jose-jwt</artifactId>
-            <version>10.6</version>
-        </dependency>
-        <!-- this package is explicitly added to override the vulnerable version consumed by org.apache.hadoop:hadoop-common@3.4.1 -->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.82</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>3.4.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-reload4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-all</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-common</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.jetty.websocket</groupId>
-                    <artifactId>websocket-client</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.avro</groupId>
-                    <artifactId>avro</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- Addressing security vulnerabilities of hadoop dependencies -->
-        <!-- https://mvnrepository.com/artifact/org.apache.parquet/parquet-hadoop -->
-        <dependency>
-            <groupId>org.apache.parquet</groupId>
-            <artifactId>parquet-hadoop</artifactId>
-            <version>1.16.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-client-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-client-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- Mockito Core dependency -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- Mockito JUnit dependency -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- logging -->
+
+        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.0.17</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j2-impl</artifactId>
-            <version>2.25.1</version>
         </dependency>
 
-        <!-- Security Update: https://github.com/TruvetaPublic/OpenToken/security/dependabot/12 -->
+        <!-- Mockito -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.17.2</version>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
-    <!-- Build lifecycle plugins -->
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.5.0</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
-            </plugin>
-            <!-- Checkstyle -->
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.6.0</version>
-                <configuration>
-                    <configLocation>checkstyle.xml</configLocation>
-                    <failsOnError>true</failsOnError>
-                    <consoleOutput>true</consoleOutput>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <excludes>**/package-info.java</excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
-            <!-- Shading -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <forceCreation>true</forceCreation>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.truveta.opentoken.Main</mainClass>
-                                    <manifestEntries>
-                                        <Implementation-Version>${revision}</Implementation-Version>
-                                        <Specification-Version>${revision}</Specification-Version>
-                                        <Implementation-Title>${project.name}</Implementation-Title>
-                                        <Implementation-Vendor>Truveta</Implementation-Vendor>
-                                        <Built-By>Truveta</Built-By>
-                                        <Package-Version>${revision}</Package-Version>
-                                        <Multi-Release>true</Multi-Release>
-                                    </manifestEntries>
-                                </transformer>
-                            </transformers>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>module-info.class</exclude>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>3.1.4</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.4</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>3.21.0</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.9.0</version>
-            </plugin>
-            <!-- Junit 5 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire.plugin.version}</version>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <forkCount>1</forkCount>
-                    <reuseForks>false</reuseForks>
-                    <useSystemClassLoader>false</useSystemClassLoader>
-                </configuration>
             </plugin>
-            <!-- Jacoco -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.13</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.11.2</version>
-                <configuration>
-                    <excludePackageNames>com.truveta.opentoken</excludePackageNames>
-                </configuration>
-            </plugin>
-            <!-- Sanity Check Plugin - Run integration tests with CSV and Parquet -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>sanity-check-csv</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <echo message="Running CSV sanity check..." />
-                                <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="csv.output">
-                                    <arg value="-jar" />
-                                    <arg value="${project.build.directory}/opentoken-${revision}.jar" />
-                                    <arg value="-i" />
-                                    <arg value="../../../resources/sample.csv" />
-                                    <arg value="-t" />
-                                    <arg value="csv" />
-                                    <arg value="-o" />
-                                    <arg value="${project.build.directory}/sanity-check-output.csv" />
-                                    <arg value="-ot" />
-                                    <arg value="csv" />
-                                    <arg value="-h" />
-                                    <arg value="HashingKey" />
-                                    <arg value="-e" />
-                                    <arg value="Secret-Encryption-Key-Goes-Here." />
-                                </exec>
-                                <echo message="CSV output: ${csv.output}" />
-                                <fail message="CSV sanity check failed: output does not contain 'Total number of records'">
-                                    <condition>
-                                        <not>
-                                            <contains string="${csv.output}" substring="Total number of records" />
-                                        </not>
-                                    </condition>
-                                </fail>
-                                <echo message="CSV sanity check completed successfully." />
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>sanity-check-parquet</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <echo message="Running Parquet sanity check..." />
-                                <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="parquet.output">
-                                    <arg value="-jar" />
-                                    <arg value="${project.build.directory}/opentoken-${revision}.jar" />
-                                    <arg value="-i" />
-                                    <arg value="../../../resources/sample.parquet" />
-                                    <arg value="-t" />
-                                    <arg value="parquet" />
-                                    <arg value="-o" />
-                                    <arg value="${project.build.directory}/sanity-check-output.parquet" />
-                                    <arg value="-ot" />
-                                    <arg value="parquet" />
-                                    <arg value="-h" />
-                                    <arg value="HashingKey" />
-                                    <arg value="-e" />
-                                    <arg value="Secret-Encryption-Key-Goes-Here." />
-                                </exec>
-                                <echo message="Parquet output: ${parquet.output}" />
-                                <fail message="Parquet sanity check failed: output does not contain 'Total number of records'">
-                                    <condition>
-                                        <not>
-                                            <contains string="${parquet.output}" substring="Total number of records" />
-                                        </not>
-                                    </condition>
-                                </fail>
-                                <echo message="Parquet sanity check completed successfully." />
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>cleanup-sanity-check-files</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <echo message="Cleaning up sanity check output files..." />
-                                <delete includeemptydirs="true" failonerror="false">
-                                    <fileset dir="${project.build.directory}" includes="*sanity-check-output*" />
-                                </delete>
-                                <echo message="Cleanup completed." />
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.19.1</version>
             </plugin>
         </plugins>
     </build>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>${surefire.plugin.version}</version>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>

@@ -61,13 +61,25 @@ class PythonHandler(LanguageHandler):
     
     def convert_java_to_target_path(self, java_path):
         """Convert Java file path to Python path"""
-        # Handle main source files
-        if "lib/java/opentoken/src/main/java/com/truveta/opentoken/" in java_path:
+        # Handle CLI main source files
+        if "lib/java/opentoken-cli/src/main/java/com/truveta/opentoken/cli/" in java_path:
+            python_path = java_path.replace(
+                "lib/java/opentoken-cli/src/main/java/com/truveta/opentoken/cli/",
+                "lib/python/opentoken-cli/src/main/opentoken_cli/"
+            )
+        # Handle CLI test files
+        elif "lib/java/opentoken-cli/src/test/java/com/truveta/opentoken/cli/" in java_path:
+            python_path = java_path.replace(
+                "lib/java/opentoken-cli/src/test/java/com/truveta/opentoken/cli/",
+                "lib/python/opentoken-cli/src/test/opentoken_cli/"
+            )
+        # Handle core main source files
+        elif "lib/java/opentoken/src/main/java/com/truveta/opentoken/" in java_path:
             python_path = java_path.replace(
                 "lib/java/opentoken/src/main/java/com/truveta/opentoken/",
                 "lib/python/opentoken/src/main/opentoken/"
             )
-        # Handle test files
+        # Handle core test files
         elif "lib/java/opentoken/src/test/java/com/truveta/opentoken/" in java_path:
             python_path = java_path.replace(
                 "lib/java/opentoken/src/test/java/com/truveta/opentoken/",
@@ -315,15 +327,33 @@ class JavaLanguageSyncer:
                     # Fallback to HEAD~1 if merge-base fails
                     pass
             
+            # Get changes from core library (exclude deleted files)
             result = subprocess.run([
-                'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', 'lib/java/opentoken/src/'
+                'git', 'diff', '--name-status', f'{since_commit}', 'HEAD', '--', 'lib/java/opentoken/src/'
             ], capture_output=True, text=True, cwd=self.root_dir)
 
+            all_files = []
             if result.returncode == 0:
-                all_files = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-                # Filter out ignored files
-                return self._filter_ignored_files(all_files)
-            return []
+                for line in result.stdout.splitlines():
+                    if line.strip():
+                        parts = line.split('\t')
+                        if len(parts) >= 2 and parts[0] != 'D':  # Exclude deleted files
+                            all_files.append(parts[1])
+            
+            # Also get changes from CLI package (exclude deleted files)
+            result_cli = subprocess.run([
+                'git', 'diff', '--name-status', f'{since_commit}', 'HEAD', '--', 'lib/java/opentoken-cli/src/'
+            ], capture_output=True, text=True, cwd=self.root_dir)
+
+            if result_cli.returncode == 0:
+                for line in result_cli.stdout.splitlines():
+                    if line.strip():
+                        parts = line.split('\t')
+                        if len(parts) >= 2 and parts[0] != 'D':  # Exclude deleted files
+                            all_files.append(parts[1])
+            
+            # Filter out ignored files
+            return self._filter_ignored_files(all_files)
         except subprocess.CalledProcessError:
             return []
 
@@ -439,12 +469,24 @@ class JavaLanguageSyncer:
                 if merge_base_result.returncode == 0 and merge_base_result.stdout.strip():
                     since_commit = merge_base_result.stdout.strip()
             
+            all_changes = []
             result = subprocess.run([
                 'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', f'{base_path}/'
             ], capture_output=True, text=True, cwd=self.root_dir)
 
             if result.returncode == 0:
-                return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+                all_changes.extend([line.strip() for line in result.stdout.splitlines() if line.strip()])
+            
+            # Also check CLI base path if it exists
+            cli_base_path = lang_config.get('cli_base_path', '')
+            if cli_base_path:
+                result_cli = subprocess.run([
+                    'git', 'diff', '--name-only', f'{since_commit}', 'HEAD', '--', f'{cli_base_path}/'
+                ], capture_output=True, text=True, cwd=self.root_dir)
+                if result_cli.returncode == 0:
+                    all_changes.extend([line.strip() for line in result_cli.stdout.splitlines() if line.strip()])
+            
+            return all_changes
             return []
         except subprocess.CalledProcessError:
             return []
@@ -461,7 +503,7 @@ class JavaLanguageSyncer:
         target_path = self.root_dir / target_file
         return target_path.exists()
 
-    def generate_sync_report(self, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, target_languages=None):
+    def generate_sync_report(self, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, target_languages=None, compact=False):
         """Generate a report of files that need syncing
         
         Args:
@@ -470,6 +512,7 @@ class JavaLanguageSyncer:
             check_both_modified: If True, simply checks that both files were modified in the PR.
                 If False, checks that target was modified after Java (timestamp-based).
             target_languages: List of specific languages to check, or None for all enabled languages.
+            compact: If True, only show failures and summary (for cleaner PR comments).
         
         Returns:
             str: A formatted report string (even for console output).
@@ -515,9 +558,9 @@ class JavaLanguageSyncer:
                 'changes': lang_changes
             }
 
-        return self.format_output(all_language_mappings, output_format, since_commit, check_both_modified)
+        return self.format_output(all_language_mappings, output_format, since_commit, check_both_modified, compact)
 
-    def format_output(self, all_language_mappings, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
+    def format_output(self, all_language_mappings, output_format="console", since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, compact=False):
         """Format the output based on the specified format
         
         Args:
@@ -526,12 +569,13 @@ class JavaLanguageSyncer:
             since_commit: The commit to compare since.
             check_both_modified: If True, simply checks that both files were modified in the PR.
                 If False, checks that target was modified after Java (timestamp-based).
+            compact: If True, only show failures and summary (for cleaner PR comments).
             
         Returns:
             str: The formatted output string (console/json/github-checklist).
         """
         if output_format == "github-checklist":
-            return self.format_github_checklist(all_language_mappings, since_commit, check_both_modified)
+            return self.format_github_checklist(all_language_mappings, since_commit, check_both_modified, compact)
         elif output_format == "json":
             # Update JSON format to also use timestamp-based logic
             result = {}
@@ -619,7 +663,7 @@ class JavaLanguageSyncer:
                 self.save_enhanced_report(lang, data['mappings'], data['changes'])
             return output
 
-    def format_github_checklist(self, all_language_mappings, since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False):
+    def format_github_checklist(self, all_language_mappings, since_commit=DEFAULT_SINCE_COMMIT, check_both_modified=False, compact=False):
         """Format as GitHub checklist with completion status for multiple languages
         
         Args:
@@ -627,6 +671,7 @@ class JavaLanguageSyncer:
             since_commit: The commit to compare since.
             check_both_modified: If True, simply checks that both files were modified in the PR.
                 If False, checks that target was modified after Java (timestamp-based).
+            compact: If True, only show failures and summary (for cleaner PR comments).
             
         Returns:
             A formatted GitHub checklist.
@@ -637,6 +682,7 @@ class JavaLanguageSyncer:
         grand_total = 0
         grand_completed = 0
         output = "## Java Multi-Language Sync Status\n\n"
+        failed_items = []  # Collect failed items for compact mode
         
         for lang, data in all_language_mappings.items():
             mappings = data['mappings']
@@ -646,48 +692,83 @@ class JavaLanguageSyncer:
             
             total_items = 0
             completed_items = 0
-            
-            output += f"### 🔄 {lang.upper()} ({len(mappings)} Java files)\n\n"
+            lang_failed_items = []
             
             for mapping in mappings:
                 java_file = mapping['java_file']
                 target_files = mapping['target_files']
                 
-                output += f"#### 📁 `{java_file}`\n"
                 for target_file in target_files:
                     total_items += 1
                     exists = self.check_target_file_exists(target_file)
                     is_up_to_date = self.is_target_file_up_to_date(java_file, target_file, since_commit, check_both_modified)
                     
                     if is_up_to_date:
-                        checkbox = "- [x]"
-                        status = "✅ SYNCED"
                         completed_items += 1
-                    elif exists:
-                        checkbox = "- [ ]"
-                        status = "⏳ NEEDS SYNC"
                     else:
-                        checkbox = "- [ ]"
-                        status = "❌ MISSING"
-                    
-                    output += f"{checkbox} **{status}**: `{target_file}`\n"
-                output += "\n"
-            
-            # Language-specific progress
-            output += f"**{lang.upper()} Progress**: {completed_items}/{total_items} completed\n\n"
-            output += "---\n\n"
+                        status = "⏳ NEEDS SYNC" if exists else "❌ MISSING"
+                        lang_failed_items.append({
+                            'java_file': java_file,
+                            'target_file': target_file,
+                            'status': status
+                        })
             
             grand_total += total_items
             grand_completed += completed_items
+            
+            if compact:
+                # In compact mode, only add failed items section if there are failures
+                if lang_failed_items:
+                    failed_items.extend(lang_failed_items)
+            else:
+                # Full output mode - show all files
+                output += f"### 🔄 {lang.upper()} ({len(mappings)} Java files)\n\n"
+                
+                for mapping in mappings:
+                    java_file = mapping['java_file']
+                    target_files = mapping['target_files']
+                    
+                    output += f"#### 📁 `{java_file}`\n"
+                    for target_file in target_files:
+                        exists = self.check_target_file_exists(target_file)
+                        is_up_to_date = self.is_target_file_up_to_date(java_file, target_file, since_commit, check_both_modified)
+                        
+                        if is_up_to_date:
+                            checkbox = "- [x]"
+                            status = "✅ SYNCED"
+                        elif exists:
+                            checkbox = "- [ ]"
+                            status = "⏳ NEEDS SYNC"
+                        else:
+                            checkbox = "- [ ]"
+                            status = "❌ MISSING"
+                        
+                        output += f"{checkbox} **{status}**: `{target_file}`\n"
+                    output += "\n"
+                
+                # Language-specific progress
+                output += f"**{lang.upper()} Progress**: {completed_items}/{total_items} completed\n\n"
+                output += "---\n\n"
         
-        # Overall summary
+        # Build compact output
+        if compact:
+            if failed_items:
+                output += f"**{len(failed_items)} items need attention:**\n\n"
+                for item in failed_items:
+                    output += f"- [ ] **{item['status']}**: `{item['target_file']}`\n"
+                    output += f"  - Source: `{item['java_file']}`\n"
+                output += "\n"
+            else:
+                output += "All files are in sync! ✅\n\n"
+        
+        # Overall summary (always shown)
         output = output.replace(
             "## Java Multi-Language Sync Status\n\n",
             f"## Java Multi-Language Sync Status ({grand_completed}/{grand_total} completed)\n\n"
         )
         
-        if grand_completed > 0:
-            percentage = round((grand_completed / grand_total) * 100, 1) if grand_total > 0 else 100
+        if grand_total > 0:
+            percentage = round((grand_completed / grand_total) * 100, 1)
             output += f"\n### 📊 Overall Progress: {grand_completed}/{grand_total} ({percentage}%)\n"
         
         return output
@@ -761,10 +842,18 @@ class JavaLanguageSyncer:
             A mapping configuration for the Java file, or None if not found.
         """
         source_base = self.mappings.get("source_base_path", "")
-        rel_path = java_file[len(source_base):] if java_file.startswith(source_base) else java_file
+        cli_source_base = self.mappings.get("cli_source_base_path", "")
+        
+        # Determine if this is a CLI file
+        is_cli_file = cli_source_base and java_file.startswith("lib/java/opentoken-cli/")
+        
+        if is_cli_file:
+            rel_path = java_file[len(cli_source_base):] if java_file.startswith(cli_source_base) else java_file
+        else:
+            rel_path = java_file[len(source_base):] if java_file.startswith(source_base) else java_file
 
-        # 1. Source-centric critical files
-        critical_list = self.mappings.get("critical_java_files", [])
+        # 1. Source-centric critical files (check both core and CLI)
+        critical_list = self.mappings.get("critical_cli_files" if is_cli_file else "critical_java_files", [])
         if critical_list:
             overrides = lang_config.get("overrides", {}).get("critical_files", {})
             for cf in critical_list:
@@ -783,8 +872,8 @@ class JavaLanguageSyncer:
                         "manual_review": cf.get("manual_review", False)
                     }
 
-        # 2. Source-centric directory roots
-        dir_roots = self.mappings.get("directory_roots", [])
+        # 2. Source-centric directory roots (check both core and CLI)
+        dir_roots = self.mappings.get("cli_directory_roots" if is_cli_file else "directory_roots", [])
         if dir_roots:
             for root in dir_roots:
                 root_path = root.get("path")
@@ -792,7 +881,7 @@ class JavaLanguageSyncer:
                 if root_path.startswith("lib/java/"):
                     full_root = root_path
                 else:
-                    full_root = source_base + root_path
+                    full_root = (cli_source_base if is_cli_file else source_base) + root_path
                 if java_file.startswith(full_root):
                     target_file = handler.convert_java_to_target_path(java_file)
                     return {
@@ -802,9 +891,10 @@ class JavaLanguageSyncer:
                         "auto_sync": root.get("auto_sync", True)
                     }
 
-        # 3. Legacy per-language critical files
-        if "critical_files" in lang_config:
-            for exact_file, mapping in lang_config["critical_files"].items():
+        # 3. Legacy per-language critical files (check both core and CLI)
+        critical_files_key = "critical_cli_files" if is_cli_file else "critical_files"
+        if critical_files_key in lang_config:
+            for exact_file, mapping in lang_config[critical_files_key].items():
                 if java_file == exact_file:
                     return {
                         "target_files": [mapping["target_file"]],
@@ -813,9 +903,10 @@ class JavaLanguageSyncer:
                         "auto_sync": mapping.get("auto_sync", False)
                     }
 
-        # 4. Legacy per-language directory mappings
-        if "directory_mappings" in lang_config:
-            for dir_pattern, mapping in lang_config["directory_mappings"].items():
+        # 4. Legacy per-language directory mappings (check both core and CLI)
+        dir_mappings_key = "cli_directory_mappings" if is_cli_file else "directory_mappings"
+        if dir_mappings_key in lang_config:
+            for dir_pattern, mapping in lang_config[dir_mappings_key].items():
                 if java_file.startswith(dir_pattern):
                     target_file = handler.convert_java_to_target_path(java_file)
                     return {
@@ -860,6 +951,8 @@ Examples:
                         help='Compare changes since this commit/branch')
     parser.add_argument('--check-both-modified', action='store_true',
                         help='Check that both Java and target files were modified in the PR (simpler check)')
+    parser.add_argument('--compact', action='store_true',
+                        help='Show only failures and summary (for cleaner PR comments)')
     parser.add_argument('--languages', 
                         help='Comma-separated list of target languages to check (default: all enabled)')
     parser.add_argument('--health-check', action='store_true',
@@ -896,7 +989,8 @@ Examples:
         output_format=args.format, 
         since_commit=args.since,
         check_both_modified=args.check_both_modified,
-        target_languages=target_languages
+        target_languages=target_languages,
+        compact=args.compact
     )
     
     if args.format == "github-checklist":

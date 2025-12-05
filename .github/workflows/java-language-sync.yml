@@ -5,7 +5,9 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "lib/java/opentoken/src/main/java/com/truveta/opentoken/**/*.java"
+      - "lib/java/opentoken-cli/src/main/java/com/truveta/opentoken/**/*.java"
       - "lib/python/opentoken/src/**/*.py"
+      - "lib/python/opentoken-cli/src/**/*.py"
       - "lib/nodejs/opentoken/src/**/*.js"
       - "lib/nodejs/opentoken/src/**/*.ts"
 
@@ -42,10 +44,19 @@ jobs:
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           echo "Checking Java multi-language sync against: origin/$BASE_BRANCH"
 
-          # Generate sync report checking that both Java and target language files were modified
+          # First, run full output for logs (visible in workflow run)
+          echo "=== Full Sync Report (for debugging) ==="
+          python3 tools/java_language_syncer.py \
+            --format console \
+            --check-both-modified \
+            --since "origin/$BASE_BRANCH" 2>&1 || true
+          echo "=== End Full Report ==="
+
+          # Generate compact sync report for PR comment
           SYNC_REPORT=$(python3 tools/java_language_syncer.py \
             --format github-checklist \
             --check-both-modified \
+            --compact \
             --since "origin/$BASE_BRANCH" 2>&1)
           SYNC_EXIT_CODE=$?
 

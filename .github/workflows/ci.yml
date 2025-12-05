@@ -32,7 +32,7 @@ jobs:
           enable-python: false
 
       - name: Build and test with Maven
-        run: cd lib/java/opentoken && mvn -B package --file pom.xml
+        run: cd lib/java && mvn -B package --file pom.xml
 
       - name: Publish Maven Surefire report
         if: success() || failure()
@@ -44,12 +44,13 @@ jobs:
         with:
           files: |
             lib/java/opentoken/target/surefire-reports/*.xml
+            lib/java/opentoken-cli/target/surefire-reports/*.xml
           check_name: Java Test Results
           comment_mode: always
           compare_to_earlier_commit: false
 
       - name: Generate JaCoCo report
-        run: cd lib/java/opentoken && mvn jacoco:report
+        run: cd lib/java && mvn jacoco:report
 
       - name: Upload JaCoCo artifact
         uses: actions/upload-artifact@v4
@@ -57,12 +58,14 @@ jobs:
           name: java-code-coverage
           path: |
             lib/java/opentoken/target/site/jacoco/*
+            lib/java/opentoken-cli/target/site/jacoco/*
 
       - name: Add Java code coverage to PR
         uses: madrapps/jacoco-report@v1.7.1
         with:
           paths: |
-            lib/java/opentoken/target/site/jacoco/jacoco.xml
+            lib/java/opentoken/target/site/jacoco/jacoco.xml,
+            lib/java/opentoken-cli/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           title: Code Coverage
           min-coverage-overall: ${{ env.MIN_COVERAGE_OVERALL }}
@@ -74,7 +77,7 @@ jobs:
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@v3
         with:
-          directory: ${{ github.workspace }}/lib/java/opentoken
+          directory: ${{ github.workspace }}/lib/java
           maven-args: "-B -DskipTests"
 
   python-tests:
@@ -142,14 +145,72 @@ jobs:
           thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
           thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
 
+  python-cli-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      actions: read
+      packages: write
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup toolchain (Python)
+        uses: ./.github/actions/setup-toolchain
+        with:
+          enable-java: false
+          enable-python: true
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Python CLI dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r lib/python/opentoken/requirements.txt
+          pip install -e lib/python/opentoken/
+          pip install -r lib/python/opentoken-cli/requirements.txt
+          pip install pytest pytest-cov flake8
+          pip install -e lib/python/opentoken-cli/
+
+      - name: Lint CLI with flake8
+        run: |
+          flake8 lib/python/opentoken-cli/src --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 lib/python/opentoken-cli/src --count --exit-zero --statistics
+
+      - name: Test CLI with pytest
+        run: |
+          PYTHONPATH=lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main pytest lib/python/opentoken-cli/src/test --junitxml=lib/python/opentoken-cli/test-results-${{ matrix.python-version }}.xml --cov=lib/python/opentoken-cli/src/main --cov-report=xml:lib/python/opentoken-cli/coverage.xml --cov-report=html:lib/python/opentoken-cli/htmlcov
+
+      - name: Upload Python CLI coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-cli-code-coverage-${{ matrix.python-version }}
+          path: |
+            lib/python/opentoken-cli/coverage.xml
+            lib/python/opentoken-cli/htmlcov/*
+
+      - name: Publish Python CLI test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: |
+            lib/python/opentoken-cli/test-results-${{ matrix.python-version }}.xml
+          check_name: Python CLI ${{ matrix.python-version }} Test Results
+          comment_mode: always
+          compare_to_earlier_commit: false
+
       - name: Run CLI smoke test
         run: |
-          cd lib/python/opentoken
-          PYTHONPATH=src/main python3 src/main/opentoken/main.py -i ../../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+          cd lib/python/opentoken-cli
+          mkdir -p target
+          opentoken -i ../../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 
       - name: Validate CLI output files
         run: |
-          cd lib/python/opentoken
+          cd lib/python/opentoken-cli
           if [ ! -f "target/output.csv" ]; then
             echo "Error: output.csv not created"
             exit 1
@@ -161,7 +222,7 @@ jobs:
 
       - name: Validate CLI output content
         run: |
-          cd lib/python/opentoken
+          cd lib/python/opentoken-cli
           line_count=$(wc -l < target/output.csv)
           if [ "$line_count" -le 1 ]; then
             echo "Error: Output CSV appears to be empty or only contains headers"
@@ -265,6 +326,8 @@ jobs:
           if [ -f dev-requirements.txt ]; then
             pip install -r dev-requirements.txt
           fi
+          cd ../opentoken-cli
+          pip install -r requirements.txt
 
       - name: Install interoperability tool dependencies
         run: |
@@ -275,13 +338,13 @@ jobs:
 
       - name: Build Java artifacts
         run: |
-          cd lib/java/opentoken
+          cd lib/java
           mvn clean package -DskipTests
 
       - name: Run interoperability tests
         id: run-tests
         env:
-          PYTHONPATH: ${{ github.workspace }}/lib/python/opentoken/src/main
+          PYTHONPATH: ${{ github.workspace }}/lib/python/opentoken/src/main:${{ github.workspace }}/lib/python/opentoken-cli/src/main
         run: |
           cd tools/interoperability
           python java_python_interoperability_test.py

@@ -6,7 +6,10 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ## At a Glance
 
-- Three packages: Java (Maven), Python (core), PySpark bridge
+- Four packages: Java core (Maven), Java CLI (Maven), Python core, Python CLI, plus PySpark bridge
+- Java uses multi-module Maven structure with parent POM at `lib/java/pom.xml`
+- Core packages (`opentoken`) contain pure tokenization logic with minimal dependencies
+- CLI packages (`opentoken-cli`) contain I/O implementations (CSV, Parquet, JSON) and command-line interface
 - Deterministic token generation logic is equivalent across languages
 - PySpark bridge enables large-scale distributed token generation & overlap analysis
 - Use this guide for environment setup & day-to-day development
@@ -57,11 +60,17 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ```text
 lib/
-  java/      # Java implementation
-  python/    # Python implementation
-resources/   # Sample and test data
-tools/       # Utility scripts (hash calculator, mock data, etc.)
-docs/        # All developer documentation (this file!)
+  java/
+    pom.xml            # Parent POM (multi-module Maven build)
+    opentoken/         # Core tokenization library (pure logic, minimal dependencies)
+    opentoken-cli/     # CLI application with I/O support (CSV, Parquet, JSON)
+  python/
+    opentoken/         # Core tokenization library
+    opentoken-cli/     # CLI application with I/O support
+    opentoken-pyspark/ # PySpark bridge for distributed processing
+resources/             # Sample and test data
+tools/                 # Utility scripts (hash calculator, mock data, etc.)
+docs/                  # All developer documentation (this file!)
 ```
 Key Docs:
 
@@ -78,26 +87,41 @@ Prerequisites:
 - Java 21 SDK or higher (JAR output is Java 11 compatible)
 - Maven 3.8.8 or higher
 
-Build (from project root):
+Build all modules (from `lib/java`):
 
 ```shell
+cd lib/java && mvn clean install
+```
+
+Build individual modules:
+
+```shell
+# Core library only
 cd lib/java/opentoken && mvn clean install
+
+# CLI only (requires core to be installed first)
+cd lib/java/opentoken-cli && mvn clean install
 ```
 
-Or from `lib/java/opentoken` directly:
+Resulting JARs:
 
-```shell
-mvn clean install
-```
+- Core library: `lib/java/opentoken/target/opentoken-*.jar`
+- CLI application: `lib/java/opentoken-cli/target/opentoken-cli-*.jar`
 
-Resulting JAR: `lib/java/opentoken/target/opentoken-*.jar`.
-
-Using as a Maven dependency:
+Using as Maven dependencies:
 
 ```xml
+<!-- Core library (tokenization logic only) -->
 <dependency>
   <groupId>com.truveta</groupId>
   <artifactId>opentoken</artifactId>
+  <version>${opentoken.version}</version>
+</dependency>
+
+<!-- CLI with I/O support (includes core as transitive dependency) -->
+<dependency>
+  <groupId>com.truveta</groupId>
+  <artifactId>opentoken-cli</artifactId>
   <version>${opentoken.version}</version>
 </dependency>
 ```
@@ -105,7 +129,7 @@ Using as a Maven dependency:
 CLI usage:
 
 ```shell
-cd lib/java/opentoken && java -jar target/opentoken-*.jar [OPTIONS]
+cd lib/java && java -jar opentoken-cli/target/opentoken-cli-*.jar [OPTIONS]
 ```
 
 Arguments:
@@ -120,8 +144,8 @@ Arguments:
 Example:
 
 ```shell
-cd lib/java/opentoken && java -jar target/opentoken-*.jar \
-  -i src/test/resources/sample.csv -t csv -o target/output.csv \
+cd lib/java && java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  -i opentoken/src/test/resources/sample.csv -t csv -o opentoken-cli/target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
@@ -141,8 +165,12 @@ try (PersonAttributesReader reader = new PersonAttributesCSVReader("input.csv");
 Testing:
 
 ```shell
-mvn test
-mvn clean test jacoco:report   # Coverage in target/site/jacoco/index.html
+# Test all modules
+cd lib/java && mvn test
+
+# Test with coverage report
+cd lib/java && mvn clean test jacoco:report
+# Coverage reports: opentoken/target/site/jacoco/index.html and opentoken-cli/target/site/jacoco/index.html
 ```
 
 Style & docs:
@@ -175,19 +203,29 @@ source .venv/bin/activate
 Install dependencies:
 
 ```shell
+# Core library
+pip install -r requirements.txt -r dev-requirements.txt
+
+# For CLI support, also install opentoken-cli
+cd ../opentoken-cli
 pip install -r requirements.txt -r dev-requirements.txt
 ```
 
-Editable install for local CLI usage:
+Editable install for local development:
 
 ```shell
-pip install -e .
+# Install core library
+cd lib/python/opentoken && pip install -e .
+
+# Install CLI (includes core as dependency)
+cd lib/python/opentoken-cli && pip install -e .
 ```
 
 CLI usage (from project root):
 
 ```shell
-PYTHONPATH=lib/python/opentoken/src/main python3 lib/python/opentoken/src/main/opentoken/main.py [OPTIONS]
+# After installing opentoken-cli
+python -m opentoken_cli.main [OPTIONS]
 ```
 
 Arguments mirror Java implementation.
@@ -195,8 +233,9 @@ Arguments mirror Java implementation.
 Example:
 
 ```shell
-PYTHONPATH=lib/python/opentoken/src/main python3 lib/python/opentoken/src/main/opentoken/main.py \
-  -i resources/sample.csv -t csv -o lib/python/opentoken/target/output.csv \
+# After installing opentoken-cli
+python -m opentoken_cli.main \
+  -i resources/sample.csv -t csv -o lib/python/opentoken-cli/target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
@@ -215,11 +254,19 @@ with PersonAttributesCSVReader("input.csv") as reader, \
 Testing:
 
 ```shell
+# Core library tests
 cd lib/python/opentoken
+PYTHONPATH=src/main pytest src/test
+
+# CLI tests
+cd lib/python/opentoken-cli
 PYTHONPATH=src/main pytest src/test
 ```
 
-Key dependencies: pandas, cryptography, (optional) pyarrow for Parquet.
+Key dependencies:
+
+- Core: cryptography
+- CLI: pandas, pyarrow (for Parquet)
 
 Parity notes:
 
@@ -329,14 +376,14 @@ When adding attributes/tokens: update Java first, run sync tool, then implement 
 
 ### Cross-language Tips
 
-| Task            | Java Command                               | Python Command                         |
-| --------------- | ------------------------------------------ | -------------------------------------- |
-| Build / Package | `mvn clean install`                        | `pip install -e .`                     |
-| Run Tests       | `mvn test`                                 | `pytest src/test`                      |
-| Lint / Style    | `mvn checkstyle:check`                     | (pep8 / flake8 if configured)          |
-| Run CLI         | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
-| Add Token       | SPI entry & class                          | new module in `tokens/definitions`     |
-| Add Attribute   | SPI entry & class                          | class + loader import                  |
+| Task            | Java Command                                             | Python Command                     |
+| --------------- | -------------------------------------------------------- | ---------------------------------- |
+| Build / Package | `cd lib/java && mvn clean install`                       | `pip install -e .`                 |
+| Run Tests       | `mvn test`                                               | `pytest src/test`                  |
+| Lint / Style    | `mvn checkstyle:check`                                   | (pep8 / flake8 if configured)      |
+| Run CLI         | `java -jar opentoken-cli/target/opentoken-cli-*.jar ...` | `python -m opentoken_cli.main ...` |
+| Add Token       | SPI entry & class                                        | new module in `tokens/definitions` |
+| Add Attribute   | SPI entry & class                                        | class + loader import              |
 
 Maintain the same functional behavior and normalization between languages.
 
@@ -441,11 +488,14 @@ Maintain tests to guard consistency between languages.
 (Useful in CI or before PR submission.)
 
 ```shell
-# Java
-(cd lib/java/opentoken && mvn clean install)
+# Java (builds both core and CLI modules)
+(cd lib/java && mvn clean install)
 
-# Python
+# Python core
 (cd lib/python/opentoken && pytest src/test)
+
+# Python CLI
+(cd lib/python/opentoken-cli && pytest src/test)
 
 # PySpark Bridge
 (cd lib/python/opentoken-pyspark && pytest src/test)
@@ -459,10 +509,16 @@ docker build . -t opentoken
 
 ## Running the Tool (CLI)
 
+The CLI is provided by the `opentoken-cli` package in both Java and Python.
+
 Minimum required arguments:
 
 ```shell
-java -jar target/opentoken-*.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+# Java
+java -jar lib/java/opentoken-cli/target/opentoken-cli-*.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+
+# Python
+python -m opentoken_cli.main -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
 ```
 
 Arguments:

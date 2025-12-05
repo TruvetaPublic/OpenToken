@@ -9,10 +9,10 @@ FROM maven:${MAVEN_VERSION}-amazoncorretto-${JAVA_VERSION} AS build
 RUN mkdir /app
 WORKDIR /app
 
-COPY lib/java/opentoken /app
+COPY lib/java /app
 COPY resources /resources
 
-RUN mvn clean package
+RUN mvn clean package -DskipTests
 
 ##################################################
 # Stage 2: Create the image to run the application
@@ -24,7 +24,7 @@ RUN mkdir /app
 RUN addgroup --system appuser && adduser --system --no-create-home --ingroup appuser appuser
 
 ARG VERSION=1.11.0
-COPY --from=build /app/target/opentoken-${VERSION}.jar /usr/local/lib/opentoken.jar
+COPY --from=build /app/opentoken-cli/target/opentoken-cli-${VERSION}.jar /usr/local/lib/opentoken.jar
 
 WORKDIR /app
 
