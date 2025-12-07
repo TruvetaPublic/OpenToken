@@ -11,7 +11,7 @@ import csv
 import random
 from datetime import datetime, timedelta
 import uuid
-import sys
+from pathlib import Path
 
 # Super Hero names for thematic data
 SUPERHERO_FIRST_NAMES = [
@@ -229,13 +229,21 @@ def main():
     print("=" * 60)
     print()
     
+    # Determine base directory (handle both script execution and notebook execution)
+    script_dir = Path(__file__).parent
+    demo_dir = script_dir.parent
+    datasets_dir = demo_dir / 'datasets'
+    
+    # Ensure datasets directory exists
+    datasets_dir.mkdir(exist_ok=True)
+    
     # Set random seed for reproducibility
     random.seed(42)
     
     # Generate hospital dataset
     hospital_records = generate_hospital_dataset(
         num_hospital,
-        '../datasets/hospital_superhero_data.csv'
+        str(datasets_dir / 'hospital_superhero_data.csv')
     )
     
     print()
@@ -247,7 +255,7 @@ def main():
     generate_pharmacy_dataset(
         num_pharmacy,
         overlap_records,
-        '../datasets/pharmacy_superhero_data.csv'
+        str(datasets_dir / 'pharmacy_superhero_data.csv')
     )
     
     print()
