@@ -13,37 +13,37 @@ from datetime import datetime, timedelta
 import uuid
 from pathlib import Path
 
-# Super Hero names for thematic data
+# Super Hero names for thematic data (lightly obscured for copyright)
 SUPERHERO_FIRST_NAMES = [
-    "Bruce", "Clark", "Diana", "Peter", "Tony", "Steve", "Natasha", "Thor", 
-    "Bruce", "Barry", "Hal", "Oliver", "Arthur", "Victor", "Kara", "Barbara",
-    "Wade", "Logan", "Scott", "Jean", "Ororo", "Kurt", "Hank", "Bobby",
-    "Carol", "Monica", "Jessica", "Luke", "Danny", "Matt", "Frank", "Clint",
-    "Wanda", "Pietro", "Vision", "Rhodey", "Sam", "Bucky", "T'Challa", "Shuri",
-    "Stephen", "Wong", "Groot", "Rocket", "Gamora", "Drax", "Mantis", "Nebula",
-    "Thanos", "Loki", "Hela", "Odin", "Frigga", "Heimdall", "Sif", "Valkyrie",
-    "Nick", "Maria", "Phil", "Peggy", "Howard", "Hank", "Janet", "Hope",
-    "Scott", "Luis", "Dave", "Kurt", "Jimmy", "Darcy", "Erik", "Jane",
-    "Pepper", "Happy", "Rhodey", "May", "Ned", "MJ", "Flash", "Betty",
-    "Gwen", "Harry", "Norman", "Otto", "Curt", "Max", "Eddie", "Cletus",
-    "Reed", "Sue", "Johnny", "Ben", "Franklin", "Valeria", "Alicia", "Wyatt",
+    "Bruce", "Clarke", "Diana", "Pete", "Anthony", "Steven", "Natalia", "Thorson", 
+    "Bruce", "Barrett", "Harold", "Ollie", "Art", "Victor", "Kara", "Barb",
+    "Wade", "Logan", "Scotty", "Jean", "Ororo", "Kurt", "Henry", "Bobby",
+    "Caroline", "Monica", "Jessie", "Lucas", "Daniel", "Matthew", "Franklin", "Clint",
+    "Wanda", "Pietro", "Vis", "Rhodey", "Samuel", "Buck", "Tchalla", "Shuri",
+    "Steve", "Wong", "Groot", "Rocky", "Gamora", "Drax", "Mantis", "Nebby",
+    "Thane", "Loki", "Helia", "Odin", "Frigga", "Heimdall", "Sif", "Val",
+    "Nicholas", "Marie", "Philip", "Margaret", "Howard", "Henry", "Jan", "Hope",
+    "Scotty", "Luis", "Dave", "Kurt", "Jim", "Darcy", "Erik", "Jane",
+    "Pepper", "Harold", "Rhodey", "Mae", "Ned", "Mary", "Flash", "Betty",
+    "Gwen", "Harrison", "Norman", "Otto", "Curtis", "Maxwell", "Edwin", "Cletus",
+    "Reed", "Susan", "Jon", "Benjamin", "Frank", "Valeria", "Alicia", "Wyatt",
     "Kamala", "Iman", "Bruno", "Nakia", "Muneeba", "Yusuf", "Aamir", "Tyesha"
 ]
 
 SUPERHERO_LAST_NAMES = [
-    "Wayne", "Kent", "Prince", "Parker", "Stark", "Rogers", "Romanoff", "Odinson",
-    "Banner", "Allen", "Jordan", "Queen", "Curry", "Stone", "Danvers", "Gordon",
-    "Wilson", "Howlett", "Summers", "Grey", "Munroe", "Wagner", "McCoy", "Drake",
-    "Danvers", "Rambeau", "Jones", "Cage", "Rand", "Murdock", "Castle", "Barton",
-    "Maximoff", "Maximoff", "Vision", "Rhodes", "Wilson", "Barnes", "T'Challa", "Udaku",
-    "Strange", "Wong", "Groot", "Rocket", "Gamora", "Drax", "Mantis", "Nebula",
-    "Titan", "Laufeyson", "Odinsdottir", "Borson", "Frigga", "Heimdall", "Sif", "Valkyrie",
-    "Fury", "Hill", "Coulson", "Carter", "Stark", "Pym", "VanDyne", "VanDyne",
-    "Lang", "Luis", "Dave", "Kurt", "Woo", "Lewis", "Selvig", "Foster",
-    "Potts", "Hogan", "Rhodes", "Parker", "Leeds", "Watson", "Thompson", "Brant",
-    "Stacy", "Osborn", "Osborn", "Octavius", "Connors", "Dillon", "Brock", "Kasady",
-    "Richards", "Storm", "Storm", "Grimm", "Storm", "Richards", "Masters", "Wingfoot",
-    "Khan", "Vellani", "Carrelli", "Bahadir", "Khan", "Khan", "Khan", "Hillman"
+    "Wain", "Kenton", "Princess", "Parkman", "Starks", "Rodgers", "Romano", "Odison",
+    "Bannerman", "Allenby", "Jordon", "Queens", "Curryman", "Stoneman", "Danver", "Gordan",
+    "Wilkins", "Howlet", "Sumner", "Gray", "Monroe", "Wagoner", "McCoyle", "Drakes",
+    "Danver", "Rambo", "Jonson", "Cageman", "Randall", "Murdoch", "Castleman", "Bartonson",
+    "Maximof", "Maximof", "Visionson", "Rhoden", "Wilkins", "Barness", "Tchallson", "Udako",
+    "Strangeways", "Wongson", "Grootman", "Rockwell", "Gamoran", "Draxon", "Mantison", "Nebula",
+    "Titanson", "Laufey", "Odinson", "Borson", "Frigga", "Heimdal", "Sifson", "Valkyr",
+    "Furyson", "Hillman", "Coulsonson", "Carterman", "Starks", "Pymson", "VanDyke", "VanDyke",
+    "Langston", "Luison", "Daveson", "Kurtson", "Wooman", "Lewison", "Selvig", "Fosterman",
+    "Potterson", "Hoganson", "Rhoden", "Parkman", "Leedson", "Watkins", "Thompson", "Brantley",
+    "Stacey", "Osborne", "Osborne", "Octavio", "Connor", "Dillonson", "Brockman", "Kasady",
+    "Richardson", "Stormson", "Stormson", "Grimson", "Stormson", "Richardson", "Masterson", "Wingfield",
+    "Khans", "Vellani", "Carrello", "Bahadir", "Khans", "Khans", "Khans", "Hillmanson"
 ]
 
 # Additional hospital-specific data
