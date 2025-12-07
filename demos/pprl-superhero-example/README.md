@@ -2,6 +2,44 @@
 
 This demonstration shows how to use OpenToken for privacy-preserving record linkage between two organizations sharing patient data.
 
+- [Privacy-Preserving Record Linkage (PPRL) Demonstration](#privacy-preserving-record-linkage-pprl-demonstration)
+  - [Scenario](#scenario)
+  - [Dataset Overview](#dataset-overview)
+  - [How OpenToken Works](#how-opentoken-works)
+    - [Important Note About Token Comparison](#important-note-about-token-comparison)
+  - [Prerequisites](#prerequisites)
+  - [Quick Start Guide](#quick-start-guide)
+    - [Step 1: Generate Datasets](#step-1-generate-datasets)
+    - [Step 2: Tokenize the Data](#step-2-tokenize-the-data)
+    - [Step 3: Measure Overlap](#step-3-measure-overlap)
+  - [Expected Results](#expected-results)
+  - [Understanding the Output](#understanding-the-output)
+    - [Token Files](#token-files)
+    - [Metadata Files](#metadata-files)
+    - [Matching Results](#matching-results)
+  - [Understanding Token Decryption in PPRL](#understanding-token-decryption-in-pprl)
+    - [Why Decryption is Necessary](#why-decryption-is-necessary)
+    - [The Solution](#the-solution)
+    - [Decryption Layer Structure](#decryption-layer-structure)
+  - [Privacy Considerations](#privacy-considerations)
+    - [What is Protected](#what-is-protected)
+    - [What is Shared](#what-is-shared)
+    - [Security Best Practices](#security-best-practices)
+    - [Real-World Deployment Considerations](#real-world-deployment-considerations)
+  - [File Structure](#file-structure)
+  - [Customization](#customization)
+    - [Changing Dataset Size](#changing-dataset-size)
+    - [Using Different Secrets](#using-different-secrets)
+    - [Adjusting Match Criteria](#adjusting-match-criteria)
+  - [Troubleshooting](#troubleshooting)
+    - ["No matches found"](#no-matches-found)
+    - ["Invalid attribute" errors during tokenization](#invalid-attribute-errors-during-tokenization)
+    - [Build errors](#build-errors)
+  - [Real-World Applications](#real-world-applications)
+  - [Additional Resources](#additional-resources)
+  - [Questions?](#questions)
+
+
 ## Scenario
 
 **Super Hero Hospital** and **Super Hero Pharmacy** want to link their patient records to improve care coordination, but they need to protect patient privacy. They use OpenToken to:
@@ -24,13 +62,13 @@ This demonstration shows how to use OpenToken for privacy-preserving record link
 
 OpenToken generates 5 different tokens (T1-T5) for each patient using different combinations of attributes:
 
-| Token ID | Token Components                                      |
-|----------|------------------------------------------------------|
-| T1       | `U(last-name)\|U(first-name-1)\|U(sex)\|birth-date`  |
+| Token ID | Token Components                                         |
+| -------- | -------------------------------------------------------- |
+| T1       | `U(last-name)\|U(first-name-1)\|U(sex)\|birth-date`      |
 | T2       | `U(last-name)\|U(first-name)\|birth-date\|postal-code-3` |
-| T3       | `U(last-name)\|U(first-name)\|U(sex)\|birth-date`    |
-| T4       | `social-security-number\|U(sex)\|birth-date`         |
-| T5       | `U(last-name)\|U(first-name-3)\|U(sex)`              |
+| T3       | `U(last-name)\|U(first-name)\|U(sex)\|birth-date`        |
+| T4       | `social-security-number\|U(sex)\|birth-date`             |
+| T5       | `U(last-name)\|U(first-name-3)\|U(sex)`                  |
 
 > **Note**: U(X) means uppercase(X), and attribute-N means taking the first N characters
 
@@ -134,11 +172,11 @@ Pharmacy records with matches: 40 out of 120 (33.3%)
 
 The tokenized CSV files (`hospital_tokens.csv`, `pharmacy_tokens.csv`) contain:
 
-| Column    | Description                                              |
-|-----------|----------------------------------------------------------|
-| RecordId  | Original record identifier from source dataset           |
-| TokenId   | Token type (T1, T2, T3, T4, or T5)                      |
-| Token     | Encrypted token value (Base64-encoded)                   |
+| Column   | Description                                    |
+| -------- | ---------------------------------------------- |
+| RecordId | Original record identifier from source dataset |
+| TokenId  | Token type (T1, T2, T3, T4, or T5)             |
+| Token    | Encrypted token value (Base64-encoded)         |
 
 Example:
 ```csv
@@ -162,12 +200,12 @@ The metadata JSON files contain:
 
 `matching_records.csv` shows which records match:
 
-| Column              | Description                                    |
-|---------------------|------------------------------------------------|
-| HospitalRecordId    | Record ID from hospital dataset                |
-| PharmacyRecordId    | Record ID from pharmacy dataset                |
-| MatchingTokens      | Which tokens matched (e.g., "T1\|T2\|T3\|T4\|T5") |
-| TokenCount          | Number of matching tokens (should be 5)        |
+| Column           | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| HospitalRecordId | Record ID from hospital dataset                   |
+| PharmacyRecordId | Record ID from pharmacy dataset                   |
+| MatchingTokens   | Which tokens matched (e.g., "T1\|T2\|T3\|T4\|T5") |
+| TokenCount       | Number of matching tokens (should be 5)           |
 
 ## Understanding Token Decryption in PPRL
 
