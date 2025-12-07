@@ -381,6 +381,7 @@ lib/
 │   ├── opentoken/           # Core tokenization library
 │   ├── opentoken-cli/       # CLI application with I/O support
 │   └── opentoken-pyspark/   # PySpark bridge for distributed processing
+demos/                       # Example demonstrations and use cases
 tools/                       # Utility scripts and tools
 docs/                        # Documentation
 .devcontainer/               # Development container configuration
@@ -415,6 +416,33 @@ python data_generator.py 100 0.05 test_data.csv
 ```
 
 The script generates fake person data and optionally repeats a percentage of records with different record IDs to simulate duplicate persons.
+
+## Demonstrations
+
+### Privacy-Preserving Record Linkage (PPRL) Superhero Demo
+
+See [demos/pprl-superhero-example](demos/pprl-superhero-example/README.md) for a complete demonstration of privacy-preserving record linkage using OpenToken. This demo shows:
+
+- Independent tokenization by two organizations (Superhero Hospital and Pharmacy)
+- AES-256-GCM encryption with random IVs per record
+- Token decryption and overlap analysis
+- Optional PySpark integration for distributed processing
+
+**Requires**: Python 3, pandas, Java 11+, Maven  
+**Optional**: PySpark (only for notebook distributed processing)
+
+Run the complete demo with:
+
+```bash
+cd demos/pprl-superhero-example/scripts
+./run_complete_demo.sh "YourHashKey" "Your-32-Character-Encryption-Key"
+```
+
+Or explore the interactive Jupyter notebook for PySpark integration:
+
+```bash
+jupyter notebook demos/pprl-superhero-example/PPRL_Superhero_PySpark_Demo.ipynb
+```
 
 ## Contributing
 
