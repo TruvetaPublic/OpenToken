@@ -211,12 +211,18 @@ def main():
     # Configuration - must match the keys used during tokenization
     encryption_key = "SuperHero-Encryption-Key-32chars"
     
+    # Determine base directory (handle both script dir and demo root execution)
+    from pathlib import Path
+    script_dir = Path(__file__).parent
+    demo_dir = script_dir.parent
+    outputs_dir = demo_dir / 'outputs'
+    
     # File paths
-    hospital_tokens_file = '../outputs/hospital_tokens.csv'
-    pharmacy_tokens_file = '../outputs/pharmacy_tokens.csv'
-    hospital_metadata_file = '../outputs/hospital_tokens.csv.metadata.json'
-    pharmacy_metadata_file = '../outputs/pharmacy_tokens.csv.metadata.json'
-    matches_output_file = '../outputs/matching_records.csv'
+    hospital_tokens_file = str(outputs_dir / 'hospital_tokens.csv')
+    pharmacy_tokens_file = str(outputs_dir / 'pharmacy_tokens.csv')
+    hospital_metadata_file = str(outputs_dir / 'hospital_tokens.csv.metadata.json')
+    pharmacy_metadata_file = str(outputs_dir / 'pharmacy_tokens.csv.metadata.json')
+    matches_output_file = str(outputs_dir / 'matching_records.csv')
     
     # Load and decrypt tokens
     print("Loading and decrypting tokens...")

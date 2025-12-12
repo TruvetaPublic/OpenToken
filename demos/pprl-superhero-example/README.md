@@ -98,6 +98,16 @@ This demonstration shows how to properly compare tokens from two organizations t
 
 ## Quick Start Guide
 
+### Run End-to-End (one command)
+
+```bash
+cd demos/pprl-superhero-example
+chmod +x run_end_to_end.sh
+./run_end_to_end.sh
+```
+
+This runs dataset generation, tokenization (building Java if needed), and overlap analysis.
+
 ### Step 1: Generate Datasets
 
 ```bash
@@ -298,10 +308,11 @@ In production PPRL systems:
 ```
 pprl-superhero-example/
 ├── README.md                          # This file
+├── run_end_to_end.sh                  # Complete demo runner (all 3 steps)
 ├── datasets/                          # Generated datasets
 │   ├── hospital_superhero_data.csv
 │   └── pharmacy_superhero_data.csv
-├── scripts/                           # Scripts for demo
+├── scripts/                           # Individual scripts for demo
 │   ├── generate_superhero_datasets.py # Generate test data
 │   ├── tokenize_datasets.sh          # Tokenize both datasets
 │   └── analyze_overlap.py            # Analyze overlaps

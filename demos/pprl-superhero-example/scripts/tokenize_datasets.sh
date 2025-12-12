@@ -28,13 +28,13 @@ echo "Tokenizing Superhero PPRL Datasets"
 echo "============================================================"
 echo ""
 
-# Check if OpenToken JAR exists
-JAR_FILE=$(ls "$JAVA_DIR/target/opentoken-"*.jar 2>/dev/null | head -1)
+# Check if OpenToken JAR exists (in opentoken-cli module)
+JAR_FILE=$(ls "$JAVA_DIR/opentoken-cli/target/opentoken-cli-"*.jar 2>/dev/null | head -1)
 if [ -z "$JAR_FILE" ]; then
     echo -e "${YELLOW}OpenToken JAR not found. Building...${NC}"
     cd "$JAVA_DIR"
     mvn clean install -DskipTests
-    JAR_FILE=$(ls "$JAVA_DIR/target/opentoken-"*.jar | head -1)
+    JAR_FILE=$(ls "$JAVA_DIR/opentoken-cli/target/opentoken-cli-"*.jar | head -1)
 fi
 
 echo -e "${GREEN}Using JAR: $JAR_FILE${NC}"

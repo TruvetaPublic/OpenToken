@@ -1,101 +1,101 @@
 RecordId,FirstName,LastName,Sex,BirthDate,SocialSecurityNumber,PostalCode,Department,VisitReason
-7ade261e-090f-4578-bc35-fcb4c6618347,Harrison,Danver,Male,1974-09-04,251-29-2287,10754,Intensive Care Unit,Battle Injury
-8e82ec33-e445-4297-961e-94ebfc1e6384,Ollie,Parkman,Female,1952-11-07,031-12-3583,10238,Emergency Department,Battle Injury
-78e47b7d-878c-4645-b455-61286c67cda7,Monica,Grimson,Female,1969-10-11,460-76-4558,10828,Emergency Department,Alien Parasite Removal
-10415e6b-bef7-41ac-b1c4-d3dfd077600d,Susan,Sifson,Female,1974-12-06,160-28-5515,10104,Intensive Care Unit,Laser Vision Calibration
-b653b575-2cf1-45cb-8d39-6f582baf17d4,Art,Draxon,Female,2004-02-29,271-06-7528,10549,Intensive Care Unit,Laser Vision Calibration
-b860777e-4e8e-463f-a05f-c94d52928a60,Harold,Selvig,Female,2006-05-26,634-47-9460,10196,Intensive Care Unit,Power Malfunction
-dfb2e2a0-3740-4c9b-90e2-d40a4079ed25,Curtis,Murdoch,Female,1957-02-27,877-30-1655,10389,Super Powers Rehabilitation,Routine Super Physical
-889bd550-a605-4a51-ac85-b756ab8cf0be,Harrison,Mantison,Male,1983-03-19,364-27-4375,10718,Intensive Care Unit,Villain Encounter Trauma
-e08402b9-5def-463d-baff-3e71c81b40cc,Harrison,Wagoner,Male,1964-08-29,474-49-4423,10947,Surgery Department,Telepathy Headache
-0222baa8-4fc1-46db-94e6-eba621e4bafe,Bruno,Bahadir,Male,1970-07-20,843-05-5169,10410,Super Powers Rehabilitation,Cosmic Ray Exposure
-4436184a-4599-4a72-8dba-29b23e6dec77,Lucas,Potterson,Female,1969-01-28,673-64-6483,10905,Alien Biology Department,Alien Parasite Removal
-83b6d567-31dd-4b30-bc55-159612720156,Pietro,Howlet,Male,2000-05-12,552-34-9578,10438,Cosmic Ray Treatment Center,Telepathy Headache
-f176c436-0dfe-4cd6-b60d-794beb3a0842,Daniel,Howlet,Female,1958-02-26,775-07-1797,10156,Trauma Center,Laser Vision Calibration
-793d3f03-13bb-4dab-9aef-b90711345f7a,Ned,Bannerman,Female,1984-03-27,611-60-8670,10257,Emergency Department,Cosmic Ray Exposure
-441e5c92-2039-464c-8a51-6842bf8f2a40,Cletus,Wooman,Female,2007-07-04,349-15-4809,10445,Trauma Center,Routine Super Physical
-62c32bf7-0cdd-4c39-aa84-569259a8bdcb,Bruce,Stormson,Female,1994-11-29,782-23-8318,10934,Intensive Care Unit,Flight Control Issue
-834e2383-ef1d-425c-aa4b-7e3a5c96530b,Harrison,Langston,Male,1963-09-18,383-98-2647,10552,Emergency Department,Villain Encounter Trauma
-90d40f75-d6e6-4b31-aed8-edd5cb5b0d11,Wong,VanDyke,Male,1960-01-14,372-40-3924,10059,Surgery Department,Villain Encounter Trauma
-648dbb63-10fb-4472-8b77-4b57e8d3b38f,Harold,Jordon,Female,1956-03-17,780-69-2061,10131,Alien Biology Department,Battle Injury
-7d32fa03-95ef-4bfa-a4c4-260e6e3e556c,Kurt,Maximof,Female,1969-01-01,553-97-3296,10730,Super Powers Rehabilitation,Laser Vision Calibration
-54a016e6-5975-4710-b120-d5b2720c0e6e,Maxwell,Octavio,Female,1989-04-21,530-58-1983,10253,Surgery Department,Cosmic Ray Exposure
-81f1c2b9-280a-4c35-89fa-024f2044af32,Rocky,Princess,Male,2002-10-17,226-01-1164,10724,Emergency Department,Strength Enhancement Surgery
-03e15e1f-e8de-4960-bb95-a20eef25013e,Bruce,Starks,Female,1956-05-10,527-31-4563,10685,Alien Biology Department,Strength Enhancement Surgery
-f931e300-e4ad-4f1e-b25d-940ad1732227,Darcy,Wilkins,Female,1971-10-20,805-61-6670,10194,Intensive Care Unit,Cosmic Ray Exposure
-d84e1eb9-3414-4aa8-a3e0-f2f77b3c0ce7,Curtis,Valkyr,Female,1988-01-01,421-60-0888,10689,Intensive Care Unit,Power Malfunction
-c1ea7397-5530-4464-a61c-282332dfa6b3,Odin,Richardson,Female,1959-10-21,255-25-3117,10549,Alien Biology Department,Alien Parasite Removal
-cc4bcc82-e414-45e3-a4fe-580aecfa4042,Sif,Drakes,Female,1991-07-04,256-10-7261,10827,Intensive Care Unit,Power Malfunction
-9b8feba2-af7f-4263-bb09-bad2052968bd,Otto,Lewison,Male,1958-05-15,773-31-2725,10416,Alien Biology Department,Routine Super Physical
-5c809453-f119-4ce7-a79c-985901cfc73a,Lucas,Borson,Male,1964-10-08,389-01-6397,10271,Alien Biology Department,Flight Control Issue
-59baf1e5-13f7-43ae-b8a4-5b1e99a586f9,Sif,Stormson,Female,1963-11-21,195-38-3567,10991,Emergency Department,Villain Encounter Trauma
-0d137b1a-ce9e-4cda-94a5-405ac4e7ea7c,Alicia,Lewison,Male,1978-02-19,059-07-9572,10488,Trauma Center,Power Malfunction
-b9adb70c-bbea-4641-9746-ba820b145781,Luis,Jordon,Male,1956-02-24,610-09-3854,10413,Intensive Care Unit,Villain Encounter Trauma
-1ba3f09f-9565-4bb1-b32a-970e47508a3a,Clint,Rhoden,Male,2005-07-26,084-54-9563,10578,Mutation Specialist Unit,Flight Control Issue
-ea6fdef3-0c52-4b6f-a9f9-89253db7fe17,Jessie,Dillonson,Female,1971-06-01,272-51-2145,10687,Super Powers Rehabilitation,Routine Super Physical
-697aab7a-3064-4b08-9a85-495f4e08ac6b,Steve,Khans,Male,1950-11-02,470-80-9225,10102,Intensive Care Unit,Battle Injury
-b2b58c5a-dc02-48c3-aa84-ca4c8a02941b,Lucas,Langston,Female,1961-11-19,358-09-4003,10378,Super Powers Rehabilitation,Alien Parasite Removal
-27b7156e-99f5-48ab-8f1b-4790a5870a8a,Nicholas,Lewison,Female,2004-11-16,828-84-8667,10008,Super Powers Rehabilitation,Cosmic Ray Exposure
-b45c4170-7991-48ce-be13-cba4184c0d33,Logan,Maximof,Male,1959-08-09,762-71-2547,10278,Super Powers Rehabilitation,Villain Encounter Trauma
-7e00dcfa-8b2f-45d1-8ed2-f40d474d6ce4,Jessie,Grimson,Female,1968-04-07,705-82-4326,10517,Alien Biology Department,Flight Control Issue
-66516119-405e-4c4b-8ad0-e835683e3f43,Natalia,Queens,Female,1974-10-28,046-01-5465,10789,Trauma Center,Flight Control Issue
-46ba3154-f704-405e-a94b-0e351b4ee87f,Ororo,Masterson,Female,1999-06-30,724-55-9190,10009,Intensive Care Unit,Cosmic Ray Exposure
-2bbb4a4b-d734-4475-a836-07a7d6d2714d,Reed,Gray,Male,1983-02-15,597-71-2427,10440,Trauma Center,Power Malfunction
-ba710727-0f6c-49d5-8ab1-73c6e3716ae8,Shuri,Mantison,Male,1982-02-06,216-88-4089,10682,Intensive Care Unit,Telepathy Headache
-6c10b442-82ff-4d53-b3f7-6b7727245567,Nakia,Fosterman,Female,2005-09-06,769-20-3879,10885,Trauma Center,Alien Parasite Removal
-e556d75c-e652-407c-8d53-a16d197fdfde,Frigga,Parkman,Male,1979-10-21,803-53-4066,10273,Trauma Center,Cosmic Ray Exposure
-df53c7d6-a753-49a5-b4b0-c00792702253,Thane,Starks,Female,1969-12-15,205-59-5729,10312,Surgery Department,Strength Enhancement Surgery
-a07d21e4-a85b-4ad2-8518-b17177df3dd8,Pete,Connor,Male,1985-09-30,337-36-1138,10990,Super Powers Rehabilitation,Telepathy Headache
-4fdb0ac5-32cf-4c9f-ab10-5d58eded7e8a,Norman,Luison,Female,1998-02-08,340-04-1890,10898,Super Powers Rehabilitation,Alien Parasite Removal
-6b346a96-3e91-4a52-b1bb-00e198759256,Rhodey,Maximof,Male,1959-09-23,611-56-5664,10746,Mutation Specialist Unit,Laser Vision Calibration
-27e819e2-dc31-47a5-b6cf-42034567414c,Mary,Luison,Male,1984-07-23,591-25-4174,10045,Cosmic Ray Treatment Center,Power Malfunction
-e613a77b-9e03-497a-b0a5-e697a9b29649,Dave,Hillmanson,Male,1982-09-04,442-09-5410,10638,Mutation Specialist Unit,Cosmic Ray Exposure
-ee0da189-7d80-4a6c-8981-e880bb4bf99e,Frank,Tchallson,Female,1986-08-22,335-52-4845,10567,Trauma Center,Strength Enhancement Surgery
-e7fc429c-7c7a-4360-b04f-9a3383f35768,Heimdall,Dillonson,Female,1965-08-12,631-73-4931,10415,Emergency Department,Flight Control Issue
-8b6b7a4a-a929-4b54-926f-291ffd676090,Samuel,Jonson,Female,2002-01-12,622-84-5280,10476,Alien Biology Department,Routine Super Physical
-3449d13d-c4e5-4e4e-a34e-259d3e101b6c,Edwin,Cageman,Female,1965-03-23,676-11-4650,10527,Mutation Specialist Unit,Cosmic Ray Exposure
-418adec4-0d91-4ec5-a5c5-db0b6841f4eb,Kamala,Castleman,Female,1970-02-26,827-26-2415,10025,Emergency Department,Strength Enhancement Surgery
-c26b20ec-839a-4fa0-a88a-ab9e51c31737,Howard,Thompson,Male,1990-11-10,425-81-9432,10199,Cosmic Ray Treatment Center,Routine Super Physical
-acb348cf-c500-4157-b7a5-ca2b6f76013e,Odin,Bartonson,Male,1950-07-01,770-99-1747,10797,Cosmic Ray Treatment Center,Strength Enhancement Surgery
-a67148c5-490e-4dda-b2e0-1222caf812c0,Henry,Khans,Female,1954-07-04,571-32-1989,10467,Trauma Center,Routine Super Physical
-053c7acb-eb04-40ac-8cc4-56a403fee6bb,Maxwell,Kurtson,Female,1989-09-15,628-93-8271,10436,Alien Biology Department,Alien Parasite Removal
-939cc993-57b4-4178-bfc0-17afaf774377,Wyatt,Starks,Female,1973-04-03,771-32-4544,10784,Alien Biology Department,Strength Enhancement Surgery
-9f904bf1-d0d2-4da5-9f13-583fa48ea08d,Rhodey,Furyson,Male,1975-08-20,241-35-5503,10327,Intensive Care Unit,Alien Parasite Removal
-8b24eb04-52a4-46ee-a292-5b1e3b83af9a,Jean,Murdoch,Female,1963-09-17,725-28-1053,10424,Cosmic Ray Treatment Center,Telepathy Headache
-f4c576d6-2ac1-4905-aeb9-68170b0aced7,Darcy,Carterman,Female,1955-08-03,212-54-6382,10926,Emergency Department,Villain Encounter Trauma
-0c858d30-492c-4b1d-8714-b4d97c53a51a,Thane,Pymson,Male,1981-07-23,306-97-6390,10873,Cosmic Ray Treatment Center,Battle Injury
-511a7cdd-01b4-4751-8386-f052e4f9919d,Wyatt,Masterson,Male,1993-10-20,225-35-7141,10497,Emergency Department,Laser Vision Calibration
-9955b0ae-206e-4611-b278-4002206ca76b,Rocky,Dillonson,Female,1964-10-22,862-60-2092,10637,Emergency Department,Laser Vision Calibration
-6955fa8f-94a5-4e1c-be10-2c13c0237b10,Mae,Potterson,Male,1957-07-13,659-55-2224,10887,Alien Biology Department,Alien Parasite Removal
-d43a5c15-7721-4ed7-be68-32bcb2744dbd,Natalia,Maximof,Female,1979-05-15,217-59-5356,10345,Cosmic Ray Treatment Center,Flight Control Issue
-fc2d575a-82fa-4348-80a0-41f3349f0bb7,Kamala,Heimdal,Female,1957-05-07,482-03-8838,10053,Mutation Specialist Unit,Strength Enhancement Surgery
-aaf7476a-7c9c-4ef3-8d47-40b90400531d,Otto,Bannerman,Male,1952-10-13,254-26-0334,10636,Trauma Center,Strength Enhancement Surgery
-fab16be6-8c2e-4e21-9b9a-a43719ff2d87,Wade,Starks,Male,2000-08-06,224-60-4199,10785,Mutation Specialist Unit,Alien Parasite Removal
-862fb6ec-baae-466c-9209-8beef978b5fd,Mary,Watkins,Male,1964-09-10,319-14-9482,10026,Super Powers Rehabilitation,Villain Encounter Trauma
-43afa290-6ca9-446e-af28-0e7f3876b7ce,Edwin,Titanson,Female,1967-10-17,078-76-3979,10104,Super Powers Rehabilitation,Villain Encounter Trauma
-c676b2e9-3afc-462a-836d-874a573c4823,Tyesha,Gordan,Male,1981-02-24,546-55-6072,10070,Mutation Specialist Unit,Power Malfunction
-ff60a5d8-1b13-486c-8442-442d7cf01e67,Heimdall,VanDyke,Male,1988-11-22,371-82-7533,10724,Trauma Center,Laser Vision Calibration
-9d00631d-bc14-478e-9f01-1d7fc910820c,Henry,Richardson,Female,2005-04-04,829-69-7922,10476,Cosmic Ray Treatment Center,Villain Encounter Trauma
-13798cd4-2b0e-4147-98c9-67a63b718a7f,Vis,Wongson,Male,1957-10-10,286-58-3996,10768,Alien Biology Department,Villain Encounter Trauma
-5a8ec5b8-f72e-4642-93d6-d5da2e9a810b,Flash,Dillonson,Female,1980-03-07,030-64-5326,10186,Alien Biology Department,Strength Enhancement Surgery
-238f08fe-789f-4bde-9431-52d04feb9cdc,Drax,Khans,Female,1980-07-14,287-77-4527,10569,Emergency Department,Battle Injury
-e4bb1e86-650e-4d7d-90a0-2482eb6be8a9,Caroline,Jordon,Male,1986-06-18,501-72-3938,10707,Alien Biology Department,Routine Super Physical
-c9c643d8-5447-4c2f-af15-9414a1218d98,Marie,Khans,Male,1958-05-08,302-29-6626,10708,Surgery Department,Flight Control Issue
-34b9496f-7b6c-44c2-96e7-e171ae9bacb9,Curtis,Rhoden,Female,1992-06-16,567-68-5633,10435,Mutation Specialist Unit,Telepathy Headache
-4aef62b4-a697-404a-9731-f4f5f0e000c8,Susan,Coulsonson,Female,1977-07-05,258-30-1977,10738,Surgery Department,Telepathy Headache
-03e96820-cef3-484d-a27b-ae4a0413800f,Barb,Wingfield,Male,1967-03-09,222-95-7934,10283,Super Powers Rehabilitation,Cosmic Ray Exposure
-f90a8435-6ea8-4004-84d9-75aec94dd4fe,Caroline,Barness,Male,1982-05-18,184-39-0232,10725,Trauma Center,Flight Control Issue
-a173d39b-7dde-4fac-af9a-318c47e58e03,Steven,Romano,Female,1961-04-30,654-97-8043,10105,Emergency Department,Villain Encounter Trauma
-35107c53-d14b-49e5-a39a-ffaf0eddc31d,Samuel,Starks,Female,1989-07-08,349-24-0842,10258,Alien Biology Department,Cosmic Ray Exposure
-6410cad6-23f6-4fc6-a663-16a2aedebee8,Bruce,Borson,Female,1956-08-24,591-81-0879,10155,Trauma Center,Villain Encounter Trauma
-6ebe7ba4-7776-4099-9590-0eb8d7fac6ce,Tchalla,Jordon,Male,1960-08-17,572-98-6819,10620,Surgery Department,Battle Injury
-7527c780-be01-4232-b75d-98a7cd9209c4,Thane,Hillman,Female,1976-09-04,882-76-7026,10312,Emergency Department,Villain Encounter Trauma
-7bbdf6b9-c74d-4356-87db-23118c8afcf2,Alicia,Curryman,Male,2006-02-12,217-34-1331,10160,Surgery Department,Alien Parasite Removal
-d3833194-7663-4c33-ab10-aa61750ddecf,Erik,Allenby,Male,1950-03-29,419-58-9730,10481,Super Powers Rehabilitation,Power Malfunction
-9a6d1483-440d-4c6e-90a1-493015766418,Matthew,Wilkins,Female,1990-09-25,073-88-3825,10946,Super Powers Rehabilitation,Villain Encounter Trauma
-d4a66491-a0de-4389-b596-12902121ea3b,Curtis,Khans,Male,1988-02-21,118-70-3684,10663,Trauma Center,Flight Control Issue
-e2439287-ded0-4a72-8f7b-f40733960697,Scotty,Allenby,Male,1964-11-19,813-40-9750,10766,Super Powers Rehabilitation,Routine Super Physical
-9d4d0571-eba9-45ca-b495-757d8838762c,Barb,Carterman,Female,1986-02-10,279-65-8848,10505,Alien Biology Department,Cosmic Ray Exposure
-b2b98a4f-8467-42df-b30f-f29ed99cfcb1,Ned,Rodgers,Female,1978-12-01,619-33-0424,10093,Surgery Department,Villain Encounter Trauma
-7be4e87f-8b18-45f7-ba2c-23d2dba08623,Mae,Princess,Female,2001-09-12,042-98-2871,10481,Alien Biology Department,Flight Control Issue
-9ecdf63c-bf17-485f-be5e-5c7a208505e3,Bobby,Rhoden,Female,2006-12-13,835-63-1495,10481,Mutation Specialist Unit,Laser Vision Calibration
+9442a85e-a801-4727-8298-cc56c144ed48,Harrison,Danver,Male,1974-09-04,251-29-2287,10754,Intensive Care Unit,Battle Injury
+403652d1-5b18-43bb-93e5-e49b1fc9df6b,Ollie,Parkman,Female,1952-11-07,031-12-3583,10238,Emergency Department,Battle Injury
+70f42ce6-d0fd-405c-b9d4-559a23940843,Monica,Grimson,Female,1969-10-11,460-76-4558,10828,Emergency Department,Alien Parasite Removal
+7dd15b24-eca3-4c7a-a0b9-65bcbac3da54,Susan,Sifson,Female,1974-12-06,160-28-5515,10104,Intensive Care Unit,Laser Vision Calibration
+7d732b79-edf4-4600-8e5b-8691340cbbd7,Art,Draxon,Female,2004-02-29,271-06-7528,10549,Intensive Care Unit,Laser Vision Calibration
+965c8222-dbb4-48b4-88fe-54368c8ef4fd,Harold,Selvig,Female,2006-05-26,634-47-9460,10196,Intensive Care Unit,Power Malfunction
+4165d7d6-a655-430c-ba2c-d1ea64e4c7c0,Curtis,Murdoch,Female,1957-02-27,877-30-1655,10389,Super Powers Rehabilitation,Routine Super Physical
+eec21c87-4f49-44a1-892b-f53c206f92bb,Harrison,Mantison,Male,1983-03-19,364-27-4375,10718,Intensive Care Unit,Villain Encounter Trauma
+8a56d881-e3a6-4b27-8026-135b3116bdcb,Harrison,Wagoner,Male,1964-08-29,474-49-4423,10947,Surgery Department,Telepathy Headache
+937aed5f-6750-4379-b063-4fab856f69d8,Bruno,Bahadir,Male,1970-07-20,843-05-5169,10410,Super Powers Rehabilitation,Cosmic Ray Exposure
+1da61a8d-9467-4a2a-a5b8-b0d20a25d38e,Lucas,Potterson,Female,1969-01-28,673-64-6483,10905,Alien Biology Department,Alien Parasite Removal
+0a48da75-88b2-4fe5-b364-1d2933ea7de3,Pietro,Howlet,Male,2000-05-12,552-34-9578,10438,Cosmic Ray Treatment Center,Telepathy Headache
+a0598917-76e6-4728-bde7-76457f1acad1,Daniel,Howlet,Female,1958-02-26,775-07-1797,10156,Trauma Center,Laser Vision Calibration
+86eac597-62b3-408a-9157-200150339deb,Ned,Bannerman,Female,1984-03-27,611-60-8670,10257,Emergency Department,Cosmic Ray Exposure
+bb14c0ec-9f8d-436d-81b0-2af1dfcc7b4a,Cletus,Wooman,Female,2007-07-04,349-15-4809,10445,Trauma Center,Routine Super Physical
+f5a6a849-5c85-44d5-8d18-d68055f5065f,Bruce,Stormson,Female,1994-11-29,782-23-8318,10934,Intensive Care Unit,Flight Control Issue
+0650deb0-f68e-4581-a333-fec5a895a036,Harrison,Langston,Male,1963-09-18,383-98-2647,10552,Emergency Department,Villain Encounter Trauma
+fc27efeb-07ff-4b1c-b05e-a6c675e825b3,Wong,VanDyke,Male,1960-01-14,372-40-3924,10059,Surgery Department,Villain Encounter Trauma
+b896b4a9-6d3d-4439-9d44-3c56eaca7fd4,Harold,Jordon,Female,1956-03-17,780-69-2061,10131,Alien Biology Department,Battle Injury
+ea153779-1c2a-4a6e-9008-7a687f1cd162,Kurt,Maximof,Female,1969-01-01,553-97-3296,10730,Super Powers Rehabilitation,Laser Vision Calibration
+bc159976-18a9-4e23-98d6-41b0a1713451,Maxwell,Octavio,Female,1989-04-21,530-58-1983,10253,Surgery Department,Cosmic Ray Exposure
+f4b75fc4-1a85-4587-81a9-6abc44ae9bf5,Rocky,Princess,Male,2002-10-17,226-01-1164,10724,Emergency Department,Strength Enhancement Surgery
+c5e6cab7-9704-44a9-a9e7-ad06f9a06288,Bruce,Starks,Female,1956-05-10,527-31-4563,10685,Alien Biology Department,Strength Enhancement Surgery
+e226de7b-89eb-4953-a06f-0971af63e80a,Darcy,Wilkins,Female,1971-10-20,805-61-6670,10194,Intensive Care Unit,Cosmic Ray Exposure
+9fda6dc0-3406-4ab4-a843-9df4b1d38fb3,Curtis,Valkyr,Female,1988-01-01,421-60-0888,10689,Intensive Care Unit,Power Malfunction
+09a0f91c-80de-442f-ad67-46348e575c62,Odin,Richardson,Female,1959-10-21,255-25-3117,10549,Alien Biology Department,Alien Parasite Removal
+2d54ff60-61b7-4b17-b887-8c40b6c734eb,Sif,Drakes,Female,1991-07-04,256-10-7261,10827,Intensive Care Unit,Power Malfunction
+7ab8e39c-9581-419b-9eb2-c189d921f6b2,Otto,Lewison,Male,1958-05-15,773-31-2725,10416,Alien Biology Department,Routine Super Physical
+2cc0a19c-ee67-4e74-bdcb-ad19633e01a5,Lucas,Borson,Male,1964-10-08,389-01-6397,10271,Alien Biology Department,Flight Control Issue
+cdb3f9fd-135a-4bfe-bec5-5d179869d2e5,Sif,Stormson,Female,1963-11-21,195-38-3567,10991,Emergency Department,Villain Encounter Trauma
+70d5f5ac-b7b5-4da1-ab1b-205b86895c66,Alicia,Lewison,Male,1978-02-19,059-07-9572,10488,Trauma Center,Power Malfunction
+9ac5686a-9c3a-45fe-8258-0744702e9754,Luis,Jordon,Male,1956-02-24,610-09-3854,10413,Intensive Care Unit,Villain Encounter Trauma
+d9d07c4d-cc56-4839-825a-d0a98dd1df3d,Clint,Rhoden,Male,2005-07-26,084-54-9563,10578,Mutation Specialist Unit,Flight Control Issue
+956cf431-23ce-4ec7-a4f7-75fe5d4d9a60,Jessie,Dillonson,Female,1971-06-01,272-51-2145,10687,Super Powers Rehabilitation,Routine Super Physical
+3f28de7b-9a9f-42d0-97fb-bc1b5ebcb89b,Steve,Khans,Male,1950-11-02,470-80-9225,10102,Intensive Care Unit,Battle Injury
+4cf69715-5e06-42f4-bb29-496a1b6d52f7,Lucas,Langston,Female,1961-11-19,358-09-4003,10378,Super Powers Rehabilitation,Alien Parasite Removal
+ca3ad79b-2345-4412-9c61-26083b603ab1,Nicholas,Lewison,Female,2004-11-16,828-84-8667,10008,Super Powers Rehabilitation,Cosmic Ray Exposure
+8be7cccf-c8b7-4180-b881-24c29a2ba4ae,Logan,Maximof,Male,1959-08-09,762-71-2547,10278,Super Powers Rehabilitation,Villain Encounter Trauma
+1ffa074e-af5f-4aab-ba3f-6a541bc7215e,Jessie,Grimson,Female,1968-04-07,705-82-4326,10517,Alien Biology Department,Flight Control Issue
+d5b3ef1f-6eab-4da8-886e-f743b9702dc1,Natalia,Queens,Female,1974-10-28,046-01-5465,10789,Trauma Center,Flight Control Issue
+6f8cd58c-cdc5-4de1-b10e-941a958b4322,Ororo,Masterson,Female,1999-06-30,724-55-9190,10009,Intensive Care Unit,Cosmic Ray Exposure
+91b1e2be-9efb-4cb5-803a-21130dad2183,Reed,Gray,Male,1983-02-15,597-71-2427,10440,Trauma Center,Power Malfunction
+bf54474b-bddc-420a-8b33-bfd12f3dda08,Shuri,Mantison,Male,1982-02-06,216-88-4089,10682,Intensive Care Unit,Telepathy Headache
+82873966-ab6e-4ccc-b3ee-65c60182f52a,Nakia,Fosterman,Female,2005-09-06,769-20-3879,10885,Trauma Center,Alien Parasite Removal
+99e8e43b-bc1c-4ba8-890e-95e88bc39f30,Frigga,Parkman,Male,1979-10-21,803-53-4066,10273,Trauma Center,Cosmic Ray Exposure
+f9bcffde-0679-473c-a266-3d715ae0cd8f,Thane,Starks,Female,1969-12-15,205-59-5729,10312,Surgery Department,Strength Enhancement Surgery
+c84f0c4c-cb7f-4630-9132-0cdd4f52c28d,Pete,Connor,Male,1985-09-30,337-36-1138,10990,Super Powers Rehabilitation,Telepathy Headache
+a94d04d8-2461-450f-9c15-72a954586584,Norman,Luison,Female,1998-02-08,340-04-1890,10898,Super Powers Rehabilitation,Alien Parasite Removal
+86540ff9-3ef2-4b18-91e2-96742c622d73,Rhodey,Maximof,Male,1959-09-23,611-56-5664,10746,Mutation Specialist Unit,Laser Vision Calibration
+64c3e7c7-194c-4094-bfea-cb75cd3f623e,Mary,Luison,Male,1984-07-23,591-25-4174,10045,Cosmic Ray Treatment Center,Power Malfunction
+ccb493f8-d4d7-4f36-9064-59994553673c,Dave,Hillmanson,Male,1982-09-04,442-09-5410,10638,Mutation Specialist Unit,Cosmic Ray Exposure
+42a7d58c-1407-4809-8776-dc7befba5b49,Frank,Tchallson,Female,1986-08-22,335-52-4845,10567,Trauma Center,Strength Enhancement Surgery
+ef193953-e249-49b6-9c96-18b1374f4c1c,Heimdall,Dillonson,Female,1965-08-12,631-73-4931,10415,Emergency Department,Flight Control Issue
+d49084b1-3c5e-4f0c-b935-edf21a8ab7d4,Samuel,Jonson,Female,2002-01-12,622-84-5280,10476,Alien Biology Department,Routine Super Physical
+9b7b1318-3b78-4ebd-8beb-3ace15ca57ab,Edwin,Cageman,Female,1965-03-23,676-11-4650,10527,Mutation Specialist Unit,Cosmic Ray Exposure
+f489ce7e-2420-42b4-8c97-6c787895e33e,Kamala,Castleman,Female,1970-02-26,827-26-2415,10025,Emergency Department,Strength Enhancement Surgery
+7ca1ef5c-fc35-436d-9c42-b6fa183a42cd,Howard,Thompson,Male,1990-11-10,425-81-9432,10199,Cosmic Ray Treatment Center,Routine Super Physical
+370c10c4-582d-4985-b14a-b2dfe62d890b,Odin,Bartonson,Male,1950-07-01,770-99-1747,10797,Cosmic Ray Treatment Center,Strength Enhancement Surgery
+bd56a6dc-25aa-4420-bd12-f2efdf5d9e35,Henry,Khans,Female,1954-07-04,571-32-1989,10467,Trauma Center,Routine Super Physical
+c5fbcd3e-2232-4f6d-8ded-0e359f3ff0b3,Maxwell,Kurtson,Female,1989-09-15,628-93-8271,10436,Alien Biology Department,Alien Parasite Removal
+31d8ab06-42b0-4cc1-b796-db08aa813f36,Wyatt,Starks,Female,1973-04-03,771-32-4544,10784,Alien Biology Department,Strength Enhancement Surgery
+fed503aa-640c-4371-9c1a-a2517e6b418e,Rhodey,Furyson,Male,1975-08-20,241-35-5503,10327,Intensive Care Unit,Alien Parasite Removal
+aa74ed35-6371-4fef-abd5-025daefd25bf,Jean,Murdoch,Female,1963-09-17,725-28-1053,10424,Cosmic Ray Treatment Center,Telepathy Headache
+066a9096-a418-4db7-9917-599a4a31ba3f,Darcy,Carterman,Female,1955-08-03,212-54-6382,10926,Emergency Department,Villain Encounter Trauma
+52bab545-2bcb-47c9-adde-1531dc9bd32c,Thane,Pymson,Male,1981-07-23,306-97-6390,10873,Cosmic Ray Treatment Center,Battle Injury
+a66a2eab-f4e7-480c-9af5-e7752d232fd6,Wyatt,Masterson,Male,1993-10-20,225-35-7141,10497,Emergency Department,Laser Vision Calibration
+c0c72156-09f4-4305-9236-d69d24a75c9e,Rocky,Dillonson,Female,1964-10-22,862-60-2092,10637,Emergency Department,Laser Vision Calibration
+36419911-08dc-4655-a901-f0a5bb299f73,Mae,Potterson,Male,1957-07-13,659-55-2224,10887,Alien Biology Department,Alien Parasite Removal
+fe11f381-9501-4430-8846-ca849d76aa9b,Natalia,Maximof,Female,1979-05-15,217-59-5356,10345,Cosmic Ray Treatment Center,Flight Control Issue
+606aa910-169a-4719-9a6a-3e07df43e723,Kamala,Heimdal,Female,1957-05-07,482-03-8838,10053,Mutation Specialist Unit,Strength Enhancement Surgery
+936290df-9636-476b-a5ca-9c9285e8a212,Otto,Bannerman,Male,1952-10-13,254-26-0334,10636,Trauma Center,Strength Enhancement Surgery
+f241ed3c-d707-4011-b976-3cda09ef62cc,Wade,Starks,Male,2000-08-06,224-60-4199,10785,Mutation Specialist Unit,Alien Parasite Removal
+b1479099-963e-41f9-bd74-7dd9251ecfee,Mary,Watkins,Male,1964-09-10,319-14-9482,10026,Super Powers Rehabilitation,Villain Encounter Trauma
+47d3df62-a644-4cd1-98ec-c21e824655c7,Edwin,Titanson,Female,1967-10-17,078-76-3979,10104,Super Powers Rehabilitation,Villain Encounter Trauma
+669c5f54-3e42-4912-b740-72c3a07032cc,Tyesha,Gordan,Male,1981-02-24,546-55-6072,10070,Mutation Specialist Unit,Power Malfunction
+9c02168a-5538-4d4d-8f65-9d8c28f41e19,Heimdall,VanDyke,Male,1988-11-22,371-82-7533,10724,Trauma Center,Laser Vision Calibration
+1d288e00-b0f1-4c63-a925-06a575639806,Henry,Richardson,Female,2005-04-04,829-69-7922,10476,Cosmic Ray Treatment Center,Villain Encounter Trauma
+62bcc0ba-5c34-4812-9c72-4aef045fa1a9,Vis,Wongson,Male,1957-10-10,286-58-3996,10768,Alien Biology Department,Villain Encounter Trauma
+33f87083-bd97-4af9-8e31-7713bb95ab02,Flash,Dillonson,Female,1980-03-07,030-64-5326,10186,Alien Biology Department,Strength Enhancement Surgery
+9d6f7b87-25bf-455d-80e6-a89e392fd3f1,Drax,Khans,Female,1980-07-14,287-77-4527,10569,Emergency Department,Battle Injury
+f6676d6d-88d5-45c3-b1d9-bad28260ba74,Caroline,Jordon,Male,1986-06-18,501-72-3938,10707,Alien Biology Department,Routine Super Physical
+95cc43d7-780a-4d81-98b5-54a3fda8f63c,Marie,Khans,Male,1958-05-08,302-29-6626,10708,Surgery Department,Flight Control Issue
+3ce63e7d-ed5d-4cfc-854f-41a4cc043e9e,Curtis,Rhoden,Female,1992-06-16,567-68-5633,10435,Mutation Specialist Unit,Telepathy Headache
+87a521f5-7f5f-4279-97f0-f7492a2c0c88,Susan,Coulsonson,Female,1977-07-05,258-30-1977,10738,Surgery Department,Telepathy Headache
+8181f370-5923-4bcf-9f2f-6cfd7b562450,Barb,Wingfield,Male,1967-03-09,222-95-7934,10283,Super Powers Rehabilitation,Cosmic Ray Exposure
+3c2bacda-efb0-4dbb-8bbd-3106d7931d88,Caroline,Barness,Male,1982-05-18,184-39-0232,10725,Trauma Center,Flight Control Issue
+12276966-5d8b-4cb1-bb57-b75e3e3cf9b3,Steven,Romano,Female,1961-04-30,654-97-8043,10105,Emergency Department,Villain Encounter Trauma
+6d1a897a-7180-41af-bb32-d8c7b3f9b035,Samuel,Starks,Female,1989-07-08,349-24-0842,10258,Alien Biology Department,Cosmic Ray Exposure
+f8d195cd-4730-4d3d-8888-22f97bd973b1,Bruce,Borson,Female,1956-08-24,591-81-0879,10155,Trauma Center,Villain Encounter Trauma
+93d514e5-5614-442f-aa61-29bda519ce54,Tchalla,Jordon,Male,1960-08-17,572-98-6819,10620,Surgery Department,Battle Injury
+3573a679-f0c5-4c46-b643-098c1766ae2d,Thane,Hillman,Female,1976-09-04,882-76-7026,10312,Emergency Department,Villain Encounter Trauma
+d1bea80e-cd9d-4fb6-b214-160cccc4620d,Alicia,Curryman,Male,2006-02-12,217-34-1331,10160,Surgery Department,Alien Parasite Removal
+a2564e71-2306-4b69-801c-ed7da5e7c5ae,Erik,Allenby,Male,1950-03-29,419-58-9730,10481,Super Powers Rehabilitation,Power Malfunction
+61b19221-9e9f-4773-8c23-ab5b95e04b98,Matthew,Wilkins,Female,1990-09-25,073-88-3825,10946,Super Powers Rehabilitation,Villain Encounter Trauma
+1e47f7d5-2220-45ac-97e7-3aaa3fd05360,Curtis,Khans,Male,1988-02-21,118-70-3684,10663,Trauma Center,Flight Control Issue
+af5e4acc-bff3-497c-8142-e86a795a9999,Scotty,Allenby,Male,1964-11-19,813-40-9750,10766,Super Powers Rehabilitation,Routine Super Physical
+db2f0bde-20d2-414d-8b57-74d6591c413e,Barb,Carterman,Female,1986-02-10,279-65-8848,10505,Alien Biology Department,Cosmic Ray Exposure
+bccae4e4-047b-46de-82f2-201e270bc108,Ned,Rodgers,Female,1978-12-01,619-33-0424,10093,Surgery Department,Villain Encounter Trauma
+99d4f02e-42de-47d7-9b0c-9505d14dabce,Mae,Princess,Female,2001-09-12,042-98-2871,10481,Alien Biology Department,Flight Control Issue
+9e1e3163-0129-4682-ae5e-2315f8670fad,Bobby,Rhoden,Female,2006-12-13,835-63-1495,10481,Mutation Specialist Unit,Laser Vision Calibration
