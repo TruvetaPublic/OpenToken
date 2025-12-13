@@ -27,17 +27,17 @@ Help two organizations figure out which records refer to the same person, **with
 
 One important detail: because tokens are encrypted with random “salt” each time, the encrypted token strings will **not** match across independent runs. The matching step decrypts tokens to a consistent, one-way fingerprint (a hash) that can be compared for equality. This does **not** reveal the original names or IDs.
 
-> **Important demo disclaimer:** This example uses fully synthetic data and example secrets that are safe for illustration only. Never reuse these keys or patterns in production. Real deployments must use proper key management (for example, KMS or HSM), strict access controls around decryption and matching, and clear governance over who can run linkage jobs and how results are used.
+> **Important demo disclaimer:** This example uses fully synthetic data and example secrets that are safe for illustration only. Never reuse these keys or patterns in production. Real deployments must use proper key management, strict access controls around decryption and matching, and clear governance over who can run linkage jobs and how results are used.
 
 ## Who does what (roles)
 
-This demo involves three roles. In real deployments, the “Matcher” is often a trusted service or third party that runs in a more controlled environment.
+This demo describes three logical roles. In real deployments, matching can run inside one of the organizations, in a jointly operated environment, or (optionally) in a separate trusted third-party service; OpenToken does not require a third-party matcher.
 
-| Role                                                 | What they hold                                       | What they share                                   | Needs hashing secret?                              | Needs encryption key?                  |
-| ---------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------- | -------------------------------------- |
-| Hospital                                             | Raw hospital dataset (identifiers + hospital fields) | Encrypted tokens + metadata                       | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
-| Pharmacy                                             | Raw pharmacy dataset (identifiers + pharmacy fields) | Encrypted tokens + metadata                       | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
-| Matcher (trusted third party or trusted environment) | The two token files (and match results)              | Match results (record IDs + which tokens matched) | No (matching compares decrypted fingerprints)      | Yes (to decrypt tokens for comparison) |
+| Role                                       | What they hold                                       | What they share                                   | Needs hashing secret?                              | Needs encryption key?                  |
+| ------------------------------------------ | ---------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------- | -------------------------------------- |
+| Hospital                                   | Raw hospital dataset (identifiers + hospital fields) | Encrypted tokens + metadata                       | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
+| Pharmacy                                   | Raw pharmacy dataset (identifiers + pharmacy fields) | Encrypted tokens + metadata                       | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
+| Matcher (optional shared environment role) | The two token files (and match results)              | Match results (record IDs + which tokens matched) | No (matching compares decrypted fingerprints)      | Yes (to decrypt tokens for comparison) |
 
 Why “decrypting to compare” does **not** reveal raw identifiers:
 
@@ -79,6 +79,7 @@ Matcher (trusted environment)
 
 - Two organizations can create encrypted tokens from identifiers and share only those tokens for linkage.
 - A trusted matching step can decrypt tokens back to one-way fingerprints and compare them to find overlaps.
+- Matching can be performed by the data owners themselves in a shared trusted environment; using a separate third-party matcher is an optional deployment choice, not a requirement.
 - You get a simple, auditable output: which record IDs match between the two datasets.
 
 ### What it does not demonstrate (limitations)
@@ -92,7 +93,7 @@ Matcher (trusted environment)
 ### Next steps
 
 - Try threshold matching (for example, require 4 out of 5 tokens to match) and then do clerical review for borderline pairs.
-- Add real-world key management: keep secrets in a key management system (KMS) or hardware security module (HSM), or use a trusted third party (TTP) to operate the matcher.
+- Add real-world key management: keep secrets in a key management system (KMS) or hardware security module (HSM), or, if desired, use a trusted third party (TTP) to operate the matcher.
 - Define governance: who is allowed to decrypt, where matching runs, how long outputs are kept, and what gets audited.
 
 - [Privacy-Preserving Record Linkage (PPRL) Demonstration](#privacy-preserving-record-linkage-pprl-demonstration)
@@ -420,7 +421,7 @@ For matching: We decrypt to the HMAC layer, which is deterministic and comparabl
 
 In production PPRL systems:
 
-1. **Trusted Third Party (TTP)**: A neutral organization holds decryption keys and performs matching
+1. **Trusted Third Party (TTP) (optional)**: A neutral organization holds decryption keys and performs matching on behalf of the parties
 2. **Secure Multi-Party Computation (SMPC)**: Advanced protocols for matching without any party seeing decrypted tokens
 3. **Hardware Security Modules (HSMs)**: Store keys in tamper-resistant hardware
 4. **Differential Privacy**: Add noise to matching statistics to prevent re-identification
@@ -437,7 +438,7 @@ OpenToken uses AES-GCM encryption with a fresh random IV for each token, so encr
 
 ### Who should be allowed to decrypt?
 
-Only a tightly controlled, trusted environment (such as a matcher service, TTP, or secured internal job) should hold the decryption key. The parties that generate tokens may or may not keep decryption capability themselves, depending on governance and risk appetite. A good rule of thumb is least privilege: the fewer systems and people that can decrypt, the better.
+Only a tightly controlled, trusted environment should hold the decryption key; this can be a matcher service run by one of the organizations, a jointly operated job, or (optionally) a TTP. The parties that generate tokens may or may not keep decryption capability themselves, depending on governance and risk appetite. A good rule of thumb is least privilege: the fewer systems and people that can decrypt, the better.
 
 ### What happens with typos or missing fields?
 
