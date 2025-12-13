@@ -27,15 +27,17 @@ Help two organizations figure out which records refer to the same person, **with
 
 One important detail: because tokens are encrypted with random “salt” each time, the encrypted token strings will **not** match across independent runs. The matching step decrypts tokens to a consistent, one-way fingerprint (a hash) that can be compared for equality. This does **not** reveal the original names or IDs.
 
+> **Important demo disclaimer:** This example uses fully synthetic data and example secrets that are safe for illustration only. Never reuse these keys or patterns in production. Real deployments must use proper key management (for example, KMS or HSM), strict access controls around decryption and matching, and clear governance over who can run linkage jobs and how results are used.
+
 ## Who does what (roles)
 
 This demo involves three roles. In real deployments, the “Matcher” is often a trusted service or third party that runs in a more controlled environment.
 
-| Role | What they hold | What they share | Needs hashing secret? | Needs encryption key? |
-| --- | --- | --- | --- | --- |
-| Hospital | Raw hospital dataset (identifiers + hospital fields) | Encrypted tokens + metadata | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
-| Pharmacy | Raw pharmacy dataset (identifiers + pharmacy fields) | Encrypted tokens + metadata | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
-| Matcher (trusted third party or trusted environment) | The two token files (and match results) | Match results (record IDs + which tokens matched) | No (matching compares decrypted fingerprints) | Yes (to decrypt tokens for comparison) |
+| Role                                                 | What they hold                                       | What they share                                   | Needs hashing secret?                              | Needs encryption key?                  |
+| ---------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------- | -------------------------------------- |
+| Hospital                                             | Raw hospital dataset (identifiers + hospital fields) | Encrypted tokens + metadata                       | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
+| Pharmacy                                             | Raw pharmacy dataset (identifiers + pharmacy fields) | Encrypted tokens + metadata                       | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
+| Matcher (trusted third party or trusted environment) | The two token files (and match results)              | Match results (record IDs + which tokens matched) | No (matching compares decrypted fingerprints)      | Yes (to decrypt tokens for comparison) |
 
 Why “decrypting to compare” does **not** reveal raw identifiers:
 
@@ -122,6 +124,7 @@ Matcher (trusted environment)
     - [What is Shared](#what-is-shared)
     - [Security Best Practices](#security-best-practices)
     - [Real-World Deployment Considerations](#real-world-deployment-considerations)
+  - [FAQ](#faq)
   - [File Structure](#file-structure)
   - [Customization](#customization)
     - [Changing Dataset Size](#changing-dataset-size)
@@ -300,10 +303,10 @@ This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (t
 
     Each row is one token for one record. Each record should have 5 rows (T1–T5).
 
-    | Column | Description |
-    | --- | --- |
-    | RuleId | Token type (T1, T2, T3, T4, or T5) |
-    | Token | Encrypted token value (Base64-encoded text) |
+    | Column   | Description                                    |
+    | -------- | ---------------------------------------------- |
+    | RuleId   | Token type (T1, T2, T3, T4, or T5)             |
+    | Token    | Encrypted token value (Base64-encoded text)    |
     | RecordId | The original record ID from the source dataset |
 
 1. **Metadata JSON files** (created alongside tokenization)
@@ -320,12 +323,12 @@ This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (t
 
     `matching_records.csv` has one row per matching pair:
 
-    | Column | Description |
-    | --- | --- |
-    | HospitalRecordId | Record ID from the hospital dataset |
-    | PharmacyRecordId | Record ID from the pharmacy dataset |
-    | MatchingTokens | Which tokens matched (for strict matching: `T1\|T2\|T3\|T4\|T5`) |
-    | TokenCount | Number of matching tokens (for strict matching: `5`) |
+    | Column           | Description                                                      |
+    | ---------------- | ---------------------------------------------------------------- |
+    | HospitalRecordId | Record ID from the hospital dataset                              |
+    | PharmacyRecordId | Record ID from the pharmacy dataset                              |
+    | MatchingTokens   | Which tokens matched (for strict matching: `T1\|T2\|T3\|T4\|T5`) |
+    | TokenCount       | Number of matching tokens (for strict matching: `5`)             |
 
 ### Simple checks you can do (no special tools)
 
@@ -421,6 +424,24 @@ In production PPRL systems:
 2. **Secure Multi-Party Computation (SMPC)**: Advanced protocols for matching without any party seeing decrypted tokens
 3. **Hardware Security Modules (HSMs)**: Store keys in tamper-resistant hardware
 4. **Differential Privacy**: Add noise to matching statistics to prevent re-identification
+
+## FAQ
+
+### Can you reverse the tokens to get names or SSNs?
+
+No – the design is intentionally one-way. Even after decryption, you only see a deterministic HMAC-SHA256 fingerprint of the normalized identifiers, not the original names or SSNs. In practice, re-identification would require both key compromise and additional side information, which is why strong key management and governance are critical in real deployments.
+
+### Why do encrypted tokens differ between runs?
+
+OpenToken uses AES-GCM encryption with a fresh random IV for each token, so encrypting the same fingerprint twice produces different ciphertexts. This prevents attackers from learning when two encrypted values are the same just by looking at the bytes. Under the hood, the deterministic HMAC fingerprint is the same for identical input, which is what the matcher compares after decryption.
+
+### Who should be allowed to decrypt?
+
+Only a tightly controlled, trusted environment (such as a matcher service, TTP, or secured internal job) should hold the decryption key. The parties that generate tokens may or may not keep decryption capability themselves, depending on governance and risk appetite. A good rule of thumb is least privilege: the fewer systems and people that can decrypt, the better.
+
+### What happens with typos or missing fields?
+
+This demo uses exact-match tokens built from normalized values, so typos, nicknames, or missing attributes usually lead to different fingerprints and therefore no match. In other words, if a key field changes, the corresponding token changes and the pair will be treated as non-matching. Production systems often add more robust strategies on top of this (such as alternate token definitions, phonetic encodings, or "4 out of 5" token thresholds) to handle real-world data quality.
 
 ## File Structure
 
