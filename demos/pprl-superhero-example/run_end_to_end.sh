@@ -23,7 +23,7 @@ OUTPUTS_DIR="${DEMO_DIR}/outputs"
 JAVA_DIR="${PROJECT_ROOT}/lib/java/opentoken"
 VENV_ACTIVATE="${PROJECT_ROOT}/.venv/bin/activate"
 
-# Keys (keep in sync with tokenize_datasets.sh and analyze_overlap.py)
+# Keys (keep in sync with tokenization scripts and analyze_overlap.py)
 HASHING_SECRET="SuperHeroHashingKey2024"
 ENCRYPTION_KEY="SuperHero-Encryption-Key-32chars" # Must be exactly 32 characters
 
@@ -59,8 +59,10 @@ echo ""
 
 # Step 2: Tokenize datasets (builds Java if needed)
 echo -e "${BLUE}Step 2/3: Tokenizing datasets with OpenToken...${NC}"
-chmod +x "${DEMO_DIR}/scripts/tokenize_datasets.sh" || true
-"${DEMO_DIR}/scripts/tokenize_datasets.sh"
+chmod +x "${DEMO_DIR}/scripts/tokenize_hospital.sh" || true
+chmod +x "${DEMO_DIR}/scripts/tokenize_pharmacy.sh" || true
+"${DEMO_DIR}/scripts/tokenize_hospital.sh"
+"${DEMO_DIR}/scripts/tokenize_pharmacy.sh"
 echo ""
 
 # Step 3: Analyze overlap (decrypt + compare)

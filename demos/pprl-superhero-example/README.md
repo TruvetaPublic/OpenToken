@@ -2,6 +2,8 @@
 
 This demonstration shows how to use OpenToken for privacy-preserving record linkage between two organizations sharing patient data.
 
+For a step-by-step walkthrough, start with the Jupyter notebook: [PPRL_Superhero_Demo.ipynb](PPRL_Superhero_Demo.ipynb). You can also run the full demo end-to-end with `./run_end_to_end.sh`.
+
 ## Table of Contents <!-- omit in toc -->
 
 - [Overview](#overview)
@@ -185,6 +187,19 @@ This demonstration shows how to properly compare tokens from two organizations t
 
 ### Quick Start Guide <!-- omit in toc -->
 
+### Notebook walkthrough (recommended) <!-- omit in toc -->
+
+For a step-by-step walkthrough, start with the Jupyter notebook:
+
+- Open [PPRL_Superhero_Demo.ipynb](PPRL_Superhero_Demo.ipynb)
+- Run the cells from top to bottom
+
+The notebook walks through dataset generation, tokenization, and overlap analysis (including an example of relaxing the match policy).
+
+### End-to-end script (one command) <!-- omit in toc -->
+
+If you want to run the same demo end-to-end without the notebook, use the script below.
+
 ### Run End-to-End (one command, recommended) <!-- omit in toc -->
 
 ```bash
@@ -219,11 +234,16 @@ This creates:
 Each organization tokenizes their own dataset independently:
 
 ```bash
-chmod +x scripts/tokenize_datasets.sh
-./scripts/tokenize_datasets.sh
+chmod +x scripts/tokenize_hospital.sh scripts/tokenize_pharmacy.sh
+
+# Hospital tokenizes hospital data
+./scripts/tokenize_hospital.sh
+
+# Pharmacy tokenizes pharmacy data
+./scripts/tokenize_pharmacy.sh
 ```
 
-This script simulates two separate tokenization processes:
+These scripts simulate two separate tokenization processes:
 
 1. **Hospital tokenizes their dataset** → `outputs/hospital_tokens.csv`
 2. **Pharmacy tokenizes their dataset** → `outputs/pharmacy_tokens.csv`
@@ -407,15 +427,6 @@ For matching: We decrypt to the HMAC layer, which is deterministic and comparabl
    - Perform matching in secure, isolated environments
    - Delete tokens after matching is complete (per agreement)
 
-### Real-World Deployment Considerations <!-- omit in toc -->
-
-In production PPRL systems:
-
-1. **Trusted Third Party (TTP) (optional)**: A neutral organization can hold decryption keys and perform matching on behalf of the parties
-2. **Secure Multi-Party Computation (SMPC)**: Advanced protocols for matching without any party seeing decrypted tokens
-3. **Hardware Security Modules (HSMs)**: Store keys in tamper-resistant hardware
-4. **Differential Privacy**: Add noise to matching statistics to prevent re-identification
-
 ### FAQ <!-- omit in toc -->
 
 ### Can you reverse the tokens to get names or SSNs? <!-- omit in toc -->
@@ -428,7 +439,7 @@ OpenToken uses AES-GCM encryption with a fresh random IV for each token, so encr
 
 ### Who should be allowed to decrypt? <!-- omit in toc -->
 
-Only a tightly controlled, trusted environment should hold the decryption key. In this demo, assume the hospital has access to the decryption key so it can run the overlap analysis. In production, you typically restrict decryption to a minimal set of systems (run by one party, jointly operated, or optionally a TTP), following least privilege.
+Only a tightly controlled, trusted environment should hold the decryption key. In this demo, assume the hospital has access to the decryption key so it can run the overlap analysis. In production, you typically restrict decryption to a minimal set of systems (run by one party, jointly operated), following least privilege.
 
 ### What happens with typos or missing fields? <!-- omit in toc -->
 
@@ -445,13 +456,15 @@ pprl-superhero-example/
 │   └── pharmacy_superhero_data.csv
 ├── scripts/                           # Individual scripts for demo
 │   ├── generate_superhero_datasets.py # Generate test data
-│   ├── tokenize_datasets.sh          # Tokenize both datasets
+│   ├── tokenize_hospital.sh           # Tokenize hospital dataset
+│   ├── tokenize_pharmacy.sh           # Tokenize pharmacy dataset
+│   ├── tokenize_datasets.sh           # Wrapper (calls both scripts)
 │   └── analyze_overlap.py            # Analyze overlaps
 └── outputs/                           # Tokenization outputs
     ├── hospital_tokens.csv
-  ├── hospital_tokens.metadata.json
+    ├── hospital_tokens.metadata.json
     ├── pharmacy_tokens.csv
-  ├── pharmacy_tokens.metadata.json
+    ├── pharmacy_tokens.metadata.json
     └── matching_records.csv
 ```
 
@@ -471,7 +484,10 @@ overlap_percentage = 0.30  # 30% overlap
 
 ### Using Different Secrets <!-- omit in toc -->
 
-Edit `tokenize_datasets.sh`:
+Edit both tokenization scripts (and keep them identical across parties):
+
+- `scripts/tokenize_hospital.sh`
+- `scripts/tokenize_pharmacy.sh`
 
 ```bash
 HASHING_SECRET="YourCustomHashingKey"
