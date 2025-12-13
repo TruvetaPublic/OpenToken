@@ -76,6 +76,20 @@ def load_metadata(json_file):
         return None
 
 
+def load_metadata_any(json_files):
+    """Load the first metadata JSON file that exists.
+
+    This demo historically used two naming conventions:
+    - <output>.metadata.json
+    - <output>.csv.metadata.json
+    """
+    for json_file in json_files:
+        metadata = load_metadata(json_file)
+        if metadata is not None:
+            return metadata
+    return None
+
+
 def find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=5):
     """
     Find matching records between hospital and pharmacy datasets.
@@ -93,18 +107,23 @@ def find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=5):
     
     for hospital_id, hospital_token_set in hospital_tokens.items():
         for pharmacy_id, pharmacy_token_set in pharmacy_tokens.items():
-            # Count matching tokens
-            matching_tokens = []
-            for token_id in token_ids:
-                if token_id in hospital_token_set and token_id in pharmacy_token_set:
-                    if hospital_token_set[token_id] == pharmacy_token_set[token_id]:
-                        matching_tokens.append(token_id)
-            
-            # Check if we have enough matching tokens
+            matching_tokens = _matching_token_ids(token_ids, hospital_token_set, pharmacy_token_set)
+
             if len(matching_tokens) >= required_token_matches:
                 matches.append((hospital_id, pharmacy_id, matching_tokens))
     
     return matches
+
+
+def _matching_token_ids(token_ids, hospital_token_set, pharmacy_token_set):
+    """Return token IDs whose decrypted values match across two records."""
+    return [
+        token_id
+        for token_id in token_ids
+        if token_id in hospital_token_set
+        and token_id in pharmacy_token_set
+        and hospital_token_set[token_id] == pharmacy_token_set[token_id]
+    ]
 
 
 def analyze_token_distribution(tokens, dataset_name):
@@ -122,7 +141,7 @@ def analyze_token_distribution(tokens, dataset_name):
     print()
 
 
-def print_match_summary(matches, hospital_tokens, pharmacy_tokens):
+def print_match_summary(matches):
     """Print a summary of matching results."""
     print("=" * 70)
     print("MATCH SUMMARY")
@@ -220,8 +239,14 @@ def main():
     # File paths
     hospital_tokens_file = str(outputs_dir / 'hospital_tokens.csv')
     pharmacy_tokens_file = str(outputs_dir / 'pharmacy_tokens.csv')
-    hospital_metadata_file = str(outputs_dir / 'hospital_tokens.csv.metadata.json')
-    pharmacy_metadata_file = str(outputs_dir / 'pharmacy_tokens.csv.metadata.json')
+    hospital_metadata_files = [
+        str(outputs_dir / 'hospital_tokens.metadata.json'),
+        str(outputs_dir / 'hospital_tokens.csv.metadata.json'),
+    ]
+    pharmacy_metadata_files = [
+        str(outputs_dir / 'pharmacy_tokens.metadata.json'),
+        str(outputs_dir / 'pharmacy_tokens.csv.metadata.json'),
+    ]
     matches_output_file = str(outputs_dir / 'matching_records.csv')
     
     # Load and decrypt tokens
@@ -241,7 +266,7 @@ def main():
     matches = find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=5)
     
     # Print match summary
-    print_match_summary(matches, hospital_tokens, pharmacy_tokens)
+    print_match_summary(matches)
     
     # Save matches to CSV
     if matches:
@@ -249,8 +274,8 @@ def main():
         print()
     
     # Load and print metadata
-    hospital_metadata = load_metadata(hospital_metadata_file)
-    pharmacy_metadata = load_metadata(pharmacy_metadata_file)
+    hospital_metadata = load_metadata_any(hospital_metadata_files)
+    pharmacy_metadata = load_metadata_any(pharmacy_metadata_files)
     print_metadata_summary(hospital_metadata, pharmacy_metadata)
     
     # Calculate overlap percentage

@@ -2,21 +2,117 @@
 
 This demonstration shows how to use OpenToken for privacy-preserving record linkage between two organizations sharing patient data.
 
+## 5-minute explanation
+
+### Goal
+
+Help two organizations figure out which records refer to the same person, **without exchanging raw identifiers** (like names or Social Security Numbers).
+
+### What gets shared
+
+- **Encrypted tokens**: Random-looking strings generated from identifiers. These are safe to share and store for matching.
+- **Match results**: A list of matching record IDs (e.g., which hospital record matches which pharmacy record).
+- **Metadata**: Counts and run information (and hashes of the secrets), but not the secrets themselves.
+
+### What never gets shared
+
+- Raw identifiers from the source data (names, birth dates, Social Security Numbers, postal codes).
+- The secret keys in any public place. (This demo uses example keys for convenience; real deployments must manage keys securely.)
+
+### What you should expect to see after running the demo
+
+- Two synthetic CSV datasets created under `datasets/`.
+- Two token CSV files under `outputs/` (one per organization), plus metadata JSON files.
+- A `matching_records.csv` file with about **40 matching pairs**.
+
+One important detail: because tokens are encrypted with random “salt” each time, the encrypted token strings will **not** match across independent runs. The matching step decrypts tokens to a consistent, one-way fingerprint (a hash) that can be compared for equality. This does **not** reveal the original names or IDs.
+
+## Who does what (roles)
+
+This demo involves three roles. In real deployments, the “Matcher” is often a trusted service or third party that runs in a more controlled environment.
+
+| Role | What they hold | What they share | Needs hashing secret? | Needs encryption key? |
+| --- | --- | --- | --- | --- |
+| Hospital | Raw hospital dataset (identifiers + hospital fields) | Encrypted tokens + metadata | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
+| Pharmacy | Raw pharmacy dataset (identifiers + pharmacy fields) | Encrypted tokens + metadata | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
+| Matcher (trusted third party or trusted environment) | The two token files (and match results) | Match results (record IDs + which tokens matched) | No (matching compares decrypted fingerprints) | Yes (to decrypt tokens for comparison) |
+
+Why “decrypting to compare” does **not** reveal raw identifiers:
+
+- The encrypted token contains an encrypted, one-way fingerprint (a deterministic HMAC hash) of the identifiers after normalization.
+- Decrypting a token reveals that fingerprint, which is useful for checking **equality** (same person attributes → same fingerprint), but it does not contain the original names/SSNs/birth dates.
+- The party that can decrypt tokens can still learn **which records match** across datasets. That is the point of record linkage, and it’s why decryption should happen only in a trusted environment.
+
+## Flow diagram and glossary
+
+### Flow diagram (what happens to the data)
+
+```text
+Hospital/Pharmacy (separately)
+  Raw identifiers (name, DOB, SSN, etc.)
+    → Normalize (standardize formatting)
+    → HMAC (one-way fingerprint; deterministic)
+    → Encrypt (random IV; produces different ciphertext each run)
+    → Share encrypted tokens
+
+Matcher (trusted environment)
+  Encrypted tokens from both organizations
+    → Decrypt (back to the HMAC fingerprint)
+    → Compare fingerprints (equality check)
+    → Output matches (record IDs that link)
+```
+
+### Glossary (quick definitions)
+
+- **Token**: A privacy-preserving stand-in for identifiers. In this demo, the token you share is an encrypted value.
+- **Normalization**: Cleaning/standardizing input so the same real-world value formats consistently (e.g., casing, whitespace).
+- **Hash / HMAC**: A one-way “fingerprint” of data. HMAC is keyed (it uses a secret) so only parties with the secret can create the same fingerprint.
+- **Encryption**: Scrambling data so only someone with the key can recover what was encrypted.
+- **IV (initialization vector)**: Random value used during encryption so encrypting the same thing twice produces different encrypted outputs.
+- **Deterministic vs. randomized**: Deterministic means “same input → same output” (the HMAC layer). Randomized means “same input → different output each run” (the encryption layer because of the IV).
+
+## What this demo demonstrates (and what it does not)
+
+### What it demonstrates
+
+- Two organizations can create encrypted tokens from identifiers and share only those tokens for linkage.
+- A trusted matching step can decrypt tokens back to one-way fingerprints and compare them to find overlaps.
+- You get a simple, auditable output: which record IDs match between the two datasets.
+
+### What it does not demonstrate (limitations)
+
+- **Exact-match linkage**: This demo treats records as a match only when the required token set matches exactly.
+- **Clean, synthetic data**: The datasets are synthetic and intentionally constructed to have a known overlap.
+- **Shared secrets assumption**: The demo assumes both organizations use the same hashing secret and encryption key.
+- **No typo tolerance**: If identifiers differ (typos, nicknames, missing fields), tokens may not match.
+- **Not SMPC**: This is not secure multi-party computation; the matcher decrypts tokens inside a trusted environment.
+
+### Next steps
+
+- Try threshold matching (for example, require 4 out of 5 tokens to match) and then do clerical review for borderline pairs.
+- Add real-world key management: keep secrets in a key management system (KMS) or hardware security module (HSM), or use a trusted third party (TTP) to operate the matcher.
+- Define governance: who is allowed to decrypt, where matching runs, how long outputs are kept, and what gets audited.
+
 - [Privacy-Preserving Record Linkage (PPRL) Demonstration](#privacy-preserving-record-linkage-pprl-demonstration)
+  - [5-minute explanation](#5-minute-explanation)
+  - [Who does what (roles)](#who-does-what-roles)
+  - [Flow diagram and glossary](#flow-diagram-and-glossary)
+  - [What this demo demonstrates (and what it does not)](#what-this-demo-demonstrates-and-what-it-does-not)
   - [Scenario](#scenario)
   - [Dataset Overview](#dataset-overview)
   - [How OpenToken Works](#how-opentoken-works)
     - [Important Note About Token Comparison](#important-note-about-token-comparison)
   - [Prerequisites](#prerequisites)
   - [Quick Start Guide](#quick-start-guide)
-    - [Step 1: Generate Datasets](#step-1-generate-datasets)
-    - [Step 2: Tokenize the Data](#step-2-tokenize-the-data)
-    - [Step 3: Measure Overlap](#step-3-measure-overlap)
+    - [Run End-to-End (one command, recommended)](#run-end-to-end-one-command-recommended)
+    - [What the script does (step-by-step)](#what-the-script-does-step-by-step)
+      - [Step 1: Generate Datasets](#step-1-generate-datasets)
+      - [Step 2: Tokenize the Data](#step-2-tokenize-the-data)
+      - [Step 3: Measure Overlap](#step-3-measure-overlap)
   - [Expected Results](#expected-results)
   - [Understanding the Output](#understanding-the-output)
-    - [Token Files](#token-files)
-    - [Metadata Files](#metadata-files)
-    - [Matching Results](#matching-results)
+    - [Step-by-step: what files are created](#step-by-step-what-files-are-created)
+    - [Simple checks you can do (no special tools)](#simple-checks-you-can-do-no-special-tools)
   - [Understanding Token Decryption in PPRL](#understanding-token-decryption-in-pprl)
     - [Why Decryption is Necessary](#why-decryption-is-necessary)
     - [The Solution](#the-solution)
@@ -73,6 +169,7 @@ OpenToken generates 5 different tokens (T1-T5) for each patient using different 
 > **Note**: U(X) means uppercase(X), and attribute-N means taking the first N characters
 
 Each token is:
+
 1. Normalized (standardized format)
 2. Hashed with HMAC-SHA256
 3. Encrypted with AES-256-GCM (with random IV for security)
@@ -98,7 +195,7 @@ This demonstration shows how to properly compare tokens from two organizations t
 
 ## Quick Start Guide
 
-### Run End-to-End (one command)
+### Run End-to-End (one command, recommended)
 
 ```bash
 cd demos/pprl-superhero-example
@@ -108,45 +205,54 @@ chmod +x run_end_to_end.sh
 
 This runs dataset generation, tokenization (building Java if needed), and overlap analysis.
 
-### Step 1: Generate Datasets
+### What the script does (step-by-step)
+
+You can also run the same three steps manually. These commands assume you are in the demo directory:
 
 ```bash
-cd scripts
-python generate_superhero_datasets.py
+cd demos/pprl-superhero-example
+```
+
+#### Step 1: Generate Datasets
+
+```bash
+python scripts/generate_superhero_datasets.py
 ```
 
 This creates:
+
 - `datasets/hospital_superhero_data.csv` (100 records)
 - `datasets/pharmacy_superhero_data.csv` (120 records with 40 overlapping)
 
-### Step 2: Tokenize the Data
+#### Step 2: Tokenize the Data
 
 Each organization tokenizes their own dataset independently:
 
 ```bash
-cd scripts
-chmod +x tokenize_datasets.sh
-./tokenize_datasets.sh
+chmod +x scripts/tokenize_datasets.sh
+./scripts/tokenize_datasets.sh
 ```
 
 This script simulates two separate tokenization processes:
+
 1. **Hospital tokenizes their dataset** → `outputs/hospital_tokens.csv`
 2. **Pharmacy tokenizes their dataset** → `outputs/pharmacy_tokens.csv`
 3. Metadata files are created for both datasets
 
 **Critical Requirements**:
+
 - Both organizations must use the **same hashing and encryption keys**
 - Keys must be shared securely between organizations before tokenization
 - In production, use strong keys and secure key exchange protocols
 
-### Step 3: Measure Overlap
+#### Step 3: Measure Overlap
 
 ```bash
-cd scripts
-python analyze_overlap.py
+python scripts/analyze_overlap.py
 ```
 
 This script performs the record linkage analysis:
+
 1. **Loads** encrypted tokens from both datasets
 2. **Decrypts** tokens to get the underlying HMAC-SHA256 hashes
    - Decryption is necessary because OpenToken uses random IVs for encryption
@@ -162,7 +268,7 @@ This script performs the record linkage analysis:
 
 After running the analysis, you should see:
 
-```
+```text
 MATCH SUMMARY
 ======================================================================
 Total matching record pairs: 40
@@ -178,44 +284,54 @@ Pharmacy records with matches: 40 out of 120 (33.3%)
 
 ## Understanding the Output
 
-### Token Files
+This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (tokens, metadata, and match results). You can open the CSV files in any spreadsheet tool or text editor.
 
-The tokenized CSV files (`hospital_tokens.csv`, `pharmacy_tokens.csv`) contain:
+### Step-by-step: what files are created
 
-| Column   | Description                                    |
-| -------- | ---------------------------------------------- |
-| RecordId | Original record identifier from source dataset |
-| TokenId  | Token type (T1, T2, T3, T4, or T5)             |
-| Token    | Encrypted token value (Base64-encoded)         |
+1. **Raw synthetic datasets** (created by the data generation step)
 
-Example:
-```csv
-RecordId,TokenId,Token
-891dda6c-961f-4154-8541-b48fe18ee620,T1,Gn7t1Zj16E5Qy+z9iINtczP6fRDYta6C0XFr...
-891dda6c-961f-4154-8541-b48fe18ee620,T2,pUxPgYL9+cMxkA+8928Pil+9W+dm9kISwHYP...
-```
+    - `datasets/hospital_superhero_data.csv`: The hospital’s source dataset (includes identifiers + hospital fields).
+    - `datasets/pharmacy_superhero_data.csv`: The pharmacy’s source dataset (includes identifiers + pharmacy fields).
 
-Each record generates 5 rows (one per token type).
+1. **Encrypted token files** (created by the tokenization step)
 
-### Metadata Files
+    - `outputs/hospital_tokens.csv`
+    - `outputs/pharmacy_tokens.csv`
 
-The metadata JSON files contain:
-- Total records processed
-- Valid/invalid record counts
-- Processing timestamp
-- Library version
-- SHA-256 hashes of the secrets used (not the secrets themselves)
+    Each row is one token for one record. Each record should have 5 rows (T1–T5).
 
-### Matching Results
+    | Column | Description |
+    | --- | --- |
+    | RuleId | Token type (T1, T2, T3, T4, or T5) |
+    | Token | Encrypted token value (Base64-encoded text) |
+    | RecordId | The original record ID from the source dataset |
 
-`matching_records.csv` shows which records match:
+1. **Metadata JSON files** (created alongside tokenization)
 
-| Column           | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| HospitalRecordId | Record ID from hospital dataset                   |
-| PharmacyRecordId | Record ID from pharmacy dataset                   |
-| MatchingTokens   | Which tokens matched (e.g., "T1\|T2\|T3\|T4\|T5") |
-| TokenCount       | Number of matching tokens (should be 5)           |
+    - `outputs/hospital_tokens.metadata.json`
+    - `outputs/pharmacy_tokens.metadata.json`
+
+    These include counts (processed/valid/invalid), a timestamp/version, and SHA-256 hashes of the secrets used (but not the secrets themselves).
+
+1. **Matching results** (created by the overlap analysis step)
+
+    - `outputs/matching_records.csv`: The strict match results (expects all 5 tokens to match).
+    - `outputs/matching_records_alt.csv`: An alternate match output (if you run a relaxed rule set).
+
+    `matching_records.csv` has one row per matching pair:
+
+    | Column | Description |
+    | --- | --- |
+    | HospitalRecordId | Record ID from the hospital dataset |
+    | PharmacyRecordId | Record ID from the pharmacy dataset |
+    | MatchingTokens | Which tokens matched (for strict matching: `T1\|T2\|T3\|T4\|T5`) |
+    | TokenCount | Number of matching tokens (for strict matching: `5`) |
+
+### Simple checks you can do (no special tools)
+
+1. Open `outputs/hospital_tokens.csv` and pick a `RecordId`. You should see 5 rows for that `RecordId`, with `RuleId` values `T1` through `T5`.
+2. Re-run the demo and compare any one `Token` value for the same `RecordId` and `RuleId`: the encrypted `Token` text should change between runs (because encryption is randomized).
+3. Open `outputs/matching_records.csv`: you should see about **40** rows, and most (or all) rows should have `TokenCount` = `5`.
 
 ## Understanding Token Decryption in PPRL
 
@@ -236,8 +352,9 @@ To enable record linkage across independently tokenized datasets:
 3. **Important**: Decryption only reveals the hash, NOT the original patient data
 
 **Example**:
-```
-Hospital encrypts: 
+
+```text
+Hospital encrypts:
   Patient "John Doe" → HMAC-SHA256 hash → AES encrypt with IV₁ → Token A
 
 Pharmacy encrypts:
@@ -250,7 +367,7 @@ But decrypt(Token A) = decrypt(Token B) = same HMAC-SHA256 hash ✓
 
 ### Decryption Layer Structure
 
-```
+```text
 Raw Data → Normalization → HMAC-SHA256 → AES-GCM Encryption
                               ↑               ↑
                          Deterministic    Random IV
@@ -262,12 +379,14 @@ For matching: We decrypt to the HMAC layer, which is deterministic and comparabl
 ## Privacy Considerations
 
 ### What is Protected
+
 - **Raw patient data** is never shared between organizations
 - **HMAC-SHA256 hashes** cannot be reversed to get original data
 - **Encryption key** controls who can decrypt and perform linkage
 - **Hashing secret** ensures only parties with the key can generate comparable tokens
 
 ### What is Shared
+
 - **Encrypted tokens** for secure transmission between organizations
 - **Decrypted hashes** (within secure matching environment only)
 - **Matching statistics** - organizations see overlap counts without raw identities
@@ -305,7 +424,7 @@ In production PPRL systems:
 
 ## File Structure
 
-```
+```text
 pprl-superhero-example/
 ├── README.md                          # This file
 ├── run_end_to_end.sh                  # Complete demo runner (all 3 steps)
@@ -318,9 +437,9 @@ pprl-superhero-example/
 │   └── analyze_overlap.py            # Analyze overlaps
 └── outputs/                           # Tokenization outputs
     ├── hospital_tokens.csv
-    ├── hospital_tokens.csv.metadata.json
+  ├── hospital_tokens.metadata.json
     ├── pharmacy_tokens.csv
-    ├── pharmacy_tokens.csv.metadata.json
+  ├── pharmacy_tokens.metadata.json
     └── matching_records.csv
 ```
 
@@ -374,7 +493,8 @@ matches = find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=
 
 **Cause**: Maven or Java not installed/configured.
 
-**Solution**: 
+**Solution**:
+
 ```bash
 # Check Java
 java -version  # Should be 11+
