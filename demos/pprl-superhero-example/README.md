@@ -1,25 +1,36 @@
-# Privacy-Preserving Record Linkage (PPRL) Demonstration
+# Privacy-Preserving Record Linkage (PPRL) Demonstration <!-- omit in toc -->
 
 This demonstration shows how to use OpenToken for privacy-preserving record linkage between two organizations sharing patient data.
 
-## 5-minute explanation
+## Table of Contents <!-- omit in toc -->
 
-### Goal
+- [Overview](#overview)
+- [Tokenization basics](#tokenization-basics)
+- [Run the demo](#run-the-demo)
+- [Outputs](#outputs)
+- [Decryption and privacy](#decryption-and-privacy)
+- [Customize and next steps](#customize-and-next-steps)
+
+## Overview
+
+### 5-minute explanation <!-- omit in toc -->
+
+### Goal <!-- omit in toc -->
 
 Help two organizations figure out which records refer to the same person, **without exchanging raw identifiers** (like names or Social Security Numbers).
 
-### What gets shared
+### What gets shared <!-- omit in toc -->
 
 - **Encrypted tokens**: Random-looking strings generated from identifiers. These are safe to share and store for matching.
 - **Match results**: A list of matching record IDs (e.g., which hospital record matches which pharmacy record).
 - **Metadata**: Counts and run information (and hashes of the secrets), but not the secrets themselves.
 
-### What never gets shared
+### What never gets shared <!-- omit in toc -->
 
 - Raw identifiers from the source data (names, birth dates, Social Security Numbers, postal codes).
 - The secret keys in any public place. (This demo uses example keys for convenience; real deployments must manage keys securely.)
 
-### What you should expect to see after running the demo
+### What you should expect to see after running the demo <!-- omit in toc -->
 
 - Two synthetic CSV datasets created under `datasets/`.
 - Two token CSV files under `outputs/` (one per organization), plus metadata JSON files.
@@ -29,25 +40,28 @@ One important detail: because tokens are encrypted with random “salt” each t
 
 > **Important demo disclaimer:** This example uses fully synthetic data and example secrets that are safe for illustration only. Never reuse these keys or patterns in production. Real deployments must use proper key management, strict access controls around decryption and matching, and clear governance over who can run linkage jobs and how results are used.
 
-## Who does what (roles)
+### Who does what (roles) <!-- omit in toc -->
 
-This demo describes three logical roles. In real deployments, matching can run inside one of the organizations, in a jointly operated environment, or (optionally) in a separate trusted third-party service; OpenToken does not require a third-party matcher.
+This demo focuses on two organizations that want to link their datasets without sharing raw identifiers.
 
-| Role                                       | What they hold                                       | What they share                                   | Needs hashing secret?                              | Needs encryption key?                  |
-| ------------------------------------------ | ---------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------- | -------------------------------------- |
-| Hospital                                   | Raw hospital dataset (identifiers + hospital fields) | Encrypted tokens + metadata                       | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
-| Pharmacy                                   | Raw pharmacy dataset (identifiers + pharmacy fields) | Encrypted tokens + metadata                       | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
-| Matcher (optional shared environment role) | The two token files (and match results)              | Match results (record IDs + which tokens matched) | No (matching compares decrypted fingerprints)      | Yes (to decrypt tokens for comparison) |
+In this demo, assume the **hospital** runs the overlap analysis step (it receives the pharmacy token file and compares tokens to find matches).
+
+> **Note (optional deployment patterns):** In real deployments, the overlap analysis can be run by either party, in a jointly operated shared environment, or (optionally) by a third-party matching service. OpenToken does not require a third party.
+
+| Role     | What they hold                                       | What they share             | Needs hashing secret?                              | Needs encryption key?                  |
+| -------- | ---------------------------------------------------- | --------------------------- | -------------------------------------------------- | -------------------------------------- |
+| Hospital | Raw hospital dataset (identifiers + hospital fields) | Encrypted tokens + metadata | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
+| Pharmacy | Raw pharmacy dataset (identifiers + pharmacy fields) | Encrypted tokens + metadata | Yes (to generate the comparable fingerprint layer) | Yes (to encrypt tokens before sharing) |
 
 Why “decrypting to compare” does **not** reveal raw identifiers:
 
 - The encrypted token contains an encrypted, one-way fingerprint (a deterministic HMAC hash) of the identifiers after normalization.
 - Decrypting a token reveals that fingerprint, which is useful for checking **equality** (same person attributes → same fingerprint), but it does not contain the original names/SSNs/birth dates.
-- The party that can decrypt tokens can still learn **which records match** across datasets. That is the point of record linkage, and it’s why decryption should happen only in a trusted environment.
+- In this demo, the hospital can learn **which records match** across datasets because it runs the overlap analysis step. That is the point of record linkage, and it’s why decryption should happen only in a trusted environment.
 
-## Flow diagram and glossary
+### Flow diagram and glossary <!-- omit in toc -->
 
-### Flow diagram (what happens to the data)
+### Flow diagram (what happens to the data) <!-- omit in toc -->
 
 ```text
 Hospital/Pharmacy (separately)
@@ -57,14 +71,14 @@ Hospital/Pharmacy (separately)
     → Encrypt (random IV; produces different ciphertext each run)
     → Share encrypted tokens
 
-Matcher (trusted environment)
+Hospital (overlap analysis in this demo)
   Encrypted tokens from both organizations
     → Decrypt (back to the HMAC fingerprint)
     → Compare fingerprints (equality check)
     → Output matches (record IDs that link)
 ```
 
-### Glossary (quick definitions)
+### Glossary (quick definitions) <!-- omit in toc -->
 
 - **Token**: A privacy-preserving stand-in for identifiers. In this demo, the token you share is an encrypted value.
 - **Normalization**: Cleaning/standardizing input so the same real-world value formats consistently (e.g., casing, whitespace).
@@ -73,74 +87,30 @@ Matcher (trusted environment)
 - **IV (initialization vector)**: Random value used during encryption so encrypting the same thing twice produces different encrypted outputs.
 - **Deterministic vs. randomized**: Deterministic means “same input → same output” (the HMAC layer). Randomized means “same input → different output each run” (the encryption layer because of the IV).
 
-## What this demo demonstrates (and what it does not)
+### What this demo demonstrates (and what it does not) <!-- omit in toc -->
 
-### What it demonstrates
+### What it demonstrates <!-- omit in toc -->
 
 - Two organizations can create encrypted tokens from identifiers and share only those tokens for linkage.
 - A trusted matching step can decrypt tokens back to one-way fingerprints and compare them to find overlaps.
-- Matching can be performed by the data owners themselves in a shared trusted environment; using a separate third-party matcher is an optional deployment choice, not a requirement.
+- In this demo, the hospital performs the overlap analysis; more generally, either party can do this in a trusted environment, and a third-party matching service is optional.
 - You get a simple, auditable output: which record IDs match between the two datasets.
 
-### What it does not demonstrate (limitations)
+### What it does not demonstrate (limitations) <!-- omit in toc -->
 
 - **Exact-match linkage**: This demo treats records as a match only when the required token set matches exactly.
 - **Clean, synthetic data**: The datasets are synthetic and intentionally constructed to have a known overlap.
 - **Shared secrets assumption**: The demo assumes both organizations use the same hashing secret and encryption key.
 - **No typo tolerance**: If identifiers differ (typos, nicknames, missing fields), tokens may not match.
-- **Not SMPC**: This is not secure multi-party computation; the matcher decrypts tokens inside a trusted environment.
+- **Not SMPC**: This is not secure multi-party computation; decryption and matching happen inside a trusted environment.
 
-### Next steps
+### Next steps <!-- omit in toc -->
 
 - Try threshold matching (for example, require 4 out of 5 tokens to match) and then do clerical review for borderline pairs.
-- Add real-world key management: keep secrets in a key management system (KMS) or hardware security module (HSM), or, if desired, use a trusted third party (TTP) to operate the matcher.
+- Add real-world key management: keep secrets in a key management system (KMS) or hardware security module (HSM).
 - Define governance: who is allowed to decrypt, where matching runs, how long outputs are kept, and what gets audited.
 
-- [Privacy-Preserving Record Linkage (PPRL) Demonstration](#privacy-preserving-record-linkage-pprl-demonstration)
-  - [5-minute explanation](#5-minute-explanation)
-  - [Who does what (roles)](#who-does-what-roles)
-  - [Flow diagram and glossary](#flow-diagram-and-glossary)
-  - [What this demo demonstrates (and what it does not)](#what-this-demo-demonstrates-and-what-it-does-not)
-  - [Scenario](#scenario)
-  - [Dataset Overview](#dataset-overview)
-  - [How OpenToken Works](#how-opentoken-works)
-    - [Important Note About Token Comparison](#important-note-about-token-comparison)
-  - [Prerequisites](#prerequisites)
-  - [Quick Start Guide](#quick-start-guide)
-    - [Run End-to-End (one command, recommended)](#run-end-to-end-one-command-recommended)
-    - [What the script does (step-by-step)](#what-the-script-does-step-by-step)
-      - [Step 1: Generate Datasets](#step-1-generate-datasets)
-      - [Step 2: Tokenize the Data](#step-2-tokenize-the-data)
-      - [Step 3: Measure Overlap](#step-3-measure-overlap)
-  - [Expected Results](#expected-results)
-  - [Understanding the Output](#understanding-the-output)
-    - [Step-by-step: what files are created](#step-by-step-what-files-are-created)
-    - [Simple checks you can do (no special tools)](#simple-checks-you-can-do-no-special-tools)
-  - [Understanding Token Decryption in PPRL](#understanding-token-decryption-in-pprl)
-    - [Why Decryption is Necessary](#why-decryption-is-necessary)
-    - [The Solution](#the-solution)
-    - [Decryption Layer Structure](#decryption-layer-structure)
-  - [Privacy Considerations](#privacy-considerations)
-    - [What is Protected](#what-is-protected)
-    - [What is Shared](#what-is-shared)
-    - [Security Best Practices](#security-best-practices)
-    - [Real-World Deployment Considerations](#real-world-deployment-considerations)
-  - [FAQ](#faq)
-  - [File Structure](#file-structure)
-  - [Customization](#customization)
-    - [Changing Dataset Size](#changing-dataset-size)
-    - [Using Different Secrets](#using-different-secrets)
-    - [Adjusting Match Criteria](#adjusting-match-criteria)
-  - [Troubleshooting](#troubleshooting)
-    - ["No matches found"](#no-matches-found)
-    - ["Invalid attribute" errors during tokenization](#invalid-attribute-errors-during-tokenization)
-    - [Build errors](#build-errors)
-  - [Real-World Applications](#real-world-applications)
-  - [Additional Resources](#additional-resources)
-  - [Questions?](#questions)
-
-
-## Scenario
+### Scenario <!-- omit in toc -->
 
 **Super Hero Hospital** and **Super Hero Pharmacy** want to link their patient records to improve care coordination, but they need to protect patient privacy. They use OpenToken to:
 
@@ -148,7 +118,7 @@ Matcher (trusted environment)
 2. Share only the encrypted tokens (not raw patient data)
 3. Find matching patients by comparing tokens
 
-## Dataset Overview
+### Dataset Overview <!-- omit in toc -->
 
 - **Hospital Dataset**: 100 super hero patients with hospital-specific information
   - Columns: RecordId, FirstName, LastName, Sex, BirthDate, SocialSecurityNumber, PostalCode, Department, VisitReason
@@ -158,7 +128,9 @@ Matcher (trusted environment)
   
 - **Expected Overlap**: 40 patients (40% of hospital dataset) appear in both datasets with identical person attributes
 
-## How OpenToken Works
+## Tokenization basics
+
+### How OpenToken Works <!-- omit in toc -->
 
 OpenToken generates 5 different tokens (T1-T5) for each patient using different combinations of attributes:
 
@@ -178,9 +150,21 @@ Each token is:
 2. Hashed with HMAC-SHA256
 3. Encrypted with AES-256-GCM (with random IV for security)
 
-**For a match**: All 5 tokens must be identical between two records, meaning the underlying person attributes match exactly.
+### Match policy (how you decide what counts as a match) <!-- omit in toc -->
 
-### Important Note About Token Comparison
+OpenToken does **not** define a single, universal “match policy.” A match policy is something the parties agree on up front: it determines **which token IDs must match** (and how many) before you treat two records as referring to the same person.
+
+This matters because different token combinations trade off **false positives** vs. **missed matches** depending on your data quality and your risk tolerance.
+
+**In this demo**: a record pair is considered a match only if **all 5 tokens (T1–T5) match exactly**. This is intentionally strict: it reduces false positives, but it can miss matches when there are typos, nicknames, or missing fields.
+
+### Custom tokens (optional) <!-- omit in toc -->
+
+T1–T5 are **standard** token definitions provided by OpenToken, but they are not the only possible approach.
+
+If needed, the parties can define **additional custom token rules** (new token IDs) based on different attribute combinations or matching goals. The key requirement is that **both parties must use the exact same token definitions and normalization rules**, otherwise tokens won’t be comparable.
+
+### Important Note About Token Comparison <!-- omit in toc -->
 
 OpenToken uses **AES-256-GCM encryption with random initialization vectors (IVs)** for enhanced security. This means:
 
@@ -191,15 +175,17 @@ OpenToken uses **AES-256-GCM encryption with random initialization vectors (IVs)
 
 This demonstration shows how to properly compare tokens from two organizations that tokenized their data independently.
 
-## Prerequisites
+## Run the demo
+
+### Prerequisites <!-- omit in toc -->
 
 - Java 11 or higher
 - Maven 3.6 or higher
 - Python 3.7+ (for data generation and analysis)
 
-## Quick Start Guide
+### Quick Start Guide <!-- omit in toc -->
 
-### Run End-to-End (one command, recommended)
+### Run End-to-End (one command, recommended) <!-- omit in toc -->
 
 ```bash
 cd demos/pprl-superhero-example
@@ -209,7 +195,7 @@ chmod +x run_end_to_end.sh
 
 This runs dataset generation, tokenization (building Java if needed), and overlap analysis.
 
-### What the script does (step-by-step)
+### What the script does (step-by-step) <!-- omit in toc -->
 
 You can also run the same three steps manually. These commands assume you are in the demo directory:
 
@@ -217,7 +203,7 @@ You can also run the same three steps manually. These commands assume you are in
 cd demos/pprl-superhero-example
 ```
 
-#### Step 1: Generate Datasets
+#### Step 1: Generate Datasets <!-- omit in toc -->
 
 ```bash
 python scripts/generate_superhero_datasets.py
@@ -228,7 +214,7 @@ This creates:
 - `datasets/hospital_superhero_data.csv` (100 records)
 - `datasets/pharmacy_superhero_data.csv` (120 records with 40 overlapping)
 
-#### Step 2: Tokenize the Data
+#### Step 2: Tokenize the Data <!-- omit in toc -->
 
 Each organization tokenizes their own dataset independently:
 
@@ -249,7 +235,7 @@ This script simulates two separate tokenization processes:
 - Keys must be shared securely between organizations before tokenization
 - In production, use strong keys and secure key exchange protocols
 
-#### Step 3: Measure Overlap
+#### Step 3: Measure Overlap <!-- omit in toc -->
 
 ```bash
 python scripts/analyze_overlap.py
@@ -268,7 +254,9 @@ This script performs the record linkage analysis:
 
 **Note**: The analysis script requires the encryption key to decrypt tokens. This key must match the one used during tokenization.
 
-## Expected Results
+## Outputs
+
+### Expected Results <!-- omit in toc -->
 
 After running the analysis, you should see:
 
@@ -286,11 +274,11 @@ Pharmacy records with matches: 40 out of 120 (33.3%)
 ======================================================================
 ```
 
-## Understanding the Output
+### Understanding the Output <!-- omit in toc -->
 
 This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (tokens, metadata, and match results). You can open the CSV files in any spreadsheet tool or text editor.
 
-### Step-by-step: what files are created
+### Step-by-step: what files are created <!-- omit in toc -->
 
 1. **Raw synthetic datasets** (created by the data generation step)
 
@@ -331,15 +319,17 @@ This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (t
     | MatchingTokens   | Which tokens matched (for strict matching: `T1\|T2\|T3\|T4\|T5`) |
     | TokenCount       | Number of matching tokens (for strict matching: `5`)             |
 
-### Simple checks you can do (no special tools)
+### Simple checks you can do (no special tools) <!-- omit in toc -->
 
 1. Open `outputs/hospital_tokens.csv` and pick a `RecordId`. You should see 5 rows for that `RecordId`, with `RuleId` values `T1` through `T5`.
 2. Re-run the demo and compare any one `Token` value for the same `RecordId` and `RuleId`: the encrypted `Token` text should change between runs (because encryption is randomized).
 3. Open `outputs/matching_records.csv`: you should see about **40** rows, and most (or all) rows should have `TokenCount` = `5`.
 
-## Understanding Token Decryption in PPRL
+## Decryption and privacy
 
-### Why Decryption is Necessary
+### Understanding Token Decryption in PPRL <!-- omit in toc -->
+
+### Why Decryption is Necessary <!-- omit in toc -->
 
 OpenToken uses **AES-256-GCM encryption with random IVs** (initialization vectors) for each encryption operation. This is a security best practice that prevents pattern analysis attacks. However, it creates a challenge for multi-party record linkage:
 
@@ -347,7 +337,7 @@ OpenToken uses **AES-256-GCM encryption with random IVs** (initialization vector
 2. **Problem**: Pharmacy tokenizes their data → produces different encrypted tokens (different IVs)
 3. **Result**: Even for identical patients, encrypted tokens differ and won't match directly
 
-### The Solution
+### The Solution <!-- omit in toc -->
 
 To enable record linkage across independently tokenized datasets:
 
@@ -369,7 +359,7 @@ Token A ≠ Token B (different IVs)
 But decrypt(Token A) = decrypt(Token B) = same HMAC-SHA256 hash ✓
 ```
 
-### Decryption Layer Structure
+### Decryption Layer Structure <!-- omit in toc -->
 
 ```text
 Raw Data → Normalization → HMAC-SHA256 → AES-GCM Encryption
@@ -380,22 +370,22 @@ Raw Data → Normalization → HMAC-SHA256 → AES-GCM Encryption
 
 For matching: We decrypt to the HMAC layer, which is deterministic and comparable.
 
-## Privacy Considerations
+### Privacy Considerations <!-- omit in toc -->
 
-### What is Protected
+### What is Protected <!-- omit in toc -->
 
 - **Raw patient data** is never shared between organizations
 - **HMAC-SHA256 hashes** cannot be reversed to get original data
 - **Encryption key** controls who can decrypt and perform linkage
 - **Hashing secret** ensures only parties with the key can generate comparable tokens
 
-### What is Shared
+### What is Shared <!-- omit in toc -->
 
 - **Encrypted tokens** for secure transmission between organizations
 - **Decrypted hashes** (within secure matching environment only)
 - **Matching statistics** - organizations see overlap counts without raw identities
 
-### Security Best Practices
+### Security Best Practices <!-- omit in toc -->
 
 1. **Key Management**:
    - Use strong, cryptographically random keys (not the demo keys!)
@@ -417,34 +407,34 @@ For matching: We decrypt to the HMAC layer, which is deterministic and comparabl
    - Perform matching in secure, isolated environments
    - Delete tokens after matching is complete (per agreement)
 
-### Real-World Deployment Considerations
+### Real-World Deployment Considerations <!-- omit in toc -->
 
 In production PPRL systems:
 
-1. **Trusted Third Party (TTP) (optional)**: A neutral organization holds decryption keys and performs matching on behalf of the parties
+1. **Trusted Third Party (TTP) (optional)**: A neutral organization can hold decryption keys and perform matching on behalf of the parties
 2. **Secure Multi-Party Computation (SMPC)**: Advanced protocols for matching without any party seeing decrypted tokens
 3. **Hardware Security Modules (HSMs)**: Store keys in tamper-resistant hardware
 4. **Differential Privacy**: Add noise to matching statistics to prevent re-identification
 
-## FAQ
+### FAQ <!-- omit in toc -->
 
-### Can you reverse the tokens to get names or SSNs?
+### Can you reverse the tokens to get names or SSNs? <!-- omit in toc -->
 
 No – the design is intentionally one-way. Even after decryption, you only see a deterministic HMAC-SHA256 fingerprint of the normalized identifiers, not the original names or SSNs. In practice, re-identification would require both key compromise and additional side information, which is why strong key management and governance are critical in real deployments.
 
-### Why do encrypted tokens differ between runs?
+### Why do encrypted tokens differ between runs? <!-- omit in toc -->
 
-OpenToken uses AES-GCM encryption with a fresh random IV for each token, so encrypting the same fingerprint twice produces different ciphertexts. This prevents attackers from learning when two encrypted values are the same just by looking at the bytes. Under the hood, the deterministic HMAC fingerprint is the same for identical input, which is what the matcher compares after decryption.
+OpenToken uses AES-GCM encryption with a fresh random IV for each token, so encrypting the same fingerprint twice produces different ciphertexts. This prevents attackers from learning when two encrypted values are the same just by looking at the bytes. Under the hood, the deterministic HMAC fingerprint is the same for identical input, which is what the matching step compares after decryption.
 
-### Who should be allowed to decrypt?
+### Who should be allowed to decrypt? <!-- omit in toc -->
 
-Only a tightly controlled, trusted environment should hold the decryption key; this can be a matcher service run by one of the organizations, a jointly operated job, or (optionally) a TTP. The parties that generate tokens may or may not keep decryption capability themselves, depending on governance and risk appetite. A good rule of thumb is least privilege: the fewer systems and people that can decrypt, the better.
+Only a tightly controlled, trusted environment should hold the decryption key. In this demo, assume the hospital has access to the decryption key so it can run the overlap analysis. In production, you typically restrict decryption to a minimal set of systems (run by one party, jointly operated, or optionally a TTP), following least privilege.
 
-### What happens with typos or missing fields?
+### What happens with typos or missing fields? <!-- omit in toc -->
 
 This demo uses exact-match tokens built from normalized values, so typos, nicknames, or missing attributes usually lead to different fingerprints and therefore no match. In other words, if a key field changes, the corresponding token changes and the pair will be treated as non-matching. Production systems often add more robust strategies on top of this (such as alternate token definitions, phonetic encodings, or "4 out of 5" token thresholds) to handle real-world data quality.
 
-## File Structure
+### File Structure <!-- omit in toc -->
 
 ```text
 pprl-superhero-example/
@@ -465,9 +455,11 @@ pprl-superhero-example/
     └── matching_records.csv
 ```
 
-## Customization
+## Customize and next steps
 
-### Changing Dataset Size
+### Customization <!-- omit in toc -->
+
+### Changing Dataset Size <!-- omit in toc -->
 
 Edit `generate_superhero_datasets.py`:
 
@@ -477,7 +469,7 @@ num_pharmacy = 250      # Pharmacy records
 overlap_percentage = 0.30  # 30% overlap
 ```
 
-### Using Different Secrets
+### Using Different Secrets <!-- omit in toc -->
 
 Edit `tokenize_datasets.sh`:
 
@@ -488,7 +480,7 @@ ENCRYPTION_KEY="YourCustomEncryptionKey-32"
 
 **Important**: Both datasets must use the same secrets for tokens to be comparable!
 
-### Adjusting Match Criteria
+### Adjusting Match Criteria <!-- omit in toc -->
 
 Edit `analyze_overlap.py` to require fewer matching tokens:
 
@@ -497,21 +489,21 @@ Edit `analyze_overlap.py` to require fewer matching tokens:
 matches = find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=4)
 ```
 
-## Troubleshooting
+### Troubleshooting <!-- omit in toc -->
 
-### "No matches found"
+### "No matches found" <!-- omit in toc -->
 
 **Cause**: Datasets were tokenized with different secrets.
 
 **Solution**: Ensure both tokenizations use identical hashing and encryption keys.
 
-### "Invalid attribute" errors during tokenization
+### "Invalid attribute" errors during tokenization <!-- omit in toc -->
 
 **Cause**: Some generated data doesn't meet OpenToken validation rules.
 
 **Solution**: This is expected. OpenToken validates data (e.g., SSN format, birthdate ranges) and skips invalid records. Check the metadata file for details.
 
-### Build errors
+### Build errors <!-- omit in toc -->
 
 **Cause**: Maven or Java not installed/configured.
 
@@ -525,7 +517,7 @@ java -version  # Should be 11+
 mvn -version   # Should be 3.6+
 ```
 
-## Real-World Applications
+### Real-World Applications <!-- omit in toc -->
 
 This demonstration can be adapted for:
 
@@ -535,12 +527,12 @@ This demonstration can be adapted for:
 - **Government**: Cross-agency identity resolution
 - **Financial Services**: Anti-fraud systems
 
-## Additional Resources
+### Additional Resources <!-- omit in toc -->
 
 - [OpenToken Main README](../../README.md)
 - [Development Guide](../../docs/dev-guide-development.md)
 - [Metadata Format Documentation](../../docs/metadata-format.md)
 
-## Questions?
+### Questions? <!-- omit in toc -->
 
 For issues or questions about OpenToken, please visit the [GitHub repository](https://github.com/mattwise-42/OpenToken).
