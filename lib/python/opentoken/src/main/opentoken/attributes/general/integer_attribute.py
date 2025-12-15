@@ -3,7 +3,6 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 from typing import List, Optional
-import re
 from opentoken.attributes.base_attribute import BaseAttribute
 from opentoken.attributes.validation import RegexValidator
 from opentoken.attributes.validation.serializable_attribute_validator import SerializableAttributeValidator
