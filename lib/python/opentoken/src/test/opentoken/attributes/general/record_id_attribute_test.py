@@ -4,7 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 
 import pickle
 import pytest
-from opentoken.attributes.general import RecordIdAttribute
+from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 
 
 class TestRecordIdAttribute:
