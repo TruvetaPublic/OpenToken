@@ -19,7 +19,7 @@
     <url>http://www.truveta.com</url>
 
     <properties>
-        <revision>1.11.0</revision>
+        <revision>1.11.1</revision>
         <hadoop.version>3.4.1</hadoop.version>
     </properties>
 

@@ -21,7 +21,7 @@ with open(os.path.join(this_directory, "requirements.txt"), encoding="utf-8") as
 
 setup(
     name="opentoken-pyspark",
-    version="1.11.0",
+    version="1.11.1",
     author="Truveta",
     description="OpenToken PySpark bridge for distributed token generation",
     long_description=long_description,
