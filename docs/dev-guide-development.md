@@ -6,8 +6,12 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ## At a Glance
 
-- Two implementations: Java (Maven) & Python (pip)
+- Four packages: Java core (Maven), Java CLI (Maven), Python core, Python CLI, plus PySpark bridge
+- Java uses multi-module Maven structure with parent POM at `lib/java/pom.xml`
+- Core packages (`opentoken`) contain pure tokenization logic with minimal dependencies
+- CLI packages (`opentoken-cli`) contain I/O implementations (CSV, Parquet, JSON) and command-line interface
 - Deterministic token generation logic is equivalent across languages
+- PySpark bridge enables large-scale distributed token generation & overlap analysis
 - Use this guide for environment setup & day-to-day development
 - Use the Token & Attribute Registration guide for extending functionality
 
@@ -18,16 +22,18 @@ This guide centralizes contributor-facing information. It covers local setup, la
   - [Contents](#contents)
   - [Prerequisites](#prerequisites)
   - [Project Layout](#project-layout)
-  - [Language Development (Java \& Python)](#language-development-java--python)
+  - [Language Development (Java, Python \& PySpark)](#language-development-java-python--pyspark)
     - [Java](#java)
     - [Python](#python)
+    - [PySpark Bridge](#pyspark-bridge)
+    - [Multi-Language Sync Tool](#multi-language-sync-tool)
     - [Cross-language Tips](#cross-language-tips)
+  - [Token Processing Modes](#token-processing-modes)
   - [Token \& Attribute Registration](#token--attribute-registration)
     - [When to Use](#when-to-use)
     - [Java Registration (ServiceLoader SPI)](#java-registration-serviceloader-spi)
     - [Python Registration](#python-registration)
     - [Cross-language Parity Checklist](#cross-language-parity-checklist)
-    - [Version Bump Reminder](#version-bump-reminder)
     - [Quick Reference](#quick-reference)
   - [Building \& Testing](#building--testing)
     - [Full Multi-language Build](#full-multi-language-build)
@@ -54,17 +60,23 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 ```text
 lib/
-  java/      # Java implementation
-  python/    # Python implementation
-resources/   # Sample and test data
-tools/       # Utility scripts (hash calculator, mock data, etc.)
-docs/        # All developer documentation (this file!)
+  java/
+    pom.xml            # Parent POM (multi-module Maven build)
+    opentoken/         # Core tokenization library (pure logic, minimal dependencies)
+    opentoken-cli/     # CLI application with I/O support (CSV, Parquet, JSON)
+  python/
+    opentoken/         # Core tokenization library
+    opentoken-cli/     # CLI application with I/O support
+    opentoken-pyspark/ # PySpark bridge for distributed processing
+resources/             # Sample and test data
+tools/                 # Utility scripts (hash calculator, mock data, etc.)
+docs/                  # All developer documentation (this file!)
 ```
 Key Docs:
 
 - Development processes below
 
-## Language Development (Java & Python)
+## Language Development (Java, Python & PySpark)
 
 This section combines the previous standalone Java and Python development sections for easier cross-language parity review.
 
@@ -75,24 +87,41 @@ Prerequisites:
 - Java 21 SDK or higher (JAR output is Java 11 compatible)
 - Maven 3.8.8 or higher
 
-Build (from project root):
+Build all modules (from `lib/java`):
 
 ```shell
+cd lib/java && mvn clean install
+```
+
+Build individual modules:
+
+```shell
+# Core library only
 cd lib/java/opentoken && mvn clean install
-```
-Or from `lib/java/opentoken` directly:
 
-```shell
-mvn clean install
+# CLI only (requires core to be installed first)
+cd lib/java/opentoken-cli && mvn clean install
 ```
-Resulting JAR: `lib/java/opentoken/target/opentoken-*.jar`.
 
-Using as a Maven dependency:
+Resulting JARs:
+
+- Core library: `lib/java/opentoken/target/opentoken-*.jar`
+- CLI application: `lib/java/opentoken-cli/target/opentoken-cli-*.jar`
+
+Using as Maven dependencies:
 
 ```xml
+<!-- Core library (tokenization logic only) -->
 <dependency>
   <groupId>com.truveta</groupId>
   <artifactId>opentoken</artifactId>
+  <version>${opentoken.version}</version>
+</dependency>
+
+<!-- CLI with I/O support (includes core as transitive dependency) -->
+<dependency>
+  <groupId>com.truveta</groupId>
+  <artifactId>opentoken-cli</artifactId>
   <version>${opentoken.version}</version>
 </dependency>
 ```
@@ -100,8 +129,9 @@ Using as a Maven dependency:
 CLI usage:
 
 ```shell
-cd lib/java/opentoken && java -jar target/opentoken-*.jar [OPTIONS]
+cd lib/java && java -jar opentoken-cli/target/opentoken-cli-*.jar [OPTIONS]
 ```
+
 Arguments:
 
 - `-i, --input <path>` Input file
@@ -114,8 +144,8 @@ Arguments:
 Example:
 
 ```shell
-cd lib/java/opentoken && java -jar target/opentoken-*.jar \
-  -i src/test/resources/sample.csv -t csv -o target/output.csv \
+cd lib/java && java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  -i opentoken/src/test/resources/sample.csv -t csv -o opentoken-cli/target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
@@ -135,8 +165,12 @@ try (PersonAttributesReader reader = new PersonAttributesCSVReader("input.csv");
 Testing:
 
 ```shell
-mvn test
-mvn clean test jacoco:report   # Coverage in target/site/jacoco/index.html
+# Test all modules
+cd lib/java && mvn test
+
+# Test with coverage report
+cd lib/java && mvn clean test jacoco:report
+# Coverage reports: opentoken/target/site/jacoco/index.html and opentoken-cli/target/site/jacoco/index.html
 ```
 
 Style & docs:
@@ -169,27 +203,39 @@ source .venv/bin/activate
 Install dependencies:
 
 ```shell
+# Core library
+pip install -r requirements.txt -r dev-requirements.txt
+
+# For CLI support, also install opentoken-cli
+cd ../opentoken-cli
 pip install -r requirements.txt -r dev-requirements.txt
 ```
 
-Editable install for local CLI usage:
+Editable install for local development:
 
 ```shell
-pip install -e .
+# Install core library
+cd lib/python/opentoken && pip install -e .
+
+# Install CLI (includes core as dependency)
+cd lib/python/opentoken-cli && pip install -e .
 ```
 
 CLI usage (from project root):
 
 ```shell
-PYTHONPATH=lib/python/opentoken/src/main python3 lib/python/opentoken/src/main/opentoken/main.py [OPTIONS]
+# After installing opentoken-cli
+python -m opentoken_cli.main [OPTIONS]
 ```
+
 Arguments mirror Java implementation.
 
 Example:
 
 ```shell
-PYTHONPATH=lib/python/opentoken/src/main python3 lib/python/opentoken/src/main/opentoken/main.py \
-  -i resources/sample.csv -t csv -o lib/python/opentoken/target/output.csv \
+# After installing opentoken-cli
+python -m opentoken_cli.main \
+  -i resources/sample.csv -t csv -o lib/python/opentoken-cli/target/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
@@ -208,11 +254,19 @@ with PersonAttributesCSVReader("input.csv") as reader, \
 Testing:
 
 ```shell
+# Core library tests
 cd lib/python/opentoken
+PYTHONPATH=src/main pytest src/test
+
+# CLI tests
+cd lib/python/opentoken-cli
 PYTHONPATH=src/main pytest src/test
 ```
 
-Key dependencies: pandas, cryptography, (optional) pyarrow for Parquet.
+Key dependencies:
+
+- Core: cryptography
+- CLI: pandas, pyarrow (for Parquet)
 
 Parity notes:
 
@@ -224,6 +278,78 @@ Contributing notes:
 - Follow PEP 8, add type hints.
 - Keep tests in sync with Java changes.
 
+### PySpark Bridge
+
+The PySpark bridge (`lib/python/opentoken-pyspark`) provides a distributed processing interface for generating tokens and performing dataset overlap analysis using Spark DataFrames.
+
+Purpose:
+
+- Efficient token generation on large datasets (partitioned execution)
+- Supports custom token definitions in Spark pipelines
+- Provides overlap analysis utilities (`OverlapAnalyzer`) for measuring cohort intersection
+
+Prerequisites:
+
+- Python 3.10+
+
+**Version Compatibility (choose based on your Java version):**
+
+| Java Version | PySpark Version | PyArrow Version | Notes                                           |
+| ------------ | --------------- | --------------- | ----------------------------------------------- |
+| **Java 21**  | **4.0.1+**      | **17.0.0+**     | **Recommended** - Native Java 21 support        |
+| Java 8-17    | 3.5.x           | <20             | Legacy support - use if you cannot upgrade Java |
+
+Install (from repo root):
+
+```shell
+pip install -r lib/python/opentoken-pyspark/requirements.txt -r lib/python/opentoken-pyspark/dev-requirements.txt
+pip install -e lib/python/opentoken-pyspark
+```
+
+Basic Usage:
+
+```python
+from pyspark.sql import SparkSession
+from opentoken_pyspark import OpenTokenProcessor
+
+spark = SparkSession.builder.master("local[2]").appName("OpenTokenExample").getOrCreate()
+df = spark.read.csv("people.csv", header=True)
+processor = OpenTokenProcessor("HashingKey", "Secret-Encryption-Key-Goes-Here.")
+token_df = processor.process_dataframe(df)
+token_df.show()
+```
+
+Custom Token Definitions (example adding T6):
+
+```python
+from opentoken_pyspark import OpenTokenProcessor
+from opentoken_pyspark.notebook_helpers import TokenBuilder, CustomTokenDefinition
+
+t6 = TokenBuilder("T6") \
+  .add("last_name", "T|U") \
+  .add("first_name", "T|U") \
+  .add("birth_date", "T|D") \
+  .build()
+
+definition = CustomTokenDefinition().add_token(t6)
+processor = OpenTokenProcessor(
+  hashing_secret="HashingKey",
+  encryption_key="Secret-Encryption-Key-Goes-Here.",
+  token_definition=definition
+)
+token_df = processor.process_dataframe(df)
+```
+
+Testing:
+
+```shell
+cd lib/python/opentoken-pyspark
+pytest src/test
+```
+
+Notebook Guides:
+
+- See `lib/python/opentoken-pyspark/notebooks/` for example workflows (custom tokens & overlap analysis).
 ### Multi-Language Sync Tool
 
 Java is the source of truth. The sync tool (`tools/java_language_syncer.py`) evaluates changed Java files against enabled target languages (currently Python). It will fail PR workflows if any modified Java file lacks a corresponding, up-to-date target implementation.
@@ -250,16 +376,33 @@ When adding attributes/tokens: update Java first, run sync tool, then implement 
 
 ### Cross-language Tips
 
-| Task            | Java Command                               | Python Command                         |
-| --------------- | ------------------------------------------ | -------------------------------------- |
-| Build / Package | `mvn clean install`                        | `pip install -e .`                     |
-| Run Tests       | `mvn test`                                 | `pytest src/test`                      |
-| Lint / Style    | `mvn checkstyle:check`                     | (pep8 / flake8 if configured)          |
-| Run CLI         | `java -jar target/opentoken-<ver>.jar ...` | `PYTHONPATH=... python ...main.py ...` |
-| Add Token       | SPI entry & class                          | new module in `tokens/definitions`     |
-| Add Attribute   | SPI entry & class                          | class + loader import                  |
+| Task            | Java Command                                             | Python Command                     |
+| --------------- | -------------------------------------------------------- | ---------------------------------- |
+| Build / Package | `cd lib/java && mvn clean install`                       | `pip install -e .`                 |
+| Run Tests       | `mvn test`                                               | `pytest src/test`                  |
+| Lint / Style    | `mvn checkstyle:check`                                   | (pep8 / flake8 if configured)      |
+| Run CLI         | `java -jar opentoken-cli/target/opentoken-cli-*.jar ...` | `python -m opentoken_cli.main ...` |
+| Add Token       | SPI entry & class                                        | new module in `tokens/definitions` |
+| Add Attribute   | SPI entry & class                                        | class + loader import              |
 
 Maintain the same functional behavior and normalization between languages.
+
+## Token Processing Modes
+
+OpenToken supports three processing modes across Java, Python, and the PySpark bridge. These modes determine how raw token signatures are transformed:
+
+| Mode      | Secrets Required                     | Transform Pipeline                                | Output Example (T1)                  | Deterministic Across Runs | Recommended Use                     |
+| --------- | ------------------------------------ | ------------------------------------------------- | ------------------------------------ | ------------------------- | ----------------------------------- |
+| Plain     | None (not currently exposed via CLI) | Concatenate normalized attribute expressions only | `DOE\|JOHN\|1990-01-15\|MALE\|98101` | Yes (given same input)    | Debugging, rule design, docs demos  |
+| Hash-only | Hashing secret only                  | HMAC-SHA256(signature)                            | 64 hex chars (SHA-256 digest)        | Yes                       | Low-risk internal matching          |
+| Encrypted | Hashing secret + encryption key      | HMAC-SHA256 → AES-256-GCM (random IV per token)   | Base64 blob (length varies)          | Yes (post-decrypt hash)   | Production / privacy-preserving use |
+
+Notes:
+
+- The underlying signature (before hashing) is produced by ordered attribute expressions for each token rule (e.g., T1–T5 or custom T6+). Plain mode exposes this directly for inspection.
+- Encryption uses AES-256-GCM with a random IV; identical hashed inputs yield different encrypted outputs each run. Matching encrypted tokens across datasets therefore requires either: (a) decryption with the shared key or (b) generating hash-only tokens for overlap workflows. Do NOT attempt to match encrypted blobs directly.
+- Tokenizer polymorphism: Java & Python `TokenGenerator` accept an injectable tokenizer. Defaults to SHA-256; when plain mode is active a `PassthroughTokenizer` is used so downstream transformers (if any) receive the raw signature.
+- Security: Plain and hash-only modes reduce protection. Never use plain mode for sharing PHI; hash-only may leak structural frequency information. Encrypted mode is required for external distribution.
 
 ## Token & Attribute Registration
 
@@ -328,10 +471,6 @@ Python Troubleshooting:
 - Matching token definitions (order & components) across Java & Python.
 - Tests confirming identical hash/encryption output for shared fixtures.
 
-### Version Bump Reminder
-
-Adding or modifying Tokens / Attributes requires a version bump (`bump2version minor` for new features, `patch` for fixes, `major` for breaking changes).
-
 ### Quick Reference
 
 | Operation             | Java File(s)                     | Python File(s)                                              |
@@ -342,6 +481,17 @@ Adding or modifying Tokens / Attributes requires a version bump (`bump2version m
 
 Maintain tests to guard consistency between languages.
 
+#### Common Generic Attributes (ready to reuse)
+
+Available in both Java and Python for custom rules:
+
+- `Integer` – signed integers; trims whitespace; parse/stringify normalization.
+- `Decimal` – floating point with optional scientific notation; trims then parses.
+- `Year` – 4-digit calendar year; enforces regex then delegates to integer base.
+- `Date` – normalizes to `yyyy-MM-dd` from common date inputs.
+- `String` – trimmed non-empty strings.
+- `RecordId` – identifier passthrough.
+
 ## Building & Testing
 
 ### Full Multi-language Build
@@ -349,11 +499,17 @@ Maintain tests to guard consistency between languages.
 (Useful in CI or before PR submission.)
 
 ```shell
-# Java
-(cd lib/java/opentoken && mvn clean install)
+# Java (builds both core and CLI modules)
+(cd lib/java && mvn clean install)
 
-# Python
+# Python core
 (cd lib/python/opentoken && pytest src/test)
+
+# Python CLI
+(cd lib/python/opentoken-cli && pytest src/test)
+
+# PySpark Bridge
+(cd lib/python/opentoken-pyspark && pytest src/test)
 ```
 
 ### Docker Image
@@ -364,10 +520,16 @@ docker build . -t opentoken
 
 ## Running the Tool (CLI)
 
+The CLI is provided by the `opentoken-cli` package in both Java and Python.
+
 Minimum required arguments:
 
 ```shell
-java -jar target/opentoken-*.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+# Java
+java -jar lib/java/opentoken-cli/target/opentoken-cli-*.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+
+# Python
+python -m opentoken_cli.main -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
 ```
 
 Arguments:

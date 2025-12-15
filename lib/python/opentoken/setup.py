@@ -21,9 +21,9 @@ with open(os.path.join(this_directory, "requirements.txt"), encoding="utf-8") as
 
 setup(
     name="opentoken",
-    version="1.11.0",
+    version="1.12.0",
     author="Truveta",
-    description="OpenToken Python implementation for person matching",
+    description="OpenToken Python core library for person matching",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Truveta/OpenToken",
@@ -37,19 +37,11 @@ setup(
     install_requires=requirements,
     extras_require={
         "dev": [
-            "csv2parquet",
-            "pandas",
-            "pyarrow",
             "cryptography",
             "pycryptodome",
         ],
         "test": [
             "pytest"
-        ],
-    },
-    entry_points={
-        "console_scripts": [
-            "opentoken=opentoken.main:main",
         ],
     },
 )

@@ -1,0 +1,9 @@
+# PySpark for distributed processing (4.0.1+ required for Java 21 compatibility)
+pyspark>=4.0.1
+
+# Cryptography for token decryption in overlap analysis
+pycryptodome>=3.18.0
+
+# Data interchange for Pandas UDFs (align with Spark 4.0.x)
+pandas>=1.5,<2.4
+pyarrow>=17.0.0

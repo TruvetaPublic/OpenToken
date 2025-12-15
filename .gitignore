@@ -55,3 +55,18 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+
+# Maven local configuration files
+settings.xml
+toolchains.xml
+
+# Notebook output
+output/
+
+# Python wheel output
+dist/
+build/
+
+.coverage
+coverage.xml
+tools/sync-report-*.json
