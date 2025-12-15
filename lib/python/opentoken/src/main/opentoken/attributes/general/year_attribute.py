@@ -4,15 +4,15 @@ Copyright (c) Truveta. All rights reserved.
 
 from typing import List
 import re
-from opentoken.attributes.base_attribute import BaseAttribute
+from opentoken.attributes.general.integer_attribute import IntegerAttribute
 from opentoken.attributes.validation import RegexValidator
 from opentoken.attributes.validation.serializable_attribute_validator import SerializableAttributeValidator
 
 
-class YearAttribute(BaseAttribute):
+class YearAttribute(IntegerAttribute):
     """Represents a generic year attribute.
 
-    This class extends BaseAttribute and provides functionality for working with
+    This class extends IntegerAttribute and provides functionality for working with
     year fields. It recognizes "Year" as a valid alias for this attribute type.
 
     The attribute performs normalization on input values by trimming whitespace
@@ -69,15 +69,11 @@ class YearAttribute(BaseAttribute):
         """
         if not value:
             raise ValueError(f"Invalid year format: {value}")
-            
+
         trimmed = value.strip()
-        
-        # Validate it's exactly 4 digits using the pattern
+
+        # Validate it's exactly 4 digits using the pattern before delegating normalization
         if not self.YEAR_PATTERN.match(trimmed):
             raise ValueError(f"Invalid year format: {value}")
-        
-        try:
-            year = int(trimmed)
-            return str(year)
-        except ValueError:
-            raise ValueError(f"Invalid year format: {value}")
+
+        return super().normalize(trimmed)
