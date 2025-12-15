@@ -5,22 +5,20 @@ package com.truveta.opentoken.attributes.general;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
-import com.truveta.opentoken.attributes.BaseAttribute;
 import com.truveta.opentoken.attributes.validation.RegexValidator;
 import com.truveta.opentoken.attributes.validation.SerializableAttributeValidator;
 
 /**
  * Represents a generic year attribute.
  * 
- * This class extends BaseAttribute and provides functionality for working with
+ * This class extends IntegerAttribute and provides functionality for working with
  * year fields. It recognizes "Year" as a valid alias for this attribute type.
  * 
  * The attribute performs normalization on input values by trimming whitespace
  * and validates that the year is a 4-digit year format.
  */
-public class YearAttribute extends BaseAttribute {
+public class YearAttribute extends IntegerAttribute {
 
     private static final String NAME = "Year";
     private static final String[] ALIASES = new String[] { NAME };
@@ -33,7 +31,6 @@ public class YearAttribute extends BaseAttribute {
      * - Optionally with leading/trailing whitespace
      */
     private static final String YEAR_REGEX = "^\\s*\\d{4}\\s*$";
-    private static final Pattern YEAR_PATTERN = Pattern.compile("\\d{4}");
 
     /**
      * Constructor for YearAttribute with no additional validators.
@@ -83,21 +80,13 @@ public class YearAttribute extends BaseAttribute {
             throw new IllegalArgumentException("Year value cannot be null");
         }
 
-        // Trim whitespace and validate it's a number
         String trimmed = value.trim();
 
-        // Check if it matches the 4-digit year format using pre-compiled Pattern
-        if (!YEAR_PATTERN.matcher(trimmed).matches()) {
+        if (!trimmed.matches(YEAR_REGEX)) {
             throw new IllegalArgumentException("Invalid year format: " + value);
         }
 
-        try {
-            int year = Integer.parseInt(trimmed);
-            // Return the year as a string
-            return String.valueOf(year);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid year format: " + value);
-        }
+        return super.normalize(trimmed);
     }
 
 }

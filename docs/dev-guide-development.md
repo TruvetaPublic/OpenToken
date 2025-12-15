@@ -481,6 +481,17 @@ Python Troubleshooting:
 
 Maintain tests to guard consistency between languages.
 
+#### Common Generic Attributes (ready to reuse)
+
+Available in both Java and Python for custom rules:
+
+- `Integer` – signed integers; trims whitespace; parse/stringify normalization.
+- `Decimal` – floating point with optional scientific notation; trims then parses.
+- `Year` – 4-digit calendar year; enforces regex then delegates to integer base.
+- `Date` – normalizes to `yyyy-MM-dd` from common date inputs.
+- `String` – trimmed non-empty strings.
+- `RecordId` – identifier passthrough.
+
 ## Building & Testing
 
 ### Full Multi-language Build
