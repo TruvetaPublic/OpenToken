@@ -8,18 +8,18 @@
         <groupId>com.truveta</groupId>
         <artifactId>opentoken-parent</artifactId>
         <version>1.11.0</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>opentoken</artifactId>
     <packaging>jar</packaging>
+    <version>1.11.0</version>
 
     <name>opentoken</name>
     <description>OpenToken Core Library - Privacy-preserving person matching using cryptographically secure token generation</description>
     <url>http://www.truveta.com</url>
 
-    <properties>
-        <revision>1.11.0</revision>
-    </properties>
+    
 
     <dependencies>
         <!-- JUnit 5 -->
