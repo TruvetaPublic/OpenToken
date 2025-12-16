@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>com.truveta</groupId>
         <artifactId>opentoken-parent</artifactId>
-        <version>${revision}</version>
+        <version>1.11.0</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>opentoken-cli</artifactId>
     <packaging>jar</packaging>
+    <version>1.11.0</version>
 
     <name>opentoken-cli</name>
     <description>OpenToken CLI - Command-line interface with CSV and Parquet support for token generation</description>
     <url>http://www.truveta.com</url>
 
     <properties>
-        <revision>1.11.0</revision>
         <hadoop.version>3.4.1</hadoop.version>
     </properties>
 
@@ -192,12 +192,12 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.truveta.opentoken.cli.Main</mainClass>
                                     <manifestEntries>
-                                        <Implementation-Version>${revision}</Implementation-Version>
-                                        <Specification-Version>${revision}</Specification-Version>
+                                        <Implementation-Version>${project.version}</Implementation-Version>
+                                        <Specification-Version>${project.version}</Specification-Version>
                                         <Implementation-Title>${project.name}</Implementation-Title>
                                         <Implementation-Vendor>Truveta</Implementation-Vendor>
                                         <Built-By>Truveta</Built-By>
-                                        <Package-Version>${revision}</Package-Version>
+                                        <Package-Version>${project.version}</Package-Version>
                                         <Multi-Release>true</Multi-Release>
                                     </manifestEntries>
                                 </transformer>
@@ -248,7 +248,7 @@
                                 <echo message="Running CSV sanity check..." />
                                 <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="csv.output">
                                     <arg value="-jar" />
-                                    <arg value="${project.build.directory}/opentoken-cli-${revision}.jar" />
+                                    <arg value="${project.build.directory}/opentoken-cli-${project.version}.jar" />
                                     <arg value="-i" />
                                     <arg value="../../../resources/sample.csv" />
                                     <arg value="-t" />
@@ -285,7 +285,7 @@
                                 <echo message="Running Parquet sanity check..." />
                                 <exec executable="java" dir="${basedir}" failonerror="true" outputproperty="parquet.output">
                                     <arg value="-jar" />
-                                    <arg value="${project.build.directory}/opentoken-cli-${revision}.jar" />
+                                    <arg value="${project.build.directory}/opentoken-cli-${project.version}.jar" />
                                     <arg value="-i" />
                                     <arg value="../../../resources/sample.parquet" />
                                     <arg value="-t" />
