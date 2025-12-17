@@ -1,3 +1,6 @@
+# Core opentoken dependency
+opentoken
+
 # PySpark for distributed processing (4.0.1+ required for Java 21 compatibility)
 pyspark>=4.0.1
 
