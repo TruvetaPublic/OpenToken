@@ -7,7 +7,7 @@
     <groupId>com.truveta</groupId>
     <artifactId>opentoken-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.12.0</version>
+    <version>1.12.1</version>
 
     <name>opentoken-parent</name>
     <description>OpenToken Parent POM - Privacy-preserving person matching library</description>
@@ -32,7 +32,7 @@
         <maven.compiler.release>11</maven.compiler.release>
         <junit.jupiter.version>5.13.4</junit.jupiter.version>
         <surefire.plugin.version>3.5.4</surefire.plugin.version>
-        <mockito.version>5.20.0</mockito.version>
+        <mockito.version>5.21.0</mockito.version>
         <slf4j.version>2.0.17</slf4j.version>
         <log4j.version>2.25.1</log4j.version>
     </properties>
@@ -43,7 +43,7 @@
             <dependency>
                 <groupId>com.truveta</groupId>
                 <artifactId>opentoken</artifactId>
-                <version>1.12.0</version>
+                <version>1.12.1</version>
             </dependency>
 
             <!-- JUnit 5 -->
@@ -80,7 +80,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.18.0</version>
+                <version>3.20.0</version>
             </dependency>
 
             <!-- Logging -->

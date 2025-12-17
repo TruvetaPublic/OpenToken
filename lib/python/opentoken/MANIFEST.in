@@ -2,9 +2,9 @@
 include requirements.txt
 include dev-requirements.txt
 
-# Try to include root README and LICENSE
-include ../../README.md
-include ../../LICENSE
+# Include root README and LICENSE (relative to this file)
+include ../../../README.md
+include ../../../LICENSE
 
 # Include all Python source files
 recursive-include src *.py
