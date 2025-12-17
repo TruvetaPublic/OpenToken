@@ -9,3 +9,8 @@ using various cryptographic transformations.
 
 __version__ = "1.12.0"
 __author__ = "Truveta"
+
+__all__ = [
+	"__version__",
+	"__author__",
+]
