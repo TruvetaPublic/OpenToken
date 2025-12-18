@@ -367,6 +367,12 @@ Key anchors in the guide:
 - Language Development: [Java & Python](docs/dev-guide-development.md#3-language-development-java--python)
 - Registration: [Token & Attribute Registration](docs/dev-guide-development.md#4-token--attribute-registration)
 
+Additional documentation:
+
+- [Public-Key Cryptography Implementation Plan](docs/public-key-implementation-plan.md) - Comprehensive technical analysis and roadmap for transitioning from secret-based to public-key cryptography (v1.13.0)
+- [Metadata Format](docs/metadata-format.md) - Documentation for OpenToken metadata files
+- [Branch Workflow and Release Process](docs/branch-workflow-and-release-process.md) - Git workflow and release procedures
+
 Quick parity note: Java and Python implementations produce identical tokens for the same normalized input values.
 
 ### Project Structure <!-- omit in toc -->
