@@ -5,6 +5,7 @@ This guide demonstrates the complete workflow for using OpenToken with public-ke
 ## Table of Contents
 
 - [Overview](#overview)
+- [CLI Quick Reference](#cli-quick-reference)
 - [Prerequisites](#prerequisites)
 - [Complete Workflow](#complete-workflow)
   - [Step 1: Receiver Generates Key Pair](#step-1-receiver-generates-key-pair)
@@ -62,6 +63,87 @@ The public-key workflow uses **Elliptic Curve Diffie-Hellman (ECDH)** for secure
 
 ---
 
+## CLI Quick Reference
+
+This section provides a quick overview of the CLI commands for the public key workflow. **Note:** CLI integration is currently in progress (Phases 3-5). The commands below show the planned interface.
+
+### Receiver: Generate Key Pair
+
+```bash
+# Java
+java -jar opentoken-cli/target/opentoken-cli-*.jar --generate-keypair
+
+# Python
+python -m opentoken_cli.main --generate-keypair
+```
+
+**Output:** Keys saved to `~/.opentoken/keypair.pem` (private) and `~/.opentoken/public_key.pem` (public)
+
+### Sender: Generate Encrypted Tokens
+
+```bash
+# Java
+java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  --receiver-public-key ~/opentoken_exchange/receiver_public_key.pem \
+  -i ../../resources/sample.csv \
+  -t csv \
+  -o ../../resources/output.zip
+
+# Python
+python -m opentoken_cli.main \
+  --receiver-public-key ~/opentoken_exchange/receiver_public_key.pem \
+  -i ../../../resources/sample.csv \
+  -t csv \
+  -o ../../../resources/output.zip
+```
+
+**What happens:**
+1. CLI loads receiver's public key
+2. CLI generates sender's key pair (if not exists) in `~/.opentoken/`
+3. CLI performs ECDH key exchange to derive keys
+4. CLI generates and encrypts tokens
+5. CLI creates ZIP package: `output.zip` containing:
+   - `tokens.csv` (encrypted)
+   - `tokens.metadata.json`
+   - `sender_public_key.pem`
+
+### Receiver: Decrypt Tokens
+
+```bash
+# Java
+java -jar opentoken-cli/target/opentoken-cli-*.jar --decrypt-with-ecdh \
+  -i ../../received_tokens/output.zip \
+  -o ../../received_tokens/decrypted_tokens.csv
+
+# Python
+python -m opentoken_cli.main --decrypt-with-ecdh \
+  -i ../../../received_tokens/output.zip \
+  -o ../../../received_tokens/decrypted_tokens.csv
+```
+
+**What happens:**
+1. CLI extracts sender's public key from ZIP
+2. CLI loads receiver's private key from `~/.opentoken/`
+3. CLI performs ECDH key exchange (derives same keys as sender)
+4. CLI decrypts tokens
+5. CLI writes decrypted output
+
+### Key CLI Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `--generate-keypair` | Generate a new ECDH P-256 key pair |
+| `--receiver-public-key <path>` | Path to receiver's public key (for sender) |
+| `--sender-public-key <path>` | Path to sender's public key (for receiver, optional if in ZIP) |
+| `--sender-keypair-path <path>` | Custom location for sender's key pair (default: `~/.opentoken/`) |
+| `--receiver-keypair-path <path>` | Custom location for receiver's key pair (default: `~/.opentoken/`) |
+| `--decrypt-with-ecdh` | Decrypt mode using ECDH key exchange |
+| `-i, --input <path>` | Input file path |
+| `-o, --output <path>` | Output file path (use `.zip` extension for packaged output) |
+| `-t, --type <format>` | Input/output format (`csv` or `parquet`) |
+
+---
+
 ## Prerequisites
 
 ### Java Implementation
@@ -96,6 +178,38 @@ pip install -e .
 
 The receiver must first generate an ECDH P-256 key pair. This only needs to be done once and can be reused for multiple data exchanges.
 
+#### Option A: Using CLI (Recommended)
+
+**Java CLI:**
+
+```bash
+# Generate receiver key pair
+cd lib/java
+java -jar opentoken-cli/target/opentoken-cli-*.jar --generate-keypair
+
+# Output:
+# ✓ Key pair generated successfully
+# ✓ Private key saved to: /home/user/.opentoken/keypair.pem (0600 permissions)
+# ✓ Public key saved to: /home/user/.opentoken/public_key.pem
+```
+
+**Python CLI:**
+
+```bash
+# Generate receiver key pair
+cd lib/python/opentoken-cli
+python -m opentoken_cli.main --generate-keypair
+
+# Output:
+# ✓ Key pair generated successfully
+# ✓ Private key saved to: /home/user/.opentoken/keypair.pem (0600 permissions)
+# ✓ Public key saved to: /home/user/.opentoken/public_key.pem
+```
+
+**Note:** The CLI commands above show the planned interface. Current implementation status: **In Progress (Phase 3-4)**
+
+#### Option B: Using Programmatic API (Currently Available)
+
 **Using Java:**
 
 ```java
@@ -128,7 +242,7 @@ receiver_private_key, receiver_public_key = key_pair_manager.get_or_create_key_p
 print(f"Receiver key pair generated and saved to: {key_pair_manager.get_key_directory()}")
 ```
 
-**Command Line (Python script):**
+**Quick Script (Python):**
 
 ```bash
 # Create a simple script to generate keys
@@ -217,10 +331,82 @@ except Exception as e:
 
 ### Step 4: Sender Generates Tokens
 
-The sender now runs OpenToken with the receiver's public key to generate encrypted tokens.
+The sender now runs OpenToken with the receiver's public key to generate encrypted tokens. The CLI will automatically:
+1. Load or generate the sender's key pair
+2. Perform ECDH key exchange with the receiver's public key
+3. Derive hashing and encryption keys using HKDF
+4. Generate and encrypt tokens
+5. Package output as ZIP with sender's public key included
 
-**Current Implementation Note:** 
-The CLI integration is in progress (Phases 3-4). Below shows the programmatic approach currently available:
+#### Option A: Using CLI (Recommended - Planned Interface)
+
+**Java CLI:**
+
+```bash
+cd lib/java
+mvn clean install
+
+# Run OpenToken with receiver's public key
+java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  --receiver-public-key ~/opentoken_exchange/receiver_public_key.pem \
+  -i ../../resources/sample.csv \
+  -t csv \
+  -o ../../resources/output.zip
+
+# Output:
+# ✓ Loaded receiver's public key
+# ✓ Generated sender key pair (saved to ~/.opentoken/)
+# ✓ Performed ECDH key exchange
+# ✓ Derived hashing key (32 bytes)
+# ✓ Derived encryption key (32 bytes)
+# ✓ Processed 105 records, 93 valid tokens generated
+# ✓ Output package created: output.zip
+#   ├─ tokens.csv (encrypted)
+#   ├─ tokens.metadata.json
+#   └─ sender_public_key.pem
+```
+
+**Python CLI:**
+
+```bash
+cd lib/python/opentoken-cli
+pip install -e . -e ../opentoken
+
+# Run OpenToken with receiver's public key
+python -m opentoken_cli.main \
+  --receiver-public-key ~/opentoken_exchange/receiver_public_key.pem \
+  -i ../../../resources/sample.csv \
+  -t csv \
+  -o ../../../resources/output.zip
+
+# Output:
+# ✓ Loaded receiver's public key
+# ✓ Generated sender key pair (saved to ~/.opentoken/)
+# ✓ Performed ECDH key exchange
+# ✓ Derived hashing key (32 bytes)
+# ✓ Derived encryption key (32 bytes)
+# ✓ Processed 105 records, 93 valid tokens generated
+# ✓ Output package created: output.zip
+#   ├─ tokens.csv (encrypted)
+#   ├─ tokens.metadata.json
+#   └─ sender_public_key.pem
+```
+
+**Alternative: Specify Custom Key Location**
+
+```bash
+# Use a specific sender key pair location
+java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  --receiver-public-key ~/opentoken_exchange/receiver_public_key.pem \
+  --sender-keypair-path ~/my_keys/keypair.pem \
+  -i ../../resources/sample.csv \
+  -t csv \
+  -o ../../resources/output.zip
+```
+
+**Note:** CLI commands above show the planned interface. Current implementation status: **In Progress (Phase 3-4)**. The programmatic API (Option B below) is currently available.
+
+#### Option B: Using Programmatic API (Currently Available)
 
 **Using Java:**
 
@@ -308,21 +494,13 @@ print("✓ Tokens generated with ECDH-derived keys")
 print("✓ Sender public key saved to: ./output/sender_public_key.pem")
 ```
 
-**Expected Output Structure (After Phase 3 Implementation):**
+**Output Structure:**
 
 ```
-output/
+output.zip
 ├── tokens.csv                  # Encrypted tokens
-├── tokens.metadata.json        # Metadata with key hashes
+├── tokens.metadata.json        # Metadata with key exchange info
 └── sender_public_key.pem       # Sender's public key for receiver
-```
-
-Or as a ZIP file:
-```
-tokens_output.zip
-├── tokens.csv
-├── tokens.metadata.json
-└── sender_public_key.pem
 ```
 
 ---
@@ -358,7 +536,7 @@ zip -r tokens_output.zip tokens.csv tokens.metadata.json sender_public_key.pem
 
 ### Step 6: Receiver Decrypts Tokens
 
-The receiver uses their private key and the sender's public key to derive the same keys and decrypt tokens.
+The receiver uses their private key and the sender's public key (from the ZIP package) to derive the same keys and decrypt tokens.
 
 **Extract the package:**
 
@@ -370,6 +548,64 @@ cd received_tokens/
 ls -la
 # Expected: tokens.csv, tokens.metadata.json, sender_public_key.pem
 ```
+
+#### Option A: Using CLI (Recommended - Planned Interface)
+
+The CLI automatically extracts the sender's public key from the ZIP, performs ECDH, and decrypts the tokens.
+
+**Java CLI:**
+
+```bash
+cd lib/java
+
+# Decrypt tokens using the ZIP package
+# The CLI extracts sender's public key from the ZIP automatically
+java -jar opentoken-cli/target/opentoken-cli-*.jar --decrypt-with-ecdh \
+  -i ../../received_tokens/tokens_output.zip \
+  -o ../../received_tokens/decrypted_tokens.csv
+
+# Output:
+# ✓ Extracted sender's public key from package
+# ✓ Loaded receiver's private key from ~/.opentoken/
+# ✓ Performed ECDH key exchange
+# ✓ Derived encryption key (matches sender's key)
+# ✓ Decrypted 93 tokens successfully
+# ✓ Output written to: decrypted_tokens.csv
+```
+
+**Python CLI:**
+
+```bash
+cd lib/python/opentoken-cli
+
+# Decrypt tokens using the ZIP package
+python -m opentoken_cli.main --decrypt-with-ecdh \
+  -i ../../../received_tokens/tokens_output.zip \
+  -o ../../../received_tokens/decrypted_tokens.csv
+
+# Output:
+# ✓ Extracted sender's public key from package
+# ✓ Loaded receiver's private key from ~/.opentoken/
+# ✓ Performed ECDH key exchange
+# ✓ Derived encryption key (matches sender's key)
+# ✓ Decrypted 93 tokens successfully
+# ✓ Output written to: decrypted_tokens.csv
+```
+
+**Alternative: Specify Keys Explicitly**
+
+```bash
+# Specify custom receiver keypair location
+java -jar opentoken-cli/target/opentoken-cli-*.jar --decrypt-with-ecdh \
+  --receiver-keypair-path ~/my_keys/keypair.pem \
+  --sender-public-key ./received_tokens/sender_public_key.pem \
+  -i ./received_tokens/tokens.csv \
+  -o ./decrypted_tokens.csv
+```
+
+**Note:** CLI commands above show the planned interface. Current implementation status: **In Progress (Phase 5)**. The programmatic API (Option B below) is currently available.
+
+#### Option B: Using Programmatic API (Currently Available)
 
 **Decrypt using Java:**
 
