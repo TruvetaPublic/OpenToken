@@ -101,7 +101,7 @@ import os
 from pyspark.sql import SparkSession
 from opentoken_pyspark import OpenTokenProcessor
 
-# Create Spark session
+# Create Spark session (PySpark 4.0.1+ handles Java 21 natively)
 spark = SparkSession.builder \
     .appName("OpenTokenExample") \
     .master("local[*]") \
@@ -123,6 +123,41 @@ tokens_df = processor.process_dataframe(df)
 # View results
 tokens_df.show()
 ```
+
+### Java 8-17 Setup (PySpark 3.5.x)
+
+If you're using Java 8-17 and cannot upgrade to Java 21:
+
+```python
+import sys
+import os
+from pyspark.sql import SparkSession
+from opentoken_pyspark import OpenTokenProcessor
+
+# Create Spark session (PySpark 3.5.x with PyArrow <20)
+spark = SparkSession.builder \
+    .appName("OpenTokenExample") \
+    .master("local[*]") \
+    .config("spark.executorEnv.PYTHONPATH", os.pathsep.join(sys.path)) \
+    .getOrCreate()
+
+# Load your data
+df = spark.read.csv("data.csv", header=True)
+
+# Initialize processor with your secrets
+processor = OpenTokenProcessor(
+    hashing_secret="your-hashing-secret",
+    encryption_key="your-encryption-key"
+)
+
+# Generate tokens
+tokens_df = processor.process_dataframe(df)
+
+# View results
+tokens_df.show()
+```
+
+**Note:** Ensure you have PyArrow <20 installed: `pip install 'pyarrow>=15.0.0,<20'`
 
 ### Databricks Example
 
