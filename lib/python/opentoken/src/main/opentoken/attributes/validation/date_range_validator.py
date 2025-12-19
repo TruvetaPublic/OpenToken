@@ -25,7 +25,12 @@ class DateRangeValidator(SerializableAttributeValidator):
         "%Y/%m/%d",
         "%m/%d/%Y",
         "%m-%d-%Y",
-        "%d.%m.%Y"
+        "%d.%m.%Y",
+        # ISO 8601 timestamp formats
+        "%Y-%m-%dT%H:%M:%S.%fZ",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%dT%H:%M:%S.%f%z",
+        "%Y-%m-%dT%H:%M:%S%z"
     ]
 
     def __init__(self, min_date: Optional[date] = None, 
