@@ -34,6 +34,14 @@ class TestDateAttribute:
         assert date_attribute.normalize("10-26-2023") == "2023-10-26"
         assert date_attribute.normalize("26.10.2023") == "2023-10-26"
 
+    def test_normalize_iso8601_timestamps_should_normalize_to_yyyy_mm_dd(self, date_attribute):
+        """Test normalization of ISO 8601 timestamp formats."""
+        assert date_attribute.normalize("1972-08-18T00:00:00.000Z") == "1972-08-18"
+        assert date_attribute.normalize("2023-10-26T12:34:56.789Z") == "2023-10-26"
+        assert date_attribute.normalize("2023-10-26T12:34:56Z") == "2023-10-26"
+        assert date_attribute.normalize("2023-10-26T12:34:56.789+05:30") == "2023-10-26"
+        assert date_attribute.normalize("2023-10-26T12:34:56-08:00") == "2023-10-26"
+
     def test_normalize_invalid_date_format_should_raise_exception(self, date_attribute):
         """Test that invalid date formats raise exceptions."""
         with pytest.raises(ValueError, match="Invalid date format"):
@@ -46,6 +54,14 @@ class TestDateAttribute:
         assert date_attribute.validate("10/26/2023") is True
         assert date_attribute.validate("10-26-2023") is True
         assert date_attribute.validate("26.10.2023") is True
+
+    def test_validate_iso8601_timestamps_should_return_true(self, date_attribute):
+        """Test validation of ISO 8601 timestamp values."""
+        assert date_attribute.validate("1972-08-18T00:00:00.000Z") is True
+        assert date_attribute.validate("2023-10-26T12:34:56.789Z") is True
+        assert date_attribute.validate("2023-10-26T12:34:56Z") is True
+        assert date_attribute.validate("2023-10-26T12:34:56.789+05:30") is True
+        assert date_attribute.validate("2023-10-26T12:34:56-08:00") is True
 
     def test_validate_invalid_date_should_return_false(self, date_attribute):
         """Test validation of invalid date values."""

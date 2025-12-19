@@ -33,6 +33,7 @@ import com.truveta.opentoken.attributes.validation.SerializableAttributeValidato
  * - MM/dd/yyyy
  * - MM-dd-yyyy
  * - dd.MM.yyyy
+ * - ISO 8601 timestamps (yyyy-MM-dd'T'HH:mm:ss.SSSX or yyyy-MM-dd'T'HH:mm:ssX)
  */
 public class DateAttribute extends BaseAttribute {
 
@@ -42,23 +43,28 @@ public class DateAttribute extends BaseAttribute {
     /**
      * Regular expression pattern for validating date formats.
      * 
-     * This regex supports two formats:
+     * This regex supports three formats:
      * 1. "YYYY-MM-DD" or "YYYY/MM/DD" - where the year is represented by 4 digits,
      *    followed by a hyphen or slash, then a 2-digit month, another hyphen or slash,
      *    and finally a 2-digit day.
      * 2. "MM-DD-YYYY" or "MM.DD.YYYY" or "MM/DD/YYYY" - where the month is represented
      *    by 2 digits, followed by a hyphen, dot, or slash, then a 2-digit day, and
      *    finally a 4-digit year.
+     * 3. ISO 8601 timestamps - "YYYY-MM-DDTHH:MM:SS.sssZ" or "YYYY-MM-DDTHH:MM:SS.sss+/-HH:MM"
      * 
      * This ensures that the input matches common date formats while allowing for
      * flexibility in the delimiter used (hyphen, slash, or dot).
      */
-    private static final String DATE_REGEX = "^((\\d{4}[-/]\\d{2}[-/]\\d{2})|(\\d{2}[-/.]\\d{2}[-/.]\\d{4}))$";
+    private static final String DATE_REGEX = "^((\\d{4}[-/]\\d{2}[-/]\\d{2})"
+            + "|(\\d{2}[-/.]\\d{2}[-/.]\\d{4})"
+            + "|(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?(?:Z|[+-]\\d{2}:\\d{2})?))$";
 
     private static final String NORMALIZED_FORMAT = "yyyy-MM-dd";
     private static final String[] POSSIBLE_INPUT_FORMATS = new String[] {
             NORMALIZED_FORMAT, "yyyy/MM/dd", "MM/dd/yyyy",
-            "MM-dd-yyyy", "dd.MM.yyyy" };
+            "MM-dd-yyyy", "dd.MM.yyyy", "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX" };
 
     // Thread-safe date formatter
     private static final DateTimeFormatter NORMALIZED_DATE_FORMATTER = DateTimeFormatter.ofPattern(NORMALIZED_FORMAT);

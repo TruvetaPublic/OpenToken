@@ -25,14 +25,18 @@ class DateAttribute(BaseAttribute):
     - MM/dd/yyyy
     - MM-dd-yyyy
     - dd.MM.yyyy
+    - ISO 8601 timestamps (yyyy-MM-ddTHH:mm:ss.sssZ or yyyy-MM-ddTHH:mm:ssZ)
     """
 
     NAME = "Date"
     ALIASES = [NAME]
 
     # Regular expression pattern for validating date formats
+    # Supports: yyyy-MM-dd, yyyy/MM/dd, MM/dd/yyyy, MM-dd-yyyy, dd.MM.yyyy,
+    # and ISO 8601 timestamps
     VALIDATION_PATTERN = re.compile(
-        r"^(?:\d{4}[-/]\d{2}[-/]\d{2}|\d{2}[-./]\d{2}[-./]\d{4})$"
+        r"^(?:\d{4}[-/]\d{2}[-/]\d{2}|\d{2}[-./]\d{2}[-./]\d{4}|"
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-]\d{2}:\d{2})?)$"
     )
 
     def __init__(self, additional_validators: List[SerializableAttributeValidator] = None):
@@ -79,6 +83,21 @@ class DateAttribute(BaseAttribute):
 
         if not value:
             raise ValueError("Invalid date format: empty or whitespace")
+
+        # Try ISO 8601 timestamp formats first
+        iso_formats = [
+            "%Y-%m-%dT%H:%M:%S.%fZ",      # yyyy-MM-ddTHH:mm:ss.sssZ
+            "%Y-%m-%dT%H:%M:%SZ",          # yyyy-MM-ddTHH:mm:ssZ
+            "%Y-%m-%dT%H:%M:%S.%f%z",      # yyyy-MM-ddTHH:mm:ss.sss+/-HH:MM
+            "%Y-%m-%dT%H:%M:%S%z"          # yyyy-MM-ddTHH:mm:ss+/-HH:MM
+        ]
+        
+        for fmt in iso_formats:
+            try:
+                parsed_date = datetime.strptime(value, fmt)
+                return parsed_date.strftime("%Y-%m-%d")
+            except ValueError:
+                continue
 
         # Try different date formats
         date_formats = [
