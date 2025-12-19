@@ -22,6 +22,12 @@ class CommandLineArguments:
         self.output_type: str = ""
         self.decrypt: bool = False
         self.hash_only: bool = False
+        self.receiver_public_key: Optional[str] = None
+        self.sender_public_key: Optional[str] = None
+        self.sender_keypair_path: Optional[str] = None
+        self.receiver_keypair_path: Optional[str] = None
+        self.generate_keypair: bool = False
+        self.decrypt_with_ecdh: bool = False
 
     @classmethod
     def parse_args(cls, args: Optional[list] = None) -> 'CommandLineArguments':
@@ -102,6 +108,56 @@ class CommandLineArguments:
             default=False
         )
 
+        parser.add_argument(
+            "--receiver-public-key",
+            dest="receiver_public_key",
+            help="Path to receiver's public key file for ECDH key exchange.",
+            required=False,
+            default=None
+        )
+
+        parser.add_argument(
+            "--sender-public-key",
+            dest="sender_public_key",
+            help="Path to sender's public key file (for decryption with ECDH).",
+            required=False,
+            default=None
+        )
+
+        parser.add_argument(
+            "--sender-keypair-path",
+            dest="sender_keypair_path",
+            help="Path to sender's private key file (default: ~/.opentoken/keypair.pem).",
+            required=False,
+            default=None
+        )
+
+        parser.add_argument(
+            "--receiver-keypair-path",
+            dest="receiver_keypair_path",
+            help="Path to receiver's private key file (default: ~/.opentoken/keypair.pem).",
+            required=False,
+            default=None
+        )
+
+        parser.add_argument(
+            "--generate-keypair",
+            dest="generate_keypair",
+            help="Generate a new ECDH P-256 key pair and exit.",
+            action="store_true",
+            required=False,
+            default=False
+        )
+
+        parser.add_argument(
+            "--decrypt-with-ecdh",
+            dest="decrypt_with_ecdh",
+            help="Decrypt mode using ECDH key exchange.",
+            action="store_true",
+            required=False,
+            default=False
+        )
+
         parsed_args = parser.parse_args(args)
 
         # Create instance and populate with parsed values
@@ -114,6 +170,12 @@ class CommandLineArguments:
         instance.output_type = parsed_args.output_type
         instance.decrypt = parsed_args.decrypt
         instance.hash_only = parsed_args.hash_only
+        instance.receiver_public_key = parsed_args.receiver_public_key
+        instance.sender_public_key = parsed_args.sender_public_key
+        instance.sender_keypair_path = parsed_args.sender_keypair_path
+        instance.receiver_keypair_path = parsed_args.receiver_keypair_path
+        instance.generate_keypair = parsed_args.generate_keypair
+        instance.decrypt_with_ecdh = parsed_args.decrypt_with_ecdh
 
         return instance
 

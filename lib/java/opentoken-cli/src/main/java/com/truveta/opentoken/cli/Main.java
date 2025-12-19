@@ -33,6 +33,14 @@ import com.truveta.opentoken.tokentransformer.DecryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
+import com.truveta.opentoken.keyexchange.KeyExchange;
+import com.truveta.opentoken.keyexchange.KeyExchangeException;
+import com.truveta.opentoken.keyexchange.KeyPairManager;
+import com.truveta.opentoken.keyexchange.PublicKeyLoader;
+import com.truveta.opentoken.cli.io.OutputPackager;
+
+import java.security.KeyPair;
+import java.security.PublicKey;
 
 /**
  * Entry point for the OpenToken command-line application.
@@ -60,6 +68,13 @@ public class Main {
      */
     public static void main(String[] args) throws IOException {
         CommandLineArguments commandLineArguments = loadCommandLineArguments(args);
+        
+        // Handle keypair generation mode
+        if (commandLineArguments.isGenerateKeypair()) {
+            generateKeypair();
+            return;
+        }
+        
         String hashingSecret = commandLineArguments.getHashingSecret();
         String encryptionKey = commandLineArguments.getEncryptionKey();
         String inputPath = commandLineArguments.getInputPath();
@@ -68,13 +83,20 @@ public class Main {
         String outputType = commandLineArguments.getOutputType();
         boolean decryptMode = commandLineArguments.isDecrypt();
         boolean hashOnlyMode = commandLineArguments.isHashOnly();
+        boolean decryptWithEcdh = commandLineArguments.isDecryptWithEcdh();
+        String receiverPublicKeyPath = commandLineArguments.getReceiverPublicKey();
+        String senderPublicKeyPath = commandLineArguments.getSenderPublicKey();
+        String senderKeypairPath = commandLineArguments.getSenderKeypairPath();
+        String receiverKeypairPath = commandLineArguments.getReceiverKeypairPath();
 
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType; // defaulting to input type if not provided
         }
 
         logger.info("Decrypt Mode: {}", decryptMode);
+        logger.info("Decrypt with ECDH: {}", decryptWithEcdh);
         logger.info("Hash-Only Mode: {}", hashOnlyMode);
+        logger.info("Receiver Public Key: {}", receiverPublicKeyPath);
         if (logger.isInfoEnabled()) {
             logger.info("Hashing Secret: {}", maskString(hashingSecret));
             logger.info("Encryption Key: {}", maskString(encryptionKey));
@@ -97,30 +119,39 @@ public class Main {
         }
 
         // Process based on mode
-        if (decryptMode) {
-            // Decrypt mode - process encrypted tokens
-            if (encryptionKey == null || encryptionKey.isBlank()) {
-                logger.error("Encryption key must be specified for decryption");
-                return;
+        if (decryptMode || decryptWithEcdh) {
+            // Decrypt mode
+            if (decryptWithEcdh) {
+                // ECDH-based decryption
+                decryptTokensWithEcdh(inputPath, outputPath, inputType, outputType, 
+                                    senderPublicKeyPath, receiverKeypairPath);
+            } else {
+                // Secret-based decryption (legacy)
+                if (encryptionKey == null || encryptionKey.isBlank()) {
+                    logger.error("Encryption key must be specified for decryption");
+                    return;
+                }
+                decryptTokens(inputPath, outputPath, inputType, outputType, encryptionKey);
             }
-
-            decryptTokens(inputPath, outputPath, inputType, outputType, encryptionKey);
             logger.info("Token decryption completed successfully.");
         } else {
-            // Token generation mode - validate and process person attributes
-            // Hashing secret is always required
-            if (hashingSecret == null || hashingSecret.isBlank()) {
-                logger.error("Hashing secret must be specified");
-                return;
+            // Token generation mode
+            if (receiverPublicKeyPath != null && !receiverPublicKeyPath.isBlank()) {
+                // ECDH-based encryption
+                processTokensWithEcdh(inputPath, outputPath, inputType, outputType, 
+                                    receiverPublicKeyPath, senderKeypairPath);
+            } else {
+                // Secret-based encryption (legacy)
+                if (hashingSecret == null || hashingSecret.isBlank()) {
+                    logger.error("Hashing secret must be specified");
+                    return;
+                }
+                if (!hashOnlyMode && (encryptionKey == null || encryptionKey.isBlank())) {
+                    logger.error("Encryption key must be specified (or use --hash-only to skip encryption)");
+                    return;
+                }
+                processTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey, hashOnlyMode);
             }
-
-            // Encryption key is only required when not in hash-only mode
-            if (!hashOnlyMode && (encryptionKey == null || encryptionKey.isBlank())) {
-                logger.error("Encryption key must be specified (or use --hash-only to skip encryption)");
-                return;
-            }
-
-            processTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey, hashOnlyMode);
         }
     }
 
@@ -301,6 +332,186 @@ public class Main {
                 return new TokenParquetWriter(outputPath);
             default:
                 throw new IllegalArgumentException("Unsupported output type: " + outputType);
+        }
+    }
+    
+    /**
+     * Generates a new ECDH key pair and saves it to the default location.
+     */
+    private static void generateKeypair() {
+        try {
+            logger.info("Generating new ECDH P-256 key pair...");
+            KeyPairManager keyPairManager = new KeyPairManager();
+            KeyPair keyPair = keyPairManager.generateAndSaveKeyPair();
+            
+            logger.info("✓ Key pair generated successfully");
+            logger.info("✓ Private key saved to: {}/keypair.pem (0600 permissions)", keyPairManager.getKeyDirectory());
+            logger.info("✓ Public key saved to: {}/public_key.pem", keyPairManager.getKeyDirectory());
+            
+        } catch (KeyExchangeException e) {
+            logger.error("Error generating key pair: ", e);
+        }
+    }
+    
+    /**
+     * Processes tokens using ECDH-based key exchange.
+     *
+     * @param inputPath path to person attributes file
+     * @param outputPath path to output ZIP file
+     * @param inputType input type ("csv" or "parquet")
+     * @param outputType output type ("csv" or "parquet")
+     * @param receiverPublicKeyPath path to receiver's public key
+     * @param senderKeypairPath optional path to sender's keypair
+     */
+    private static void processTokensWithEcdh(String inputPath, String outputPath, String inputType, 
+                                             String outputType, String receiverPublicKeyPath, 
+                                             String senderKeypairPath) {
+        try {
+            logger.info("Processing tokens with ECDH key exchange...");
+            
+            // Load receiver's public key
+            PublicKeyLoader publicKeyLoader = new PublicKeyLoader();
+            PublicKey receiverPublicKey = publicKeyLoader.loadPublicKey(receiverPublicKeyPath);
+            logger.info("✓ Loaded receiver's public key");
+            
+            // Load or generate sender's key pair
+            KeyPairManager senderKeyManager = senderKeypairPath != null 
+                ? new KeyPairManager(new java.io.File(senderKeypairPath).getParent())
+                : new KeyPairManager();
+            KeyPair senderKeyPair = senderKeyManager.getOrCreateKeyPair();
+            logger.info("✓ Sender key pair ready (saved to: {})", senderKeyManager.getKeyDirectory());
+            
+            // Perform ECDH key exchange
+            KeyExchange keyExchange = new KeyExchange();
+            KeyExchange.DerivedKeys keys = keyExchange.exchangeAndDeriveKeys(
+                senderKeyPair.getPrivate(), receiverPublicKey);
+            logger.info("✓ Performed ECDH key exchange");
+            logger.info("✓ Derived hashing key (32 bytes)");
+            logger.info("✓ Derived encryption key (32 bytes)");
+            
+            // Create transformers with derived keys
+            List<TokenTransformer> tokenTransformerList = new ArrayList<>();
+            tokenTransformerList.add(new HashTokenTransformer(keys.getHashingKeyAsString()));
+            tokenTransformerList.add(new EncryptTokenTransformer(keys.getEncryptionKeyAsString()));
+            
+            // Create temporary output for tokens
+            String tempOutputPath = outputPath.endsWith(".zip") 
+                ? outputPath.replace(".zip", "_temp." + outputType) 
+                : outputPath + "_temp";
+            
+            try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
+                 PersonAttributesWriter writer = createPersonAttributesWriter(tempOutputPath, outputType)) {
+                
+                // Create metadata with key exchange info
+                Metadata metadata = new Metadata();
+                Map<String, Object> metadataMap = metadata.initialize();
+                
+                // Add key exchange metadata
+                byte[] senderPublicKeyBytes = senderKeyPair.getPublic().getEncoded();
+                byte[] receiverPublicKeyBytes = receiverPublicKey.getEncoded();
+                metadata.addKeyExchangeMetadata(senderPublicKeyBytes, receiverPublicKeyBytes);
+                
+                // Process data
+                PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
+                
+                // Write metadata
+                String metadataPath = tempOutputPath + Metadata.METADATA_FILE_EXTENSION;
+                MetadataWriter metadataWriter = new MetadataJsonWriter(tempOutputPath);
+                metadataWriter.write(metadataMap);
+                
+                // Package output as ZIP if needed
+                if (OutputPackager.isZipFile(outputPath)) {
+                    OutputPackager.packageOutput(tempOutputPath, metadataPath, 
+                                                senderKeyPair.getPublic(), outputPath);
+                    logger.info("✓ Output package created: {}", outputPath);
+                    logger.info("  ├─ tokens.{} (encrypted)", outputType);
+                    logger.info("  ├─ tokens.metadata.json");
+                    logger.info("  └─ sender_public_key.pem");
+                    
+                    // Clean up temp files
+                    new java.io.File(tempOutputPath).delete();
+                    new java.io.File(metadataPath).delete();
+                } else {
+                    logger.info("✓ Tokens generated successfully");
+                    logger.info("Note: Use .zip extension for automatic packaging with sender's public key");
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error processing tokens with ECDH: ", e);
+        }
+    }
+    
+    /**
+     * Decrypts tokens using ECDH-based key exchange.
+     *
+     * @param inputPath path to input file (or ZIP)
+     * @param outputPath path to decrypted output file
+     * @param inputType input type ("csv" or "parquet")
+     * @param outputType output type ("csv" or "parquet")
+     * @param senderPublicKeyPath optional path to sender's public key (extracted from ZIP if not provided)
+     * @param receiverKeypairPath optional path to receiver's keypair
+     */
+    private static void decryptTokensWithEcdh(String inputPath, String outputPath, String inputType,
+                                             String outputType, String senderPublicKeyPath, 
+                                             String receiverKeypairPath) {
+        try {
+            logger.info("Decrypting tokens with ECDH key exchange...");
+            
+            PublicKey senderPublicKey;
+            String tokensInputPath = inputPath;
+            
+            // Extract sender's public key from ZIP if needed
+            if (OutputPackager.isZipFile(inputPath)) {
+                senderPublicKey = OutputPackager.extractSenderPublicKey(inputPath);
+                logger.info("✓ Extracted sender's public key from ZIP");
+                
+                // Extract tokens to temp file
+                tokensInputPath = inputPath.replace(".zip", "_temp." + inputType);
+                OutputPackager.extractTokensFile(inputPath, tokensInputPath);
+            } else if (senderPublicKeyPath != null && !senderPublicKeyPath.isBlank()) {
+                PublicKeyLoader publicKeyLoader = new PublicKeyLoader();
+                senderPublicKey = publicKeyLoader.loadPublicKey(senderPublicKeyPath);
+                logger.info("✓ Loaded sender's public key from: {}", senderPublicKeyPath);
+            } else {
+                logger.error("Sender's public key must be provided or available in ZIP");
+                return;
+            }
+            
+            // Load receiver's private key
+            KeyPairManager receiverKeyManager = receiverKeypairPath != null
+                ? new KeyPairManager(new java.io.File(receiverKeypairPath).getParent())
+                : new KeyPairManager();
+            KeyPair receiverKeyPair = receiverKeyManager.loadKeyPair(
+                receiverKeypairPath != null ? receiverKeypairPath 
+                : receiverKeyManager.getKeyDirectory() + "/keypair.pem");
+            logger.info("✓ Loaded receiver's private key from: {}", receiverKeyManager.getKeyDirectory());
+            
+            // Perform ECDH key exchange (same as sender)
+            KeyExchange keyExchange = new KeyExchange();
+            KeyExchange.DerivedKeys keys = keyExchange.exchangeAndDeriveKeys(
+                receiverKeyPair.getPrivate(), senderPublicKey);
+            logger.info("✓ Performed ECDH key exchange");
+            logger.info("✓ Derived encryption key (matches sender's key)");
+            
+            // Decrypt tokens
+            DecryptTokenTransformer decryptor = new DecryptTokenTransformer(keys.getEncryptionKeyAsString());
+            
+            try (TokenReader reader = createTokenReader(tokensInputPath, inputType);
+                 TokenWriter writer = createTokenWriter(outputPath, outputType)) {
+                TokenDecryptionProcessor.process(reader, writer, decryptor);
+            }
+            
+            // Clean up temp file if we extracted from ZIP
+            if (OutputPackager.isZipFile(inputPath)) {
+                new java.io.File(tokensInputPath).delete();
+            }
+            
+            logger.info("✓ Tokens decrypted successfully");
+            logger.info("✓ Output written to: {}", outputPath);
+            
+        } catch (Exception e) {
+            logger.error("Error decrypting tokens with ECDH: ", e);
         }
     }
 }
