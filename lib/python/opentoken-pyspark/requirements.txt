@@ -6,9 +6,9 @@ pycryptodome>=3.18.0
 
 # PySpark and related dependencies for local development (Spark 4.0.x - Java 21 compatible)
 # For production or cluster environments, install with appropriate extras:
-#   pip install opentoken-pyspark[spark40]  # Spark 4.0+ (Java 21)
+#   pip install opentoken-pyspark[spark40]  # Spark 4.0+ (Java 21, requires pandas 2.0+)
 #   pip install opentoken-pyspark[spark35]  # Spark 3.5.x (Java 8-17)
 #   pip install opentoken-pyspark[spark34]  # Spark 3.4.x (legacy)
 pyspark>=4.0.1,<5.0
-pandas>=1.5,<2.4
-pyarrow>=17.0.0
+pandas>=2.0.0,<2.4  # PySpark 4.0+ requires pandas 2.0+
+pyarrow>=17.0.0,<18.0
