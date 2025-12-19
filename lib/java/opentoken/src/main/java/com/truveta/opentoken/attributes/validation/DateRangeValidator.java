@@ -35,7 +35,10 @@ public final class DateRangeValidator implements SerializableAttributeValidator 
     // Supported date formats for parsing
     private static final String[] POSSIBLE_INPUT_FORMATS = new String[] {
             "yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy",
-            "MM-dd-yyyy", "dd.MM.yyyy"
+            "MM-dd-yyyy", "dd.MM.yyyy",
+            // ISO 8601 timestamp formats
+            "yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssX", "yyyy-MM-dd'T'HH:mm:ssXXX"
     };
 
     private final LocalDate minDate;
