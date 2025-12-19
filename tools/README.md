@@ -1,5 +1,23 @@
 # Development Tools
 
+- [Development Tools](#development-tools)
+  - [Java Multi-Language Sync Tool](#java-multi-language-sync-tool)
+    - [Overview](#overview)
+    - [Usage](#usage)
+      - [Command Line Interface](#command-line-interface)
+      - [GitHub Actions Integration](#github-actions-integration)
+    - [Configuration](#configuration)
+      - [Mapping File: `tools/java-language-mappings.json`](#mapping-file-toolsjava-language-mappingsjson)
+      - [Configuration Options](#configuration-options)
+    - [File Naming \& Handler Conventions](#file-naming--handler-conventions)
+    - [Output Formats](#output-formats)
+      - [Console Format (Default)](#console-format-default)
+      - [GitHub Checklist Format](#github-checklist-format)
+      - [JSON Format](#json-format)
+    - [Workflow Integration](#workflow-integration)
+      - [GitHub Actions Workflow](#github-actions-workflow)
+    - [Related Files](#related-files)
+
 ## Java Multi-Language Sync Tool
 
 ### Overview

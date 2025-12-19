@@ -6,6 +6,7 @@ Our approach to person matching relies on building a set of matching tokens (or 
 
 - [Introduction](#introduction)
 - [Highlights](#highlights)
+- [Demo](#demo)
 - [Overview](#overview)
 - [Usage](#usage)
 - [Quick Start](#quick-start)
@@ -19,6 +20,19 @@ Our approach to person matching relies on building a set of matching tokens (or 
 - Multi-language Support
 - Cryptographically Secure encryption that prevents re-identification
 - Enables straightforward person-matching by comparing 5 deterministic and unique tokens, providing a high degree of confidence in matches
+
+## Demo
+
+New to OpenToken? Start with the **[PPRL Superhero Demo](demos/pprl-superhero-example/)** — a beginner-friendly, end-to-end walkthrough showing how two parties (hospital and pharmacy) can privately find matching records without exposing raw identifiers.
+
+The demo includes:
+
+- **Interactive Jupyter notebook** with step-by-step explanations
+- **One-command runner** (`run_end_to_end.sh`) for quick execution
+- Synthetic superhero dataset generation
+- Token generation and overlap analysis examples
+
+Perfect for understanding privacy-preserving record linkage concepts before diving into production use.
 
 ## Overview
 
