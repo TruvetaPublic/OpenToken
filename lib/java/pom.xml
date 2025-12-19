@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.truveta</groupId>
     <artifactId>opentoken-parent</artifactId>
     <packaging>pom</packaging>
-    <version>${revision}</version>
+    <version>1.12.1</version>
 
     <name>opentoken-parent</name>
     <description>OpenToken Parent POM - Privacy-preserving person matching library</description>
@@ -28,13 +27,12 @@
     </distributionManagement>
 
     <properties>
-        <revision>1.11.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>21</java.version>
         <maven.compiler.release>11</maven.compiler.release>
         <junit.jupiter.version>5.13.4</junit.jupiter.version>
         <surefire.plugin.version>3.5.4</surefire.plugin.version>
-        <mockito.version>5.20.0</mockito.version>
+        <mockito.version>5.21.0</mockito.version>
         <slf4j.version>2.0.17</slf4j.version>
         <log4j.version>2.25.1</log4j.version>
     </properties>
@@ -45,7 +43,7 @@
             <dependency>
                 <groupId>com.truveta</groupId>
                 <artifactId>opentoken</artifactId>
-                <version>${revision}</version>
+                <version>1.12.1</version>
             </dependency>
 
             <!-- JUnit 5 -->
@@ -82,7 +80,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.18.0</version>
+                <version>3.20.0</version>
             </dependency>
 
             <!-- Logging -->
@@ -194,7 +192,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.13</version>
+                    <version>0.8.14</version>
                     <executions>
                         <execution>
                             <goals>

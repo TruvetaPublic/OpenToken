@@ -3,34 +3,27 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 from typing import List
-import re
-from opentoken.attributes.base_attribute import BaseAttribute
-from opentoken.attributes.validation import RegexValidator
+from opentoken.attributes.general.integer_attribute import IntegerAttribute
 from opentoken.attributes.validation.age_range_validator import AgeRangeValidator
 
 
-class AgeAttribute(BaseAttribute):
+class AgeAttribute(IntegerAttribute):
     """Represents the age attribute.
 
-    This class extends BaseAttribute and provides functionality for working with
+    This class extends IntegerAttribute and provides functionality for working with
     age fields. It recognizes "Age" as a valid alias for this attribute type.
 
     The attribute performs normalization on input values by trimming whitespace
-    and validates that the age is a valid integer between 0 and 120.
+    and validates that the age is a valid integer between 0 and 120 (inherited from
+    IntegerAttribute for format validation).
     """
 
     NAME = "Age"
     ALIASES = [NAME]
 
-    # Regular expression pattern for validating integer format with optional whitespace
-    VALIDATION_PATTERN = re.compile(r"^\s*\d+\s*$")
-
     def __init__(self):
-        validation_rules = [
-            RegexValidator(self.VALIDATION_PATTERN),
-            AgeRangeValidator()
-        ]
-        super().__init__(validation_rules)
+        """Initialize the AgeAttribute with age range validation."""
+        super().__init__([AgeRangeValidator()])
 
     def get_name(self) -> str:
         """Get the name of the attribute.
@@ -47,29 +40,3 @@ class AgeAttribute(BaseAttribute):
             List[str]: A list containing the aliases for this attribute
         """
         return self.ALIASES.copy()
-
-    def normalize(self, value: str) -> str:
-        """Normalize the age value by trimming whitespace.
-
-        Args:
-            value: The age string to normalize
-
-        Returns:
-            str: The trimmed age value
-
-        Raises:
-            ValueError: If the age is not a valid integer or empty
-        """
-        if value is None:
-            raise ValueError("Age value cannot be null")
-        if not value:
-            raise ValueError(f"Invalid age format: {value}")
-            
-        trimmed = value.strip()
-        
-        # Validate it's a valid integer
-        try:
-            age = int(trimmed)
-            return str(age)
-        except ValueError:
-            raise ValueError(f"Invalid age format: {value}")

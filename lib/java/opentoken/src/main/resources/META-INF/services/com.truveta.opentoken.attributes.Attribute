@@ -9,6 +9,8 @@ com.truveta.opentoken.attributes.person.SexAttribute
 com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute
 com.truveta.opentoken.attributes.person.USPostalCodeAttribute
 com.truveta.opentoken.attributes.general.DateAttribute
+com.truveta.opentoken.attributes.general.DecimalAttribute
+com.truveta.opentoken.attributes.general.IntegerAttribute
 com.truveta.opentoken.attributes.general.RecordIdAttribute
 com.truveta.opentoken.attributes.general.StringAttribute
 com.truveta.opentoken.attributes.general.YearAttribute

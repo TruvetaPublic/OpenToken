@@ -52,6 +52,15 @@ class DateAttributeTest {
     }
 
     @Test
+    void normalize_ISO8601Timestamps_ShouldNormalizeToYYYYMMDD() {
+        assertEquals("1972-08-18", dateAttribute.normalize("1972-08-18T00:00:00.000Z"));
+        assertEquals("2023-10-26", dateAttribute.normalize("2023-10-26T12:34:56.789Z"));
+        assertEquals("2023-10-26", dateAttribute.normalize("2023-10-26T12:34:56Z"));
+        assertEquals("2023-10-26", dateAttribute.normalize("2023-10-26T12:34:56.789+05:30"));
+        assertEquals("2023-10-26", dateAttribute.normalize("2023-10-26T12:34:56-08:00"));
+    }
+
+    @Test
     void normalize_InvalidDateFormat_ShouldThrowIllegalArgumentException() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             dateAttribute.normalize("20231026");
@@ -66,6 +75,15 @@ class DateAttributeTest {
         assertTrue(dateAttribute.validate("10/26/2023"));
         assertTrue(dateAttribute.validate("10-26-2023"));
         assertTrue(dateAttribute.validate("26.10.2023"));
+    }
+
+    @Test
+    void validate_ISO8601Timestamps_ShouldReturnTrue() {
+        assertTrue(dateAttribute.validate("1972-08-18T00:00:00.000Z"));
+        assertTrue(dateAttribute.validate("2023-10-26T12:34:56.789Z"));
+        assertTrue(dateAttribute.validate("2023-10-26T12:34:56Z"));
+        assertTrue(dateAttribute.validate("2023-10-26T12:34:56.789+05:30"));
+        assertTrue(dateAttribute.validate("2023-10-26T12:34:56-08:00"));
     }
 
     @Test

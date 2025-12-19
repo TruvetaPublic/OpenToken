@@ -1,13 +1,11 @@
-"""
-Copyright (c) Truveta. All rights reserved.
-"""
+"""Tokenizer implementations for token generation."""
 
-from opentoken.tokens.tokenizer.tokenizer import Tokenizer
-from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
-from opentoken.tokens.tokenizer.passthrough_tokenizer import PassthroughTokenizer
+from .passthrough_tokenizer import PassthroughTokenizer
+from .sha256_tokenizer import SHA256Tokenizer
+from .tokenizer import Tokenizer
 
 __all__ = [
-    'Tokenizer',
-    'SHA256Tokenizer',
-    'PassthroughTokenizer',
+    "PassthroughTokenizer",
+    "SHA256Tokenizer",
+    "Tokenizer",
 ]

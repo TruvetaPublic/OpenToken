@@ -1,10 +1,25 @@
-from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
-from opentoken.attributes.person.last_name_attribute import LastNameAttribute
-from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
-from opentoken.attributes.person.sex_attribute import SexAttribute
-from opentoken.attributes.person.social_security_number_attribute import SocialSecurityNumberAttribute
-from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
-from opentoken.attributes.person.us_postal_code_attribute import USPostalCodeAttribute
-from opentoken.attributes.person.canadian_postal_code_attribute import CanadianPostalCodeAttribute
-from opentoken.attributes.person.age_attribute import AgeAttribute
-from opentoken.attributes.person.birth_year_attribute import BirthYearAttribute
+"""Person attribute implementations."""
+
+from .age_attribute import AgeAttribute
+from .birth_date_attribute import BirthDateAttribute
+from .birth_year_attribute import BirthYearAttribute
+from .canadian_postal_code_attribute import CanadianPostalCodeAttribute
+from .first_name_attribute import FirstNameAttribute
+from .last_name_attribute import LastNameAttribute
+from .postal_code_attribute import PostalCodeAttribute
+from .sex_attribute import SexAttribute
+from .social_security_number_attribute import SocialSecurityNumberAttribute
+from .us_postal_code_attribute import USPostalCodeAttribute
+
+__all__ = [
+	"AgeAttribute",
+	"BirthDateAttribute",
+	"BirthYearAttribute",
+	"CanadianPostalCodeAttribute",
+	"FirstNameAttribute",
+	"LastNameAttribute",
+	"PostalCodeAttribute",
+	"SexAttribute",
+	"SocialSecurityNumberAttribute",
+	"USPostalCodeAttribute",
+]
