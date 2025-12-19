@@ -69,4 +69,8 @@ build/
 
 .coverage
 coverage.xml
+coverage-*.xml
+htmlcov/
+htmlcov-*/
+test-results-*.xml
 tools/sync-report-*.json
