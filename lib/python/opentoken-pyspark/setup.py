@@ -15,9 +15,11 @@ except FileNotFoundError:
     # Fallback to a short description if README is unavailable
     long_description = "OpenToken PySpark bridge for distributed token generation."
 
-# Read requirements from requirements.txt
-with open(os.path.join(this_directory, "requirements.txt"), encoding="utf-8") as f:
-    requirements = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+# Core dependencies (version-agnostic, no PySpark)
+core_requirements = [
+    "opentoken==1.12.1",
+    "pycryptodome>=3.18.0",
+]
 
 setup(
     name="opentoken-pyspark",
@@ -34,10 +36,31 @@ setup(
     package_dir={"": "src/main"},
     packages=find_packages(where="src/main"),
     python_requires=">=3.10",
-    install_requires=requirements,
+    install_requires=core_requirements,
     extras_require={
+        # Spark 4.0.x - Recommended for Java 21
+        "spark40": [
+            "pyspark>=4.0.1,<5.0",
+            "pyarrow>=17.0.0",
+            "pandas>=1.5,<2.4",
+        ],
+        # Spark 3.5.x - For Java 8-17 (NOT compatible with Java 21)
+        "spark35": [
+            "pyspark>=3.5.0,<3.6",
+            "pyarrow>=15.0.0,<20",
+            "pandas>=1.5,<2.2",
+        ],
+        # Spark 3.4.x - Legacy support
+        "spark34": [
+            "pyspark>=3.4.0,<3.5",
+            "pyarrow>=10.0.0,<15",
+            "pandas>=1.5,<2.1",
+        ],
+        # Development dependencies
         "dev": [
             "pytest",
+            "pytest-cov",
+            "flake8",
             "jupyter",
             "notebook",
             "ipykernel",

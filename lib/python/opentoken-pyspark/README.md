@@ -16,41 +16,84 @@ The OpenToken PySpark Bridge provides a seamless interface between PySpark DataF
 
 ## Installation
 
-### Quick Install
-
-```bash
-# First, install the OpenToken core library
-cd lib/python/opentoken
-pip install -e .
-
-# Optionally install the CLI if you need command-line tokenization
-cd ../opentoken-cli
-pip install -e .
-
-# Then install the PySpark bridge
-cd ../opentoken-pyspark
-pip install -e .
-```
-
 ### Prerequisites
 
 - Python 3.10 or higher
-- OpenToken core library
+- OpenToken core library (automatically installed as dependency)
+- Apache Spark or PySpark environment
 
-**Version Compatibility:**
+### Version Compatibility
 
-Choose the appropriate combination based on your Java version:
+OpenToken PySpark supports multiple Spark versions to accommodate different Java environments and cluster configurations:
 
-| Java Version | PySpark Version | PyArrow Version | Notes                                           |
-| ------------ | --------------- | --------------- | ----------------------------------------------- |
-| **Java 21**  | **4.0.1+**      | **17.0.0+**     | **Recommended** - Native Java 21 support        |
-| Java 8-17    | 3.5.x           | <20             | Legacy support - use if you cannot upgrade Java |
+| Spark Version | PySpark Version | PyArrow Version | Pandas Version | Java Version | Installation Extra |
+|---------------|-----------------|-----------------|----------------|--------------|-------------------|
+| **4.0.x**     | >=4.0.1, <5.0   | >=17.0.0        | >=1.5, <2.4    | **21**       | `[spark40]` **(Recommended)** |
+| 3.5.x         | >=3.5.0, <3.6   | >=15.0.0, <20   | >=1.5, <2.2    | 8-17         | `[spark35]` |
+| 3.4.x         | >=3.4.0, <3.5   | >=10.0.0, <15   | >=1.5, <2.1    | 8-17         | `[spark34]` |
 
-**Important:** PySpark 3.5.x is not compatible with Java 21. If you're using Java 21, you must use PySpark 4.0.1+ with PyArrow 17.0.0+.
+**Important:** 
+- PySpark 3.5.x and earlier are **NOT compatible** with Java 21
+- If you're using Java 21, you **must** use PySpark 4.0.1+ (Spark 4.0.x)
+- For managed clusters (Databricks, EMR, Azure Synapse), PySpark is typically pre-installed
+
+### Installation Options
+
+#### Option 1: Spark 4.0+ (Recommended - Java 21)
+
+For local development or clusters with Java 21:
+
+```bash
+pip install opentoken-pyspark[spark40]
+```
+
+#### Option 2: Spark 3.5.x (Java 8-17)
+
+For clusters still using Java 8-17 and Spark 3.5.x:
+
+```bash
+pip install opentoken-pyspark[spark35]
+```
+
+#### Option 3: Spark 3.4.x (Legacy)
+
+For older Spark 3.4.x clusters:
+
+```bash
+pip install opentoken-pyspark[spark34]
+```
+
+#### Option 4: Managed Cluster Environments
+
+For environments where PySpark is pre-installed (Databricks, EMR, etc.):
+
+```bash
+pip install opentoken-pyspark
+```
+
+This installs only the core dependencies without PySpark. You'll use the cluster's PySpark installation.
+
+### Development Setup
+
+For local development with editable install:
+
+```bash
+# Install OpenToken core library first
+cd lib/python/opentoken
+pip install -e .
+
+# Install PySpark bridge with Spark 4.0 dependencies
+cd ../opentoken-pyspark
+pip install -e .[spark40,dev]
+```
+
+The `dev` extra includes testing and notebook dependencies (pytest, jupyter, etc.).
 
 ## Quick Start
 
-### Java 21 Setup (PySpark 4.0.1+)
+### Basic Usage (All Spark Versions)
+
+The API is identical across all supported Spark versions:
 
 ```python
 import sys
@@ -58,7 +101,7 @@ import os
 from pyspark.sql import SparkSession
 from opentoken_pyspark import OpenTokenProcessor
 
-# Create Spark session (PySpark 4.0.1+ handles Java 21 natively)
+# Create Spark session
 spark = SparkSession.builder \
     .appName("OpenTokenExample") \
     .master("local[*]") \
@@ -81,40 +124,26 @@ tokens_df = processor.process_dataframe(df)
 tokens_df.show()
 ```
 
-### Java 8-17 Setup (PySpark 3.5.x)
-
-If you're using Java 8-17 and cannot upgrade to Java 21:
+### Databricks Example
 
 ```python
-import sys
-import os
-from pyspark.sql import SparkSession
 from opentoken_pyspark import OpenTokenProcessor
 
-# Create Spark session (PySpark 3.5.x with PyArrow <20)
-spark = SparkSession.builder \
-    .appName("OpenTokenExample") \
-    .master("local[*]") \
-    .config("spark.executorEnv.PYTHONPATH", os.pathsep.join(sys.path)) \
-    .getOrCreate()
+# Load data from Delta table or CSV
+df = spark.read.table("my_database.person_records")
 
-# Load your data
-df = spark.read.csv("data.csv", header=True)
-
-# Initialize processor with your secrets
+# Initialize processor
 processor = OpenTokenProcessor(
-    hashing_secret="your-hashing-secret",
-    encryption_key="your-encryption-key"
+    hashing_secret=dbutils.secrets.get("opentoken", "hashing_secret"),
+    encryption_key=dbutils.secrets.get("opentoken", "encryption_key")
 )
 
 # Generate tokens
 tokens_df = processor.process_dataframe(df)
 
-# View results
-tokens_df.show()
+# Save results
+tokens_df.write.mode("overwrite").saveAsTable("my_database.person_tokens")
 ```
-
-**Note:** Ensure you have PyArrow <20 installed: `pip install 'pyarrow>=15.0.0,<20'`
 
 ## Input DataFrame Requirements
 
