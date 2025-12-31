@@ -4,11 +4,14 @@ layout: default
 
 # CLI Quickstart
 
+For a high-level overview and other entry points, see [Quickstarts](index.md).
+
 Run the OpenToken CLI end-to-end to generate tokens from a sample dataset in minutes.
 
 ## Prerequisites
 
 Choose one of:
+
 - **Docker** (recommended) - No other dependencies needed
 - **Java 21+** and Maven 3.8+
 - **Python 3.10+**
@@ -45,21 +48,22 @@ cd C:\path\to\OpenToken
 
 ## CLI Arguments
 
-| Argument | Short | Description | Required |
-|----------|-------|-------------|----------|
-| `--input` | `-i` | Input file path (CSV or Parquet) | Yes |
-| `--output` | `-o` | Output file path | Yes |
-| `--type` | `-t` | File type: `csv` or `parquet` | Yes |
-| `--hashing-secret` | `-h` | Secret key for HMAC hashing | Yes |
-| `--encryption-key` | `-e` | 32-character key for AES encryption | No* |
-| `--hash-only` | | Skip encryption, output hashed tokens only | No |
-| `--metadata-location` | `-m` | Custom path for metadata JSON file | No |
+| Argument              | Short | Description                                | Required |
+| --------------------- | ----- | ------------------------------------------ | -------- |
+| `--input`             | `-i`  | Input file path (CSV or Parquet)           | Yes      |
+| `--output`            | `-o`  | Output file path                           | Yes      |
+| `--type`              | `-t`  | File type: `csv` or `parquet`              | Yes      |
+| `--hashing-secret`    | `-h`  | Secret key for HMAC hashing                | Yes      |
+| `--encryption-key`    | `-e`  | 32-character key for AES encryption        | No*      |
+| `--hash-only`         |       | Skip encryption, output hashed tokens only | No       |
+| `--metadata-location` | `-m`  | Custom path for metadata JSON file         | No       |
 
 *Required unless `--hash-only` is specified.
 
 ## Example: CSV Input
 
 **Input file (`sample.csv`):**
+
 ```csv
 RecordId,FirstName,LastName,BirthDate,Sex,PostalCode,SSN
 patient_001,John,Doe,1980-01-15,Male,98004,123-45-6789
@@ -67,6 +71,7 @@ patient_002,Jane,Smith,1975-03-22,Female,90210,987-65-4321
 ```
 
 **Command:**
+
 ```bash
 java -jar opentoken-cli-*.jar \
   -i sample.csv \
@@ -77,6 +82,7 @@ java -jar opentoken-cli-*.jar \
 ```
 
 **Output (`tokens.csv`):**
+
 ```csv
 RecordId,RuleId,Token
 patient_001,T1,Gn7t1Zj16E5Qy+z9iINtcz...
@@ -117,11 +123,11 @@ java -jar opentoken-cli-*.jar \
 
 Each input record produces 5 tokens (T1–T5):
 
-| Column | Description |
-|--------|-------------|
-| `RecordId` | Original record identifier |
-| `RuleId` | Token rule (T1, T2, T3, T4, or T5) |
-| `Token` | Base64-encoded encrypted/hashed token |
+| Column     | Description                           |
+| ---------- | ------------------------------------- |
+| `RecordId` | Original record identifier            |
+| `RuleId`   | Token rule (T1, T2, T3, T4, or T5)    |
+| `Token`    | Base64-encoded encrypted/hashed token |
 
 ### Metadata File
 
@@ -144,15 +150,19 @@ A `.metadata.json` file is created alongside the output:
 ## Troubleshooting
 
 ### "Encryption key not provided"
+
 Either provide `-e "YourKey"` or use `--hash-only` flag.
 
 ### "Invalid BirthDate"
+
 Ensure dates are in `YYYY-MM-DD` format and between 1910-01-01 and today.
 
 ### "File not found"
+
 Check that input file path is correct and file exists.
 
 ### "Invalid SSN"
+
 SSN must be 9 digits. Area code cannot be 000, 666, or 900-999.
 
 ## Next Steps

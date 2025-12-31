@@ -4,6 +4,8 @@ layout: default
 
 # Java Quickstart
 
+For a high-level overview and other entry points, see [Quickstarts](index.md).
+
 Build and run the Java CLI to generate OpenToken outputs from local files.
 
 ## Prerequisites
@@ -12,6 +14,7 @@ Build and run the Java CLI to generate OpenToken outputs from local files.
 - **Maven 3.8+**
 
 Verify your installation:
+
 ```bash
 java -version   # Should show 21 or higher
 mvn -version    # Should show 3.8 or higher
@@ -82,6 +85,7 @@ cat ../../resources/output.metadata.json
 ```
 
 **Expected output.csv:**
+
 ```csv
 RecordId,RuleId,Token
 id1,T1,Gn7t1Zj16E5Qy+z9iINtczP6fRDYta6C0XFr...
@@ -143,16 +147,21 @@ To use OpenToken in your Java project:
 ## Troubleshooting
 
 ### "UnsupportedClassVersionError"
+
 You need Java 21+. Check with `java -version`.
 
 ### "Could not find artifact"
+
 Run `mvn clean install` from `lib/java` to build the local modules.
 
 ### Build Fails with Checkstyle Errors
+
 Run `mvn checkstyle:check` to see specific style violations, then fix them.
 
 ### OutOfMemoryError
+
 For large files, increase heap size:
+
 ```bash
 java -Xmx4g -jar opentoken-cli-*.jar ...
 ```

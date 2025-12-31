@@ -4,156 +4,53 @@ layout: default
 
 # Quickstarts
 
-Get OpenToken running in minutes. Choose your preferred environment and language.
+This page is the single “Start here” hub for getting OpenToken running end-to-end.
+
+## Who This Is For
+
+- Data engineers and analysts who need privacy-preserving linkage inputs
+- Platform/infra engineers integrating deterministic token generation into pipelines
+- Java and Python teams who need identical outputs across languages
+
+## What You’ll Do
+
+1. Prepare an input file with person attributes (CSV or Parquet)
+2. Run OpenToken to generate tokens (encrypted or hash-only)
+3. Inspect the token output and the `.metadata.json` audit artifact
+
+## Choose Your Path
+
+| If you want…                         | Start with…                               | Why                                                   |
+| ------------------------------------ | ----------------------------------------- | ----------------------------------------------------- |
+| The fastest “just run it” experience | [CLI Quickstart](cli-quickstart.md)       | Uses Docker scripts (recommended) or the CLI directly |
+| Python-first workflow or integration | [Python Quickstart](python-quickstart.md) | Uses the Python CLI and shows programmatic API usage  |
+| Java-first workflow or integration   | [Java Quickstart](java-quickstart.md)     | Builds the Java CLI and shows programmatic API usage  |
 
 ## 30-Second Overview
 
-OpenToken generates secure tokens from person data:
+OpenToken reads person attributes (for example: first/last name, birthdate, sex, postal code, SSN) and emits deterministic tokens used for privacy-preserving matching.
 
-```bash
-# Input: sample.csv with columns: FirstName, LastName, BirthDate, Sex, PostalCode, SSN
-# Output: encrypted tokens for person matching
+After you run a quickstart:
 
-java -jar opentoken-cli-*.jar \
-  -i sample.csv -t csv -o output.csv \
-  -h "YourHashingKey" -e "YourEncryptionKey"
-```
+- `output.csv` contains 5 tokens (T1–T5) per input record
+- `output.metadata.json` captures processing stats and SHA-256 hashes of secrets (not the secrets)
 
-## Option 1: Docker (Recommended for Quick Testing)
+## Quickstart Pages
 
-No Java or Python install needed. Just Docker.
-
-### Bash/Linux/Mac:
-
-```bash
-cd /path/to/OpenToken
-
-./run-opentoken.sh \
-  -i ./resources/sample.csv \
-  -o ./resources/output.csv \
-  -t csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
-```
-
-### PowerShell/Windows:
-
-```powershell
-cd C:\path\to\OpenToken
-
-.\run-opentoken.ps1 `
-  -i .\resources\sample.csv `
-  -o .\resources\output.csv `
-  -FileType csv `
-  -h "HashingKey" `
-  -e "Secret-Encryption-Key-Goes-Here."
-```
-
-The script automatically builds the image and runs it. **That's it!**
-
-For options (skip rebuild, verbose output, Parquet format): Run with `--help` (Bash) or `-Help` (PowerShell).
-
----
-
-## Option 2: Java CLI
-
-Requires Java 21+ and Maven.
-
-```bash
-cd lib/java
-
-# Build the CLI
-mvn clean install -DskipTests
-
-# Generate tokens
-java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i ../../resources/sample.csv \
-  -t csv \
-  -o ../../resources/output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
-
-# View output
-cat ../../resources/output.csv
-cat ../../resources/output.metadata.json
-```
-
----
-
-## Option 3: Python CLI
-
-Requires Python 3.10+.
-
-```bash
-cd lib/python
-
-# Create and activate virtual environment (at repo root)
-python -m venv ../../.venv
-source ../../.venv/bin/activate  # On Windows: .\.venv\Scripts\activate
-
-# Install dependencies
-cd opentoken && pip install -r requirements.txt -e .
-cd ../opentoken-cli && pip install -r requirements.txt -e .
-
-# Generate tokens
-python -m opentoken_cli.main \
-  -i ../../../resources/sample.csv \
-  -t csv \
-  -o ../../../resources/output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
-
-# View output
-cat ../../../resources/output.csv
-cat ../../../resources/output.metadata.json
-```
-
----
-
-## What Just Happened?
-
-Your `output.csv` now contains:
-
-```
-RecordId,RuleId,Token
-id1,T1,Gn7t1Zj16E5Qy+z9iINtczP6fRDYta6C0XFrQtpjnVQSEZ5pQXAzo02Aa9LS9oNMOog6Ssw9GZE6fvJrX2sQ/cThSkB6m91L
-id1,T2,pUxPgYL9+cMxkA+8928Pil+9W+dm9kISwHYPdkZS+I2nQ/bQ/8HyL3FOVf3NYPW5NKZZO1OZfsz7LfKYpTlaxyzMLqMF2Wk7
-...
-```
-
-The `output.metadata.json` contains:
-
-```json
-{
-  "TotalRows": 1,
-  "TotalRowsWithInvalidAttributes": 0,
-  "OpenTokenVersion": "1.0.0",
-  "JavaVersion": "21.0.0",
-  "Platform": "Java",
-  "HashingSecretHash": "...",
-  "EncryptionSecretHash": "...",
-  "BlankTokensByRule": {},
-  "InvalidAttributesByType": {}
-}
-```
-
----
+- [CLI Quickstart](cli-quickstart.md)
+- [Python Quickstart](python-quickstart.md)
+- [Java Quickstart](java-quickstart.md)
 
 ## Test Your Data
 
-Don't have sample data? Generate mock data:
+Generate mock input data:
 
 ```bash
 cd tools/mockdata
 
 # Create 100 test records
 python data_generator.py 100 0.05 test_data.csv
-
-# Then process it with OpenToken
-# (use the CLI commands above, pointing to test_data.csv)
 ```
-
----
 
 ## Next Steps
 
@@ -167,15 +64,15 @@ python data_generator.py 100 0.05 test_data.csv
 
 Your CSV must have these columns (any of the listed aliases work):
 
-| Column     | Aliases                      | Required | Example                  |
-| ---------- | ---------------------------- | -------- | ------------------------ |
-| FirstName  | GivenName                    | Yes      | John                     |
-| LastName   | Surname                      | Yes      | Doe                      |
-| BirthDate  | DateOfBirth                  | Yes      | 1975-03-15 or 03/15/1975 |
-| Sex        | Gender                       | Yes      | Male, Female, M, F       |
-| PostalCode | ZipCode, ZIP3, ZIP4, ZIP5    | Yes      | 98004                    |
+| Column     | Aliases                      | Required | Example                                         |
+| ---------- | ---------------------------- | -------- | ----------------------------------------------- |
+| FirstName  | GivenName                    | Yes      | John                                            |
+| LastName   | Surname                      | Yes      | Doe                                             |
+| BirthDate  | DateOfBirth                  | Yes      | 1975-03-15 or 03/15/1975                        |
+| Sex        | Gender                       | Yes      | Male, Female, M, F                              |
+| PostalCode | ZipCode, ZIP3, ZIP4, ZIP5    | Yes      | 98004                                           |
 | SSN        | NationalIdentificationNumber | Yes      | 123-45-6789 (digits-only values are normalized) |
-| RecordId   | Id                           | Optional | patient_id_123           |
+| RecordId   | Id                           | Optional | patient_id_123                                  |
 
 **Note**: RecordId is optional. If omitted, a unique UUID is auto-generated for each record.
 

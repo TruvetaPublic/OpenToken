@@ -4,6 +4,8 @@ layout: default
 
 # Python Quickstart
 
+For a high-level overview and other entry points, see [Quickstarts](index.md).
+
 Install the Python packages and run the OpenToken CLI with a virtual environment.
 
 ## Prerequisites
@@ -12,6 +14,7 @@ Install the Python packages and run the OpenToken CLI with a virtual environment
 - **pip** (usually included with Python)
 
 Verify your installation:
+
 ```bash
 python --version   # Should show 3.10 or higher
 pip --version
@@ -137,6 +140,7 @@ python java_python_interoperability_test.py
 ```
 
 The test:
+
 1. Generates tokens using Java CLI
 2. Generates tokens using Python CLI
 3. Compares all tokens byte-by-byte
@@ -156,19 +160,25 @@ See [Spark or Databricks](../operations/spark-or-databricks.md) for usage.
 ## Troubleshooting
 
 ### "ModuleNotFoundError: No module named 'opentoken'"
+
 Make sure you installed with `-e .` (editable mode) from the correct directory.
 
 ### "Python version not supported"
+
 OpenToken requires Python 3.10+. Check with `python --version`.
 
 ### Virtual Environment Not Activated
+
 If commands fail, ensure venv is active:
+
 ```bash
 source /path/to/OpenToken/.venv/bin/activate
 ```
 
 ### Import Errors After Updates
+
 Reinstall the packages:
+
 ```bash
 pip install -e . --force-reinstall
 ```
