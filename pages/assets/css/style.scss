@@ -4,7 +4,7 @@
 /* Truveta-inspired custom theme */
 
 /* Hide skip link visually but keep for screen readers */
-a.skip-to-content {
+#skip-to-content {
     position: absolute;
     left: -9999px;
     top: auto;
@@ -13,7 +13,7 @@ a.skip-to-content {
     overflow: hidden;
 }
 
-a.skip-to-content:focus {
+#skip-to-content:focus {
     position: static;
     width: auto;
     height: auto;
