@@ -57,7 +57,7 @@ See [Quickstarts](docs/quickstarts/index.md) for Python CLI and detailed setup i
 
 - [Contributing Guide](docs/community/contributing.md) — Branching, PR expectations, coding standards
 - [Code of Conduct](docs/community/code-of-conduct.md)
-- [Roadmap](docs/community/roadmap.md) and [Release Notes](docs/community/release-notes.md)
+- [Release Notes](docs/community/release-notes.md)
 
 ## Documentation
 

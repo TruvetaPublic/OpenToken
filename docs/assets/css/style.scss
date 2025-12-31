@@ -1,7 +1,25 @@
 ---
 ---
 
+@import "jekyll-theme-cayman";
+
 /* Truveta-inspired custom theme */
+
+/* Hide skip link visually but keep for screen readers */
+a.skip-to-content {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+a.skip-to-content:focus {
+    position: static;
+    width: auto;
+    height: auto;
+}
 
 /* Reset and Base Styles */
 * {
