@@ -78,24 +78,24 @@ All person attributes are validated before token generation. Invalid records are
 
 ### FirstName Validation
 
-| Requirement | Reason | Examples |
-|-------------|--------|----------|
-| Not null/empty | Must identify the person | ❌ "" or NULL |
-| Not a placeholder | Distinguishes real names from data quality issues | ❌ "Unknown", "Test", "Patient" |
-| At least one alphabetic character | Must contain actual name | ❌ "123", "---" |
+| Requirement                       | Reason                                            | Examples                       |
+| --------------------------------- | ------------------------------------------------- | ------------------------------ |
+| Not null/empty                    | Must identify the person                          | ❌ "" or NULL                   |
+| Not a placeholder                 | Distinguishes real names from data quality issues | ❌ "Unknown", "Test", "Patient" |
+| At least one alphabetic character | Must contain actual name                          | ❌ "123", "---"                 |
 
 **Placeholder Values Rejected:**
 "Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", "N/A", "TBD"
 
 ### LastName Validation
 
-| Requirement | Reason | Examples |
-|-------------|--------|----------|
-| Not null/empty | Must identify the person | ❌ "" or NULL |
-| At least 2 characters (with exceptions) | Ensures sufficient match discrimination | ❌ "A", "Z" |
-| Exception: "Ng" accepted | Common single-letter surname | ✓ "Ng" |
+| Requirement                                  | Reason                                  | Examples             |
+| -------------------------------------------- | --------------------------------------- | -------------------- |
+| Not null/empty                               | Must identify the person                | ❌ "" or NULL         |
+| At least 2 characters (with exceptions)      | Ensures sufficient match discrimination | ❌ "A", "Z"           |
+| Exception: "Ng" accepted                     | Common single-letter surname            | ✓ "Ng"               |
 | For 2-char names: At least one vowel OR "Ng" | Reduces false matches on common letters | ❌ "AA", ✓ "An", "Ng" |
-| Not a placeholder | Distinguishes real names | ❌ "Unknown", "Test" |
+| Not a placeholder                            | Distinguishes real names                | ❌ "Unknown", "Test"  |
 
 **Validation Examples:**
 ```
@@ -105,11 +105,11 @@ Invalid: "A", "AA", "Zz", "Unknown", "Test"
 
 ### BirthDate Validation
 
-| Requirement | Reason | Examples |
-|-------------|--------|----------|
-| After 1910-01-01 | Eliminates implausible dates | ❌ 1900-01-01, ✓ 1950-01-01 |
-| Not in the future | Validates data quality | ❌ 2025-01-01 (if today is 2024) |
-| Valid calendar date | Must be a real date | ❌ 1980-02-30, ✓ 1980-02-29 (leap year) |
+| Requirement         | Reason                       | Examples                               |
+| ------------------- | ---------------------------- | -------------------------------------- |
+| After 1910-01-01    | Eliminates implausible dates | ❌ 1900-01-01, ✓ 1950-01-01             |
+| Not in the future   | Validates data quality       | ❌ 2025-01-01 (if today is 2024)        |
+| Valid calendar date | Must be a real date          | ❌ 1980-02-30, ✓ 1980-02-29 (leap year) |
 
 **Accepted Formats:**
 - `YYYY-MM-DD` (recommended)
@@ -119,30 +119,30 @@ Invalid: "A", "AA", "Zz", "Unknown", "Test"
 
 ### Sex Validation
 
-| Requirement | Reason | Examples |
-|-------------|--------|----------|
+| Requirement                | Reason                  | Examples                     |
+| -------------------------- | ----------------------- | ---------------------------- |
 | Must be "Male" or "Female" | Standard classification | ✓ "Male", "M", "Female", "F" |
-| Case-insensitive | User input variations | ✓ "male", "FEMALE", "F" |
+| Case-insensitive           | User input variations   | ✓ "male", "FEMALE", "F"      |
 
 ### PostalCode Validation
 
 **US ZIP Codes:**
 
-| Rule | Reason | Examples |
-|------|--------|----------|
-| Valid format: 5, 4, 3, or 9 digits | Standard USPS formats | ✓ "98004", "9800", "98004-1234" |
-| Area codes 000, 555, 888 invalid for ZIP-3 | Reserved for testing | ❌ "000", "555", "888" |
-| Not placeholder values | Data quality | ❌ "00000", "11111", "12345" |
-| Auto-pad ZIP-3 to 5 digits | Normalization | "980" → "98000" |
+| Rule                                       | Reason                | Examples                        |
+| ------------------------------------------ | --------------------- | ------------------------------- |
+| Valid format: 5, 4, 3, or 9 digits         | Standard USPS formats | ✓ "98004", "9800", "98004-1234" |
+| Area codes 000, 555, 888 invalid for ZIP-3 | Reserved for testing  | ❌ "000", "555", "888"           |
+| Not placeholder values                     | Data quality          | ❌ "00000", "11111", "12345"     |
+| Auto-pad ZIP-3 to 5 digits                 | Normalization         | "980" → "98000"                 |
 
 **Canadian Postal Codes:**
 
-| Rule | Reason | Examples |
-|------|--------|----------|
-| Format: `AdA dAd` (A=letter, d=digit) | Canada Post standard | ✓ "K1A 1A1", "M5V 3A8" |
-| Valid inputs: 3–6 characters | Flexible input | ✓ "K1A", "K1A1", "K1A1A1", "K1A 1A1" |
-| Auto-format with space | Normalization | "K1A1A1" → "K1A 1A1" |
-| Not reserved/placeholder codes | Data quality | ❌ "K1A 1A1" (reserved), "X0X 0X0" (fictional) |
+| Rule                                  | Reason               | Examples                                      |
+| ------------------------------------- | -------------------- | --------------------------------------------- |
+| Format: `AdA dAd` (A=letter, d=digit) | Canada Post standard | ✓ "K1A 1A1", "M5V 3A8"                        |
+| Valid inputs: 3–6 characters          | Flexible input       | ✓ "K1A", "K1A1", "K1A1A1", "K1A 1A1"          |
+| Auto-format with space                | Normalization        | "K1A1A1" → "K1A 1A1"                          |
+| Not reserved/placeholder codes        | Data quality         | ❌ "K1A 1A1" (reserved), "X0X 0X0" (fictional) |
 
 **Postal Code Examples:**
 ```
@@ -155,12 +155,12 @@ Invalid: "00000" (placeholder), "123" (too short), "ABCDE" (invalid format)
 
 Social Security Numbers follow strict validation rules to prevent invalid or placeholder values.
 
-| Validation | Reason | Valid | Invalid |
-|------------|--------|-------|---------|
-| **Area** (first 3 digits) | Government assigns valid ranges | 001–665, 667–899 | 000, 666, 900–999 |
-| **Group** (middle 2 digits) | Never 00 | 01–99 | 00 |
-| **Serial** (last 4 digits) | Never 0000 | 0001–9999 | 0000 |
-| **Not common invalid sequences** | Reduce placeholder/test values | 123-45-6789 | 111-11-1111, 222-22-2222, etc. |
+| Validation                       | Reason                          | Valid            | Invalid                        |
+| -------------------------------- | ------------------------------- | ---------------- | ------------------------------ |
+| **Area** (first 3 digits)        | Government assigns valid ranges | 001–665, 667–899 | 000, 666, 900–999              |
+| **Group** (middle 2 digits)      | Never 00                        | 01–99            | 00                             |
+| **Serial** (last 4 digits)       | Never 0000                      | 0001–9999        | 0000                           |
+| **Not common invalid sequences** | Reduce placeholder/test values  | 123-45-6789      | 111-11-1111, 222-22-2222, etc. |
 
 **Validation Examples:**
 ```
@@ -306,14 +306,14 @@ Tokens are deterministic and cannot be anonymized without losing matching capabi
 
 ## Common Security Mistakes
 
-| Mistake | Risk | Solution |
-|---------|------|----------|
-| Storing plain text secrets in code | Exposure in source control | Use environment variables or vault |
-| Using weak secrets (< 8 chars) | Brute-force vulnerability | Use 16+ chars, mix upper/lower/digits/symbols |
-| Not rotating secrets | Compromise detection delayed | Rotate periodically; maintain secret versions |
-| Logging raw tokens | Exposure in logs | Log only high-level statistics |
-| Sharing encrypted tokens without key protection | Decryption possible | Encrypt tokens at rest; protect encryption key |
-| Using placeholder values in data | False matches possible | Validate and clean input data |
+| Mistake                                         | Risk                         | Solution                                       |
+| ----------------------------------------------- | ---------------------------- | ---------------------------------------------- |
+| Storing plain text secrets in code              | Exposure in source control   | Use environment variables or vault             |
+| Using weak secrets (< 8 chars)                  | Brute-force vulnerability    | Use 16+ chars, mix upper/lower/digits/symbols  |
+| Not rotating secrets                            | Compromise detection delayed | Rotate periodically; maintain secret versions  |
+| Logging raw tokens                              | Exposure in logs             | Log only high-level statistics                 |
+| Sharing encrypted tokens without key protection | Decryption possible          | Encrypt tokens at rest; protect encryption key |
+| Using placeholder values in data                | False matches possible       | Validate and clean input data                  |
 
 ---
 

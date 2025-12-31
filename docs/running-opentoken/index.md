@@ -16,21 +16,21 @@ opentoken-cli [OPTIONS] -i <input> -t <type> -o <output> -h <hashing-secret> [-e
 
 #### Required
 
-| Argument | Alias | Description | Example |
-|----------|-------|-------------|---------|
-| `-i` | `--input` | Input file path (CSV or Parquet) | `-i data.csv` |
-| `-t` | `--type` | Input file type | `-t csv` or `-t parquet` |
-| `-o` | `--output` | Output file path | `-o tokens.csv` |
-| `-h` | `--hashingsecret` | HMAC-SHA256 hashing secret | `-h "MyHashingKey"` |
+| Argument | Alias             | Description                      | Example                  |
+| -------- | ----------------- | -------------------------------- | ------------------------ |
+| `-i`     | `--input`         | Input file path (CSV or Parquet) | `-i data.csv`            |
+| `-t`     | `--type`          | Input file type                  | `-t csv` or `-t parquet` |
+| `-o`     | `--output`        | Output file path                 | `-o tokens.csv`          |
+| `-h`     | `--hashingsecret` | HMAC-SHA256 hashing secret       | `-h "MyHashingKey"`      |
 
 #### Optional
 
-| Argument | Alias | Description | Default | Example |
-|----------|-------|-------------|---------|---------|
-| `-e` | `--encryptionkey` | AES-256 encryption key | Required (unless `--hash-only`) | `-e "MyEncryptionKey"` |
-| `-ot` | `--output-type` | Output file type | Same as input type | `-ot parquet` |
-| | `--hash-only` | Hash-only mode (no encryption) | False | `--hash-only` |
-| `-d` | `--decrypt` | Decrypt mode (reverse previous encryption) | False | `-d` |
+| Argument | Alias             | Description                                | Default                         | Example                |
+| -------- | ----------------- | ------------------------------------------ | ------------------------------- | ---------------------- |
+| `-e`     | `--encryptionkey` | AES-256 encryption key                     | Required (unless `--hash-only`) | `-e "MyEncryptionKey"` |
+| `-ot`    | `--output-type`   | Output file type                           | Same as input type              | `-ot parquet`          |
+|          | `--hash-only`     | Hash-only mode (no encryption)             | False                           | `--hash-only`          |
+| `-d`     | `--decrypt`       | Decrypt mode (reverse previous encryption) | False                           | `-d`                   |
 
 ### Usage Examples
 
@@ -181,11 +181,11 @@ cd C:\path\to\OpenToken
 
 #### Script Options
 
-| Option | Bash Alias | PowerShell | Description |
-|--------|-----------|-----------|-------------|
-| File type | `-t` | `-FileType` | `csv` or `parquet` |
-| Skip rebuild | `-s` | `-SkipBuild` | Reuse existing image |
-| Verbose | `-v` | `-Verbose` | Show detailed output |
+| Option       | Bash Alias | PowerShell   | Description          |
+| ------------ | ---------- | ------------ | -------------------- |
+| File type    | `-t`       | `-FileType`  | `csv` or `parquet`   |
+| Skip rebuild | `-s`       | `-SkipBuild` | Reuse existing image |
+| Verbose      | `-v`       | `-Verbose`   | Show detailed output |
 
 Run with `--help` (Bash) or `-Help` (PowerShell) for full usage.
 

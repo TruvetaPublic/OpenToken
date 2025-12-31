@@ -124,14 +124,14 @@ No `EncryptionSecretHash` field is present in hash-only mode.
 
 ## Security Trade-offs
 
-| Aspect | Encryption Mode | Hash-Only Mode |
-|--------|-----------------|----------------|
-| **Token length** | ~80-100 chars | ~44-64 chars |
-| **Processing speed** | Slower | Faster |
-| **Secret required** | Hashing secret + encryption key | Hashing secret only |
-| **Reversibility** | Decryptable (to HMAC hash) | Not decryptable |
-| **External sharing** | Recommended | Not recommended |
-| **Defense in depth** | Yes | No |
+| Aspect               | Encryption Mode                 | Hash-Only Mode      |
+| -------------------- | ------------------------------- | ------------------- |
+| **Token length**     | ~80-100 chars                   | ~44-64 chars        |
+| **Processing speed** | Slower                          | Faster              |
+| **Secret required**  | Hashing secret + encryption key | Hashing secret only |
+| **Reversibility**    | Decryptable (to HMAC hash)      | Not decryptable     |
+| **External sharing** | Recommended                     | Not recommended     |
+| **Defense in depth** | Yes                             | No                  |
 
 ### Security Notes
 

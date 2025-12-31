@@ -23,11 +23,11 @@ python data_generator.py <num_lines> <repeat_probability> <output_file>
 
 ### Parameters
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|  
-| `num_lines` | Total number of records to generate | `100` |
-| `repeat_probability` | Fraction of records that are duplicates (0.0–1.0) | `0.05` |
-| `output_file` | Output CSV file path | `test_data.csv` |
+| Parameter            | Description                                       | Example         |
+| -------------------- | ------------------------------------------------- | --------------- |
+| `num_lines`          | Total number of records to generate               | `100`           |
+| `repeat_probability` | Fraction of records that are duplicates (0.0–1.0) | `0.05`          |
+| `output_file`        | Output CSV file path                              | `test_data.csv` |
 
 ### Examples
 
@@ -64,15 +64,15 @@ RecordId,BirthDate,FirstName,LastName,PostalCode,Sex,SocialSecurityNumber
 
 ### Generated Fields
 
-| Field | Generator | Example |
-|-------|-----------|---------|  
-| RecordId | UUID4 | `550e8400-e29b-...` |
-| BirthDate | Random date (0–90 years ago) | `1985-03-15` |
-| FirstName | Faker first_name() | `John` |
-| LastName | Faker last_name() | `Smith` |
-| PostalCode | Faker zipcode() | `98004` |
-| Sex | Random: Male/Female | `Male` |
-| SocialSecurityNumber | Faker ssn() | `123-45-6789` |
+| Field                | Generator                    | Example             |
+| -------------------- | ---------------------------- | ------------------- |
+| RecordId             | UUID4                        | `550e8400-e29b-...` |
+| BirthDate            | Random date (0–90 years ago) | `1985-03-15`        |
+| FirstName            | Faker first_name()           | `John`              |
+| LastName             | Faker last_name()            | `Smith`             |
+| PostalCode           | Faker zipcode()              | `98004`             |
+| Sex                  | Random: Male/Female          | `Male`              |
+| SocialSecurityNumber | Faker ssn()                  | `123-45-6789`       |
 
 ---
 
@@ -143,12 +143,12 @@ For automated overlap analysis, see [Spark or Databricks](spark-or-databricks.md
 
 Pre-generated sample files are available in `resources/`:
 
-| File | Description |
-|------|-------------|
-| `sample.csv` | Small test file for quickstart |
-| `mockdata/test_data.csv` | 100 records with duplicates |
-| `mockdata/test_overlap1.csv` | Dataset for overlap testing |
-| `mockdata/test_overlap2.csv` | Dataset for overlap testing |
+| File                         | Description                    |
+| ---------------------------- | ------------------------------ |
+| `sample.csv`                 | Small test file for quickstart |
+| `mockdata/test_data.csv`     | 100 records with duplicates    |
+| `mockdata/test_overlap1.csv` | Dataset for overlap testing    |
+| `mockdata/test_overlap2.csv` | Dataset for overlap testing    |
 
 ---
 

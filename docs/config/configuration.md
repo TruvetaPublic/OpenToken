@@ -8,21 +8,21 @@ Configuration options for OpenToken inputs, outputs, secrets, and runtime behavi
 
 ### Required Arguments
 
-| Argument | Alias | Description | Example |
-|----------|-------|-------------|---------|  
-| `-i` | `--input` | Input file path (CSV or Parquet) | `-i data.csv` |
-| `-t` | `--type` | Input file type | `-t csv` or `-t parquet` |
-| `-o` | `--output` | Output file path | `-o tokens.csv` |
-| `-h` | `--hashingsecret` | HMAC-SHA256 hashing secret | `-h "MyHashingKey"` |
+| Argument | Alias             | Description                      | Example                  |
+| -------- | ----------------- | -------------------------------- | ------------------------ |
+| `-i`     | `--input`         | Input file path (CSV or Parquet) | `-i data.csv`            |
+| `-t`     | `--type`          | Input file type                  | `-t csv` or `-t parquet` |
+| `-o`     | `--output`        | Output file path                 | `-o tokens.csv`          |
+| `-h`     | `--hashingsecret` | HMAC-SHA256 hashing secret       | `-h "MyHashingKey"`      |
 
 ### Optional Arguments
 
-| Argument | Alias | Description | Default |
-|----------|-------|-------------|---------|  
-| `-e` | `--encryptionkey` | AES-256 encryption key (32 chars) | Required unless `--hash-only` |
-| `-ot` | `--output-type` | Output file type | Same as input type |
-| | `--hash-only` | Hash-only mode (no encryption) | `false` |
-| `-d` | `--decrypt` | Decrypt mode | `false` |
+| Argument | Alias             | Description                       | Default                       |
+| -------- | ----------------- | --------------------------------- | ----------------------------- |
+| `-e`     | `--encryptionkey` | AES-256 encryption key (32 chars) | Required unless `--hash-only` |
+| `-ot`    | `--output-type`   | Output file type                  | Same as input type            |
+|          | `--hash-only`     | Hash-only mode (no encryption)    | `false`                       |
+| `-d`     | `--decrypt`       | Decrypt mode                      | `false`                       |
 
 ---
 
@@ -61,24 +61,24 @@ docker run --rm \
 
 ### Supported Formats
 
-| Format | Extension | Description |
-|--------|-----------|-------------|
-| CSV | `.csv` | Comma-separated values with header row |
+| Format  | Extension  | Description                                          |
+| ------- | ---------- | ---------------------------------------------------- |
+| CSV     | `.csv`     | Comma-separated values with header row               |
 | Parquet | `.parquet` | Columnar binary format (recommended for large files) |
 
 ### Column Names & Aliases
 
 Input columns are **case-insensitive** and support common aliases:
 
-| Attribute | Accepted Column Names | Required | Type |
-|-----------|----------------------|----------|------|
-| **Record ID** | `RecordId`, `Id` | Optional | String |
-| **First Name** | `FirstName`, `GivenName` | Yes | String |
-| **Last Name** | `LastName`, `Surname` | Yes | String |
-| **Birth Date** | `BirthDate`, `DateOfBirth` | Yes | Date |
-| **Sex** | `Sex`, `Gender` | Yes | String |
-| **Postal Code** | `PostalCode`, `ZipCode`, `ZIP3`, `ZIP4`, `ZIP5` | Yes | String |
-| **SSN** | `SocialSecurityNumber`, `NationalIdentificationNumber` | Yes | String |
+| Attribute       | Accepted Column Names                                  | Required | Type   |
+| --------------- | ------------------------------------------------------ | -------- | ------ |
+| **Record ID**   | `RecordId`, `Id`                                       | Optional | String |
+| **First Name**  | `FirstName`, `GivenName`                               | Yes      | String |
+| **Last Name**   | `LastName`, `Surname`                                  | Yes      | String |
+| **Birth Date**  | `BirthDate`, `DateOfBirth`                             | Yes      | Date   |
+| **Sex**         | `Sex`, `Gender`                                        | Yes      | String |
+| **Postal Code** | `PostalCode`, `ZipCode`, `ZIP3`, `ZIP4`, `ZIP5`        | Yes      | String |
+| **SSN**         | `SocialSecurityNumber`, `NationalIdentificationNumber` | Yes      | String |
 
 ### Date Formats Accepted
 
@@ -137,11 +137,11 @@ Each run produces two files:
 
 ## Processing Modes
 
-| Mode | Flag | Requires | Output |
-|------|------|----------|--------|
-| **Encryption** (default) | None | `-h` and `-e` | Encrypted tokens |
-| **Hash-only** | `--hash-only` | `-h` only | HMAC-SHA256 hashed tokens |
-| **Decrypt** | `-d` | `-e` only | Decrypted (hashed) tokens |
+| Mode                     | Flag          | Requires      | Output                    |
+| ------------------------ | ------------- | ------------- | ------------------------- |
+| **Encryption** (default) | None          | `-h` and `-e` | Encrypted tokens          |
+| **Hash-only**            | `--hash-only` | `-h` only     | HMAC-SHA256 hashed tokens |
+| **Decrypt**              | `-d`          | `-e` only     | Decrypted (hashed) tokens |
 
 ---
 
@@ -208,12 +208,12 @@ See [Spark or Databricks](../operations/spark-or-databricks.md) for cluster conf
 
 ## Handling Missing/Invalid Data
 
-| Scenario | Behavior |
-|----------|----------|
-| **RecordId missing** | Auto-generates UUID for each record |
-| **Required column missing** | Processing fails with column name mismatch error |
-| **NULL/empty value** | Record marked invalid; counted in metadata |
-| **Invalid attribute** | Record marked invalid; blank token for affected rules |
+| Scenario                    | Behavior                                              |
+| --------------------------- | ----------------------------------------------------- |
+| **RecordId missing**        | Auto-generates UUID for each record                   |
+| **Required column missing** | Processing fails with column name mismatch error      |
+| **NULL/empty value**        | Record marked invalid; counted in metadata            |
+| **Invalid attribute**       | Record marked invalid; blank token for affected rules |
 
 ---
 

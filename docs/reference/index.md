@@ -317,13 +317,13 @@ Output: "550e8400-e29b-41d4-a716-446655440000" (auto-generated UUID)
 
 ## Token Rules Summary
 
-| Rule | Components | Use Case |
-|------|-----------|----------|
-| **T1** | Last name + first letter + sex + birthdate | Standard matching |
-| **T2** | Last name + full first name + birthdate + ZIP-3 | Geographic variations |
-| **T3** | Last name + full first name + sex + birthdate | Flexible first name matching |
-| **T4** | SSN + sex + birthdate | Authoritative identifier |
-| **T5** | Last name + first 3 letters + sex | Quick search |
+| Rule   | Components                                      | Use Case                     |
+| ------ | ----------------------------------------------- | ---------------------------- |
+| **T1** | Last name + first letter + sex + birthdate      | Standard matching            |
+| **T2** | Last name + full first name + birthdate + ZIP-3 | Geographic variations        |
+| **T3** | Last name + full first name + sex + birthdate   | Flexible first name matching |
+| **T4** | SSN + sex + birthdate                           | Authoritative identifier     |
+| **T5** | Last name + first 3 letters + sex               | Quick search                 |
 
 See [Concepts: Token Rules](../concepts/token-rules.md) for detailed examples.
 

@@ -8,13 +8,13 @@ OpenToken generates tokens using 5 distinct rules (T1–T5) that combine person 
 
 ### Rule Definitions
 
-| Rule ID | Definition | Attributes | Purpose |
-|---------|-----------|-----------|---------|
-| **T1** | `U(LastName)\|U(FirstName[0])\|U(Sex)\|BirthDate` | Last name + first initial + sex + birthdate | Standard matching |
-| **T2** | `U(LastName)\|U(FirstName)\|BirthDate\|PostalCode[0:3]` | Last name + full first name + birthdate + ZIP-3 | Geographic variations |
-| **T3** | `U(LastName)\|U(FirstName)\|U(Sex)\|BirthDate` | Last name + full first name + sex + birthdate | Flexible name matching |
-| **T4** | `SocialSecurityNumber\|U(Sex)\|BirthDate` | Full SSN + sex + birthdate | Authoritative identifier |
-| **T5** | `U(LastName)\|U(FirstName[0:3])\|U(Sex)` | Last name + first 3 letters + sex | Quick search |
+| Rule ID | Definition                                              | Attributes                                      | Purpose                  |
+| ------- | ------------------------------------------------------- | ----------------------------------------------- | ------------------------ |
+| **T1**  | `U(LastName)\|U(FirstName[0])\|U(Sex)\|BirthDate`       | Last name + first initial + sex + birthdate     | Standard matching        |
+| **T2**  | `U(LastName)\|U(FirstName)\|BirthDate\|PostalCode[0:3]` | Last name + full first name + birthdate + ZIP-3 | Geographic variations    |
+| **T3**  | `U(LastName)\|U(FirstName)\|U(Sex)\|BirthDate`          | Last name + full first name + sex + birthdate   | Flexible name matching   |
+| **T4**  | `SocialSecurityNumber\|U(Sex)\|BirthDate`               | Full SSN + sex + birthdate                      | Authoritative identifier |
+| **T5**  | `U(LastName)\|U(FirstName[0:3])\|U(Sex)`                | Last name + first 3 letters + sex               | Quick search             |
 
 **Notation:**
 - `U(X)` = Uppercase(X)
@@ -28,13 +28,13 @@ A token signature is the combination of normalized attributes per rule. Signatur
 
 **Example for person: John Doe, 1980-01-15, Male, 98004, 123456789**
 
-| Rule | Signature | Purpose |
-|------|-----------|---------|
-| T1 | `DOE\|J\|MALE\|1980-01-15` | High confidence match |
-| T2 | `DOE\|JOHN\|1980-01-15\|980` | Geographic match |
-| T3 | `DOE\|JOHN\|MALE\|1980-01-15` | Flexible match |
-| T4 | `123456789\|MALE\|1980-01-15` | Authoritative match |
-| T5 | `DOE\|JOH\|MALE` | Quick search match |
+| Rule | Signature                     | Purpose               |
+| ---- | ----------------------------- | --------------------- |
+| T1   | `DOE\|J\|MALE\|1980-01-15`    | High confidence match |
+| T2   | `DOE\|JOHN\|1980-01-15\|980`  | Geographic match      |
+| T3   | `DOE\|JOHN\|MALE\|1980-01-15` | Flexible match        |
+| T4   | `123456789\|MALE\|1980-01-15` | Authoritative match   |
+| T5   | `DOE\|JOH\|MALE`              | Quick search match    |
 
 ### Token Encryption
 
@@ -165,67 +165,67 @@ All attributes are normalized before token generation to ensure consistent token
 
 ### FirstName Normalization
 
-| Step | Process | Example |
-|------|---------|---------|
-| 1 | Remove titles (Dr., Mr., Mrs., Ms., Prof.) | "Dr. John Smith" → "John Smith" |
-| 2 | Remove middle initials | "John J" → "John" |
-| 3 | Remove generational suffixes (Jr., Sr., II, III, IV) | "John Jr." → "John" |
-| 4 | Remove trailing periods | "John J." → "John" |
-| 5 | Remove non-alphabetic characters | "John-Marie" → "John Marie" |
-| 6 | Normalize diacritics (é→e, ñ→n, ü→u) | "José" → "Jose" |
-| 7 | Uppercase for token generation | "john" → "JOHN" |
+| Step | Process                                              | Example                         |
+| ---- | ---------------------------------------------------- | ------------------------------- |
+| 1    | Remove titles (Dr., Mr., Mrs., Ms., Prof.)           | "Dr. John Smith" → "John Smith" |
+| 2    | Remove middle initials                               | "John J" → "John"               |
+| 3    | Remove generational suffixes (Jr., Sr., II, III, IV) | "John Jr." → "John"             |
+| 4    | Remove trailing periods                              | "John J." → "John"              |
+| 5    | Remove non-alphabetic characters                     | "John-Marie" → "John Marie"     |
+| 6    | Normalize diacritics (é→e, ñ→n, ü→u)                 | "José" → "Jose"                 |
+| 7    | Uppercase for token generation                       | "john" → "JOHN"                 |
 
 ### LastName Normalization
 
-| Step | Process | Example |
-|------|---------|---------|
-| 1 | Remove generational suffixes | "Warner IV" → "Warner" |
-| 2 | Remove non-alphabetic characters | "O'Brien" → "OBrien" |
-| 3 | Normalize diacritics | "García" → "Garcia" |
-| 4 | Uppercase for token generation | "garcia" → "GARCIA" |
+| Step | Process                          | Example                |
+| ---- | -------------------------------- | ---------------------- |
+| 1    | Remove generational suffixes     | "Warner IV" → "Warner" |
+| 2    | Remove non-alphabetic characters | "O'Brien" → "OBrien"   |
+| 3    | Normalize diacritics             | "García" → "Garcia"    |
+| 4    | Uppercase for token generation   | "garcia" → "GARCIA"    |
 
 ### BirthDate Normalization
 
-| Input Format | Normalized | Example |
-|--------------|------------|---------|
-| YYYY-MM-DD | YYYY-MM-DD | "1980-01-15" → "1980-01-15" |
-| MM/DD/YYYY | YYYY-MM-DD | "01/15/1980" → "1980-01-15" |
-| MM-DD-YYYY | YYYY-MM-DD | "01-15-1980" → "1980-01-15" |
-| DD.MM.YYYY | YYYY-MM-DD | "15.01.1980" → "1980-01-15" |
+| Input Format | Normalized | Example                     |
+| ------------ | ---------- | --------------------------- |
+| YYYY-MM-DD   | YYYY-MM-DD | "1980-01-15" → "1980-01-15" |
+| MM/DD/YYYY   | YYYY-MM-DD | "01/15/1980" → "1980-01-15" |
+| MM-DD-YYYY   | YYYY-MM-DD | "01-15-1980" → "1980-01-15" |
+| DD.MM.YYYY   | YYYY-MM-DD | "15.01.1980" → "1980-01-15" |
 
 ### Sex Normalization
 
-| Input | Normalized |
-|-------|------------|
-| "Male", "M", "m" | "MALE" |
-| "Female", "F", "f" | "FEMALE" |
+| Input              | Normalized |
+| ------------------ | ---------- |
+| "Male", "M", "m"   | "MALE"     |
+| "Female", "F", "f" | "FEMALE"   |
 
 ### PostalCode Normalization
 
 **US ZIP Codes:**
 
-| Input | Normalized | Reason |
-|-------|------------|--------|
-| "98004" | "98004" | 5-digit format |
-| "9800" | "98000" | 4-digit auto-padded to 5 |
-| "980" | "98000" | ZIP-3 auto-padded to 5 |
-| "98004-1234" | "98004" | Dash removed for T1–T3; first 5 used |
+| Input        | Normalized | Reason                               |
+| ------------ | ---------- | ------------------------------------ |
+| "98004"      | "98004"    | 5-digit format                       |
+| "9800"       | "98000"    | 4-digit auto-padded to 5             |
+| "980"        | "98000"    | ZIP-3 auto-padded to 5               |
+| "98004-1234" | "98004"    | Dash removed for T1–T3; first 5 used |
 
 **Canadian Postal Codes:**
 
-| Input | Normalized | Format |
-|-------|------------|--------|
-| "K1A1A1" | "K1A 1A1" | Space added |
-| "K1A 1A1" | "K1A 1A1" | Already formatted |
-| "K1A1" | "K1A 100" | Auto-padded with zeros |
-| "K1A" | "K1A 000" | Auto-padded with zeros |
+| Input     | Normalized | Format                 |
+| --------- | ---------- | ---------------------- |
+| "K1A1A1"  | "K1A 1A1"  | Space added            |
+| "K1A 1A1" | "K1A 1A1"  | Already formatted      |
+| "K1A1"    | "K1A 100"  | Auto-padded with zeros |
+| "K1A"     | "K1A 000"  | Auto-padded with zeros |
 
 ### SSN Normalization
 
-| Input | Normalized |
-|-------|------------|
+| Input         | Normalized  |
+| ------------- | ----------- |
 | "123-45-6789" | "123456789" |
-| "123456789" | "123456789" |
+| "123456789"   | "123456789" |
 
 ---
 
@@ -297,13 +297,13 @@ Actually, let me reconsider: all rules use BirthDate except T5.
 
 ### Processing Failure Modes
 
-| Scenario | Behavior | Metadata |
-|----------|----------|----------|
-| **Unsupported file format** | Processing fails; no output | Error logged to stderr |
-| **Missing required column** | Processing fails; no output | Error logged to stderr |
-| **Corrupted input file** | Processing stops at error; partial output written | Error count in metadata |
-| **Output file exists** | Overwrites by default (add safety flag if needed) | New metadata generated |
-| **Invalid secret (empty string)** | Processing may succeed but tokens may be invalid | Warning logged |
+| Scenario                          | Behavior                                          | Metadata                |
+| --------------------------------- | ------------------------------------------------- | ----------------------- |
+| **Unsupported file format**       | Processing fails; no output                       | Error logged to stderr  |
+| **Missing required column**       | Processing fails; no output                       | Error logged to stderr  |
+| **Corrupted input file**          | Processing stops at error; partial output written | Error count in metadata |
+| **Output file exists**            | Overwrites by default (add safety flag if needed) | New metadata generated  |
+| **Invalid secret (empty string)** | Processing may succeed but tokens may be invalid  | Warning logged          |
 
 ---
 

@@ -8,13 +8,13 @@ OpenToken generates **5 distinct tokens (T1–T5)** per person, each combining d
 
 ### Rule Definitions
 
-| Rule | Definition | Attributes Used | Best For |
-|------|-----------|------------------|----------|
-| **T1** | `LAST\|FIRST[0]\|SEX\|BIRTHDATE` | Last name + first initial + sex + birthdate | Standard matching; high confidence |
-| **T2** | `LAST\|FIRST\|BIRTHDATE\|ZIP3` | Last name + full first name + birthdate + first 3 ZIP digits | Flexible name matching with geographic data |
-| **T3** | `LAST\|FIRST\|SEX\|BIRTHDATE` | Last name + full first name + sex + birthdate | Broader search; handles name variations |
-| **T4** | `SSN\|SEX\|BIRTHDATE` | Full SSN + sex + birthdate | Authoritative matching; highest confidence |
-| **T5** | `LAST\|FIRST[0:3]\|SEX` | Last name + first 3 characters + sex | Quick search; lower entropy |
+| Rule   | Definition                       | Attributes Used                                              | Best For                                    |
+| ------ | -------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
+| **T1** | `LAST\|FIRST[0]\|SEX\|BIRTHDATE` | Last name + first initial + sex + birthdate                  | Standard matching; high confidence          |
+| **T2** | `LAST\|FIRST\|BIRTHDATE\|ZIP3`   | Last name + full first name + birthdate + first 3 ZIP digits | Flexible name matching with geographic data |
+| **T3** | `LAST\|FIRST\|SEX\|BIRTHDATE`    | Last name + full first name + sex + birthdate                | Broader search; handles name variations     |
+| **T4** | `SSN\|SEX\|BIRTHDATE`            | Full SSN + sex + birthdate                                   | Authoritative matching; highest confidence  |
+| **T5** | `LAST\|FIRST[0:3]\|SEX`          | Last name + first 3 characters + sex                         | Quick search; lower entropy                 |
 
 **Legend**: `U(X)` = uppercase(X), `[0]` = first character, `[0:3]` = first 3 characters
 
@@ -32,13 +32,13 @@ SSN: 123-45-6789
 
 Token signatures are:
 
-| Rule | Token Signature |
-|------|-----------------|
-| T1 | `DOE\|J\|MALE\|2000-01-01` |
-| T2 | `DOE\|JOHN\|2000-01-01\|980` |
-| T3 | `DOE\|JOHN\|MALE\|2000-01-01` |
-| T4 | `123456789\|MALE\|2000-01-01` |
-| T5 | `DOE\|JOH\|MALE` |
+| Rule | Token Signature               |
+| ---- | ----------------------------- |
+| T1   | `DOE\|J\|MALE\|2000-01-01`    |
+| T2   | `DOE\|JOHN\|2000-01-01\|980`  |
+| T3   | `DOE\|JOHN\|MALE\|2000-01-01` |
+| T4   | `123456789\|MALE\|2000-01-01` |
+| T5   | `DOE\|JOH\|MALE`              |
 
 These signatures are then hashed and encrypted to produce the final tokens.
 
@@ -146,14 +146,14 @@ All tokens use normalized attributes. See [Security](../security.md) for detaile
 
 ### Quick Reference
 
-| Attribute | Normalization | Example |
-|-----------|----------------|---------|
-| FirstName | Uppercase, remove titles/suffixes, normalize diacritics | "José María" → "JOSE MARIA" |
-| LastName | Uppercase, remove suffixes, normalize diacritics | "O'Brien" → "OBRIEN" |
-| Sex | Standardized to "Male" or "Female" | "M", "m", "Male" → "MALE" |
-| BirthDate | YYYY-MM-DD format | "01/15/1980", "1980-01-15" → "1980-01-15" |
-| PostalCode | Uppercase, dash removed for US; space for Canadian | "98004", "98004-1234" → "98004", "K1A 1A1" → "K1A1A1" |
-| SSN | 9-digit numeric | "123-45-6789" → "123456789" |
+| Attribute  | Normalization                                           | Example                                               |
+| ---------- | ------------------------------------------------------- | ----------------------------------------------------- |
+| FirstName  | Uppercase, remove titles/suffixes, normalize diacritics | "José María" → "JOSE MARIA"                           |
+| LastName   | Uppercase, remove suffixes, normalize diacritics        | "O'Brien" → "OBRIEN"                                  |
+| Sex        | Standardized to "Male" or "Female"                      | "M", "m", "Male" → "MALE"                             |
+| BirthDate  | YYYY-MM-DD format                                       | "01/15/1980", "1980-01-15" → "1980-01-15"             |
+| PostalCode | Uppercase, dash removed for US; space for Canadian      | "98004", "98004-1234" → "98004", "K1A 1A1" → "K1A1A1" |
+| SSN        | 9-digit numeric                                         | "123-45-6789" → "123456789"                           |
 
 ## Collision Resistance
 

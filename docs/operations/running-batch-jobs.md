@@ -23,21 +23,21 @@ opentoken-cli [OPTIONS] -i <input> -t <type> -o <output> -h <hashing-secret> [-e
 
 ### Required Arguments
 
-| Argument | Alias | Description | Example |
-|----------|-------|-------------|---------|  
-| `-i` | `--input` | Input file path | `-i data.csv` |
-| `-t` | `--type` | Input file type (`csv` or `parquet`) | `-t csv` |
-| `-o` | `--output` | Output file path | `-o tokens.csv` |
-| `-h` | `--hashingsecret` | HMAC-SHA256 hashing secret | `-h "MyKey"` |
+| Argument | Alias             | Description                          | Example         |
+| -------- | ----------------- | ------------------------------------ | --------------- |
+| `-i`     | `--input`         | Input file path                      | `-i data.csv`   |
+| `-t`     | `--type`          | Input file type (`csv` or `parquet`) | `-t csv`        |
+| `-o`     | `--output`        | Output file path                     | `-o tokens.csv` |
+| `-h`     | `--hashingsecret` | HMAC-SHA256 hashing secret           | `-h "MyKey"`    |
 
 ### Optional Arguments
 
-| Argument | Alias | Description | Default |
-|----------|-------|-------------|---------|  
-| `-e` | `--encryptionkey` | AES-256 encryption key | Required unless `--hash-only` |
-| `-ot` | `--output-type` | Output file type | Same as input |
-| | `--hash-only` | Hash-only mode (no encryption) | False |
-| `-d` | `--decrypt` | Decrypt mode | False |
+| Argument | Alias             | Description                    | Default                       |
+| -------- | ----------------- | ------------------------------ | ----------------------------- |
+| `-e`     | `--encryptionkey` | AES-256 encryption key         | Required unless `--hash-only` |
+| `-ot`    | `--output-type`   | Output file type               | Same as input                 |
+|          | `--hash-only`     | Hash-only mode (no encryption) | False                         |
+| `-d`     | `--decrypt`       | Decrypt mode                   | False                         |
 
 ### Java CLI Example
 
@@ -100,11 +100,11 @@ cd C:\path\to\OpenToken
 
 ### Script Options
 
-| Option | Bash | PowerShell | Description |
-|--------|------|------------|-------------|
-| File type | `-t` | `-FileType` | `csv` or `parquet` |
+| Option       | Bash | PowerShell   | Description          |
+| ------------ | ---- | ------------ | -------------------- |
+| File type    | `-t` | `-FileType`  | `csv` or `parquet`   |
 | Skip rebuild | `-s` | `-SkipBuild` | Reuse existing image |
-| Verbose | `-v` | `-Verbose` | Show detailed output |
+| Verbose      | `-v` | `-Verbose`   | Show detailed output |
 
 ### Manual Docker Commands
 
@@ -160,11 +160,11 @@ For distributed processing at scale, see [Spark or Databricks](spark-or-databric
 
 ## Exit Codes
 
-| Exit Code | Meaning |
-|-----------|---------|
-| `0` | Success |
-| `1` | General error (invalid arguments, file not found, etc.) |
-| Non-zero | Processing failure; check stderr for details |
+| Exit Code | Meaning                                                 |
+| --------- | ------------------------------------------------------- |
+| `0`       | Success                                                 |
+| `1`       | General error (invalid arguments, file not found, etc.) |
+| Non-zero  | Processing failure; check stderr for details            |
 
 ---
 
@@ -226,12 +226,12 @@ Check the metadata file after each run for:
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| "Encryption key not provided" | Add `-e "YourKey"` or use `--hash-only` |
-| "Invalid BirthDate" | Use YYYY-MM-DD format; date must be 1910-01-01 to today |
-| "Column not found" | Check column names match [accepted aliases](../config/configuration.md) |
-| Docker build fails | Ensure Docker is running; use absolute paths |
+| Problem                       | Solution                                                                |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| "Encryption key not provided" | Add `-e "YourKey"` or use `--hash-only`                                 |
+| "Invalid BirthDate"           | Use YYYY-MM-DD format; date must be 1910-01-01 to today                 |
+| "Column not found"            | Check column names match [accepted aliases](../config/configuration.md) |
+| Docker build fails            | Ensure Docker is running; use absolute paths                            |
 
 ---
 

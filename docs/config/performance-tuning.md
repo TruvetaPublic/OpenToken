@@ -18,13 +18,13 @@ OpenToken performance depends on:
 
 ## CSV vs Parquet Performance
 
-| Aspect | CSV | Parquet |
-|--------|-----|---------|
-| **Read speed** | Slower (text parsing) | Faster (binary, columnar) |
-| **Write speed** | Moderate | Faster (with compression) |
-| **File size** | Larger | Smaller (compressed) |
-| **Memory usage** | Higher (string processing) | Lower (columnar access) |
-| **Best for** | Small files, debugging | Large files, production |
+| Aspect           | CSV                        | Parquet                   |
+| ---------------- | -------------------------- | ------------------------- |
+| **Read speed**   | Slower (text parsing)      | Faster (binary, columnar) |
+| **Write speed**  | Moderate                   | Faster (with compression) |
+| **File size**    | Larger                     | Smaller (compressed)      |
+| **Memory usage** | Higher (string processing) | Lower (columnar access)   |
+| **Best for**     | Small files, debugging     | Large files, production   |
 
 **Recommendation:** Use Parquet for datasets >10,000 records.
 
@@ -40,10 +40,10 @@ java -jar opentoken-cli-*.jar \
 
 ## Encryption vs Hash-Only Mode
 
-| Mode | Speed | Token Size | Use Case |
-|------|-------|------------|----------|
-| **Encryption** | Baseline | ~80-100 chars | External sharing |
-| **Hash-only** | ~20-30% faster | ~44-64 chars | Internal matching |
+| Mode           | Speed          | Token Size    | Use Case          |
+| -------------- | -------------- | ------------- | ----------------- |
+| **Encryption** | Baseline       | ~80-100 chars | External sharing  |
+| **Hash-only**  | ~20-30% faster | ~44-64 chars  | Internal matching |
 
 For internal-only matching, hash-only mode is faster:
 
@@ -100,12 +100,12 @@ java -Xmx4g -jar opentoken-cli-*.jar \
   -h "HashingKey" -e "EncryptionKey"
 ```
 
-| File Size | Recommended Heap |
-|-----------|-----------------|
-| < 100 MB | Default (256MB-1GB) |
-| 100 MB - 1 GB | `-Xmx2g` |
-| 1 GB - 5 GB | `-Xmx4g` |
-| > 5 GB | Use Spark or split files |
+| File Size     | Recommended Heap         |
+| ------------- | ------------------------ |
+| < 100 MB      | Default (256MB-1GB)      |
+| 100 MB - 1 GB | `-Xmx2g`                 |
+| 1 GB - 5 GB   | `-Xmx4g`                 |
+| > 5 GB        | Use Spark or split files |
 
 ### Garbage Collection
 
@@ -229,24 +229,24 @@ cat tokens.metadata.json | jq '{
 
 **TODO:** Document expected throughput baselines:
 
-| Environment | Records/Second | Notes |
-|-------------|----------------|-------|
-| Local (Java) | TBD | Single-threaded CLI |
-| Local (Python) | TBD | Streaming I/O |
-| Docker | TBD | Container overhead |
-| Spark (10 nodes) | TBD | Distributed processing |
+| Environment      | Records/Second | Notes                  |
+| ---------------- | -------------- | ---------------------- |
+| Local (Java)     | TBD            | Single-threaded CLI    |
+| Local (Python)   | TBD            | Streaming I/O          |
+| Docker           | TBD            | Container overhead     |
+| Spark (10 nodes) | TBD            | Distributed processing |
 
 ---
 
 ## Troubleshooting Performance
 
-| Problem | Solution |
-|---------|----------|
-| Out of memory (Java) | Increase heap: `-Xmx4g` |
-| Slow CSV parsing | Switch to Parquet format |
-| High CPU usage | Limit parallel jobs to CPU core count |
-| Spark shuffle spill | Increase executor memory or partitions |
-| Docker slow | Ensure volume mounts use native paths |
+| Problem              | Solution                               |
+| -------------------- | -------------------------------------- |
+| Out of memory (Java) | Increase heap: `-Xmx4g`                |
+| Slow CSV parsing     | Switch to Parquet format               |
+| High CPU usage       | Limit parallel jobs to CPU core count  |
+| Spark shuffle spill  | Increase executor memory or partitions |
+| Docker slow          | Ensure volume mounts use native paths  |
 
 ---
 

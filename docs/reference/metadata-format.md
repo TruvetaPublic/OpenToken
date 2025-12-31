@@ -65,12 +65,12 @@ Extension: .metadata.json
 
 ### Platform Information
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `Platform` | String | Processing platform/language | `"Java"` or `"Python"` |
-| `JavaVersion` | String | Java runtime version (Java only) | `"21.0.0"` |
-| `PythonVersion` | String | Python runtime version (Python only) | `"3.11.5"` |
-| `OpenTokenVersion` | String | OpenToken library version | `"1.7.0"` |
+| Field              | Type   | Description                          | Example                |
+| ------------------ | ------ | ------------------------------------ | ---------------------- |
+| `Platform`         | String | Processing platform/language         | `"Java"` or `"Python"` |
+| `JavaVersion`      | String | Java runtime version (Java only)     | `"21.0.0"`             |
+| `PythonVersion`    | String | Python runtime version (Python only) | `"3.11.5"`             |
+| `OpenTokenVersion` | String | OpenToken library version            | `"1.7.0"`              |
 
 **Notes:**
 - Only `JavaVersion` OR `PythonVersion` appears (not both)
@@ -78,12 +78,12 @@ Extension: .metadata.json
 
 ### Processing Statistics
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `TotalRows` | Integer | Total input records processed | `101` |
-| `TotalRowsWithInvalidAttributes` | Integer | Records with ≥1 invalid attribute | `9` |
-| `InvalidAttributesByType` | Object | Count of invalid values by attribute name | `{"FirstName": 1, "BirthDate": 3}` |
-| `BlankTokensByRule` | Object | Count of blank tokens by rule ID | `{"T1": 5, "T2": 12}` |
+| Field                            | Type    | Description                               | Example                            |
+| -------------------------------- | ------- | ----------------------------------------- | ---------------------------------- |
+| `TotalRows`                      | Integer | Total input records processed             | `101`                              |
+| `TotalRowsWithInvalidAttributes` | Integer | Records with ≥1 invalid attribute         | `9`                                |
+| `InvalidAttributesByType`        | Object  | Count of invalid values by attribute name | `{"FirstName": 1, "BirthDate": 3}` |
+| `BlankTokensByRule`              | Object  | Count of blank tokens by rule ID          | `{"T1": 5, "T2": 12}`              |
 
 **InvalidAttributesByType:**
 - Keys: Attribute names (e.g., `FirstName`, `BirthDate`, `SocialSecurityNumber`)
@@ -99,11 +99,11 @@ Extension: .metadata.json
 
 ### File Paths and Timing
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `InputFilePath` | String | Path to input file | `"../../resources/sample.csv"` |
-| `OutputFilePath` | String | Path to output token file | `"../../resources/output.csv"` |
-| `ProcessingTimestamp` | String | ISO 8601 timestamp (UTC) | `"2024-01-15T10:30:45Z"` |
+| Field                 | Type   | Description               | Example                        |
+| --------------------- | ------ | ------------------------- | ------------------------------ |
+| `InputFilePath`       | String | Path to input file        | `"../../resources/sample.csv"` |
+| `OutputFilePath`      | String | Path to output token file | `"../../resources/output.csv"` |
+| `ProcessingTimestamp` | String | ISO 8601 timestamp (UTC)  | `"2024-01-15T10:30:45Z"`       |
 
 **Notes:**
 - Paths are as provided to CLI (may be relative or absolute)
@@ -111,9 +111,9 @@ Extension: .metadata.json
 
 ### Secret Hashes
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `HashingSecretHash` | String | SHA-256 hash of hashing secret (hex) | `"e0b4e60b6a9f7ea3b13c0d6a6e1b8c5d..."` |
+| Field                  | Type   | Description                                    | Example                                 |
+| ---------------------- | ------ | ---------------------------------------------- | --------------------------------------- |
+| `HashingSecretHash`    | String | SHA-256 hash of hashing secret (hex)           | `"e0b4e60b6a9f7ea3b13c0d6a6e1b8c5d..."` |
 | `EncryptionSecretHash` | String | SHA-256 hash of encryption key (hex, optional) | `"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6..."` |
 
 **Security:**

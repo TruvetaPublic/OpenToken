@@ -17,11 +17,11 @@ How to use the PySpark bridge for distributed token generation on Spark clusters
 
 ### Version Compatibility
 
-| Spark Version | PySpark Version | Java Version | Installation Extra |
-|---------------|-----------------|--------------|-------------------|
-| **4.0.x** | >=4.0.1, <5.0 | **21** | `[spark40]` **(Recommended)** |
-| 3.5.x | >=3.5.0, <3.6 | 8-17 | `[spark35]` |
-| 3.4.x | >=3.4.0, <3.5 | 8-17 | `[spark34]` |
+| Spark Version | PySpark Version | Java Version | Installation Extra            |
+| ------------- | --------------- | ------------ | ----------------------------- |
+| **4.0.x**     | >=4.0.1, <5.0   | **21**       | `[spark40]` **(Recommended)** |
+| 3.5.x         | >=3.5.0, <3.6   | 8-17         | `[spark35]`                   |
+| 3.4.x         | >=3.4.0, <3.5   | 8-17         | `[spark34]`                   |
 
 **Important:** PySpark 3.5.x and earlier are **NOT compatible** with Java 21. If using Java 21, you **must** use PySpark 4.0.1+.
 
@@ -109,15 +109,15 @@ tokens_df.write.mode("overwrite").saveAsTable("my_database.person_tokens")
 
 Your DataFrame must contain these columns (alternative names supported):
 
-| Standard Name | Alternatives | Required |
-|---------------|--------------|----------|
-| FirstName | GivenName | Yes |
-| LastName | Surname | Yes |
-| BirthDate | DateOfBirth | Yes |
-| Sex | Gender | Yes |
-| PostalCode | ZipCode | Yes |
-| SocialSecurityNumber | NationalIdentificationNumber | Yes |
-| RecordId | Id | Optional |
+| Standard Name        | Alternatives                 | Required |
+| -------------------- | ---------------------------- | -------- |
+| FirstName            | GivenName                    | Yes      |
+| LastName             | Surname                      | Yes      |
+| BirthDate            | DateOfBirth                  | Yes      |
+| Sex                  | Gender                       | Yes      |
+| PostalCode           | ZipCode                      | Yes      |
+| SocialSecurityNumber | NationalIdentificationNumber | Yes      |
+| RecordId             | Id                           | Optional |
 
 ---
 
@@ -125,11 +125,11 @@ Your DataFrame must contain these columns (alternative names supported):
 
 Each input record produces multiple output rows (one per token rule):
 
-| Column | Description |
-|--------|-------------|
-| RecordId | Original record identifier |
-| RuleId | Token rule (T1, T2, T3, T4, T5) |
-| Token | Generated cryptographic token |
+| Column   | Description                     |
+| -------- | ------------------------------- |
+| RecordId | Original record identifier      |
+| RuleId   | Token rule (T1, T2, T3, T4, T5) |
+| Token    | Generated cryptographic token   |
 
 ---
 

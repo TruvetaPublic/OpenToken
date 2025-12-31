@@ -38,13 +38,13 @@ Matching is done by comparing the encrypted tokens, not the original data.
 
 OpenToken uses **5 distinct token rules (T1–T5)** that define which attributes combine to form each token. Each rule targets different matching scenarios:
 
-| Rule | Definition | Use Case |
-|------|-----------|----------|
-| T1 | Last name + first initial + sex + birthdate | Standard matching |
-| T2 | Last name + full first name + birthdate + ZIP-3 | Data with varied names |
-| T3 | Last name + full first name + sex + birthdate | Broader search |
-| T4 | SSN + sex + birthdate | Authoritative identifier |
-| T5 | Last name + first 3 letters + sex | Quick search |
+| Rule | Definition                                      | Use Case                 |
+| ---- | ----------------------------------------------- | ------------------------ |
+| T1   | Last name + first initial + sex + birthdate     | Standard matching        |
+| T2   | Last name + full first name + birthdate + ZIP-3 | Data with varied names   |
+| T3   | Last name + full first name + sex + birthdate   | Broader search           |
+| T4   | SSN + sex + birthdate                           | Authoritative identifier |
+| T5   | Last name + first 3 letters + sex               | Quick search             |
 
 ### Validation & Normalization
 

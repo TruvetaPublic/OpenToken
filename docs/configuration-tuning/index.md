@@ -10,15 +10,15 @@ OpenToken processes CSV and Parquet files. Both formats support the same attribu
 
 Input columns are case-insensitive and support common aliases:
 
-| Attribute | Accepted Column Names | Required | Type | Example |
-|-----------|----------------------|----------|------|---------|
-| **Record ID** | `RecordId`, `Id` | Optional | String | `patient_123`, `uuid-abc...` |
-| **First Name** | `FirstName`, `GivenName` | Yes | String | `John` |
-| **Last Name** | `LastName`, `Surname` | Yes | String | `Doe` |
-| **Birth Date** | `BirthDate`, `DateOfBirth` | Yes | Date | `1980-01-15` |
-| **Sex** | `Sex`, `Gender` | Yes | String | `Male`, `M`, `Female`, `F` |
-| **Postal Code** | `PostalCode`, `ZipCode`, `ZIP3`, `ZIP4`, `ZIP5` | Yes | String | `98004`, `K1A 1A1` |
-| **Social Security Number** | `SocialSecurityNumber`, `NationalIdentificationNumber` | Yes | String | `123456789`, `123-45-6789` |
+| Attribute                  | Accepted Column Names                                  | Required | Type   | Example                      |
+| -------------------------- | ------------------------------------------------------ | -------- | ------ | ---------------------------- |
+| **Record ID**              | `RecordId`, `Id`                                       | Optional | String | `patient_123`, `uuid-abc...` |
+| **First Name**             | `FirstName`, `GivenName`                               | Yes      | String | `John`                       |
+| **Last Name**              | `LastName`, `Surname`                                  | Yes      | String | `Doe`                        |
+| **Birth Date**             | `BirthDate`, `DateOfBirth`                             | Yes      | Date   | `1980-01-15`                 |
+| **Sex**                    | `Sex`, `Gender`                                        | Yes      | String | `Male`, `M`, `Female`, `F`   |
+| **Postal Code**            | `PostalCode`, `ZipCode`, `ZIP3`, `ZIP4`, `ZIP5`        | Yes      | String | `98004`, `K1A 1A1`           |
+| **Social Security Number** | `SocialSecurityNumber`, `NationalIdentificationNumber` | Yes      | String | `123456789`, `123-45-6789`   |
 
 ### CSV Format
 
@@ -75,13 +75,13 @@ When writing Parquet output, use standard Parquet compression (Snappy or Gzip).
 
 ### Handling Missing/Invalid Data
 
-| Scenario | Behavior |
-|----------|----------|
-| **RecordId missing** | Auto-generates UUID for each record |
-| **Required column missing** | Processing fails; column name mismatch error |
-| **NULL/empty value** | Record marked invalid; counted in `TotalRowsWithInvalidAttributes` |
-| **Invalid attribute** | Record marked invalid; counted in `InvalidAttributesByType` |
-| **All attributes valid** | Record processed; 5 tokens generated (T1–T5) |
+| Scenario                    | Behavior                                                           |
+| --------------------------- | ------------------------------------------------------------------ |
+| **RecordId missing**        | Auto-generates UUID for each record                                |
+| **Required column missing** | Processing fails; column name mismatch error                       |
+| **NULL/empty value**        | Record marked invalid; counted in `TotalRowsWithInvalidAttributes` |
+| **Invalid attribute**       | Record marked invalid; counted in `InvalidAttributesByType`        |
+| **All attributes valid**    | Record processed; 5 tokens generated (T1–T5)                       |
 
 Records with invalid attributes are still output (with blank tokens for that rule), but flagged in metadata.
 
