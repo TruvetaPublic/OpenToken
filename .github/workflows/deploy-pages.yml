@@ -7,9 +7,10 @@ on:
   push:
     branches:
       - main
+      - dev/mattwise-42/github-pages-doc-creation # TODO: remove before merging
     paths:
-      - 'docs/**'
-      - '.github/workflows/deploy-pages.yml'
+      - "docs/**"
+      - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
 # Sets permissions for GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -30,13 +31,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./_site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './docs'
+          path: "./_site"
 
   deploy:
     environment:
