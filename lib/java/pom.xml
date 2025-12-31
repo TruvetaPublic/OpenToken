@@ -34,7 +34,7 @@
         <surefire.plugin.version>3.5.4</surefire.plugin.version>
         <mockito.version>5.21.0</mockito.version>
         <slf4j.version>2.0.17</slf4j.version>
-        <log4j.version>2.25.1</log4j.version>
+        <log4j.version>2.25.3</log4j.version>
     </properties>
 
     <dependencyManagement>
