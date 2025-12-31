@@ -9,4 +9,3 @@ Join the OpenToken community.
 
 - [Contributing](contributing.md) - How to contribute code and documentation.
 - [Code of Conduct](code-of-conduct.md) - Community standards.
-- [Release Notes](release-notes.md) - History of changes.
