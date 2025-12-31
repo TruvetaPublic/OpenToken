@@ -28,11 +28,6 @@ html {
     font-size: 16px;
 }
 
-body {
-    margin: 0;
-    padding: 0;
-}
-
 /* Color Palette - Inspired by modern healthcare tech */
 :root {
     --primary-dark: #0a0e27;
@@ -48,10 +43,24 @@ body {
 
 /* Global Styles */
 body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.7;
     color: #334155;
     background-color: #ffffff;
+}
+
+.page-header {
+    flex-shrink: 0;
+}
+
+.page-content {
+    flex: 1 0 auto;
+    width: 100%;
 }
 
 /* Header Styling */
@@ -91,7 +100,7 @@ body {
     display: flex;
     max-width: 1400px;
     margin: 0 auto;
-    min-height: calc(100vh - 160px); /* Adjust based on header/footer height */
+    width: 100%;
 }
 
 /* Sidebar Navigation */
@@ -320,6 +329,7 @@ body {
     text-align: center;
     border-top: 3px solid var(--accent-blue);
     font-size: 0.9rem;
+    flex-shrink: 0;
 }
 
 .site-footer a {
