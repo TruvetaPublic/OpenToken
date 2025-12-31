@@ -29,7 +29,7 @@ person = PersonAttributes(
     birth_date="1980-01-15",
     sex="Male",
     postal_code="98004",
-    social_security_number="123456789"
+    social_security_number="123-45-6789"
 )
 ```
 
@@ -61,7 +61,7 @@ person = PersonAttributes(
     birth_date="2050-01-01",  # Future date - invalid
     sex="Male",
     postal_code="98004",
-    social_security_number="000000000"  # Invalid SSN
+    social_security_number="000-00-0000"  # Invalid SSN
 )
 
 if not person.is_valid():
@@ -178,7 +178,7 @@ def generate_tokens():
         birth_date="1980-01-15",
         sex="Male",
         postal_code="98004",
-        social_security_number="123456789"
+        social_security_number="123-45-6789"
     )
 
     # Validate
@@ -277,7 +277,7 @@ person = PersonAttributes(
     birth_date="1980-01-15",
     sex="Male",
     postal_code="98004",
-    social_security_number="123456789"
+    social_security_number="123-45-6789"
 )
 
 # Token will match Java output byte-for-byte
@@ -299,7 +299,7 @@ try:
         birth_date="invalid-date",  # Bad format
         sex="Unknown",  # Not Male/Female
         postal_code="98004",
-        social_security_number="123456789"
+        social_security_number="123-45-6789"
     )
     
     if not person.is_valid():

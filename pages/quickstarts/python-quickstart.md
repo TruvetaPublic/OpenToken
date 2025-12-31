@@ -106,7 +106,7 @@ person = PersonAttributes(
     birth_date="1980-01-15",
     sex="Male",
     postal_code="98004",
-    social_security_number="123456789"
+    social_security_number="123-45-6789"
 )
 
 # Check validation

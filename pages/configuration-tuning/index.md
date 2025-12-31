@@ -22,7 +22,7 @@ Input columns are case-insensitive and support common aliases:
 | **Birth Date**             | `BirthDate`, `DateOfBirth`                             | Yes      | Date   | `1980-01-15`                 |
 | **Sex**                    | `Sex`, `Gender`                                        | Yes      | String | `Male`, `M`, `Female`, `F`   |
 | **Postal Code**            | `PostalCode`, `ZipCode`, `ZIP3`, `ZIP4`, `ZIP5`        | Yes      | String | `98004`, `K1A 1A1`           |
-| **Social Security Number** | `SocialSecurityNumber`, `NationalIdentificationNumber` | Yes      | String | `123456789`, `123-45-6789`   |
+| **Social Security Number** | `SocialSecurityNumber`, `NationalIdentificationNumber` | Yes      | String | `123-45-6789` (digits-only values normalized) |
 
 ### CSV Format
 
@@ -30,9 +30,9 @@ CSV files must include the required columns (with any accepted column name):
 
 ```csv
 RecordId,FirstName,LastName,BirthDate,Sex,PostalCode,SSN
-ID001,John,Doe,1980-01-15,Male,98004,123456789
-ID002,Jane,Smith,1975-06-20,Female,K1A1A1,987654321
-ID003,Robert,Johnson,1990-03-10,Male,10001,456789123
+ID001,John,Doe,1980-01-15,Male,98004,123-45-6789
+ID002,Jane,Smith,1975-06-20,Female,K1A1A1,987-65-4321
+ID003,Robert,Johnson,1990-03-10,Male,10001,456-78-9123
 ```
 
 **Requirements:**
@@ -54,8 +54,8 @@ ID003,Robert,Johnson,1990-03-10,Male,10001,456789123
 (Case-insensitive)
 
 **SSN Formats Accepted:**
-- `123456789` (9 digits)
-- `123-45-6789` (with dashes)
+- `123-45-6789` (preferred input format)
+- Digits-only values (normalized automatically; dashes removed internally)
 
 **Postal Code Formats:**
 - **US ZIP:** `98004` (5 digits), `98004-1234` (9 digits), `980` (ZIP-3, auto-padded to 98000)

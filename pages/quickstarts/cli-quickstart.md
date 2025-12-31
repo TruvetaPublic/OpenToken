@@ -62,8 +62,8 @@ cd C:\path\to\OpenToken
 **Input file (`sample.csv`):**
 ```csv
 RecordId,FirstName,LastName,BirthDate,Sex,PostalCode,SSN
-patient_001,John,Doe,1980-01-15,Male,98004,123456789
-patient_002,Jane,Smith,1975-03-22,Female,90210,987654321
+patient_001,John,Doe,1980-01-15,Male,98004,123-45-6789
+patient_002,Jane,Smith,1975-03-22,Female,90210,987-65-4321
 ```
 
 **Command:**

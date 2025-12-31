@@ -38,12 +38,12 @@ Input → Normalize → Validate → Token Generation
 
 **Examples:**
 
-| Input | Normalized |
-|-------|------------|
-| `"  John  "` | `"JOHN"` |
-| `"María"` | `"MARIA"` |
-| `"Dr. Smith"` | `"SMITH"` |
-| `"O'Brien"` | `"O'BRIEN"` |
+| Input               | Normalized      |
+| ------------------- | --------------- |
+| `"  John  "`        | `"JOHN"`        |
+| `"María"`           | `"MARIA"`       |
+| `"Dr. Smith"`       | `"SMITH"`       |
+| `"O'Brien"`         | `"O'BRIEN"`     |
 | `"José García Jr."` | `"JOSE GARCIA"` |
 
 **Validation:**
@@ -60,29 +60,29 @@ Input → Normalize → Validate → Token Generation
 
 **Accepted Input Formats:**
 
-| Format | Example |
-|--------|---------|
-| `yyyy-MM-dd` | 1985-03-15 |
-| `MM/dd/yyyy` | 03/15/1985 |
-| `M/d/yyyy` | 3/15/1985 |
+| Format        | Example     |
+| ------------- | ----------- |
+| `yyyy-MM-dd`  | 1985-03-15  |
+| `MM/dd/yyyy`  | 03/15/1985  |
+| `M/d/yyyy`    | 3/15/1985   |
 | `dd-MMM-yyyy` | 15-Mar-1985 |
 
 **Validation Rules:**
 
-| Rule | Value |
-|------|-------|
-| Minimum date | 1910-01-01 |
-| Maximum date | Today |
-| Age range | 0-115 years |
+| Rule         | Value       |
+| ------------ | ----------- |
+| Minimum date | 1910-01-01  |
+| Maximum date | Today       |
+| Age range    | 0-115 years |
 
 **Examples:**
 
-| Input | Normalized | Valid |
-|-------|------------|-------|
-| `"03/15/1985"` | `"1985-03-15"` | ✓ |
-| `"1985-03-15"` | `"1985-03-15"` | ✓ |
-| `"1899-01-01"` | — | ✗ (before 1910) |
-| `"2099-01-01"` | — | ✗ (future date) |
+| Input          | Normalized     | Valid           |
+| -------------- | -------------- | --------------- |
+| `"03/15/1985"` | `"1985-03-15"` | ✓               |
+| `"1985-03-15"` | `"1985-03-15"` | ✓               |
+| `"1899-01-01"` | —              | ✗ (before 1910) |
+| `"2099-01-01"` | —              | ✗ (future date) |
 
 ---
 
@@ -94,13 +94,13 @@ Input → Normalize → Validate → Token Generation
 
 **Validation Rules:**
 
-| Rule | Description |
-|------|-------------|
-| Length | Exactly 9 digits |
-| Area (first 3) | Not 000, 666, or 900-999 |
-| Group (middle 2) | Not 00 |
-| Serial (last 4) | Not 0000 |
-| Known invalid | Reject common test SSNs |
+| Rule             | Description              |
+| ---------------- | ------------------------ |
+| Length           | Exactly 9 digits         |
+| Area (first 3)   | Not 000, 666, or 900-999 |
+| Group (middle 2) | Not 00                   |
+| Serial (last 4)  | Not 0000                 |
+| Known invalid    | Reject common test SSNs  |
 
 **Invalid SSN Patterns:**
 
@@ -116,12 +116,12 @@ XXX-XX-0000  (Invalid serial)
 
 **Examples:**
 
-| Input | Normalized | Valid |
-|-------|------------|-------|
-| `"123-45-6789"` | — | ✗ (test SSN) |
-| `"078-05-1120"` | `"078-05-1120"` | ✓ |
-| `"000-12-3456"` | — | ✗ (area = 000) |
-| `"123456789"` | `"123-45-6789"` | ✗ (test SSN) |
+| Input           | Normalized      | Valid          |
+| --------------- | --------------- | -------------- |
+| `"123-45-6789"` | —               | ✗ (test SSN)   |
+| `"078-05-1120"` | `"078-05-1120"` | ✓              |
+| `"000-12-3456"` | —               | ✗ (area = 000) |
+| Digits-only test input | `"123-45-6789"` | ✗ (test SSN) |
 
 ---
 
@@ -133,11 +133,11 @@ XXX-XX-0000  (Invalid serial)
 
 **Accepted Values:**
 
-| Input | Normalized |
-|-------|------------|
-| `"M"`, `"Male"`, `"m"` | `"M"` |
-| `"F"`, `"Female"`, `"f"` | `"F"` |
-| `"U"`, `"Unknown"`, `"u"` | `"U"` |
+| Input                     | Normalized |
+| ------------------------- | ---------- |
+| `"M"`, `"Male"`, `"m"`    | `"M"`      |
+| `"F"`, `"Female"`, `"f"`  | `"F"`      |
+| `"U"`, `"Unknown"`, `"u"` | `"U"`      |
 
 **Validation:**
 - Must be M, F, or U after normalization
@@ -158,13 +158,13 @@ XXX-XX-0000  (Invalid serial)
 
 **Examples:**
 
-| Input | Normalized | Valid |
-|-------|------------|-------|
-| `"98101"` | `"98101"` | ✓ |
-| `"98101-1234"` | `"98101"` | ✓ |
-| `"k1a 0b1"` | `"K1A 0B1"` | ✓ |
-| `"00000"` | — | ✗ (placeholder) |
-| `"12345"` | — | ✗ (test ZIP) |
+| Input          | Normalized  | Valid           |
+| -------------- | ----------- | --------------- |
+| `"98101"`      | `"98101"`   | ✓               |
+| `"98101-1234"` | `"98101"`   | ✓               |
+| `"k1a 0b1"`    | `"K1A 0B1"` | ✓               |
+| `"00000"`      | —           | ✗ (placeholder) |
+| `"12345"`      | —           | ✗ (test ZIP)    |
 
 **Invalid Postal Codes:**
 
@@ -185,11 +185,11 @@ XXX-XX-0000  (Invalid serial)
 
 **Examples:**
 
-| Postal Code | ZIP3 |
-|-------------|------|
-| `98101` | `981` |
+| Postal Code  | ZIP3  |
+| ------------ | ----- |
+| `98101`      | `981` |
 | `98101-1234` | `981` |
-| `10001` | `100` |
+| `10001`      | `100` |
 
 ---
 
@@ -219,11 +219,11 @@ validators = [
 
 ### Built-in Validators
 
-| Validator | Purpose |
-|-----------|---------|
-| `RegexValidator` | Pattern matching |
-| `DateRangeValidator` | Date bounds |
-| `AgeRangeValidator` | Age at reference date |
+| Validator            | Purpose               |
+| -------------------- | --------------------- |
+| `RegexValidator`     | Pattern matching      |
+| `DateRangeValidator` | Date bounds           |
+| `AgeRangeValidator`  | Age at reference date |
 | `MinLengthValidator` | Minimum string length |
 | `MaxLengthValidator` | Maximum string length |
 

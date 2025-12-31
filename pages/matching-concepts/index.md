@@ -41,10 +41,12 @@ Token signatures are:
 | T1   | `DOE\|J\|MALE\|2000-01-01`    |
 | T2   | `DOE\|JOHN\|2000-01-01\|980`  |
 | T3   | `DOE\|JOHN\|MALE\|2000-01-01` |
-| T4   | `123456789\|MALE\|2000-01-01` |
+| T4   | `SSN_DIGITS\|MALE\|2000-01-01` |
 | T5   | `DOE\|JOH\|MALE`              |
 
 These signatures are then hashed and encrypted to produce the final tokens.
+
+`SSN_DIGITS` represents the digits-only normalization of the SSN input (123-45-6789 → digits only).
 
 ## Why Multiple Rules?
 
@@ -157,7 +159,7 @@ All tokens use normalized attributes. See [Security](../security.md) for detaile
 | Sex        | Standardized to "Male" or "Female"                      | "M", "m", "Male" → "MALE"                             |
 | BirthDate  | YYYY-MM-DD format                                       | "01/15/1980", "1980-01-15" → "1980-01-15"             |
 | PostalCode | Uppercase, dash removed for US; space for Canadian      | "98004", "98004-1234" → "98004", "K1A 1A1" → "K1A1A1" |
-| SSN        | 9-digit numeric                                         | "123-45-6789" → "123456789"                           |
+| SSN        | 9-digit numeric                                         | "123-45-6789" → digits-only string                     |
 
 ## Collision Resistance
 

@@ -100,8 +100,8 @@ Input columns are **case-insensitive** and support common aliases:
 
 ### SSN Formats Accepted
 
-- `123456789` (9 digits)
-- `123-45-6789` (with dashes)
+- `123-45-6789` (preferred input format)
+- Digits-only values (normalized automatically; dashes removed internally)
 
 ### Postal Code Formats
 

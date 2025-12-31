@@ -34,7 +34,7 @@ PersonAttributes person = new PersonAttributes.Builder()
     .birthDate("1980-01-15")
     .sex("Male")
     .postalCode("98004")
-    .socialSecurityNumber("123456789")
+    .socialSecurityNumber("123-45-6789")
     .build();
 ```
 
@@ -94,7 +94,7 @@ person = PersonAttributes(
     birth_date="1980-01-15",
     sex="Male",
     postal_code="98004",
-    social_security_number="123456789"
+    social_security_number="123-45-6789"
 )
 ```
 
@@ -282,8 +282,8 @@ Token Use: "K1A" (first 3) or full "K1A1A1" (depending on rule)
   - 555-55-5555, 777-77-7777, 888-88-8888
 
 **Accepted Input Formats:**
-- `123456789` (9 digits, no separator)
-- `123-45-6789` (with dashes)
+- `123-45-6789` (preferred format)
+- Digits-only strings (dashes removed automatically during normalization)
 
 **Normalization:**
 - Dashes removed
@@ -291,9 +291,9 @@ Token Use: "K1A" (first 3) or full "K1A1A1" (depending on rule)
 
 **Example:**
 ```
-Input: "123-45-6789" or "123456789"
-Normalized: "123456789"
-Token Use: "123456789"
+Input: "123-45-6789" (preferred) or digits-only value
+Normalized: digits-only string (dashes removed)
+Token Use: digits-only string
 Valid Example: 123-45-6789 (area 123, group 45, serial 6789)
 Invalid Example: 000-00-0000 (area 000 invalid)
 ```

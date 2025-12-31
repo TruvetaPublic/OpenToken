@@ -30,15 +30,17 @@ OpenToken generates tokens using 5 distinct rules (T1–T5) that combine person 
 
 A token signature is the combination of normalized attributes per rule. Signatures are then hashed and encrypted to produce final tokens.
 
-**Example for person: John Doe, 1980-01-15, Male, 98004, 123456789**
+**Example for person: John Doe, 1980-01-15, Male, 98004, 123-45-6789**
 
 | Rule | Signature                     | Purpose               |
 | ---- | ----------------------------- | --------------------- |
 | T1   | `DOE\|J\|MALE\|1980-01-15`    | High confidence match |
 | T2   | `DOE\|JOHN\|1980-01-15\|980`  | Geographic match      |
 | T3   | `DOE\|JOHN\|MALE\|1980-01-15` | Flexible match        |
-| T4   | `123456789\|MALE\|1980-01-15` | Authoritative match   |
+| T4   | `SSN_DIGITS\|MALE\|1980-01-15` | Authoritative match   |
 | T5   | `DOE\|JOH\|MALE`              | Quick search match    |
+
+`SSN_DIGITS` refers to the digits-only normalization of the input SSN (e.g., 123-45-6789 becomes a digits-only string with dashes removed).
 
 ### Token Encryption
 
@@ -226,10 +228,10 @@ All attributes are normalized before token generation to ensure consistent token
 
 ### SSN Normalization
 
-| Input         | Normalized  |
-| ------------- | ----------- |
-| "123-45-6789" | "123456789" |
-| "123456789"   | "123456789" |
+| Input               | Normalized                                |
+| ------------------- | ----------------------------------------- |
+| "123-45-6789"       | Digits-only string (dashes removed)       |
+| Digits-only input   | Unchanged digits-only string              |
 
 ---
 

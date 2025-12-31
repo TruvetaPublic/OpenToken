@@ -140,7 +140,7 @@ T3 = Hash(FirstName | LastName | SSN)
 Input:
   FirstName: John
   LastName: Smith
-  SSN: 078051120
+  SSN: 078-05-1120
 
 Normalized:
   FirstName: JOHN

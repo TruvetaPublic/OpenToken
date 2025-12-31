@@ -174,7 +174,7 @@ Your CSV must have these columns (any of the listed aliases work):
 | BirthDate  | DateOfBirth                  | Yes      | 1975-03-15 or 03/15/1975 |
 | Sex        | Gender                       | Yes      | Male, Female, M, F       |
 | PostalCode | ZipCode, ZIP3, ZIP4, ZIP5    | Yes      | 98004                    |
-| SSN        | NationalIdentificationNumber | Yes      | 123456789 or 123-45-6789 |
+| SSN        | NationalIdentificationNumber | Yes      | 123-45-6789 (digits-only values are normalized) |
 | RecordId   | Id                           | Optional | patient_id_123           |
 
 **Note**: RecordId is optional. If omitted, a unique UUID is auto-generated for each record.

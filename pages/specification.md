@@ -59,7 +59,7 @@ All of the following must be provided per record:
 | **BirthDate**  | Date   | 1910-01-01 to today                          | "1980-01-15", "01/15/1980", "15.01.1980" | ISO 8601 YYYY-MM-DD                            |
 | **Sex**        | String | "Male" or "Female" (case-insensitive)        | "M", "F", "male", "FEMALE"               | Uppercase; normalize M→MALE, F→FEMALE          |
 | **PostalCode** | String | Valid US ZIP or Canadian postal code         | "98004", "K1A 1A1", "98004-1234"         | Remove dashes; pad ZIP to 5 digits             |
-| **SSN**        | String | 9 numeric digits (US Social Security Number) | "123-45-6789", "123456789"               | Remove dashes                                  |
+| **SSN**        | String | 9 numeric digits (US Social Security Number) | "123-45-6789" (digits-only inputs normalized) | Remove dashes                                  |
 
 ### Optional Attributes
 

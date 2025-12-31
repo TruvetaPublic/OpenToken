@@ -30,7 +30,7 @@ PersonAttributes person = new PersonAttributes.Builder()
     .birthDate("1980-01-15")
     .sex("Male")
     .postalCode("98004")
-    .socialSecurityNumber("123456789")
+    .socialSecurityNumber("123-45-6789")
     .build();
 ```
 
@@ -57,7 +57,7 @@ PersonAttributes person = new PersonAttributes.Builder()
     .birthDate("2050-01-01")  // Future date - invalid
     .sex("Male")
     .postalCode("98004")
-    .socialSecurityNumber("000000000")  // Invalid SSN
+    .socialSecurityNumber("000-00-0000")  // Invalid SSN
     .build();
 
 if (!person.isValid()) {
@@ -173,7 +173,7 @@ public class TokenGenerator {
             .birthDate("1980-01-15")
             .sex("Male")
             .postalCode("98004")
-            .socialSecurityNumber("123456789")
+            .socialSecurityNumber("123-45-6789")
             .build();
 
         // Validate
