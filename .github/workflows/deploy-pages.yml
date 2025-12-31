@@ -9,7 +9,7 @@ on:
       - main
       - dev/mattwise-42/github-pages-doc-creation # TODO: remove before merging
     paths:
-      - "docs/**"
+      - "pages/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -44,7 +44,7 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./docs
+          source: ./pages
           destination: ./_site
 
       - name: Upload artifact
