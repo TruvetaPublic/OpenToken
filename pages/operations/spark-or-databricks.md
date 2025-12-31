@@ -270,7 +270,39 @@ Install via cluster UI or init script:
 pip install opentoken-pyspark
 ```
 
-**TODO:** Document Unity Catalog integration for secrets management.
+### Unity Catalog + Secrets (Recommended)
+
+Unity Catalog (UC) is the right place to govern **data access** (tables, volumes, external locations). For **secrets** (hashing/encryption keys), you typically still use **Databricks Secret Scopes** (optionally backed by a cloud secret manager) and lock down access with ACLs and cluster policies.
+
+**Recommended pattern:**
+- Store secrets in a secret scope (Databricks-backed, or backed by AWS Secrets Manager / Azure Key Vault / GCP Secret Manager depending on your workspace configuration).
+- Restrict who can read secrets (scope ACLs) and which clusters can access them (cluster policies).
+- Store token outputs in UC-managed Delta tables (or UC volumes) and grant access via UC privileges.
+
+**Example: read secrets + write UC table**
+
+```python
+from opentoken_pyspark import OpenTokenProcessor
+
+hashing_secret = dbutils.secrets.get("opentoken", "hashing_secret")
+encryption_key = dbutils.secrets.get("opentoken", "encryption_key")
+
+processor = OpenTokenProcessor(
+    hashing_secret=hashing_secret,
+    encryption_key=encryption_key,
+)
+
+df = spark.read.table("main.pprl.person_records")
+tokens_df = processor.process_dataframe(df)
+
+# Write to a UC-managed Delta table
+tokens_df.write.mode("overwrite").format("delta").saveAsTable("main.pprl.person_tokens")
+```
+
+**Notes:**
+- Prefer a dedicated UC schema (e.g., `main.pprl`) for tokenized outputs.
+- Consider writing to separate tables per dataset/run to support auditing and reproducibility.
+- For production: use cluster policies to prevent printing secrets, and avoid collecting token data to the driver.
 
 ---
 

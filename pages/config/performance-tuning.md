@@ -225,20 +225,37 @@ cat tokens.metadata.json | jq '{
 }'
 ```
 
-**TODO:** Add `ProcessingDurationMs` field to metadata for benchmarking.
+### Capturing Runtime
+
+OpenToken metadata currently captures **counts** and a `ProcessingTimestamp`. If you need runtime metrics today, measure wall-clock time externally (for example with `time`) and/or instrument your orchestrator (Databricks job metrics, Spark UI, Airflow, etc.).
+
+If you want to extend metadata, a useful field is:
+- `ProcessingDurationMs`: end-to-end wall-clock duration for the run (from “first record read” to “last output flushed”).
+
+If you add this field, prefer capturing it at the CLI/driver level so it includes I/O, normalization, token generation, and output writing.
 
 ---
 
 ## Performance Baselines
 
-**TODO:** Document expected throughput baselines:
+### Establishing Throughput Baselines
+
+Throughput varies significantly by input format (CSV vs Parquet), encryption vs hash-only mode, CPU, and storage. Rather than hard-coding numbers in docs, use this checklist to build a baseline for your environment:
+
+1. Fix the mode: **encrypted** (default) vs **`--hash-only`**.
+2. Fix the format: CSV vs Parquet, and keep the same schema.
+3. Fix the storage: local disk vs network filesystem vs object store.
+4. Run 3 times and take the median (warm JVM / cached dependencies).
+5. Record: rows/sec, peak memory, output size, invalid row rate.
+
+Suggested baseline table (fill with your own measurements):
 
 | Environment      | Records/Second | Notes                  |
 | ---------------- | -------------- | ---------------------- |
-| Local (Java)     | TBD            | Single-threaded CLI    |
-| Local (Python)   | TBD            | Streaming I/O          |
-| Docker           | TBD            | Container overhead     |
-| Spark (10 nodes) | TBD            | Distributed processing |
+| Local (Java)     | Measure        | JVM warmup affects run 1 |
+| Local (Python)   | Measure        | Ensure venv + deps installed |
+| Docker           | Measure        | Volume mounts + IO can dominate |
+| Spark (10 nodes) | Measure        | Partitioning/shuffle + storage drive results |
 
 ---
 

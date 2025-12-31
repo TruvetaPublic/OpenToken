@@ -46,7 +46,19 @@ OpenToken is a privacy-preserving token generation system for deterministic pers
 - CSV (comma-separated values, with header row)
 - Parquet (columnar binary format)
 
-**TODO:** Document maximum file sizes, streaming vs. batch constraints
+### Size and Processing Model
+
+OpenToken is designed for **streaming-style** processing: it reads records, normalizes/validates, emits up to 5 tokens, and writes output without needing to hold the full dataset in memory.
+
+**Practical constraints:**
+- There is **no fixed maximum file size** imposed by OpenToken itself; limits are driven by your machine/cluster resources (CPU, memory, disk) and the underlying CSV/Parquet libraries.
+- Output size is roughly **5× the number of input rows** (one row per rule per record) plus metadata.
+- For Parquet, performance and memory usage depend on row group sizing and the reader implementation.
+
+**Recommendations:**
+- Prefer **Parquet** for large jobs (faster parsing, smaller I/O, better parallelism).
+- Ensure disk space for outputs (tokens + `.metadata.json`).
+- For very large datasets, use the **PySpark** integration to scale horizontally.
 
 ### Required Attributes
 
@@ -256,13 +268,13 @@ Parquet format includes compression and is suitable for large datasets.
 
 ### Future Considerations
 
-**TODO:**
+This section is **non-normative** (informational) and describes likely evolution areas:
 
-- [ ] Extension mechanism for new token rules (T6+)
-- [ ] Support for additional attribute types (middle name, phone, email)
-- [ ] Version field in metadata for forward compatibility
-- [ ] Formal versioning scheme for specification updates
-- [ ] Performance baselines and constraints (records/second, memory usage)
+- Extension mechanism for new token rules (T6+) with explicit cross-language parity requirements
+- Support for additional attribute types (e.g., middle name, phone, email) behind versioned schemas
+- Metadata schema versioning for forward compatibility
+- Formal specification versioning and migration guidance
+- Published performance guidance (methodology, baselines by environment)
 
 ### Breaking Changes
 
@@ -295,4 +307,4 @@ For deeper information, see:
 | Date       | Version | Changes                                      |
 | ---------- | ------- | -------------------------------------------- |
 | 2024-01-15 | 1.0     | Initial specification                        |
-| TODO       | 1.1     | Planned: Formalize version field in metadata |
+| Planned    | 1.1     | Formalize version field in metadata          |
