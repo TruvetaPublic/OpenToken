@@ -30,5 +30,8 @@
     "python.testing.pytestPath": "pytest",
     "python.defaultInterpreterPath": "",
     "testing.showInlineOutput": true,
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "[markdown]": {
+        "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+    }
 }
