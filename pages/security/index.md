@@ -179,27 +179,72 @@ Invalid:
 
 ---
 
-## Privacy Best Practices
+## Key Management & Secrets
 
-### Secrets Management
+This section provides practical guidance for managing the cryptographic secrets OpenToken requires.
 
-**Hashing Secret & Encryption Key:**
-- Store securely (e.g., AWS Secrets Manager, HashiCorp Vault, environment variables)
-- Never commit to version control
-- Rotate periodically (regenerate tokens with new secrets)
-- Use strong, random keys (minimum 16 characters, mix of uppercase, lowercase, digits, symbols)
+### Types of Secrets
 
-**In Test/Development:**
-```
-Hashing Secret: "HashingKey"
-Encryption Key: "Secret-Encryption-Key-Goes-Here."
-```
+OpenToken expects **two secrets** (one required, one optional depending on mode):
 
-**In Production:**
+| Secret | CLI Flag | Purpose | Requirements |
+| --- | --- | --- | --- |
+| **Hashing Secret** | `-h` / `--hashing-secret` | HMAC-SHA256 key for deterministic hashing | Required in all modes; 8+ characters recommended, 16+ ideal |
+| **Encryption Key** | `-e` / `--encryption-key` | AES-256-GCM symmetric key | Required for encryption mode; **exactly 32 characters** |
+
+**Hash-only mode** (`--hash-only`) skips AES encryption; only the hashing secret is needed.
+
+### Handling Secrets in Practice
+
+#### Development / Local Testing
+
+Use clearly marked placeholder values:
+
 ```bash
-# Use environment variables or secret management
-export OPENTOKEN_HASHING_SECRET=$(aws secretsmanager get-secret-value --secret-id opentoken-hash-key --query SecretString --output text)
-export OPENTOKEN_ENCRYPTION_KEY=$(aws secretsmanager get-secret-value --secret-id opentoken-enc-key --query SecretString --output text)
+# Placeholder secrets for local testing only
+java -jar opentoken-cli-*.jar \
+  -i sample.csv -t csv -o output.csv \
+  -h "HashingKey" \
+  -e "Secret-Encryption-Key-Goes-Here."
+```
+
+Store these in a local `.env` file (not committed):
+
+```bash
+# .env (add to .gitignore)
+OPENTOKEN_HASHING_SECRET=HashingKey
+OPENTOKEN_ENCRYPTION_KEY=Secret-Encryption-Key-Goes-Here.
+```
+
+Load and use:
+
+```bash
+source .env
+java -jar opentoken-cli-*.jar \
+  -i sample.csv -t csv -o output.csv \
+  -h "$OPENTOKEN_HASHING_SECRET" \
+  -e "$OPENTOKEN_ENCRYPTION_KEY"
+```
+
+#### Production
+
+Store secrets in a managed secret store and inject via environment variables at runtime:
+
+| Platform | Secret Store | Injection Method |
+| --- | --- | --- |
+| AWS | Secrets Manager | `aws secretsmanager get-secret-value` or ECS/Lambda secrets |
+| Azure | Key Vault | `az keyvault secret show` or App Service key references |
+| GCP | Secret Manager | `gcloud secrets versions access` or workload identity |
+| On-prem | HashiCorp Vault | `vault kv get` or agent auto-auth |
+| Databricks | Databricks Secrets | `dbutils.secrets.get("scope", "key")` |
+
+**Example (AWS Secrets Manager):**
+
+```bash
+export OPENTOKEN_HASHING_SECRET=$(aws secretsmanager get-secret-value \
+  --secret-id opentoken-hash-key --query SecretString --output text)
+export OPENTOKEN_ENCRYPTION_KEY=$(aws secretsmanager get-secret-value \
+  --secret-id opentoken-enc-key --query SecretString --output text)
 
 java -jar opentoken-cli-*.jar \
   -i data.csv -t csv -o tokens.csv \
@@ -207,29 +252,69 @@ java -jar opentoken-cli-*.jar \
   -e "$OPENTOKEN_ENCRYPTION_KEY"
 ```
 
+**Example (Databricks):**
+
+```python
+from opentoken_pyspark import SparkPersonTokenProcessor
+
+processor = SparkPersonTokenProcessor(
+    spark=spark,
+    hashing_secret=dbutils.secrets.get("opentoken", "hashing_secret"),
+    encryption_key=dbutils.secrets.get("opentoken", "encryption_key")
+)
+```
+
+### Secret Rotation
+
+1. **Generate new secrets** – use a cryptographically secure generator.
+2. **Re-run token generation** – tokens are deterministic; same input + same secrets = same tokens. New secrets = new tokens.
+3. **Version secrets in your store** – keep old versions for auditability.
+4. **Coordinate downstream** – any system that decrypts tokens needs the matching encryption key.
+
+### What NOT to Do
+
+- **Never commit secrets to source control.** Add `.env` and similar files to `.gitignore`.
+- **Never log secrets.** CLI output and metadata files contain hashes of secrets, not the secrets themselves.
+- **Never hard-code secrets in scripts checked into git.** Use environment variables or secret-store references.
+
+### Secret Verification via Metadata
+
+Each run produces a `.metadata.json` with SHA-256 hashes of secrets:
+
+```json
+{
+  "HashingSecretHash": "e0b4e60b...",
+  "EncryptionSecretHash": "a1b2c3d4..."
+}
+```
+
+Use `tools/hash_calculator.py` to verify:
+
+```bash
+python tools/hash_calculator.py \
+  --hashing-secret "YourSecret" \
+  --encryption-key "YourEncryptionKey"
+# Compare output hashes to metadata file
+```
+
+### Cross-References
+
+- **CLI flags for secrets**: [CLI Reference](../reference/cli.md)
+- **Environment variable usage**: [Configuration](../config/configuration.md#environment-variables)
+- **Databricks / Spark secrets**: [Spark or Databricks](../operations/spark-or-databricks.md)
+- **Running the CLI**: [Running OpenToken](../running-opentoken/index.md)
+- **Metadata format (hash fields)**: [Reference: Metadata Format](../reference/metadata-format.md)
+
+---
+
+## Privacy Best Practices
+
 ### Token Handling
 
 - **Do not log raw tokens**: Logs may be stored, indexed, or shared
 - **Do not output raw person data**: Always use tokens for matching
 - **Encrypt output files**: Store token files with encryption at rest (AWS S3 encryption, TDE, etc.)
 - **Audit access**: Track who generates, accesses, or decrypts tokens
-
-### Metadata Security
-
-Metadata files contain **SHA-256 hashes of secrets**, not the secrets themselves:
-
-```json
-{
-  "HashingSecretHash": "abc123...",  // SHA-256(hashing_secret), not the secret
-  "EncryptionSecretHash": "def456..."  // SHA-256(encryption_key), not the key
-}
-```
-
-**Hash verification:**
-```bash
-# Verify metadata hashes match your secrets
-python tools/hash_calculator.py --hashing-secret "HashingKey" --encryption-key "Secret-Encryption-Key-Goes-Here."
-```
 
 ### Data Minimization
 

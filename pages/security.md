@@ -98,31 +98,67 @@ HMAC-SHA256(message, key) = SHA256((key ⊕ opad) || SHA256((key ⊕ ipad) || me
 
 ---
 
-## Key and Secret Management
+## Key Management & Secrets
 
-### Required Secrets
+This section consolidates practical guidance for managing the cryptographic secrets OpenToken requires.
 
-**Hashing Secret:**
-- Used for HMAC-SHA256 authentication
-- Required for all modes (encryption and hash-only)
-- No strict length requirement (minimum 8 characters recommended)
-- Recommended: 16+ characters with mixed case, digits, symbols
+### Types of Secrets
 
-**Encryption Key:**
-- Used for AES-256-GCM encryption/decryption
-- Required for encryption mode only (omitted in hash-only mode)
-- **Must be exactly 32 characters (32 bytes for UTF-8)**
-- Example: `"12345678901234567890123456789012"`
+OpenToken expects **two secrets** (one required, one optional depending on mode):
 
-### Storage Expectations
+| Secret | CLI Flag | Purpose | Requirements |
+| --- | --- | --- | --- |
+| **Hashing Secret** | `-h` / `--hashing-secret` | HMAC-SHA256 key for deterministic hashing | Required in all modes; 8+ characters recommended, 16+ ideal |
+| **Encryption Key** | `-e` / `--encryption-key` | AES-256-GCM symmetric key | Required for encryption mode; **exactly 32 characters** |
 
-**Production environment:**
-- Store secrets in secure secret management systems (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault)
-- Use environment variables loaded from secret stores
-- Never commit secrets to version control
-- Rotate secrets periodically and maintain version history
+**Hash-only mode** (`--hash-only`) skips AES encryption; only the hashing secret is needed.
 
-**Example using environment variables:**
+### Handling Secrets in Practice
+
+#### Development / Local Testing
+
+Use clearly marked placeholder values:
+
+```bash
+# Placeholder secrets for local testing only
+java -jar opentoken-cli-*.jar \
+  -i sample.csv -t csv -o output.csv \
+  -h "HashingKey" \
+  -e "Secret-Encryption-Key-Goes-Here."
+```
+
+Store these in a local `.env` file (not committed):
+
+```bash
+# .env (add to .gitignore)
+OPENTOKEN_HASHING_SECRET=HashingKey
+OPENTOKEN_ENCRYPTION_KEY=Secret-Encryption-Key-Goes-Here.
+```
+
+Load and use:
+
+```bash
+source .env
+java -jar opentoken-cli-*.jar \
+  -i sample.csv -t csv -o output.csv \
+  -h "$OPENTOKEN_HASHING_SECRET" \
+  -e "$OPENTOKEN_ENCRYPTION_KEY"
+```
+
+#### Production
+
+Store secrets in a managed secret store and inject via environment variables at runtime:
+
+| Platform | Secret Store | Injection Method |
+| --- | --- | --- |
+| AWS | Secrets Manager | `aws secretsmanager get-secret-value` or ECS/Lambda secrets |
+| Azure | Key Vault | `az keyvault secret show` or App Service key references |
+| GCP | Secret Manager | `gcloud secrets versions access` or workload identity |
+| On-prem | HashiCorp Vault | `vault kv get` or agent auto-auth |
+| Databricks | Databricks Secrets | `dbutils.secrets.get("scope", "key")` |
+
+**Example (AWS Secrets Manager):**
+
 ```bash
 export OPENTOKEN_HASHING_SECRET=$(aws secretsmanager get-secret-value \
   --secret-id opentoken-hash-key --query SecretString --output text)
@@ -135,33 +171,58 @@ java -jar opentoken-cli-*.jar \
   -e "$OPENTOKEN_ENCRYPTION_KEY"
 ```
 
-**Test/development environment:**
-- Use placeholder values clearly marked as non-production
-- Example: `HashingKey` and `Secret-Encryption-Key-Goes-Here.`
+**Example (Databricks):**
 
-### Secret Verification
+```python
+from opentoken_pyspark import SparkPersonTokenProcessor
 
-Metadata files contain SHA-256 hashes of secrets (not the secrets themselves):
+processor = SparkPersonTokenProcessor(
+    spark=spark,
+    hashing_secret=dbutils.secrets.get("opentoken", "hashing_secret"),
+    encryption_key=dbutils.secrets.get("opentoken", "encryption_key")
+)
+```
+
+### Secret Rotation
+
+1. **Generate new secrets** – use a cryptographically secure generator.
+2. **Re-run token generation** – tokens are deterministic; same input + same secrets = same tokens. New secrets = new tokens.
+3. **Version secrets in your store** – keep old versions for auditability.
+4. **Coordinate downstream** – any system that decrypts tokens needs the matching encryption key.
+
+### What NOT to Do
+
+- **Never commit secrets to source control.** Add `.env` and similar files to `.gitignore`.
+- **Never log secrets.** CLI output and metadata files contain hashes of secrets, not the secrets themselves.
+- **Never hard-code secrets in scripts checked into git.** Use environment variables or secret-store references.
+
+### Secret Verification via Metadata
+
+Each run produces a `.metadata.json` with SHA-256 hashes of secrets:
 
 ```json
 {
-  "HashingSecretHash": "abc123...",
-  "EncryptionSecretHash": "def456..."
+  "HashingSecretHash": "e0b4e60b...",
+  "EncryptionSecretHash": "a1b2c3d4..."
 }
 ```
 
-**Purpose:**
-- Verify correct secrets were used without exposing them
-- Detect configuration errors (mismatched secrets between runs)
-- Audit trail for compliance
+Use `tools/hash_calculator.py` to verify:
 
-**Verification process:**
 ```bash
 python tools/hash_calculator.py \
   --hashing-secret "YourSecret" \
-  --encryption-key "YourKey"
+  --encryption-key "YourEncryptionKey"
 # Compare output hashes to metadata file
 ```
+
+### Cross-References
+
+- **CLI flags for secrets**: [CLI Reference](reference/cli.md)
+- **Environment variable usage**: [Configuration](config/configuration.md#environment-variables)
+- **Databricks / Spark secrets**: [Spark or Databricks](operations/spark-or-databricks.md)
+- **Running the CLI**: [Running OpenToken](running-opentoken/index.md)
+- **Metadata format (hash fields)**: [Reference: Metadata Format](reference/metadata-format.md)
 
 ---
 
