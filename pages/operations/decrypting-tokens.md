@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Decrypting Tokens
 
 How to decrypt previously encrypted tokens for debugging, verification, or re-encryption.

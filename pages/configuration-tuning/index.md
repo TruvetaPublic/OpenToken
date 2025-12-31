@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Configuration & Tuning
 
 Input formats, output modes, and customization options.

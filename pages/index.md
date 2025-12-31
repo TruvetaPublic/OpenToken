@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # OpenToken Documentation
 
 OpenToken is a privacy-preserving tokenization and matching library for healthcare data, providing deterministic, cryptographically secure tokens across Java and Python implementations.

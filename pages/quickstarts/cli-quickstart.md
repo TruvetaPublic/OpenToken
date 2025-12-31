@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # CLI Quickstart
 
 One-sentence description: Run the OpenToken CLI end-to-end to generate tokens from a sample dataset in minutes.

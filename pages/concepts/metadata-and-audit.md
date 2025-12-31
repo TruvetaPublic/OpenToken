@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Metadata and Audit
 
 Overview of the metadata produced alongside tokens and how to use it for auditing and verification.

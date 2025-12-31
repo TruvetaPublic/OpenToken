@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Metadata Format
 
 Complete reference for the OpenToken metadata JSON file structure, fields, and usage for audit and verification.

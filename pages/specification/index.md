@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Specification
 
 Complete technical specification for token generation, metadata format, and data structures.

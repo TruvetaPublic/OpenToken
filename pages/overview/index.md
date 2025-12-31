@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Overview
 
 ## What is OpenToken?

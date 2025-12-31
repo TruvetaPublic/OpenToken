@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Reference
 
 Complete API documentation and attribute reference.

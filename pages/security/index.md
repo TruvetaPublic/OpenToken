@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Security
 
 Cryptography, validation rules, and privacy-preserving best practices.

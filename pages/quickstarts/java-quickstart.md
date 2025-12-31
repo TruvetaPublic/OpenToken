@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Java Quickstart
 
 One-sentence description: Build and run the Java CLI to generate OpenToken outputs from local files.

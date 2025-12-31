@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Quickstarts
 
 Get OpenToken running in minutes. Choose your preferred environment and language.

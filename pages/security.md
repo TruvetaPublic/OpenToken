@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Security
 
 Cryptographic building blocks, key management expectations, and security considerations for privacy-preserving person matching.

@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Token Rules
 
 One-sentence description: Detail the five token generation rules (T1–T5) and their attribute combinations.

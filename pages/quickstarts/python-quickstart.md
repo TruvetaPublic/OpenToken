@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Python Quickstart
 
 One-sentence description: Install the Python packages and run the OpenToken CLI with a virtual environment.

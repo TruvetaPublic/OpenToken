@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Normalization and Validation
 
 One-sentence description: Summarize how person attributes are validated and normalized before token generation.

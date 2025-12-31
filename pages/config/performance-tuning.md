@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Performance Tuning
 
 Guidance to optimize OpenToken throughput and resource usage.

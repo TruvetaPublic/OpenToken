@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Python API Reference
 
 One-sentence description: Document the Python modules and functions for programmatic token generation.

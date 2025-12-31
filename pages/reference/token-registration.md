@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Token Registration
 
 One-sentence description: Explain how tokens and attributes are registered and discovered in Java and Python implementations.

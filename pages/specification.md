@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # OpenToken Specification
 
 ## Overview

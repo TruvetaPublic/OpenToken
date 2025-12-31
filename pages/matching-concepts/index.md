@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Matching Concepts
 
 Understand how OpenToken tokens work for person matching and the strategies behind the 5 token rules.

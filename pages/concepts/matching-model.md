@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Matching Model
 
 One-sentence description: Explain how OpenToken tokens are used to match person records across datasets.

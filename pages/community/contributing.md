@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Contributing
 
 One-sentence description: Outline how to contribute code, documentation, and bug reports to OpenToken.

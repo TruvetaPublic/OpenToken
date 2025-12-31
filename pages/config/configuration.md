@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Configuration
 
 Configuration options for OpenToken inputs, outputs, secrets, and runtime behavior.

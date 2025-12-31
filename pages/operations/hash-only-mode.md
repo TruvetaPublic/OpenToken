@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Hash-Only Mode
 
 How to generate tokens using HMAC-SHA256 without AES encryption.

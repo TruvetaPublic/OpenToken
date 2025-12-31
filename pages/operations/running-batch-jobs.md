@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Running Batch Jobs
 
 How to run OpenToken in batch mode across CSV or Parquet files at scale using CLI or Docker.

@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Code of Conduct
 
 One-sentence description: Set expectations for respectful, inclusive participation in the OpenToken community.

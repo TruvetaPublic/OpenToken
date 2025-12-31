@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # CLI Reference
 
 One-sentence description: Detailed reference for OpenToken CLI arguments, modes, and examples.

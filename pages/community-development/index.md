@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Community & Development
 
 Guidance for contributors, branching workflow, and local setup.

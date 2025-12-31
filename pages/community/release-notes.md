@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Release Notes
 
 One-sentence description: Track notable changes, fixes, and enhancements for each OpenToken release.

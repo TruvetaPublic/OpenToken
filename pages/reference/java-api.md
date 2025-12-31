@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Java API Reference
 
 One-sentence description: Document the Java classes and methods for programmatic token generation.

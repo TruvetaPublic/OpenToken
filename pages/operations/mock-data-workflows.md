@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Mock Data Workflows
 
 How to generate and process mock datasets for testing OpenToken pipelines.

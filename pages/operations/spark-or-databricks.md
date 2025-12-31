@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Spark or Databricks
 
 How to use the PySpark bridge for distributed token generation on Spark clusters or Databricks.

@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Branch Workflow and Release Process
 
 This document explains the **Gitflow-based** branch strategy and automated workflows for the OpenToken repository.

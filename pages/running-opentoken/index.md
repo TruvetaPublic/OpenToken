@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Running OpenToken
 
 Guides for generating tokens in different environments and use cases.
