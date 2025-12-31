@@ -55,7 +55,7 @@ setup(
         "spark34": [
             "pyspark>=3.4.0,<3.5",
             "pyarrow>=10.0.0,<15",
-            "pandas>=1.5,<2.2",  # Supports both pandas 1.x and 2.x
+            "pandas>=1.5,<2.4",  # Supports both pandas 1.x and 2.x
         ],
         # Development dependencies
         "dev": [
