@@ -42,4 +42,3 @@ This site organizes quickstarts, concepts, operations guidance, configuration, r
 - Community
 	- [Contributing](community/contributing.md)
 	- [Code of Conduct](community/code-of-conduct.md)
-	- [Release Notes](community/release-notes.md)
