@@ -53,7 +53,7 @@ setup(
         ],
         # Spark 3.4.x - Legacy support
         "spark34": [
-            "pyspark>=3.4.0,<3.5",
+            "pyspark>=3.4.0,<4.2",
             "pyarrow>=10.0.0,<15",
             "pandas>=1.5,<2.2",  # Supports both pandas 1.x and 2.x
         ],
