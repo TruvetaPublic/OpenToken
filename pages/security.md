@@ -324,3 +324,4 @@ See [Concepts: Normalization and Validation](concepts/normalization-and-validati
 - **Understand metadata security**: [Reference: Metadata Format](reference/metadata-format.md)
 - **Review validation rules**: [Concepts: Normalization and Validation](concepts/normalization-and-validation.md)
 - **Configure OpenToken**: [Configuration](config/configuration.md)
+- **Share tokens across organizations**: [Sharing Tokenized Data](operations/sharing-tokenized-data.md)
