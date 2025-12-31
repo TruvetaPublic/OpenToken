@@ -2,6 +2,42 @@
 
 Privacy-preserving tokenization and matching library for healthcare data. OpenToken generates deterministic, cryptographically secure tokens from person attributes (name, birthdate, SSN, etc.) so datasets can be matched without exposing raw identifiers.
 
+## Introduction
+
+Our approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
+
+- [OpenToken](#opentoken)
+  - [Introduction](#introduction)
+  - [Highlights](#highlights)
+  - [Demo](#demo)
+  - [Overview](#overview)
+  - [Why OpenToken](#why-opentoken)
+  - [Quickstart](#quickstart)
+  - [Key Matching Ideas](#key-matching-ideas)
+  - [Running OpenToken](#running-opentoken)
+  - [Security Notes](#security-notes)
+  - [Contributing \& Community](#contributing--community)
+  - [Documentation](#documentation)
+
+## Highlights
+
+- Multi-language Support
+- Cryptographically Secure encryption that prevents re-identification
+- Enables straightforward person-matching by comparing 5 deterministic and unique tokens, providing a high degree of confidence in matches
+
+## Demo
+
+New to OpenToken? Start with the **[PPRL Superhero Demo](demos/pprl-superhero-example/)** — a beginner-friendly, end-to-end walkthrough showing how two parties (hospital and pharmacy) can privately find matching records without exposing raw identifiers.
+
+The demo includes:
+
+- **Interactive Jupyter notebook** with step-by-step explanations
+- **One-command runner** (`run_end_to_end.sh`) for quick execution
+- Synthetic superhero dataset generation
+- Token generation and overlap analysis examples
+
+Perfect for understanding privacy-preserving record linkage concepts before diving into production use.
+
 ## Overview
 
 - **Multi-language parity**: Java and Python implementations produce identical token outputs
