@@ -55,13 +55,13 @@ Real-world healthcare data is messy:
 
 Using **five distinct rules** allows matching at different confidence levels:
 
-| Tier | Confidence | Use Case |
-|------|------------|----------|
-| T1 | Highest | Regulatory compliance, billing |
-| T2 | High | Clinical record linkage |
-| T3 | Medium-High | Research cohorts |
-| T4 | Medium | Population studies |
-| T5 | Lower | Broad matching, deduplication |
+| Tier | Confidence  | Use Case                       |
+| ---- | ----------- | ------------------------------ |
+| T1   | Highest     | Regulatory compliance, billing |
+| T2   | High        | Clinical record linkage        |
+| T3   | Medium-High | Research cohorts               |
+| T4   | Medium      | Population studies             |
+| T5   | Lower       | Broad matching, deduplication  |
 
 ---
 
@@ -192,12 +192,12 @@ This section walks through a complete example: raw input data → normalization 
 
 Consider four fictional patient records from two different healthcare systems:
 
-| RecordId | FirstName | LastName | BirthDate | Sex | PostalCode | SSN |
-| --- | --- | --- | --- | --- | --- | --- |
-| HOS-101 | María | García Jr. | 03/22/1988 | Female | 90210 | 452-38-7291 |
-| HOS-102 | tom | O'Reilly | 1995-11-03 | M | 30301-4455 | 671-82-9134 |
-| CLN-201 | Maria | Garcia | 1988-03-22 | F | 90210 | 452-38-7291 |
-| CLN-202 | Thomas | O'Reilly | 11/03/1995 | Male | 30301 | — |
+| RecordId | FirstName | LastName   | BirthDate  | Sex    | PostalCode | SSN         |
+| -------- | --------- | ---------- | ---------- | ------ | ---------- | ----------- |
+| HOS-101  | María     | García Jr. | 03/22/1988 | Female | 90210      | 452-38-7291 |
+| HOS-102  | tom       | O'Reilly   | 1995-11-03 | M      | 30301-4455 | 671-82-9134 |
+| CLN-201  | Maria     | Garcia     | 1988-03-22 | F      | 90210      | 452-38-7291 |
+| CLN-202  | Thomas    | O'Reilly   | 11/03/1995 | Male   | 30301      | —           |
 
 **HOS-** records come from a hospital system; **CLN-** records come from a clinic.
 
@@ -205,12 +205,12 @@ Consider four fictional patient records from two different healthcare systems:
 
 OpenToken normalizes each field before token generation. For full rules, see [Normalization and Validation](normalization-and-validation.md).
 
-| RecordId | FirstName | LastName | BirthDate | Sex | PostalCode | SSN |
-| --- | --- | --- | --- | --- | --- | --- |
-| HOS-101 | MARIA | GARCIA | 1988-03-22 | F | 90210 | 452-38-7291 |
-| HOS-102 | TOM | O'REILLY | 1995-11-03 | M | 30301 | 671-82-9134 |
-| CLN-201 | MARIA | GARCIA | 1988-03-22 | F | 90210 | 452-38-7291 |
-| CLN-202 | THOMAS | O'REILLY | 1995-11-03 | M | 30301 | — |
+| RecordId | FirstName | LastName | BirthDate  | Sex | PostalCode | SSN         |
+| -------- | --------- | -------- | ---------- | --- | ---------- | ----------- |
+| HOS-101  | MARIA     | GARCIA   | 1988-03-22 | F   | 90210      | 452-38-7291 |
+| HOS-102  | TOM       | O'REILLY | 1995-11-03 | M   | 30301      | 671-82-9134 |
+| CLN-201  | MARIA     | GARCIA   | 1988-03-22 | F   | 90210      | 452-38-7291 |
+| CLN-202  | THOMAS    | O'REILLY | 1995-11-03 | M   | 30301      | —           |
 
 **What changed:**
 
@@ -229,45 +229,45 @@ For detailed rule compositions, see [Token Rules](token-rules.md).
 
 **HOS-101 (María García, 1988-03-22):**
 
-| Rule | Token Signature | Illustrative Token |
-| --- | --- | --- |
-| T1 | `452-38-7291\|1988-03-22\|F` | `Xk9mT2pLc1VhR3dNZUZ...` |
-| T2 | `MARIA\|GARCIA\|1988-03-22\|F` | `bHdRa0VuWXBCdkxhTnI...` |
-| T3 | `MARIA\|GARCIA\|452-38-7291` | `cTdYc1pNdkpUa2JQeHo...` |
-| T4 | `MARIA\|GARCIA\|1988-03-22\|90210` | `ZnBOdFdtS2haQWdWcko...` |
-| T5 | `MAR\|GARCIA\|1988-03-22\|F` | `RWtqVXhMY0dTcldmbVk...` |
+| Rule | Token Signature                    | Illustrative Token       |
+| ---- | ---------------------------------- | ------------------------ |
+| T1   | `452-38-7291\|1988-03-22\|F`       | `Xk9mT2pLc1VhR3dNZUZ...` |
+| T2   | `MARIA\|GARCIA\|1988-03-22\|F`     | `bHdRa0VuWXBCdkxhTnI...` |
+| T3   | `MARIA\|GARCIA\|452-38-7291`       | `cTdYc1pNdkpUa2JQeHo...` |
+| T4   | `MARIA\|GARCIA\|1988-03-22\|90210` | `ZnBOdFdtS2haQWdWcko...` |
+| T5   | `MAR\|GARCIA\|1988-03-22\|F`       | `RWtqVXhMY0dTcldmbVk...` |
 
 **CLN-201 (Maria Garcia, 1988-03-22):**
 
-| Rule | Token Signature | Illustrative Token |
-| --- | --- | --- |
-| T1 | `452-38-7291\|1988-03-22\|F` | `Xk9mT2pLc1VhR3dNZUZ...` |
-| T2 | `MARIA\|GARCIA\|1988-03-22\|F` | `bHdRa0VuWXBCdkxhTnI...` |
-| T3 | `MARIA\|GARCIA\|452-38-7291` | `cTdYc1pNdkpUa2JQeHo...` |
-| T4 | `MARIA\|GARCIA\|1988-03-22\|90210` | `ZnBOdFdtS2haQWdWcko...` |
-| T5 | `MAR\|GARCIA\|1988-03-22\|F` | `RWtqVXhMY0dTcldmbVk...` |
+| Rule | Token Signature                    | Illustrative Token       |
+| ---- | ---------------------------------- | ------------------------ |
+| T1   | `452-38-7291\|1988-03-22\|F`       | `Xk9mT2pLc1VhR3dNZUZ...` |
+| T2   | `MARIA\|GARCIA\|1988-03-22\|F`     | `bHdRa0VuWXBCdkxhTnI...` |
+| T3   | `MARIA\|GARCIA\|452-38-7291`       | `cTdYc1pNdkpUa2JQeHo...` |
+| T4   | `MARIA\|GARCIA\|1988-03-22\|90210` | `ZnBOdFdtS2haQWdWcko...` |
+| T5   | `MAR\|GARCIA\|1988-03-22\|F`       | `RWtqVXhMY0dTcldmbVk...` |
 
 **Observation:** HOS-101 and CLN-201 produce **identical tokens** for all five rules because their normalized attributes are identical.
 
 **HOS-102 (tom O'Reilly, 1995-11-03):**
 
-| Rule | Token Signature | Illustrative Token |
-| --- | --- | --- |
-| T1 | `671-82-9134\|1995-11-03\|M` | `UXdlcnR5VWlPcEFzRGZ...` |
-| T2 | `TOM\|O'REILLY\|1995-11-03\|M` | `WnhjdmJubUtMbUpIR2d...` |
-| T3 | `TOM\|O'REILLY\|671-82-9134` | `QWxza2RqZmhHa0xQb1p...` |
-| T4 | `TOM\|O'REILLY\|1995-11-03\|30301` | `TW5iVmN4WmFRd0VyVHl...` |
-| T5 | `TOM\|O'REILLY\|1995-11-03\|M` | `SWp1aHlHdEZyRGVTd1d...` |
+| Rule | Token Signature                    | Illustrative Token       |
+| ---- | ---------------------------------- | ------------------------ |
+| T1   | `671-82-9134\|1995-11-03\|M`       | `UXdlcnR5VWlPcEFzRGZ...` |
+| T2   | `TOM\|O'REILLY\|1995-11-03\|M`     | `WnhjdmJubUtMbUpIR2d...` |
+| T3   | `TOM\|O'REILLY\|671-82-9134`       | `QWxza2RqZmhHa0xQb1p...` |
+| T4   | `TOM\|O'REILLY\|1995-11-03\|30301` | `TW5iVmN4WmFRd0VyVHl...` |
+| T5   | `TOM\|O'REILLY\|1995-11-03\|M`     | `SWp1aHlHdEZyRGVTd1d...` |
 
 **CLN-202 (Thomas O'Reilly, 1995-11-03, no SSN):**
 
-| Rule | Token Signature | Illustrative Token |
-| --- | --- | --- |
-| T1 | — (SSN missing) | *Not generated* |
-| T2 | `THOMAS\|O'REILLY\|1995-11-03\|M` | `RHZiTmNYemFRd0VyWnR...` |
-| T3 | — (SSN missing) | *Not generated* |
-| T4 | `THOMAS\|O'REILLY\|1995-11-03\|30301` | `S2p1aHlHdEZyRGVWd1h...` |
-| T5 | `THO\|O'REILLY\|1995-11-03\|M` | `VXl0ckVXcUFzRGZHaEp...` |
+| Rule | Token Signature                       | Illustrative Token       |
+| ---- | ------------------------------------- | ------------------------ |
+| T1   | — (SSN missing)                       | *Not generated*          |
+| T2   | `THOMAS\|O'REILLY\|1995-11-03\|M`     | `RHZiTmNYemFRd0VyWnR...` |
+| T3   | — (SSN missing)                       | *Not generated*          |
+| T4   | `THOMAS\|O'REILLY\|1995-11-03\|30301` | `S2p1aHlHdEZyRGVWd1h...` |
+| T5   | `THO\|O'REILLY\|1995-11-03\|M`        | `VXl0ckVXcUFzRGZHaEp...` |
 
 **Observation:** HOS-102 and CLN-202 do **not** match on any rule:
 
@@ -278,12 +278,12 @@ For detailed rule compositions, see [Token Rules](token-rules.md).
 
 When comparing tokens across the two systems:
 
-| Record Pair | T1 | T2 | T3 | T4 | T5 | Match? |
-| --- | --- | --- | --- | --- | --- | --- |
-| HOS-101 ↔ CLN-201 | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** (all rules) |
-| HOS-102 ↔ CLN-202 | — | ✗ | — | ✗ | ✗ | **No** |
-| HOS-101 ↔ HOS-102 | ✗ | ✗ | ✗ | ✗ | ✗ | No |
-| CLN-201 ↔ CLN-202 | ✗ | ✗ | ✗ | ✗ | ✗ | No |
+| Record Pair       | T1  | T2  | T3  | T4  | T5  | Match?              |
+| ----------------- | --- | --- | --- | --- | --- | ------------------- |
+| HOS-101 ↔ CLN-201 | ✓   | ✓   | ✓   | ✓   | ✓   | **Yes** (all rules) |
+| HOS-102 ↔ CLN-202 | —   | ✗   | —   | ✗   | ✗   | **No**              |
+| HOS-101 ↔ HOS-102 | ✗   | ✗   | ✗   | ✗   | ✗   | No                  |
+| CLN-201 ↔ CLN-202 | ✗   | ✗   | ✗   | ✗   | ✗   | No                  |
 
 **Interpretation:**
 
@@ -297,7 +297,7 @@ When comparing tokens across the two systems:
 3. **Name variations may prevent matches.** "Tom" vs "Thomas" is a common real-world issue; T5's 3-character prefix helps only if the first 3 letters are identical.
 4. **Multiple rules provide fallback.** Even if T1 fails (SSN missing), T2/T4/T5 may still match if other attributes align.
 
-### Further Reading
+### Related Pages
 
 - [Token Rules](token-rules.md) — Detailed composition of T1–T5
 - [Normalization and Validation](normalization-and-validation.md) — Full normalization and validation rules
