@@ -187,10 +187,10 @@ This section provides practical guidance for managing the cryptographic secrets 
 
 OpenToken expects **two secrets** (one required, one optional depending on mode):
 
-| Secret | CLI Flag | Purpose | Requirements |
-| --- | --- | --- | --- |
+| Secret             | CLI Flag                  | Purpose                                   | Requirements                                                |
+| ------------------ | ------------------------- | ----------------------------------------- | ----------------------------------------------------------- |
 | **Hashing Secret** | `-h` / `--hashing-secret` | HMAC-SHA256 key for deterministic hashing | Required in all modes; 8+ characters recommended, 16+ ideal |
-| **Encryption Key** | `-e` / `--encryption-key` | AES-256-GCM symmetric key | Required for encryption mode; **exactly 32 characters** |
+| **Encryption Key** | `-e` / `--encryption-key` | AES-256-GCM symmetric key                 | Required for encryption mode; **exactly 32 characters**     |
 
 **Hash-only mode** (`--hash-only`) skips AES encryption; only the hashing secret is needed.
 
@@ -230,13 +230,13 @@ java -jar opentoken-cli-*.jar \
 
 Store secrets in a managed secret store and inject via environment variables at runtime:
 
-| Platform | Secret Store | Injection Method |
-| --- | --- | --- |
-| AWS | Secrets Manager | `aws secretsmanager get-secret-value` or ECS/Lambda secrets |
-| Azure | Key Vault | `az keyvault secret show` or App Service key references |
-| GCP | Secret Manager | `gcloud secrets versions access` or workload identity |
-| On-prem | HashiCorp Vault | `vault kv get` or agent auto-auth |
-| Databricks | Databricks Secrets | `dbutils.secrets.get("scope", "key")` |
+| Platform   | Secret Store       | Injection Method                                            |
+| ---------- | ------------------ | ----------------------------------------------------------- |
+| AWS        | Secrets Manager    | `aws secretsmanager get-secret-value` or ECS/Lambda secrets |
+| Azure      | Key Vault          | `az keyvault secret show` or App Service key references     |
+| GCP        | Secret Manager     | `gcloud secrets versions access` or workload identity       |
+| On-prem    | HashiCorp Vault    | `vault kv get` or agent auto-auth                           |
+| Databricks | Databricks Secrets | `dbutils.secrets.get("scope", "key")`                       |
 
 **Example (AWS Secrets Manager):**
 
