@@ -17,7 +17,7 @@ except FileNotFoundError:
 
 # Core dependencies (version-agnostic, no PySpark)
 core_requirements = [
-    "opentoken==1.12.2",
+    "opentoken==2.2.0",
     "pycryptodome>=3.18.0",
 ]
 
