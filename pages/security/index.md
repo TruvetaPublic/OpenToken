@@ -412,3 +412,4 @@ Tokens are deterministic and cannot be anonymized without losing matching capabi
 - **Understand token generation**: [Concepts: Token Rules](../concepts/token-rules.md)
 - **Verify metadata hashes**: [Reference: Metadata Format](../reference/metadata-format.md)
 - **Configure secrets safely**: [Running OpenToken: CLI Guide](../running-opentoken/index.md#cli-guide)
+- **Share tokens across organizations**: [Sharing Tokenized Data](../operations/sharing-tokenized-data.md)

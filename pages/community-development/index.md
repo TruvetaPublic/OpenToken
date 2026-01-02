@@ -83,4 +83,4 @@ A VS Code dev container is provided with Java, Maven, Python, and Docker CLI pre
 
 ## License
 
-OpenToken is released under the terms in [LICENSE](../../LICENSE).
+OpenToken is released under the MIT License. See the [LICENSE file on GitHub](https://github.com/TruvetaPublic/OpenToken/blob/main/LICENSE) for details.

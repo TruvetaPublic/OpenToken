@@ -162,6 +162,7 @@ OpenToken supports defining custom token rules beyond T1–T5. Custom rules can 
 
 ## Related Documentation
 
+- [Quickstarts](../quickstarts/index.md) — Get started in 5 minutes
 - [Concepts: Token Rules](../concepts/token-rules.md) — How T1–T5 are composed
 - [Concepts: Normalization](../concepts/normalization-and-validation.md) — Attribute standardization
 - [Configuration](../config/configuration.md) — Environment variables and input formats

@@ -32,13 +32,13 @@ A token signature is the combination of normalized attributes per rule. Signatur
 
 **Example for person: John Doe, 1980-01-15, Male, 98004, 123-45-6789**
 
-| Rule | Signature                     | Purpose               |
-| ---- | ----------------------------- | --------------------- |
-| T1   | `DOE\|J\|MALE\|1980-01-15`    | High confidence match |
-| T2   | `DOE\|JOHN\|1980-01-15\|980`  | Geographic match      |
-| T3   | `DOE\|JOHN\|MALE\|1980-01-15` | Flexible match        |
+| Rule | Signature                      | Purpose               |
+| ---- | ------------------------------ | --------------------- |
+| T1   | `DOE\|J\|MALE\|1980-01-15`     | High confidence match |
+| T2   | `DOE\|JOHN\|1980-01-15\|980`   | Geographic match      |
+| T3   | `DOE\|JOHN\|MALE\|1980-01-15`  | Flexible match        |
 | T4   | `SSN_DIGITS\|MALE\|1980-01-15` | Authoritative match   |
-| T5   | `DOE\|JOH\|MALE`              | Quick search match    |
+| T5   | `DOE\|JOH\|MALE`               | Quick search match    |
 
 `SSN_DIGITS` refers to the digits-only normalization of the input SSN (e.g., 123-45-6789 becomes a digits-only string with dashes removed).
 
@@ -228,10 +228,10 @@ All attributes are normalized before token generation to ensure consistent token
 
 ### SSN Normalization
 
-| Input               | Normalized                                |
-| ------------------- | ----------------------------------------- |
-| "123-45-6789"       | Digits-only string (dashes removed)       |
-| Digits-only input   | Unchanged digits-only string              |
+| Input             | Normalized                          |
+| ----------------- | ----------------------------------- |
+| "123-45-6789"     | Digits-only string (dashes removed) |
+| Digits-only input | Unchanged digits-only string        |
 
 ---
 
@@ -315,6 +315,7 @@ Actually, let me reconsider: all rules use BirthDate except T5.
 
 ## Next Steps
 
+- **Get started**: [Quickstarts](../quickstarts/index.md)
 - **Understand token generation**: [Concepts: Token Rules](../concepts/token-rules.md)
 - **View validation rules**: [Security](../security.md)
 - **Configure inputs/outputs**: [Configuration](../config/configuration.md)

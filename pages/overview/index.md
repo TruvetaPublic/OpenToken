@@ -6,7 +6,9 @@ layout: default
 
 ## What is OpenToken?
 
-OpenToken is a library and CLI tool for generating cryptographically secure matching tokens from person attributes. It enables privacy-preserving person matching in healthcare by comparing tokens across datasets instead of directly comparing names, birthdates, and other sensitive information.
+OpenToken is a privacy-preserving tokenization and matching library for healthcare data. It generates cryptographically secure matching tokens from person attributes, enabling matching across datasets without directly comparing names, birthdates, SSNs, and other sensitive identifiers.
+
+Both Java and Python implementations produce **byte-identical tokens** for the same normalized input, enabling flexible deployment and cross-language workflows.
 
 ## The Problem
 
@@ -114,6 +116,9 @@ OpenToken is implemented in **Java and Python**. Both produce **byte-identical t
 
 ## Next Steps
 
-- [Quickstarts](../quickstarts/index.md) – Try it in 5 minutes
-- [Token Rules](../concepts/token-rules.md) – Deep dive into token rules and matching
+**→ [Quickstarts](../quickstarts/index.md)** – Try OpenToken in 5 minutes. Choose CLI (Docker), Python, or Java.
+
+Once you've run through a quickstart:
+
+- [Token Rules](../concepts/token-rules.md) – Deep dive into T1–T5 and matching strategies
 - [Security](../security.md) – Understand validation rules and cryptography

@@ -18,17 +18,20 @@ Why it matters:
 - Supports reproducibility and auditability via metadata and deterministic outputs.
 - Enables interoperability: Java and Python produce byte-identical tokens for the same inputs and secrets.
 
-## New to OpenToken? Start here
+## Start Here
 
-- [Overview](overview/index.md) – High-level explanation of what OpenToken does and how token generation works.
-- [Quickstarts](quickstarts/index.md) – Hands-on getting started guides for Docker, Java, and Python.
+**→ [Quickstarts](quickstarts/index.md)** – The fastest path to generating tokens. Choose CLI (Docker), Python, or Java.
 
-## Overview
+For background on how OpenToken works before diving in, see [Overview](overview/index.md).
+
+## Documentation Structure
 
 This site organizes quickstarts, concepts, operations guidance, configuration, references, security notes, the formal specification, and community resources for OpenToken.
 
 ## Table of Contents
+
 - Quickstarts
+	- [Quickstarts Hub](quickstarts/index.md) — Start here
 	- [CLI Quickstart](quickstarts/cli-quickstart.md)
 	- [Java Quickstart](quickstarts/java-quickstart.md)
 	- [Python Quickstart](quickstarts/python-quickstart.md)
@@ -40,6 +43,7 @@ This site organizes quickstarts, concepts, operations guidance, configuration, r
 - Operations
 	- [Running Batch Jobs](operations/running-batch-jobs.md)
 	- [Spark or Databricks](operations/spark-or-databricks.md)
+	- [Sharing Tokenized Data](operations/sharing-tokenized-data.md)
 	- [Decrypting Tokens](operations/decrypting-tokens.md)
 	- [Hash-Only Mode](operations/hash-only-mode.md)
 	- [Mock Data Workflows](operations/mock-data-workflows.md)
@@ -53,7 +57,8 @@ This site organizes quickstarts, concepts, operations guidance, configuration, r
 	- [Metadata Format](reference/metadata-format.md)
 	- [Token Registration](reference/token-registration.md)
 - Security
-	- [Security](security.md)
+	- [Security Overview](security.md)
+	- [Security Details](security/index.md)
 - Specification
 	- [Specification](specification.md)
 - Community

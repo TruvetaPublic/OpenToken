@@ -381,6 +381,7 @@ Wrong:   1905-01-01, 2025-12-31, 01-15-80
 
 ## Next Steps
 
+- **Get started**: [Quickstarts](../quickstarts/index.md)
 - **Configure input formats**: [Configuration](../config/configuration.md)
 - **Understand token matching**: [Concepts: Token Rules](../concepts/token-rules.md)
 - **Read metadata format**: [Reference: Metadata Format](../reference/metadata-format.md)
