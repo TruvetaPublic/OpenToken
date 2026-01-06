@@ -212,9 +212,9 @@ OpenToken normalizes each field before token generation. For full rules, see [No
 | RecordId | FirstName | LastName | BirthDate  | Sex | PostalCode | SSN         |
 | -------- | --------- | -------- | ---------- | --- | ---------- | ----------- |
 | HOS-101  | MARIA     | GARCIA   | 1988-03-22 | F   | 90210      | 452-38-7291 |
-| HOS-102  | TOM       | O'REILLY | 1995-11-03 | M   | 30301      | 671-82-9134 |
+| HOS-102  | TOM       | OREILLY  | 1995-11-03 | M   | 30301      | 671-82-9134 |
 | CLN-201  | MARIA     | GARCIA   | 1988-03-22 | F   | 90210      | 452-38-7291 |
-| CLN-202  | THOMAS    | O'REILLY | 1995-11-03 | M   | 30301      | —           |
+| CLN-202  | THOMAS    | OREILLY  | 1995-11-03 | M   | 30301      | —           |
 
 **What changed:**
 
@@ -257,21 +257,21 @@ For detailed rule compositions, see [Token Rules](token-rules.md).
 
 | Rule | Token Signature                  | Illustrative Token       |
 | ---- | -------------------------------- | ------------------------ |
-| T1   | `O'REILLY\|T\|M\|1995-11-03`     | `UXdlcnR5VWlPcEFzRGZ...` |
-| T2   | `O'REILLY\|TOM\|1995-11-03\|303` | `WnhjdmJubUtMbUpIR2d...` |
-| T3   | `O'REILLY\|TOM\|M\|1995-11-03`   | `QWxza2RqZmhHa0xQb1p...` |
+| T1   | `OREILLY\|T\|M\|1995-11-03`      | `UXdlcnR5VWlPcEFzRGZ...` |
+| T2   | `OREILLY\|TOM\|1995-11-03\|303`  | `WnhjdmJubUtMbUpIR2d...` |
+| T3   | `OREILLY\|TOM\|M\|1995-11-03`    | `QWxza2RqZmhHa0xQb1p...` |
 | T4   | `671829134\|M\|1995-11-03`       | `TW5iVmN4WmFRd0VyVHl...` |
-| T5   | `O'REILLY\|TOM\|M`               | `SWp1aHlHdEZyRGVTd1d...` |
+| T5   | `OREILLY\|TOM\|M`                | `SWp1aHlHdEZyRGVTd1d...` |
 
 **CLN-202 (Thomas O'Reilly, 1995-11-03, no SSN):**
 
 | Rule | Token Signature                     | Illustrative Token       |
 | ---- | ----------------------------------- | ------------------------ |
-| T1   | `O'REILLY\|T\|M\|1995-11-03`        | `RHZiTmNYemFRd0VyWnR...` |
-| T2   | `O'REILLY\|THOMAS\|1995-11-03\|303` | `S2p1aHlHdEZyRGVWd1h...` |
-| T3   | `O'REILLY\|THOMAS\|M\|1995-11-03`   | `VXl0ckVXcUFzRGZHaEp...` |
+| T1   | `OREILLY\|T\|M\|1995-11-03`         | `RHZiTmNYemFRd0VyWnR...` |
+| T2   | `OREILLY\|THOMAS\|1995-11-03\|303`  | `S2p1aHlHdEZyRGVWd1h...` |
+| T3   | `OREILLY\|THOMAS\|M\|1995-11-03`    | `VXl0ckVXcUFzRGZHaEp...` |
 | T4   | — (SSN missing)                     | *Not generated*          |
-| T5   | `O'REILLY\|THO\|M`                  | `QmFzZTY0UExhY2Vob2w...` |
+| T5   | `OREILLY\|THO\|M`                   | `QmFzZTY0UExhY2Vob2w...` |
 
 **Observation:** HOS-102 and CLN-202 can match on **T1** (first initial) even though the full first name differs (TOM vs THOMAS). They do **not** match on rules that require the full first name, and they cannot generate T4 because the SSN is missing.
 

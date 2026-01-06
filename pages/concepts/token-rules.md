@@ -51,15 +51,14 @@ Input:
 
 Normalized:
   FirstName: THOMAS
-  LastName: O'REILLY
+  LastName: OREILLY
   BirthDate: 1995-11-03
   Sex: M
 
-Token Signature: "O'REILLY|T|M|1995-11-03"
+Token Signature: "OREILLY|T|M|1995-11-03"
 ```
 
 ---
-
 ## T2: Last Name + First Name + Birth Date + ZIP-3
 
 **Purpose:** Adds geography; useful when postal code is available
@@ -194,17 +193,34 @@ When a required attribute is missing or invalid:
 
 1. **Token not generated** for that rule
 2. Other rules still computed if their attributes are valid
-3. Metadata records which tokens were generated
+3. The metadata file records **aggregate counts**
 
 ```json
 {
-  "recordId": "12345",
-  "tokensGenerated": ["T1", "T2", "T3", "T5"],
-  "tokensSkipped": {
-    "T4": "SSN_MISSING"
+  "TotalRows": 105,
+  "TotalRowsWithInvalidAttributes": 12,
+  "InvalidAttributesByType": {
+    "BirthDate": 3,
+    "FirstName": 1,
+    "LastName": 2,
+    "PostalCode": 2,
+    "Sex": 0,
+    "SocialSecurityNumber": 4
+  },
+  "BlankTokensByRule": {
+    "T1": 6,
+    "T2": 8,
+    "T3": 6,
+    "T4": 7,
+    "T5": 3
   }
 }
 ```
+
+Notes:
+
+- `BlankTokensByRule` counts how many records could **not** produce each rule due to missing/invalid required attributes.
+- To see skips per record, look at the output file’s token columns: a blank value means that rule was not generated for that row.
 
 ---
 
@@ -215,17 +231,33 @@ OpenToken supports defining custom token rules:
 ### Java
 
 ```java
+import java.util.ArrayList;
+
+import com.truveta.opentoken.attributes.AttributeExpression;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.tokens.Token;
+
 public class CustomToken implements Token {
+  private static final long serialVersionUID = 1L;
+  private static final String ID = "T6";
+
+  private final ArrayList<AttributeExpression> definition = new ArrayList<>();
+
+  public CustomToken() {
+    // Example signature: U(LastName)|BirthDate
+    definition.add(new AttributeExpression(LastNameAttribute.class, "T|U"));
+    definition.add(new AttributeExpression(BirthDateAttribute.class, "T|D"));
+  }
+
   @Override
   public String getIdentifier() {
-    return "T6";
+    return ID;
   }
 
   @Override
   public ArrayList<AttributeExpression> getDefinition() {
-    // Return AttributeExpression list in the exact concatenation order.
-    // See existing tokens in com.truveta.opentoken.tokens.definitions.
-    throw new UnsupportedOperationException("Example only");
+    return definition;
   }
 }
 ```
@@ -233,13 +265,28 @@ public class CustomToken implements Token {
 ### Python
 
 ```python
-class CustomToken(Token):
-  def get_identifier(self) -> str:
-    return "T6"
+from typing import List
 
-  def get_definition(self) -> list[AttributeExpression]:
-    # Return AttributeExpression list in the exact concatenation order.
-    raise NotImplementedError("Example only")
+from opentoken.attributes.attribute_expression import AttributeExpression
+from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
+from opentoken.attributes.person.last_name_attribute import LastNameAttribute
+from opentoken.tokens.token import Token
+
+class CustomToken(Token):
+  ID = "T6"
+
+  def __init__(self):
+    # Example signature: U(LastName)|BirthDate
+    self._definition = [
+      AttributeExpression(LastNameAttribute, "T|U"),
+      AttributeExpression(BirthDateAttribute, "T|D"),
+    ]
+
+  def get_identifier(self) -> str:
+    return self.ID
+
+  def get_definition(self) -> List[AttributeExpression]:
+    return self._definition
 ```
 
 See [Token Registration](../reference/token-registration.md) for registration details.
