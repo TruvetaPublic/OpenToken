@@ -9,119 +9,82 @@ Document the Java classes and methods for programmatic token generation.
 ## Core Classes
 
 ```java
-import com.truveta.opentoken.attributes.PersonAttributes;
-import com.truveta.opentoken.tokens.TokenRegistry;
-import com.truveta.opentoken.tokens.Token;
-import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SexAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
+import com.truveta.opentoken.tokens.TokenDefinition;
+import com.truveta.opentoken.tokens.TokenGenerator;
+import com.truveta.opentoken.tokens.TokenGeneratorResult;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
+import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
+import com.truveta.opentoken.tokentransformer.TokenTransformer;
 ```
 
-## PersonAttributes
+## Person Attribute Map
 
-Represents a single person's attributes for token generation.
-
-### Builder Pattern
+OpenToken's Java library represents a person's values as a map keyed by attribute class:
 
 ```java
-PersonAttributes person = new PersonAttributes.Builder()
-    .recordId("patient_123")
-    .firstName("John")
-    .lastName("Doe")
-    .birthDate("1980-01-15")
-    .sex("Male")
-    .postalCode("98004")
-    .socialSecurityNumber("123-45-6789")
-    .build();
+Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+personAttributes.put(FirstNameAttribute.class, "John");
+personAttributes.put(LastNameAttribute.class, "Doe");
+personAttributes.put(BirthDateAttribute.class, "1980-01-15");
+personAttributes.put(SexAttribute.class, "Male");
+personAttributes.put(PostalCodeAttribute.class, "98004");
+personAttributes.put(SocialSecurityNumberAttribute.class, "123-45-6789");
 ```
+
+Normalization and validation are handled internally by `TokenGenerator` using the attribute implementations loaded via `AttributeLoader`.
+
+## TokenDefinition
+
+`TokenDefinition` encapsulates the built-in T1–T5 rule definitions.
+
+```java
+TokenDefinition tokenDefinition = new TokenDefinition();
+```
+
+## TokenGenerator
+
+`TokenGenerator` validates/normalizes inputs and produces token signatures and tokens.
 
 ### Methods
 
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `getRecordId()` | `String` | Returns the record identifier |
-| `getFirstName()` | `String` | Returns normalized first name |
-| `getLastName()` | `String` | Returns normalized last name |
-| `getBirthDate()` | `String` | Returns birth date (YYYY-MM-DD) |
-| `getSex()` | `String` | Returns normalized sex (MALE/FEMALE) |
-| `getPostalCode()` | `String` | Returns normalized postal code |
-| `getSocialSecurityNumber()` | `String` | Returns normalized SSN |
-| `isValid()` | `boolean` | Returns true if all attributes pass validation |
-| `getInvalidAttributes()` | `List<String>` | Returns list of invalid attribute names |
-
-### Validation Example
-
-```java
-PersonAttributes person = new PersonAttributes.Builder()
-    .firstName("John")
-    .lastName("D")  // Too short - invalid
-    .birthDate("2050-01-01")  // Future date - invalid
-    .sex("Male")
-    .postalCode("98004")
-    .socialSecurityNumber("000-00-0000")  // Invalid SSN
-    .build();
-
-if (!person.isValid()) {
-    for (String attr : person.getInvalidAttributes()) {
-        System.out.println("Invalid: " + attr);
-    }
-}
-// Output:
-// Invalid: LastName
-// Invalid: BirthDate
-// Invalid: SocialSecurityNumber
-```
-
-## TokenRegistry
-
-Provides access to all token rules (T1–T5).
-
-### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `getAllTokens()` | `List<Token>` | Returns all 5 token rules |
-| `getToken(String ruleId)` | `Token` | Returns specific token rule by ID |
+| Method                                                                | Return Type            | Description                                                    |
+| --------------------------------------------------------------------- | ---------------------- | -------------------------------------------------------------- |
+| `getAllTokenSignatures(Map<Class<? extends Attribute>, String>)`      | `Map<String, String>`  | Generates signatures for all rules (debug/logging)             |
+| `getAllTokens(Map<Class<? extends Attribute>, String>)`               | `TokenGeneratorResult` | Generates tokens for all rules and captures invalid/blank info |
+| `getInvalidPersonAttributes(Map<Class<? extends Attribute>, String>)` | `Set<String>`          | Validates all provided attribute values                        |
 
 ### Example
 
 ```java
-TokenRegistry registry = new TokenRegistry();
+List<TokenTransformer> transformers = List.of(
+    new HashTokenTransformer("HashingSecret"),
+    new EncryptTokenTransformer("Secret-Encryption-Key-Goes-Here.")
+);
 
-// Get all tokens
-List<Token> tokens = registry.getAllTokens();
-for (Token token : tokens) {
-    System.out.println(token.getRuleId());
+TokenGenerator generator = new TokenGenerator(
+    new TokenDefinition(),
+    new SHA256Tokenizer(transformers)
+);
+
+var invalid = generator.getInvalidPersonAttributes(personAttributes);
+if (!invalid.isEmpty()) {
+    System.out.println("Invalid attributes: " + invalid);
 }
-// Output: T1, T2, T3, T4, T5
 
-// Get specific token
-Token t1 = registry.getToken("T1");
-```
-
-## Token Interface
-
-Represents a single token rule.
-
-### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `getRuleId()` | `String` | Returns rule identifier (T1-T5) |
-| `getSignature(PersonAttributes)` | `String` | Generates token signature from attributes |
-| `getRequiredAttributes()` | `List<String>` | Returns attributes used by this rule |
-
-### Example
-
-```java
-Token t1 = registry.getToken("T1");
-
-// Get signature for a person
-String signature = t1.getSignature(person);
-// Example: "DOE|J|MALE|1980-01-15"
-
-// Check required attributes
-List<String> required = t1.getRequiredAttributes();
-// ["LastName", "FirstName", "Sex", "BirthDate"]
+TokenGeneratorResult result = generator.getAllTokens(personAttributes);
+result.getTokens().forEach((ruleId, token) -> System.out.println(ruleId + ": " + token));
 ```
 
 ## Token Transformers
@@ -146,8 +109,7 @@ Full encryption with AES-256-GCM.
 
 ```java
 EncryptTokenTransformer encryptor = new EncryptTokenTransformer(
-    "YourHashingSecret",
-    "YourEncryptionKey-32Characters!"  // Exactly 32 chars
+    "Secret-Encryption-Key-Goes-Here."  // Exactly 32 chars
 );
 
 String signature = "DOE|J|MALE|1980-01-15";
@@ -158,47 +120,57 @@ String encryptedToken = encryptor.transform(signature);
 ## Complete Example
 
 ```java
-import com.truveta.opentoken.attributes.PersonAttributes;
-import com.truveta.opentoken.tokens.TokenRegistry;
-import com.truveta.opentoken.tokens.Token;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SexAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
+import com.truveta.opentoken.tokens.TokenDefinition;
+import com.truveta.opentoken.tokens.TokenGenerator;
+import com.truveta.opentoken.tokens.TokenGeneratorResult;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
+import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
+import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 public class TokenGenerator {
     public static void main(String[] args) {
-        // Create person
-        PersonAttributes person = new PersonAttributes.Builder()
-            .recordId("patient_001")
-            .firstName("John")
-            .lastName("Doe")
-            .birthDate("1980-01-15")
-            .sex("Male")
-            .postalCode("98004")
-            .socialSecurityNumber("123-45-6789")
-            .build();
+        String recordId = "patient_001";
 
-        // Validate
-        if (!person.isValid()) {
-            System.err.println("Invalid attributes: " + person.getInvalidAttributes());
+        Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+        personAttributes.put(FirstNameAttribute.class, "John");
+        personAttributes.put(LastNameAttribute.class, "Doe");
+        personAttributes.put(BirthDateAttribute.class, "1980-01-15");
+        personAttributes.put(SexAttribute.class, "Male");
+        personAttributes.put(PostalCodeAttribute.class, "98004");
+        personAttributes.put(SocialSecurityNumberAttribute.class, "123-45-6789");
+
+        List<TokenTransformer> transformers = List.of(
+            new HashTokenTransformer("HashingSecret"),
+            new EncryptTokenTransformer("Secret-Encryption-Key-Goes-Here.")
+        );
+
+        TokenGenerator generator = new TokenGenerator(
+            new TokenDefinition(),
+            new SHA256Tokenizer(transformers)
+        );
+
+        var invalid = generator.getInvalidPersonAttributes(personAttributes);
+        if (!invalid.isEmpty()) {
+            System.err.println("Invalid attributes: " + invalid);
             return;
         }
 
-        // Setup transformer
-        EncryptTokenTransformer transformer = new EncryptTokenTransformer(
-            "HashingSecret",
-            "EncryptionKey-32Characters-Here"
+        TokenGeneratorResult result = generator.getAllTokens(personAttributes);
+        result.getTokens().forEach((ruleId, token) ->
+            System.out.printf("%s,%s,%s%n", recordId, ruleId, token)
         );
-
-        // Generate all tokens
-        TokenRegistry registry = new TokenRegistry();
-        for (Token token : registry.getAllTokens()) {
-            String signature = token.getSignature(person);
-            String encrypted = transformer.transform(signature);
-            System.out.printf("%s,%s,%s%n", 
-                person.getRecordId(), 
-                token.getRuleId(), 
-                encrypted
-            );
-        }
     }
 }
 ```
@@ -208,30 +180,38 @@ public class TokenGenerator {
 For file processing, use classes from the CLI module:
 
 ```java
-import com.truveta.opentoken.io.CsvReader;
-import com.truveta.opentoken.io.CsvWriter;
-import com.truveta.opentoken.io.ParquetReader;
-import com.truveta.opentoken.io.ParquetWriter;
+import java.util.Map;
+
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.cli.io.PersonAttributesReader;
+import com.truveta.opentoken.cli.io.PersonAttributesWriter;
+import com.truveta.opentoken.cli.io.csv.PersonAttributesCSVReader;
+import com.truveta.opentoken.cli.io.csv.PersonAttributesCSVWriter;
+import com.truveta.opentoken.cli.io.parquet.PersonAttributesParquetReader;
+import com.truveta.opentoken.cli.io.parquet.PersonAttributesParquetWriter;
 ```
 
-### CsvReader
+### CSV Example
 
 ```java
-CsvReader reader = new CsvReader("input.csv");
-while (reader.hasNext()) {
-    PersonAttributes person = reader.next();
-    // Process person...
+try (PersonAttributesReader reader = new PersonAttributesCSVReader("input.csv")) {
+    while (reader.hasNext()) {
+        Map<Class<? extends Attribute>, String> person = reader.next();
+        // Process person...
+    }
 }
-reader.close();
 ```
 
-### CsvWriter
+### Writing Output Rows
 
 ```java
-CsvWriter writer = new CsvWriter("output.csv");
-writer.writeHeader();
-writer.writeToken(recordId, ruleId, token);
-writer.close();
+try (PersonAttributesWriter writer = new PersonAttributesCSVWriter("output.csv")) {
+    writer.writeAttributes(Map.of(
+        "RecordId", "patient_001",
+        "RuleId", "T1",
+        "Token", "..."
+    ));
+}
 ```
 
 ## Thread Safety
@@ -239,16 +219,13 @@ writer.close();
 All transformer classes are thread-safe and can be shared across threads:
 
 ```java
-EncryptTokenTransformer transformer = new EncryptTokenTransformer(...);
-
-// Safe to use from multiple threads
+// Token generation is safe to parallelize across independent records.
+// For best clarity, create the per-record attribute map inside the task.
 ExecutorService executor = Executors.newFixedThreadPool(4);
-for (PersonAttributes person : persons) {
+for (Map<Class<? extends Attribute>, String> personAttributes : persons) {
     executor.submit(() -> {
-        for (Token token : registry.getAllTokens()) {
-            String encrypted = transformer.transform(token.getSignature(person));
-            // ...
-        }
+        TokenGeneratorResult result = generator.getAllTokens(personAttributes);
+        // ...
     });
 }
 ```

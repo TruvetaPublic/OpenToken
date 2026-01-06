@@ -9,126 +9,73 @@ Document the Python modules and functions for programmatic token generation.
 ## Core Modules
 
 ```python
-from opentoken.attributes.person_attributes import PersonAttributes
-from opentoken.tokens.token_registry import TokenRegistry
-from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
+from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
+from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
+from opentoken.attributes.person.last_name_attribute import LastNameAttribute
+from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
+from opentoken.attributes.person.sex_attribute import SexAttribute
+from opentoken.attributes.person.social_security_number_attribute import SocialSecurityNumberAttribute
+from opentoken.tokens.token_definition import TokenDefinition
+from opentoken.tokens.token_generator import TokenGenerator
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
+from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 ```
 
-## PersonAttributes
+## Person Attribute Dict
 
-Represents a single person's attributes for token generation.
-
-### Constructor
+OpenToken's Python library represents a person's values as a dict keyed by attribute class:
 
 ```python
-person = PersonAttributes(
-    record_id="patient_123",
-    first_name="John",
-    last_name="Doe",
-    birth_date="1980-01-15",
-    sex="Male",
-    postal_code="98004",
-    social_security_number="123-45-6789"
-)
+person_attributes = {
+    FirstNameAttribute: "John",
+    LastNameAttribute: "Doe",
+    BirthDateAttribute: "1980-01-15",
+    SexAttribute: "Male",
+    PostalCodeAttribute: "98004",
+    SocialSecurityNumberAttribute: "123-45-6789",
+}
 ```
 
-### Properties
+Normalization and validation are handled internally by `TokenGenerator` using the attribute implementations loaded via `AttributeLoader`.
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `record_id` | `str` | Record identifier |
-| `first_name` | `str` | Normalized first name |
-| `last_name` | `str` | Normalized last name |
-| `birth_date` | `str` | Birth date (YYYY-MM-DD) |
-| `sex` | `str` | Normalized sex (MALE/FEMALE) |
-| `postal_code` | `str` | Normalized postal code |
-| `social_security_number` | `str` | Normalized SSN |
+## TokenDefinition
+
+`TokenDefinition` encapsulates the built-in T1–T5 rule definitions.
+
+```python
+token_definition = TokenDefinition()
+```
+
+## TokenGenerator
+
+`TokenGenerator` validates/normalizes inputs and produces token signatures and tokens.
 
 ### Methods
 
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `is_valid()` | `bool` | Returns True if all attributes pass validation |
-| `get_invalid_attributes()` | `List[str]` | Returns list of invalid attribute names |
-
-### Validation Example
-
-```python
-person = PersonAttributes(
-    first_name="John",
-    last_name="D",  # Too short - invalid
-    birth_date="2050-01-01",  # Future date - invalid
-    sex="Male",
-    postal_code="98004",
-    social_security_number="000-00-0000"  # Invalid SSN
-)
-
-if not person.is_valid():
-    for attr in person.get_invalid_attributes():
-        print(f"Invalid: {attr}")
-
-# Output:
-# Invalid: LastName
-# Invalid: BirthDate
-# Invalid: SocialSecurityNumber
-```
-
-## TokenRegistry
-
-Provides access to all token rules (T1–T5).
-
-### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `get_all_tokens()` | `List[Token]` | Returns all 5 token rules |
-| `get_token(rule_id)` | `Token` | Returns specific token rule by ID |
+| Method                                             | Return Type            | Description                                                    |
+| -------------------------------------------------- | ---------------------- | -------------------------------------------------------------- |
+| `get_all_token_signatures(person_attributes)`      | `Dict[str, str]`       | Generates signatures for all rules (debug/logging)             |
+| `get_all_tokens(person_attributes)`                | `TokenGeneratorResult` | Generates tokens for all rules and captures invalid/blank info |
+| `get_invalid_person_attributes(person_attributes)` | `Set[str]`             | Validates all provided attribute values                        |
 
 ### Example
 
 ```python
-registry = TokenRegistry()
+tokenizer = SHA256Tokenizer([
+    HashTokenTransformer("HashingSecret"),
+    EncryptTokenTransformer("Secret-Encryption-Key-Goes-Here."),
+])
 
-# Get all tokens
-tokens = registry.get_all_tokens()
-for token in tokens:
-    print(token.rule_id)
-# Output: T1, T2, T3, T4, T5
+generator = TokenGenerator(TokenDefinition(), tokenizer)
 
-# Get specific token
-t1 = registry.get_token("T1")
-```
+invalid = generator.get_invalid_person_attributes(person_attributes)
+if invalid:
+    print(f"Invalid attributes: {sorted(invalid)}")
 
-## Token Class
-
-Represents a single token rule.
-
-### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `rule_id` | `str` | Rule identifier (T1-T5) |
-
-### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `get_signature(person)` | `str` | Generates token signature from attributes |
-| `get_required_attributes()` | `List[str]` | Returns attributes used by this rule |
-
-### Example
-
-```python
-t1 = registry.get_token("T1")
-
-# Get signature for a person
-signature = t1.get_signature(person)
-# Example: "DOE|J|MALE|1980-01-15"
-
-# Check required attributes
-required = t1.get_required_attributes()
-# ["LastName", "FirstName", "Sex", "BirthDate"]
+result = generator.get_all_tokens(person_attributes)
+for rule_id, token in result.tokens.items():
+    print(f"{rule_id}: {token}")
 ```
 
 ## Token Transformers
@@ -153,8 +100,7 @@ Full encryption with AES-256-GCM.
 
 ```python
 encryptor = EncryptTokenTransformer(
-    hashing_secret="YourHashingSecret",
-    encryption_key="YourEncryptionKey-32Characters!"  # Exactly 32 chars
+    encryption_key="Secret-Encryption-Key-Goes-Here."  # Exactly 32 chars
 )
 
 signature = "DOE|J|MALE|1980-01-15"
@@ -165,39 +111,44 @@ encrypted_token = encryptor.transform(signature)
 ## Complete Example
 
 ```python
-from opentoken.attributes.person_attributes import PersonAttributes
-from opentoken.tokens.token_registry import TokenRegistry
+from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
+from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
+from opentoken.attributes.person.last_name_attribute import LastNameAttribute
+from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
+from opentoken.attributes.person.sex_attribute import SexAttribute
+from opentoken.attributes.person.social_security_number_attribute import SocialSecurityNumberAttribute
+from opentoken.tokens.token_definition import TokenDefinition
+from opentoken.tokens.token_generator import TokenGenerator
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
+from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 
 def generate_tokens():
-    # Create person
-    person = PersonAttributes(
-        record_id="patient_001",
-        first_name="John",
-        last_name="Doe",
-        birth_date="1980-01-15",
-        sex="Male",
-        postal_code="98004",
-        social_security_number="123-45-6789"
-    )
+    record_id = "patient_001"
 
-    # Validate
-    if not person.is_valid():
-        print(f"Invalid attributes: {person.get_invalid_attributes()}")
+    person_attributes = {
+        FirstNameAttribute: "John",
+        LastNameAttribute: "Doe",
+        BirthDateAttribute: "1980-01-15",
+        SexAttribute: "Male",
+        PostalCodeAttribute: "98004",
+        SocialSecurityNumberAttribute: "123-45-6789",
+    }
+
+    tokenizer = SHA256Tokenizer([
+        HashTokenTransformer("HashingSecret"),
+        EncryptTokenTransformer("Secret-Encryption-Key-Goes-Here."),
+    ])
+    generator = TokenGenerator(TokenDefinition(), tokenizer)
+
+    invalid = generator.get_invalid_person_attributes(person_attributes)
+    if invalid:
+        print(f"Invalid attributes: {sorted(invalid)}")
         return
 
-    # Setup transformer
-    transformer = EncryptTokenTransformer(
-        hashing_secret="HashingSecret",
-        encryption_key="EncryptionKey-32Characters-Here"
-    )
-
-    # Generate all tokens
-    registry = TokenRegistry()
-    for token in registry.get_all_tokens():
-        signature = token.get_signature(person)
-        encrypted = transformer.transform(signature)
-        print(f"{person.record_id},{token.rule_id},{encrypted}")
+    result = generator.get_all_tokens(person_attributes)
+    for rule_id, token in result.tokens.items():
+        print(f"{record_id},{rule_id},{token}")
 
 if __name__ == "__main__":
     generate_tokens()
@@ -209,13 +160,24 @@ For processing multiple records:
 
 ```python
 import csv
-from opentoken.attributes.person_attributes import PersonAttributes
-from opentoken.tokens.token_registry import TokenRegistry
+from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
+from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
+from opentoken.attributes.person.last_name_attribute import LastNameAttribute
+from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
+from opentoken.attributes.person.sex_attribute import SexAttribute
+from opentoken.attributes.person.social_security_number_attribute import SocialSecurityNumberAttribute
+from opentoken.tokens.token_definition import TokenDefinition
+from opentoken.tokens.token_generator import TokenGenerator
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
+from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 
 def process_csv(input_path, output_path, hashing_secret, encryption_key):
-    registry = TokenRegistry()
-    transformer = EncryptTokenTransformer(hashing_secret, encryption_key)
+    tokenizer = SHA256Tokenizer([
+        HashTokenTransformer(hashing_secret),
+        EncryptTokenTransformer(encryption_key),
+    ])
+    generator = TokenGenerator(TokenDefinition(), tokenizer)
     
     with open(input_path, 'r') as infile, open(output_path, 'w', newline='') as outfile:
         reader = csv.DictReader(infile)
@@ -223,21 +185,24 @@ def process_csv(input_path, output_path, hashing_secret, encryption_key):
         writer.writerow(['RecordId', 'RuleId', 'Token'])
         
         for row in reader:
-            person = PersonAttributes(
-                record_id=row.get('RecordId', ''),
-                first_name=row['FirstName'],
-                last_name=row['LastName'],
-                birth_date=row['BirthDate'],
-                sex=row['Sex'],
-                postal_code=row['PostalCode'],
-                social_security_number=row['SSN']
-            )
-            
-            if person.is_valid():
-                for token in registry.get_all_tokens():
-                    signature = token.get_signature(person)
-                    encrypted = transformer.transform(signature)
-                    writer.writerow([person.record_id, token.rule_id, encrypted])
+            record_id = row.get('RecordId', '')
+
+            person_attributes = {
+                FirstNameAttribute: row.get('FirstName', ''),
+                LastNameAttribute: row.get('LastName', ''),
+                BirthDateAttribute: row.get('BirthDate', ''),
+                SexAttribute: row.get('Sex', ''),
+                PostalCodeAttribute: row.get('PostalCode', ''),
+                SocialSecurityNumberAttribute: row.get('SSN', ''),
+            }
+
+            invalid = generator.get_invalid_person_attributes(person_attributes)
+            if invalid:
+                continue
+
+            result = generator.get_all_tokens(person_attributes)
+            for rule_id, token in result.tokens.items():
+                writer.writerow([record_id, rule_id, token])
 ```
 
 ## PySpark Integration
@@ -271,16 +236,14 @@ OpenToken guarantees identical output between Java and Python:
 
 ```python
 # This Python code produces the exact same tokens as equivalent Java code
-person = PersonAttributes(
-    first_name="John",
-    last_name="Doe",
-    birth_date="1980-01-15",
-    sex="Male",
-    postal_code="98004",
-    social_security_number="123-45-6789"
-)
-
-# Token will match Java output byte-for-byte
+person_attributes = {
+    FirstNameAttribute: "John",
+    LastNameAttribute: "Doe",
+    BirthDateAttribute: "1980-01-15",
+    SexAttribute: "Male",
+    PostalCodeAttribute: "98004",
+    SocialSecurityNumberAttribute: "123-45-6789",
+}
 ```
 
 Verify parity with:
@@ -293,18 +256,24 @@ python java_python_interoperability_test.py
 
 ```python
 try:
-    person = PersonAttributes(
-        first_name="",  # Empty - will be invalid
-        last_name="Doe",
-        birth_date="invalid-date",  # Bad format
-        sex="Unknown",  # Not Male/Female
-        postal_code="98004",
-        social_security_number="123-45-6789"
-    )
-    
-    if not person.is_valid():
-        errors = person.get_invalid_attributes()
-        raise ValueError(f"Invalid attributes: {errors}")
+    tokenizer = SHA256Tokenizer([
+        HashTokenTransformer("HashingSecret"),
+        EncryptTokenTransformer("Secret-Encryption-Key-Goes-Here."),
+    ])
+    generator = TokenGenerator(TokenDefinition(), tokenizer)
+
+    person_attributes = {
+        FirstNameAttribute: "",  # Empty - will be invalid
+        LastNameAttribute: "Doe",
+        BirthDateAttribute: "invalid-date",  # Bad format
+        SexAttribute: "Unknown",  # Not Male/Female
+        PostalCodeAttribute: "98004",
+        SocialSecurityNumberAttribute: "123-45-6789",
+    }
+
+    invalid = generator.get_invalid_person_attributes(person_attributes)
+    if invalid:
+        raise ValueError(f"Invalid attributes: {sorted(invalid)}")
         
 except ValueError as e:
     print(f"Validation error: {e}")

@@ -24,31 +24,53 @@ The Java API integrates directly into JVM applications.
 
 **Key classes:**
 
-- `PersonAttributes` — Builder pattern for person data
-- `TokenRegistry` — Access to T1–T5 token rules
-- `HashTokenTransformer` / `EncryptTokenTransformer` — Token transformation
+- `TokenDefinition` — Loads the built-in T1–T5 rule definitions
+- `TokenGenerator` — Validates/normalizes attribute values and generates tokens
+- `SHA256Tokenizer` — Applies the SHA-256 digest step before transformations
+- `HashTokenTransformer` / `EncryptTokenTransformer` — Optional post-processing (HMAC and/or AES-GCM)
 
 **Quick example:**
 
 ```java
-PersonAttributes person = new PersonAttributes.Builder()
-    .recordId("rec_001")
-    .firstName("Elena")
-    .lastName("Vasquez")
-    .birthDate("1992-07-14")
-    .sex("Female")
-    .postalCode("30301")
-    .socialSecurityNumber("452-38-7291")
-    .build();
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-TokenRegistry registry = new TokenRegistry();
-EncryptTokenTransformer transformer = new EncryptTokenTransformer(hashingSecret, encryptionKey);
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SexAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
+import com.truveta.opentoken.tokens.TokenDefinition;
+import com.truveta.opentoken.tokens.TokenGenerator;
+import com.truveta.opentoken.tokens.TokenGeneratorResult;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
+import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
+import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
+import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
-for (Token token : registry.getAllTokens()) {
-    String signature = token.getSignature(person);
-    String encrypted = transformer.transform(signature);
-    System.out.println(token.getRuleId() + ": " + encrypted);
-}
+List<TokenTransformer> transformers = List.of(
+  new HashTokenTransformer(hashingSecret),
+  new EncryptTokenTransformer(encryptionKey)
+);
+
+TokenGenerator tokenGenerator = new TokenGenerator(
+  new TokenDefinition(),
+  new SHA256Tokenizer(transformers)
+);
+
+Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+personAttributes.put(FirstNameAttribute.class, "Elena");
+personAttributes.put(LastNameAttribute.class, "Vasquez");
+personAttributes.put(BirthDateAttribute.class, "1992-07-14");
+personAttributes.put(SexAttribute.class, "Female");
+personAttributes.put(PostalCodeAttribute.class, "30301");
+personAttributes.put(SocialSecurityNumberAttribute.class, "452-38-7291");
+
+TokenGeneratorResult result = tokenGenerator.getAllTokens(personAttributes);
+result.getTokens().forEach((ruleId, token) -> System.out.println(ruleId + ": " + token));
 ```
 
 **Full reference:** [Java API Reference](java-api.md)
@@ -61,34 +83,45 @@ The Python API mirrors the Java API for cross-language parity.
 
 **Key classes:**
 
-- `PersonAttributes` — Constructor-based person data
-- `TokenRegistry` — Access to T1–T5 token rules
-- `HashTokenTransformer` / `EncryptTokenTransformer` — Token transformation
+- `TokenDefinition` — Loads the built-in T1–T5 rule definitions
+- `TokenGenerator` — Validates/normalizes attribute values and generates tokens
+- `SHA256Tokenizer` — Applies the SHA-256 digest step before transformations
+- `HashTokenTransformer` / `EncryptTokenTransformer` — Optional post-processing (HMAC and/or AES-GCM)
 
 **Quick example:**
 
 ```python
-from opentoken.attributes.person_attributes import PersonAttributes
-from opentoken.tokens.token_registry import TokenRegistry
+from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
+from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
+from opentoken.attributes.person.last_name_attribute import LastNameAttribute
+from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
+from opentoken.attributes.person.sex_attribute import SexAttribute
+from opentoken.attributes.person.social_security_number_attribute import SocialSecurityNumberAttribute
+from opentoken.tokens.token_definition import TokenDefinition
+from opentoken.tokens.token_generator import TokenGenerator
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
+from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 
-person = PersonAttributes(
-    record_id="rec_001",
-    first_name="Elena",
-    last_name="Vasquez",
-    birth_date="1992-07-14",
-    sex="Female",
-    postal_code="30301",
-    social_security_number="452-38-7291"
-)
+token_definition = TokenDefinition()
+tokenizer = SHA256Tokenizer([
+  HashTokenTransformer(hashing_secret),
+  EncryptTokenTransformer(encryption_key),
+])
+token_generator = TokenGenerator(token_definition, tokenizer)
 
-registry = TokenRegistry()
-transformer = EncryptTokenTransformer(hashing_secret, encryption_key)
+person_attributes = {
+  FirstNameAttribute: "Elena",
+  LastNameAttribute: "Vasquez",
+  BirthDateAttribute: "1992-07-14",
+  SexAttribute: "Female",
+  PostalCodeAttribute: "30301",
+  SocialSecurityNumberAttribute: "452-38-7291",
+}
 
-for token in registry.get_all_tokens():
-    signature = token.get_signature(person)
-    encrypted = transformer.transform(signature)
-    print(f"{token.rule_id}: {encrypted}")
+result = token_generator.get_all_tokens(person_attributes)
+for rule_id, token in result.tokens.items():
+  print(f"{rule_id}: {token}")
 ```
 
 **Full reference:** [Python API Reference](python-api.md)

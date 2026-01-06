@@ -97,36 +97,42 @@ cat ../../../resources/output.metadata.json
 ## Using the Python API Programmatically
 
 ```python
-from opentoken.attributes.person_attributes import PersonAttributes
-from opentoken.tokens.token_registry import TokenRegistry
+from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
+from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
+from opentoken.attributes.person.last_name_attribute import LastNameAttribute
+from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
+from opentoken.attributes.person.sex_attribute import SexAttribute
+from opentoken.attributes.person.social_security_number_attribute import SocialSecurityNumberAttribute
+from opentoken.tokens.token_definition import TokenDefinition
+from opentoken.tokens.token_generator import TokenGenerator
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
+from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 
-# Create person attributes
-person = PersonAttributes(
-    record_id="patient_123",
-    first_name="John",
-    last_name="Doe",
-    birth_date="1980-01-15",
-    sex="Male",
-    postal_code="98004",
-    social_security_number="123-45-6789"
-)
+record_id = "patient_123"
 
-# Check validation
-if not person.is_valid():
-    print(f"Invalid attributes: {person.get_invalid_attributes()}")
+person_attributes = {
+  FirstNameAttribute: "John",
+  LastNameAttribute: "Doe",
+  BirthDateAttribute: "1980-01-15",
+  SexAttribute: "Male",
+  PostalCodeAttribute: "98004",
+  SocialSecurityNumberAttribute: "123-45-6789",
+}
 
-# Generate tokens
-registry = TokenRegistry()
-transformer = EncryptTokenTransformer(
-    hashing_secret="HashingSecret",
-    encryption_key="EncryptionKey-32Characters-Here"
-)
+token_definition = TokenDefinition()
+tokenizer = SHA256Tokenizer([
+  HashTokenTransformer("HashingSecret"),
+  EncryptTokenTransformer("Secret-Encryption-Key-Goes-Here."),
+])
 
-for token in registry.get_all_tokens():
-    signature = token.get_signature(person)
-    encrypted_token = transformer.transform(signature)
-    print(f"{token.rule_id}: {encrypted_token}")
+generator = TokenGenerator(token_definition, tokenizer)
+result = generator.get_all_tokens(person_attributes)
+if result.invalid_attributes:
+  print(f"Invalid attributes: {sorted(result.invalid_attributes)}")
+
+for rule_id, token in result.tokens.items():
+  print(f"{record_id},{rule_id},{token}")
 ```
 
 ## Cross-Language Parity

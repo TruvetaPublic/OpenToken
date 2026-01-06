@@ -6,6 +6,12 @@ layout: default
 
 Complete reference for OpenToken CLI arguments, modes, and examples.
 
+## Security Note
+
+Treat generated token outputs and metadata as **sensitive**. In particular, `--hash-only` output is intended for internal use and should not be shared externally (for example, in tickets, chats, or public repos).
+
+If you need cross-organization matching, use encrypted mode and follow a controlled exchange process: [Sharing Tokenized Data](../operations/sharing-tokenized-data.md).
+
 ## Command Syntax
 
 ```bash

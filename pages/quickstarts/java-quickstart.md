@@ -98,38 +98,54 @@ id1,T5,QpBpGBqaMhagfcHGZhVavn23ko03jkyS9Vo4...
 ## Using the Java API Programmatically
 
 ```java
-import com.truveta.opentoken.attributes.PersonAttributes;
-import com.truveta.opentoken.tokens.TokenRegistry;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.truveta.opentoken.attributes.Attribute;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.attributes.person.SexAttribute;
+import com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute;
+import com.truveta.opentoken.tokens.TokenDefinition;
+import com.truveta.opentoken.tokens.TokenGenerator;
+import com.truveta.opentoken.tokens.TokenGeneratorResult;
+import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
+import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
+import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
-// Create person attributes
-PersonAttributes person = new PersonAttributes.Builder()
-    .recordId("patient_123")
-    .firstName("John")
-    .lastName("Doe")
-    .birthDate("1980-01-15")
-    .sex("Male")
-    .postalCode("98004")
-    .socialSecurityNumber("123-45-6789")
-    .build();
+String recordId = "patient_123";
 
-// Check validation
-if (!person.isValid()) {
-    System.out.println("Invalid attributes: " + person.getInvalidAttributes());
-}
+// Person attributes are represented as a map keyed by Attribute class.
+Map<Class<? extends Attribute>, String> personAttributes = new HashMap<>();
+personAttributes.put(FirstNameAttribute.class, "John");
+personAttributes.put(LastNameAttribute.class, "Doe");
+personAttributes.put(BirthDateAttribute.class, "1980-01-15");
+personAttributes.put(SexAttribute.class, "Male");
+personAttributes.put(PostalCodeAttribute.class, "98004");
+personAttributes.put(SocialSecurityNumberAttribute.class, "123-45-6789");
 
-// Generate tokens
-TokenRegistry registry = new TokenRegistry();
-EncryptTokenTransformer transformer = new EncryptTokenTransformer(
-    "HashingSecret",
-    "EncryptionKey-32Characters-Here"
+List<TokenTransformer> transformers = List.of(
+  new HashTokenTransformer("HashingSecret"),
+  new EncryptTokenTransformer("Secret-Encryption-Key-Goes-Here.")
 );
 
-for (Token token : registry.getAllTokens()) {
-    String signature = token.getSignature(person);
-    String encryptedToken = transformer.transform(signature);
-    System.out.println(token.getRuleId() + ": " + encryptedToken);
+TokenGenerator generator = new TokenGenerator(
+  new TokenDefinition(),
+  new SHA256Tokenizer(transformers)
+);
+
+TokenGeneratorResult result = generator.getAllTokens(personAttributes);
+if (!result.getInvalidAttributes().isEmpty()) {
+  System.out.println("Invalid attributes: " + result.getInvalidAttributes());
 }
+
+result.getTokens().forEach((ruleId, token) ->
+  System.out.println(recordId + "," + ruleId + "," + token)
+);
 ```
 
 ## Maven Dependency
