@@ -24,21 +24,21 @@ python -m opentoken_cli.main [OPTIONS]
 
 ## Required Arguments
 
-| Argument           | Short | Description                         |
-| ------------------ | ----- | ----------------------------------- |
-| `--input`          | `-i`  | Path to input file (CSV or Parquet) |
-| `--output`         | `-o`  | Path to output file                 |
-| `--type`           | `-t`  | File type: `csv` or `parquet`       |
-| `--hashingsecret`  | `-h`  | Secret key for HMAC-SHA256 hashing  |
+| Argument          | Short | Description                         |
+| ----------------- | ----- | ----------------------------------- |
+| `--input`         | `-i`  | Path to input file (CSV or Parquet) |
+| `--output`        | `-o`  | Path to output file                 |
+| `--type`          | `-t`  | File type: `csv` or `parquet`       |
+| `--hashingsecret` | `-h`  | Secret key for HMAC-SHA256 hashing  |
 
 ## Optional Arguments
 
-| Argument           | Short | Description                               | Default                       |
-| ------------------ | ----- | ----------------------------------------- | ----------------------------- |
-| `--encryptionkey`  | `-e`  | 32-character key for AES-256 encryption   | Required unless `--hash-only` |
-| `--hash-only`      |       | Generate hashed tokens without encryption | `false`                       |
-| `--output-type`    | `-ot` | Output file type if different from input  | Same as input                 |
-| `--decrypt`        | `-d`  | Decrypt mode (input must be encrypted)    | `false`                       |
+| Argument          | Short | Description                               | Default                       |
+| ----------------- | ----- | ----------------------------------------- | ----------------------------- |
+| `--encryptionkey` | `-e`  | 32-character key for AES-256 encryption   | Required unless `--hash-only` |
+| `--hash-only`     |       | Generate hashed tokens without encryption | `false`                       |
+| `--output-type`   | `-ot` | Output file type if different from input  | Same as input                 |
+| `--decrypt`       | `-d`  | Decrypt mode (input must be encrypted)    | `false`                       |
 
 ## Modes of Operation
 

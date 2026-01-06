@@ -10,10 +10,10 @@ This guide explains how to register custom tokens and attributes in both Java an
 
 OpenToken uses different registration mechanisms:
 
-| Language | Mechanism | Location |
-|----------|-----------|----------|
-| Java | ServiceLoader SPI | `META-INF/services/` |
-| Python | Explicit imports | Loader classes |
+| Language | Mechanism         | Location             |
+| -------- | ----------------- | -------------------- |
+| Java     | ServiceLoader SPI | `META-INF/services/` |
+| Python   | Explicit imports  | Loader classes       |
 
 **Critical**: Both implementations must be updated together to maintain cross-language compatibility.
 
@@ -275,21 +275,21 @@ This verifies that identical inputs produce identical token outputs in both lang
 
 ### Java Files
 
-| Type | Location |
-|------|----------|
-| Attribute classes | `lib/java/opentoken/src/main/java/com/truveta/opentoken/attributes/` |
-| Token classes | `lib/java/opentoken/src/main/java/com/truveta/opentoken/tokens/definitions/` |
+| Type                   | Location                                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| Attribute classes      | `lib/java/opentoken/src/main/java/com/truveta/opentoken/attributes/`                                 |
+| Token classes          | `lib/java/opentoken/src/main/java/com/truveta/opentoken/tokens/definitions/`                         |
 | Attribute service file | `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute` |
-| Token service file | `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token` |
+| Token service file     | `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token`         |
 
 ### Python Files
 
-| Type | Location |
-|------|----------|
-| Attribute classes | `lib/python/opentoken/src/main/opentoken/attributes/` |
-| Token classes | `lib/python/opentoken/src/main/opentoken/tokens/definitions/` |
-| Attribute loader | `lib/python/opentoken/src/main/opentoken/attributes/attribute_loader.py` |
-| Token discovery | `lib/python/opentoken/src/main/opentoken/tokens/token_registry.py` (auto-discovers definitions) |
+| Type              | Location                                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
+| Attribute classes | `lib/python/opentoken/src/main/opentoken/attributes/`                                           |
+| Token classes     | `lib/python/opentoken/src/main/opentoken/tokens/definitions/`                                   |
+| Attribute loader  | `lib/python/opentoken/src/main/opentoken/attributes/attribute_loader.py`                        |
+| Token discovery   | `lib/python/opentoken/src/main/opentoken/tokens/token_registry.py` (auto-discovers definitions) |
 
 ## Common Mistakes
 
