@@ -35,16 +35,17 @@ Input → Normalize → Validate → Token Generation
 3. Remove diacritics (é → E, ñ → N)
 4. Remove titles: Dr, Mr, Mrs, Ms, Miss, Prof
 5. Remove suffixes: Jr, Sr, II, III, IV, PhD, MD
+6. Remove non-alphabetic characters (spaces, apostrophes, hyphens, periods)
 
 **Examples:**
 
-| Input               | Normalized      |
-| ------------------- | --------------- |
-| `"  John  "`        | `"JOHN"`        |
-| `"María"`           | `"MARIA"`       |
-| `"Dr. Smith"`       | `"SMITH"`       |
-| `"O'Brien"`         | `"O'BRIEN"`     |
-| `"José García Jr."` | `"JOSE GARCIA"` |
+| Input          | Normalized |
+| -------------- | ---------- |
+| `"  John  "`   | `"JOHN"`   |
+| `"María"`      | `"MARIA"`  |
+| `"Dr. Smith"`  | `"SMITH"`  |
+| `"O'Brien"`    | `"OBRIEN"` |
+| `"García Jr."` | `"GARCIA"` |
 
 **Validation:**
 - Must not be empty after normalization
@@ -116,12 +117,12 @@ XXX-XX-0000  (Invalid serial)
 
 **Examples:**
 
-| Input           | Normalized      | Valid          |
-| --------------- | --------------- | -------------- |
-| `"123-45-6789"` | —               | ✗ (test SSN)   |
-| `"078-05-1120"` | `"078-05-1120"` | ✓              |
-| `"000-12-3456"` | —               | ✗ (area = 000) |
-| Digits-only test input | `"123-45-6789"` | ✗ (test SSN) |
+| Input                  | Normalized      | Valid          |
+| ---------------------- | --------------- | -------------- |
+| `"123-45-6789"`        | —               | ✗ (test SSN)   |
+| `"078-05-1120"`        | `"078-05-1120"` | ✓              |
+| `"000-12-3456"`        | —               | ✗ (area = 000) |
+| Digits-only test input | `"123-45-6789"` | ✗ (test SSN)   |
 
 ---
 
@@ -245,22 +246,36 @@ When validation fails:
 
 1. **Token is not generated** for that rule
 2. **Processing continues** to other rules
-3. **Metadata tracks** validation failures
+3. **Metadata tracks aggregate counts** (not per-record reasons)
 4. **Original data preserved** (not modified)
 
 ```json
-// Example metadata for validation failure
 {
-  "attribute": "SocialSecurityNumber",
-  "validRecords": 9500,
-  "invalidRecords": 500,
-  "invalidReasons": {
-    "INVALID_AREA_CODE": 200,
-    "KNOWN_TEST_SSN": 150,
-    "INVALID_LENGTH": 150
+  "TotalRows": 105,
+  "TotalRowsWithInvalidAttributes": 12,
+  "InvalidAttributesByType": {
+    "BirthDate": 3,
+    "FirstName": 1,
+    "LastName": 2,
+    "PostalCode": 2,
+    "Sex": 0,
+    "SocialSecurityNumber": 4
+  },
+  "BlankTokensByRule": {
+    "T1": 6,
+    "T2": 8,
+    "T3": 6,
+    "T4": 7,
+    "T5": 3
   }
 }
 ```
+
+Notes:
+
+- `.metadata.json` does not include per-record invalid reasons (like `INVALID_LENGTH`) or per-record token skip details.
+- To understand why a specific row didn’t generate a token, inspect that row’s output token columns (blank means not generated).
+- For the full schema, see `docs/metadata-format.md`.
 
 ---
 
