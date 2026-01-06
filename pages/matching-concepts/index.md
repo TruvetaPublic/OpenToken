@@ -14,9 +14,9 @@ OpenToken generates **5 distinct tokens (T1–T5)** per person, each combining d
 
 | Rule   | Definition                       | Attributes Used                                              | Best For                                    |
 | ------ | -------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
-| **T1** | `LAST\|FIRST[0]\|SEX\|BIRTHDATE` | Last name + first initial + sex + birthdate                  | Standard matching; high confidence          |
+| **T1** | `LAST\|FIRST[0]\|SEX\|BIRTHDATE` | Last name + first initial + sex + birthdate                  | Standard matching; higher recall            |
 | **T2** | `LAST\|FIRST\|BIRTHDATE\|ZIP3`   | Last name + full first name + birthdate + first 3 ZIP digits | Flexible name matching with geographic data |
-| **T3** | `LAST\|FIRST\|SEX\|BIRTHDATE`    | Last name + full first name + sex + birthdate                | Broader search; handles name variations     |
+| **T3** | `LAST\|FIRST\|SEX\|BIRTHDATE`    | Last name + full first name + sex + birthdate                | Higher precision; stricter matching         |
 | **T4** | `SSN\|SEX\|BIRTHDATE`            | Full SSN + sex + birthdate                                   | Authoritative matching; highest confidence  |
 | **T5** | `LAST\|FIRST[0:3]\|SEX`          | Last name + first 3 characters + sex                         | Quick search; lower entropy                 |
 
@@ -36,13 +36,13 @@ SSN: 123-45-6789
 
 Token signatures are:
 
-| Rule | Token Signature               |
-| ---- | ----------------------------- |
-| T1   | `DOE\|J\|MALE\|2000-01-01`    |
-| T2   | `DOE\|JOHN\|2000-01-01\|980`  |
-| T3   | `DOE\|JOHN\|MALE\|2000-01-01` |
+| Rule | Token Signature                |
+| ---- | ------------------------------ |
+| T1   | `DOE\|J\|MALE\|2000-01-01`     |
+| T2   | `DOE\|JOHN\|2000-01-01\|980`   |
+| T3   | `DOE\|JOHN\|MALE\|2000-01-01`  |
 | T4   | `SSN_DIGITS\|MALE\|2000-01-01` |
-| T5   | `DOE\|JOH\|MALE`              |
+| T5   | `DOE\|JOH\|MALE`               |
 
 These signatures are then hashed and encrypted to produce the final tokens.
 
@@ -59,9 +59,9 @@ Different attributes have different error rates and availability:
 
 Using **5 rules increases match confidence** by capturing different attribute combinations:
 
-- **Match on T1 + T4**: Very high confidence (full name + SSN + birthdate)
-- **Match on T2 + T3**: High confidence (different name representations + location)
-- **Match on T5 alone**: Medium confidence (name + sex only)
+- **Match on T4 (or T4 + any other rule)**: Very high confidence (SSN + Sex + BirthDate)
+- **Match on T2 + T3**: High confidence (full name + BirthDate plus ZIP-3 and/or Sex)
+- **Match on T5 alone**: Medium confidence (Last name + first 3 letters + Sex)
 
 ## How Matching Works
 
@@ -159,7 +159,7 @@ All tokens use normalized attributes. See [Security](../security.md) for detaile
 | Sex        | Standardized to "Male" or "Female"                      | "M", "m", "Male" → "MALE"                             |
 | BirthDate  | YYYY-MM-DD format                                       | "01/15/1980", "1980-01-15" → "1980-01-15"             |
 | PostalCode | Uppercase, dash removed for US; space for Canadian      | "98004", "98004-1234" → "98004", "K1A 1A1" → "K1A1A1" |
-| SSN        | 9-digit numeric                                         | "123-45-6789" → digits-only string                     |
+| SSN        | 9-digit numeric                                         | "123-45-6789" → digits-only string                    |
 
 ## Collision Resistance
 

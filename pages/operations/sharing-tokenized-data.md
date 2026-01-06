@@ -191,9 +191,9 @@ JOIN local_tokens local
 
 **Interpretation:**
 
-- **T1 match**: High confidence (SSN + BirthDate + Sex)
-- **T2 match**: Good confidence (Full name + BirthDate + Sex)
-- **Multiple rule matches**: Stronger confidence
+- **T4 match**: Very high confidence (SSN + Sex + BirthDate)
+- **T3 match**: High confidence (Last name + full first name + Sex + BirthDate)
+- **Multiple rule matches**: Stronger confidence (more agreement across attributes)
 
 See [Matching Model](../concepts/matching-model.md) for matching strategies.
 

@@ -64,13 +64,13 @@ OpenToken is designed for **streaming-style** processing: it reads records, norm
 
 All of the following must be provided per record:
 
-| Attribute      | Type   | Constraints                                  | Examples                                 | Normalization                                  |
-| -------------- | ------ | -------------------------------------------- | ---------------------------------------- | ---------------------------------------------- |
-| **FirstName**  | String | Non-empty after normalization                | "John", "José", "JoAnn"                  | Remove titles, suffixes, diacritics; uppercase |
-| **LastName**   | String | Non-empty after normalization                | "Smith", "O'Brien", "García"             | Remove suffixes, diacritics; uppercase         |
-| **BirthDate**  | Date   | 1910-01-01 to today                          | "1980-01-15", "01/15/1980", "15.01.1980" | ISO 8601 YYYY-MM-DD                            |
-| **Sex**        | String | "Male" or "Female" (case-insensitive)        | "M", "F", "male", "FEMALE"               | Uppercase; normalize M→MALE, F→FEMALE          |
-| **PostalCode** | String | Valid US ZIP or Canadian postal code         | "98004", "K1A 1A1", "98004-1234"         | Remove dashes; pad ZIP to 5 digits             |
+| Attribute      | Type   | Constraints                                  | Examples                                      | Normalization                                  |
+| -------------- | ------ | -------------------------------------------- | --------------------------------------------- | ---------------------------------------------- |
+| **FirstName**  | String | Non-empty after normalization                | "John", "José", "JoAnn"                       | Remove titles, suffixes, diacritics; uppercase |
+| **LastName**   | String | Non-empty after normalization                | "Smith", "O'Brien", "García"                  | Remove suffixes, diacritics; uppercase         |
+| **BirthDate**  | Date   | 1910-01-01 to today                          | "1980-01-15", "01/15/1980", "15.01.1980"      | ISO 8601 YYYY-MM-DD                            |
+| **Sex**        | String | "Male" or "Female" (case-insensitive)        | "M", "F", "male", "FEMALE"                    | Uppercase; normalize M→MALE, F→FEMALE          |
+| **PostalCode** | String | Valid US ZIP or Canadian postal code         | "98004", "K1A 1A1", "98004-1234"              | Remove dashes; pad ZIP to 5 digits             |
 | **SSN**        | String | 9 numeric digits (US Social Security Number) | "123-45-6789" (digits-only inputs normalized) | Remove dashes                                  |
 
 ### Optional Attributes
@@ -126,13 +126,13 @@ Invalid records are flagged and tracked in metadata; blank tokens are generated 
 
 Apply each of the 5 token rules independently:
 
-| Rule   | Attributes                                                  | Notes                                |
-| ------ | ----------------------------------------------------------- | ------------------------------------ |
-| **T1** | U(LastName) \| U(FirstName[0]) \| U(Sex) \| BirthDate       | High-confidence match; uses initials |
-| **T2** | U(LastName) \| U(FirstName) \| BirthDate \| PostalCode[0:3] | Geographic variation; uses ZIP-3     |
-| **T3** | U(LastName) \| U(FirstName) \| U(Sex) \| BirthDate          | Flexible match; full name + sex      |
-| **T4** | SocialSecurityNumber \| U(Sex) \| BirthDate                 | Authoritative; uses SSN              |
-| **T5** | U(LastName) \| U(FirstName[0:3]) \| U(Sex)                  | Quick search; no birth date          |
+| Rule   | Attributes                                                  | Notes                                   |
+| ------ | ----------------------------------------------------------- | --------------------------------------- |
+| **T1** | U(LastName) \| U(FirstName[0]) \| U(Sex) \| BirthDate       | Standard match; higher recall           |
+| **T2** | U(LastName) \| U(FirstName) \| BirthDate \| PostalCode[0:3] | Geographic variation; uses ZIP-3        |
+| **T3** | U(LastName) \| U(FirstName) \| U(Sex) \| BirthDate          | Higher precision match; full name + sex |
+| **T4** | SocialSecurityNumber \| U(Sex) \| BirthDate                 | Authoritative; uses SSN                 |
+| **T5** | U(LastName) \| U(FirstName[0:3]) \| U(Sex)                  | Quick search; no birth date             |
 
 (U = Uppercase, [0] = first char, [0:3] = first 3 chars)
 
@@ -304,7 +304,7 @@ For deeper information, see:
 
 ## Document History
 
-| Date       | Version | Changes                                      |
-| ---------- | ------- | -------------------------------------------- |
-| 2024-01-15 | 1.0     | Initial specification                        |
-| Planned    | 1.1     | Formalize version field in metadata          |
+| Date       | Version | Changes                             |
+| ---------- | ------- | ----------------------------------- |
+| 2024-01-15 | 1.0     | Initial specification               |
+| Planned    | 1.1     | Formalize version field in metadata |

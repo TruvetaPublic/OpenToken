@@ -12,13 +12,13 @@ OpenToken generates tokens using 5 distinct rules (T1–T5) that combine person 
 
 ### Rule Definitions
 
-| Rule ID | Definition                                              | Attributes                                      | Purpose                  |
-| ------- | ------------------------------------------------------- | ----------------------------------------------- | ------------------------ |
-| **T1**  | `U(LastName)\|U(FirstName[0])\|U(Sex)\|BirthDate`       | Last name + first initial + sex + birthdate     | Standard matching        |
-| **T2**  | `U(LastName)\|U(FirstName)\|BirthDate\|PostalCode[0:3]` | Last name + full first name + birthdate + ZIP-3 | Geographic variations    |
-| **T3**  | `U(LastName)\|U(FirstName)\|U(Sex)\|BirthDate`          | Last name + full first name + sex + birthdate   | Flexible name matching   |
-| **T4**  | `SocialSecurityNumber\|U(Sex)\|BirthDate`               | Full SSN + sex + birthdate                      | Authoritative identifier |
-| **T5**  | `U(LastName)\|U(FirstName[0:3])\|U(Sex)`                | Last name + first 3 letters + sex               | Quick search             |
+| Rule ID | Definition                                              | Attributes                                      | Purpose                   |
+| ------- | ------------------------------------------------------- | ----------------------------------------------- | ------------------------- |
+| **T1**  | `U(LastName)\|U(FirstName[0])\|U(Sex)\|BirthDate`       | Last name + first initial + sex + birthdate     | Standard matching         |
+| **T2**  | `U(LastName)\|U(FirstName)\|BirthDate\|PostalCode[0:3]` | Last name + full first name + birthdate + ZIP-3 | Geographic variations     |
+| **T3**  | `U(LastName)\|U(FirstName)\|U(Sex)\|BirthDate`          | Last name + full first name + sex + birthdate   | Higher precision matching |
+| **T4**  | `SocialSecurityNumber\|U(Sex)\|BirthDate`               | Full SSN + sex + birthdate                      | Authoritative identifier  |
+| **T5**  | `U(LastName)\|U(FirstName[0:3])\|U(Sex)`                | Last name + first 3 letters + sex               | Quick search              |
 
 **Notation:**
 - `U(X)` = Uppercase(X)
@@ -32,13 +32,13 @@ A token signature is the combination of normalized attributes per rule. Signatur
 
 **Example for person: John Doe, 1980-01-15, Male, 98004, 123-45-6789**
 
-| Rule | Signature                      | Purpose               |
-| ---- | ------------------------------ | --------------------- |
-| T1   | `DOE\|J\|MALE\|1980-01-15`     | High confidence match |
-| T2   | `DOE\|JOHN\|1980-01-15\|980`   | Geographic match      |
-| T3   | `DOE\|JOHN\|MALE\|1980-01-15`  | Flexible match        |
-| T4   | `SSN_DIGITS\|MALE\|1980-01-15` | Authoritative match   |
-| T5   | `DOE\|JOH\|MALE`               | Quick search match    |
+| Rule | Signature                      | Purpose                |
+| ---- | ------------------------------ | ---------------------- |
+| T1   | `DOE\|J\|MALE\|1980-01-15`     | Standard match         |
+| T2   | `DOE\|JOHN\|1980-01-15\|980`   | Geographic match       |
+| T3   | `DOE\|JOHN\|MALE\|1980-01-15`  | Higher precision match |
+| T4   | `SSN_DIGITS\|MALE\|1980-01-15` | Authoritative match    |
+| T5   | `DOE\|JOH\|MALE`               | Quick search match     |
 
 `SSN_DIGITS` refers to the digits-only normalization of the input SSN (e.g., 123-45-6789 becomes a digits-only string with dashes removed).
 
