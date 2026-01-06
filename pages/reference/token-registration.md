@@ -28,19 +28,38 @@ Java uses the ServiceLoader pattern for runtime discovery.
 ```java
 package com.truveta.opentoken.attributes.person;
 
-import com.truveta.opentoken.attributes.general.StringAttribute;
-import com.truveta.opentoken.attributes.validation.RegexValidator;
-
 import java.util.List;
+
+import com.truveta.opentoken.attributes.BaseAttribute;
+import com.truveta.opentoken.attributes.validation.RegexValidator;
 
 /**
  * Middle name attribute with standard string normalization.
  */
-public class MiddleNameAttribute extends StringAttribute {
+public class MiddleNameAttribute extends BaseAttribute {
+    private static final String NAME = "MiddleName";
+    private static final String[] ALIASES = new String[] { NAME };
+
     public MiddleNameAttribute() {
-        super("MiddleName", List.of(
-            new RegexValidator("^[A-Za-z\\s\\-']+$", "Invalid middle name format")
-        ));
+        super(List.of(new RegexValidator("^[A-Za-z\\s\\-']+$")));
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    public String[] getAliases() {
+        return ALIASES;
+    }
+
+    @Override
+    public String normalize(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("MiddleName value cannot be null");
+        }
+        return value.trim();
     }
 }
 ```
@@ -73,22 +92,39 @@ com.truveta.opentoken.attributes.person.SocialSecurityNumberAttribute
 ```java
 package com.truveta.opentoken.tokens.definitions;
 
-import com.truveta.opentoken.tokens.Token;
+import java.util.ArrayList;
 
-import java.util.List;
+import com.truveta.opentoken.attributes.AttributeExpression;
+import com.truveta.opentoken.attributes.person.BirthDateAttribute;
+import com.truveta.opentoken.attributes.person.FirstNameAttribute;
+import com.truveta.opentoken.attributes.person.LastNameAttribute;
+import com.truveta.opentoken.attributes.person.PostalCodeAttribute;
+import com.truveta.opentoken.tokens.Token;
 
 /**
  * Token rule T6 - Example custom token.
  */
 public class T6Token implements Token {
-    @Override
-    public String getRuleId() {
-        return "T6";
+    private static final long serialVersionUID = 1L;
+    private static final String ID = "T6";
+
+    private final ArrayList<AttributeExpression> definition = new ArrayList<>();
+
+    public T6Token() {
+        definition.add(new AttributeExpression(LastNameAttribute.class, "T|U"));
+        definition.add(new AttributeExpression(FirstNameAttribute.class, "T|U"));
+        definition.add(new AttributeExpression(BirthDateAttribute.class, "T|D"));
+        definition.add(new AttributeExpression(PostalCodeAttribute.class, "T|S(0,3)"));
     }
 
     @Override
-    public List<String> getRequiredAttributes() {
-        return List.of("FirstName", "LastName", "BirthDate", "PostalCode");
+    public String getIdentifier() {
+        return ID;
+    }
+
+    @Override
+    public ArrayList<AttributeExpression> getDefinition() {
+        return definition;
     }
 }
 ```
@@ -115,19 +151,33 @@ Python uses explicit imports in loader classes.
 ```python
 # lib/python/opentoken/src/main/opentoken/attributes/person/middle_name_attribute.py
 
-from opentoken.attributes.general.string_attribute import StringAttribute
+from typing import List
+
+from opentoken.attributes.base_attribute import BaseAttribute
 from opentoken.attributes.validation.regex_validator import RegexValidator
 
-class MiddleNameAttribute(StringAttribute):
+
+class MiddleNameAttribute(BaseAttribute):
     """Middle name attribute with standard string normalization."""
-    
+
+    NAME = "MiddleName"
+    ALIASES = [NAME]
+
     def __init__(self):
-        super().__init__(
-            name="MiddleName",
-            validators=[
-                RegexValidator(r"^[A-Za-z\s\-']+$", "Invalid middle name format")
-            ]
-        )
+        super().__init__([
+            RegexValidator(r"^[A-Za-z\s\-']+$"),
+        ])
+
+    def get_name(self) -> str:
+        return self.NAME
+
+    def get_aliases(self) -> List[str]:
+        return self.ALIASES.copy()
+
+    def normalize(self, value: str) -> str:
+        if value is None:
+            raise ValueError("MiddleName value cannot be null")
+        return value.strip()
 ```
 
 2. **Register in AttributeLoader**:
@@ -160,42 +210,38 @@ class AttributeLoader:
 ```python
 # lib/python/opentoken/src/main/opentoken/tokens/definitions/t6_token.py
 
+from typing import List
+
+from opentoken.attributes.attribute_expression import AttributeExpression
+from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
+from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
+from opentoken.attributes.person.last_name_attribute import LastNameAttribute
+from opentoken.attributes.person.postal_code_attribute import PostalCodeAttribute
 from opentoken.tokens.token import Token
 
 class T6Token(Token):
     """Token rule T6 - Example custom token."""
-    
-    @property
-    def rule_id(self) -> str:
-        return "T6"
-    
-    def get_required_attributes(self) -> list:
-        return ["FirstName", "LastName", "BirthDate", "PostalCode"]
-```
 
-2. **Register in TokenRegistry**:
+    ID = "T6"
 
-Edit `lib/python/opentoken/src/main/opentoken/tokens/token_registry.py`:
-
-```python
-from opentoken.tokens.definitions.t1_token import T1Token
-from opentoken.tokens.definitions.t2_token import T2Token
-from opentoken.tokens.definitions.t3_token import T3Token
-from opentoken.tokens.definitions.t4_token import T4Token
-from opentoken.tokens.definitions.t5_token import T5Token
-from opentoken.tokens.definitions.t6_token import T6Token  # Add import
-
-class TokenRegistry:
     def __init__(self):
-        self._tokens = [
-            T1Token(),
-            T2Token(),
-            T3Token(),
-            T4Token(),
-            T5Token(),
-            T6Token(),  # Add to list
+        self._definition = [
+            AttributeExpression(LastNameAttribute, "T|U"),
+            AttributeExpression(FirstNameAttribute, "T|U"),
+            AttributeExpression(BirthDateAttribute, "T|D"),
+            AttributeExpression(PostalCodeAttribute, "T|S(0,3)"),
         ]
+
+    def get_identifier(self) -> str:
+        return self.ID
+
+    def get_definition(self) -> List[AttributeExpression]:
+        return self._definition
 ```
+
+2. **No registry edit needed for tokens**:
+
+The Python `TokenRegistry.load_all_tokens()` implementation discovers `Token` subclasses by scanning modules in `opentoken.tokens.definitions`. As long as your new token lives under that package (for example `t6_token.py`), it will be picked up automatically.
 
 ## Cross-Language Sync Verification
 
@@ -243,7 +289,7 @@ This verifies that identical inputs produce identical token outputs in both lang
 | Attribute classes | `lib/python/opentoken/src/main/opentoken/attributes/` |
 | Token classes | `lib/python/opentoken/src/main/opentoken/tokens/definitions/` |
 | Attribute loader | `lib/python/opentoken/src/main/opentoken/attributes/attribute_loader.py` |
-| Token registry | `lib/python/opentoken/src/main/opentoken/tokens/token_registry.py` |
+| Token discovery | `lib/python/opentoken/src/main/opentoken/tokens/token_registry.py` (auto-discovers definitions) |
 
 ## Common Mistakes
 
@@ -275,11 +321,9 @@ com.truveta.opentoken.attributes.person.FirstNameAttribute
 # AttributeLoader.load() won't include the new attribute!
 ```
 
-❌ **Wrong import path**
-```python
-from opentoken.attributes.middle_name_attribute import MiddleNameAttribute  # Wrong!
-from opentoken.attributes.person.middle_name_attribute import MiddleNameAttribute  # Correct
-```
+❌ **Not matching module layout**
+
+Keep person attributes under `opentoken.attributes.person` (for example `opentoken/attributes/person/middle_name_attribute.py`), then import from that module and add the attribute instance to `AttributeLoader.load()`.
 
 ### Both Languages
 
@@ -303,7 +347,8 @@ Before submitting a PR with new attributes or tokens:
 - [ ] Java class created with proper inheritance
 - [ ] Java service file updated (sorted alphabetically)
 - [ ] Python class created with matching logic
-- [ ] Python loader/registry updated
+- [ ] Python `AttributeLoader.load()` updated (attributes)
+- [ ] Python token module added under `tokens/definitions/` (tokens)
 - [ ] Unit tests added for both languages
 - [ ] Sync tool passes: `python tools/java_language_syncer.py`
 - [ ] Interoperability tests pass

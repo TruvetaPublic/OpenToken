@@ -53,8 +53,8 @@ cd C:\path\to\OpenToken
 | `--input`          | `-i`  | Input file path (CSV or Parquet)           | Yes      |
 | `--output`         | `-o`  | Output file path                           | Yes      |
 | `--type`           | `-t`  | File type: `csv` or `parquet`              | Yes      |
-| `--hashing-secret` | `-h`  | Secret key for HMAC hashing                | Yes      |
-| `--encryption-key` | `-e`  | 32-character key for AES encryption        | No*      |
+| `--hashingsecret`  | `-h`  | Secret key for HMAC hashing                | Yes      |
+| `--encryptionkey`  | `-e`  | 32-character key for AES encryption        | No*      |
 | `--hash-only`      |       | Skip encryption, output hashed tokens only | No       |
 
 *Required unless `--hash-only` is specified.

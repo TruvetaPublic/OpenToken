@@ -108,8 +108,8 @@ OpenToken expects **two secrets** (one required, one optional depending on mode)
 
 | Secret             | CLI Flag                  | Purpose                                   | Requirements                                                |
 | ------------------ | ------------------------- | ----------------------------------------- | ----------------------------------------------------------- |
-| **Hashing Secret** | `-h` / `--hashing-secret` | HMAC-SHA256 key for deterministic hashing | Required in all modes; 8+ characters recommended, 16+ ideal |
-| **Encryption Key** | `-e` / `--encryption-key` | AES-256-GCM symmetric key                 | Required for encryption mode; **exactly 32 characters**     |
+| **Hashing Secret** | `-h` / `--hashingsecret`  | HMAC-SHA256 key for deterministic hashing | Required in all modes; 8+ characters recommended, 16+ ideal |
+| **Encryption Key** | `-e` / `--encryptionkey`  | AES-256-GCM symmetric key                 | Required for encryption mode; **exactly 32 characters**     |
 
 **Hash-only mode** (`--hash-only`) skips AES encryption; only the hashing secret is needed.
 

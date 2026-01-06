@@ -155,8 +155,8 @@ python -m opentoken_cli.main \
 | `-i` / `--input`          | Input file path                |
 | `-o` / `--output`         | Output file path               |
 | `-t` / `--type`           | File type (`csv` or `parquet`) |
-| `-h` / `--hashing-secret` | HMAC-SHA256 secret             |
-| `-e` / `--encryption-key` | AES-256 key (32 chars)         |
+| `-h` / `--hashingsecret`  | HMAC-SHA256 secret             |
+| `-e` / `--encryptionkey`  | AES-256 key (32 chars)         |
 | `--hash-only`             | Skip encryption                |
 
 **Full reference:** [CLI Reference](cli.md)
