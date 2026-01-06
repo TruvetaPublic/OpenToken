@@ -18,22 +18,21 @@ python -m opentoken_cli.main [OPTIONS]
 
 ## Required Arguments
 
-| Argument | Short | Description |
-|----------|-------|-------------|
-| `--input` | `-i` | Path to input file (CSV or Parquet) |
-| `--output` | `-o` | Path to output file |
-| `--type` | `-t` | File type: `csv` or `parquet` |
-| `--hashing-secret` | `-h` | Secret key for HMAC-SHA256 hashing |
+| Argument           | Short | Description                         |
+| ------------------ | ----- | ----------------------------------- |
+| `--input`          | `-i`  | Path to input file (CSV or Parquet) |
+| `--output`         | `-o`  | Path to output file                 |
+| `--type`           | `-t`  | File type: `csv` or `parquet`       |
+| `--hashing-secret` | `-h`  | Secret key for HMAC-SHA256 hashing  |
 
 ## Optional Arguments
 
-| Argument | Short | Description | Default |
-|----------|-------|-------------|---------|
-| `--encryption-key` | `-e` | 32-character key for AES-256 encryption | Required unless `--hash-only` |
-| `--hash-only` | | Generate hashed tokens without encryption | `false` |
-| `--metadata-location` | `-m` | Custom path for metadata JSON file | `<output>.metadata.json` |
-| `--verbose` | `-v` | Enable verbose output | `false` |
-| `--help` | | Show help message | |
+| Argument           | Short | Description                               | Default                       |
+| ------------------ | ----- | ----------------------------------------- | ----------------------------- |
+| `--encryption-key` | `-e`  | 32-character key for AES-256 encryption   | Required unless `--hash-only` |
+| `--hash-only`      |       | Generate hashed tokens without encryption | `false`                       |
+| `--verbose`        | `-v`  | Enable verbose output                     | `false`                       |
+| `--help`           |       | Show help message                         |                               |
 
 ## Modes of Operation
 
@@ -81,15 +80,15 @@ patient_002,Jane,Smith,1975-03-22,Female,90210,987-65-4321
 
 **Column Aliases Accepted:**
 
-| Standard Name | Accepted Aliases |
-|--------------|------------------|
-| RecordId | Id |
-| FirstName | GivenName |
-| LastName | Surname |
-| BirthDate | DateOfBirth |
-| Sex | Gender |
-| PostalCode | ZipCode, ZIP3, ZIP4, ZIP5 |
-| SSN | SocialSecurityNumber, NationalIdentificationNumber |
+| Standard Name | Accepted Aliases                                   |
+| ------------- | -------------------------------------------------- |
+| RecordId      | Id                                                 |
+| FirstName     | GivenName                                          |
+| LastName      | Surname                                            |
+| BirthDate     | DateOfBirth                                        |
+| Sex           | Gender                                             |
+| PostalCode    | ZipCode, ZIP3, ZIP4, ZIP5                          |
+| SSN           | SocialSecurityNumber, NationalIdentificationNumber |
 
 ### CSV Output
 
@@ -164,11 +163,11 @@ Every run generates a `.metadata.json` file:
   [--verbose]
 ```
 
-| Option | Description |
-|--------|-------------|
+| Option         | Description               |
+| -------------- | ------------------------- |
 | `--skip-build` | Skip Docker image rebuild |
-| `--verbose` | Show detailed output |
-| `--help` | Show help message |
+| `--verbose`    | Show detailed output      |
+| `--help`       | Show help message         |
 
 ### PowerShell (run-opentoken.ps1)
 
@@ -185,22 +184,22 @@ Every run generates a `.metadata.json` file:
 
 ## Error Messages
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| "Encryption key not provided" | Missing `-e` in encrypted mode | Add `-e "key"` or use `--hash-only` |
-| "Encryption key must be 32 characters" | Key length wrong | Use exactly 32 characters |
-| "Input file not found" | Invalid path | Check file exists |
-| "Unknown file type" | Invalid `-t` value | Use `csv` or `parquet` |
-| "Invalid attribute: BirthDate" | Date validation failed | Use YYYY-MM-DD format |
+| Error                                  | Cause                          | Solution                            |
+| -------------------------------------- | ------------------------------ | ----------------------------------- |
+| "Encryption key not provided"          | Missing `-e` in encrypted mode | Add `-e "key"` or use `--hash-only` |
+| "Encryption key must be 32 characters" | Key length wrong               | Use exactly 32 characters           |
+| "Input file not found"                 | Invalid path                   | Check file exists                   |
+| "Unknown file type"                    | Invalid `-t` value             | Use `csv` or `parquet`              |
+| "Invalid attribute: BirthDate"         | Date validation failed         | Use YYYY-MM-DD format               |
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Invalid arguments |
-| 2 | File not found |
-| 3 | Processing error |
+| Code | Meaning           |
+| ---- | ----------------- |
+| 0    | Success           |
+| 1    | Invalid arguments |
+| 2    | File not found    |
+| 3    | Processing error  |
 
 ## Performance Tips
 

@@ -48,15 +48,14 @@ cd C:\path\to\OpenToken
 
 ## CLI Arguments
 
-| Argument              | Short | Description                                | Required |
-| --------------------- | ----- | ------------------------------------------ | -------- |
-| `--input`             | `-i`  | Input file path (CSV or Parquet)           | Yes      |
-| `--output`            | `-o`  | Output file path                           | Yes      |
-| `--type`              | `-t`  | File type: `csv` or `parquet`              | Yes      |
-| `--hashing-secret`    | `-h`  | Secret key for HMAC hashing                | Yes      |
-| `--encryption-key`    | `-e`  | 32-character key for AES encryption        | No*      |
-| `--hash-only`         |       | Skip encryption, output hashed tokens only | No       |
-| `--metadata-location` | `-m`  | Custom path for metadata JSON file         | No       |
+| Argument           | Short | Description                                | Required |
+| ------------------ | ----- | ------------------------------------------ | -------- |
+| `--input`          | `-i`  | Input file path (CSV or Parquet)           | Yes      |
+| `--output`         | `-o`  | Output file path                           | Yes      |
+| `--type`           | `-t`  | File type: `csv` or `parquet`              | Yes      |
+| `--hashing-secret` | `-h`  | Secret key for HMAC hashing                | Yes      |
+| `--encryption-key` | `-e`  | 32-character key for AES encryption        | No*      |
+| `--hash-only`      |       | Skip encryption, output hashed tokens only | No       |
 
 *Required unless `--hash-only` is specified.
 
