@@ -12,7 +12,7 @@ OpenToken uses a multi-rule tokenization strategy to enable privacy-preserving p
 
 The matching model generates cryptographically secure tokens from personal identifiers (PII) without exposing the underlying data. Different token rules balance **precision** (fewer false positives) against **recall** (fewer missed matches).
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Person Record (PII)                          │
 │  Name, DOB, SSN, Sex, Postal Code                              │
@@ -48,6 +48,7 @@ The matching model generates cryptographically secure tokens from personal ident
 ## Why Multiple Token Rules?
 
 Real-world healthcare data is messy:
+
 - Names may have typos or variations
 - Dates may be recorded differently
 - SSNs may be missing or partially known
@@ -55,80 +56,82 @@ Real-world healthcare data is messy:
 
 Using **five distinct rules** allows matching at different confidence levels:
 
-| Tier | Confidence  | Use Case                       |
-| ---- | ----------- | ------------------------------ |
-| T1   | Highest     | Regulatory compliance, billing |
-| T2   | High        | Clinical record linkage        |
-| T3   | Medium-High | Research cohorts               |
-| T4   | Medium      | Population studies             |
-| T5   | Lower       | Broad matching, deduplication  |
+OpenToken emits tokens with a `RuleId` of `T1`–`T5`. These identifiers are **rule names**, not “tiers” (they don’t imply an ordering). In practice, different rules tend to trade off precision vs. recall based on which attributes they include.
+
+| RuleId | Attributes (normalized signature)      | Typical use                                             |
+| :----- | :------------------------------------- | :------------------------------------------------------ |
+| T1     | Last + First initial + Sex + BirthDate | Higher recall; tolerates first-name variation           |
+| T2     | Last + First + BirthDate + ZIP-3       | Adds geography; helps when sex is unreliable or missing |
+| T3     | Last + First + Sex + BirthDate         | Higher precision; stricter than T1                      |
+| T4     | SSN (digits) + Sex + BirthDate         | Very high precision when SSN is present                 |
+| T5     | Last + First[0:3] + Sex                | Highest recall / lowest precision; use cautiously       |
 
 ---
 
 ## Token Rules Summary
 
-### T1: SSN-Based (Highest Confidence)
+### T1: Last Name + First Initial + Sex + BirthDate
 
+```text
+LastName + FirstName (first initial) + Sex + BirthDate
 ```
-SSN + BirthDate + Sex
-```
 
-The most restrictive rule. Requires SSN to be present and valid.
+Designed for higher recall when first names vary (e.g., nicknames) by using only the first initial.
 
-**Strengths**: Very low false positive rate
-**Limitations**: SSN often missing in healthcare data
+- **Strengths**: Tolerates first-name variation; good candidate generator
+- **Limitations**: Lower precision than full-name rules (only first initial)
 
 ---
 
-### T2: Full Name + Demographics
+### T2: Last Name + First Name + BirthDate + ZIP-3
 
+```text
+LastName + FirstName + BirthDate + PostalCode (ZIP-3)
 ```
-FirstName + LastName + BirthDate + Sex
-```
 
-Uses full name without SSN requirement.
+Uses full first name and adds a coarse location signal (ZIP-3).
 
-**Strengths**: Good precision with common data elements
-**Limitations**: Name variations cause misses
+- **Strengths**: Adds geography; useful when sex is missing/unreliable
+- **Limitations**: Requires postal code; ZIP can change over time
 
 ---
 
-### T3: Name + SSN (No DOB)
+### T3: Last Name + First Name + Sex + BirthDate
 
+```text
+LastName + FirstName + Sex + BirthDate
 ```
-FirstName + LastName + SSN
-```
 
-Useful when birth date is uncertain.
+More specific than T1 (uses full first name), so it tends to be higher precision but less tolerant of first-name variation.
 
-**Strengths**: Handles DOB discrepancies
-**Limitations**: Requires SSN
+- **Strengths**: Higher precision when names are stable
+- **Limitations**: Full first name required; more sensitive to name variation/typos
 
 ---
 
-### T4: Name + DOB + Location
+### T4: SSN (Digits) + Sex + BirthDate
 
+```text
+SSN (digits only) + Sex + BirthDate
 ```
-FirstName + LastName + BirthDate + PostalCode
-```
 
-Incorporates geographic information.
+Very high precision when SSN is present and valid.
 
-**Strengths**: Good for local matching
-**Limitations**: Address changes over time
+- **Strengths**: Highest precision
+- **Limitations**: Requires SSN (often missing)
 
 ---
 
-### T5: Partial Name + Demographics
+### T5: Last Name + First 3 Letters + Sex
 
+```text
+LastName + FirstName (first 3 chars) + Sex
 ```
-FirstName (first 3 chars) + LastName + BirthDate + Sex
-```
 
-Uses only first 3 characters of first name.
+Uses only the first 3 characters of first name.
 
-**Strengths**: Robust to first name variations
-**Limitations**: Lower precision
+- **Strengths**: Highest recall for first-name variation
+- **Limitations**: Lower precision; no birth date in the signature
 
 ---
 
@@ -138,7 +141,7 @@ Uses only first 3 characters of first name.
 
 Match if **any** token rule matches:
 
-```
+```text
 Match = T1 ∨ T2 ∨ T3 ∨ T4 ∨ T5
 ```
 
@@ -148,7 +151,7 @@ Use for: Research studies, broad population analysis
 
 Match only if **multiple** rules match:
 
-```
+```text
 Match = (T1 ∨ T2) ∧ (T3 ∨ T4)
 ```
 
@@ -179,6 +182,7 @@ Token security relies on:
 4. **AES-256**: Optional encryption layer
 
 Two different people producing the same token (collision) is statistically negligible when:
+
 - Keys are properly managed
 - Input data is correctly normalized
 
@@ -219,7 +223,7 @@ OpenToken normalizes each field before token generation. For full rules, see [No
 - **tom → TOM**: Uppercased
 - **03/22/1988 → 1988-03-22**: Date reformatted to ISO 8601
 - **30301-4455 → 30301**: ZIP+4 truncated to 5 digits
-- **SSN missing (CLN-202)**: Noted; T1 and T3 will be skipped for this record
+- **SSN missing (CLN-202)**: Noted; T4 will be skipped for this record
 
 ### Step 2: Token Generation
 
@@ -229,73 +233,70 @@ For detailed rule compositions, see [Token Rules](token-rules.md).
 
 **HOS-101 (María García, 1988-03-22):**
 
-| Rule | Token Signature                    | Illustrative Token       |
-| ---- | ---------------------------------- | ------------------------ |
-| T1   | `452-38-7291\|1988-03-22\|F`       | `Xk9mT2pLc1VhR3dNZUZ...` |
-| T2   | `MARIA\|GARCIA\|1988-03-22\|F`     | `bHdRa0VuWXBCdkxhTnI...` |
-| T3   | `MARIA\|GARCIA\|452-38-7291`       | `cTdYc1pNdkpUa2JQeHo...` |
-| T4   | `MARIA\|GARCIA\|1988-03-22\|90210` | `ZnBOdFdtS2haQWdWcko...` |
-| T5   | `MAR\|GARCIA\|1988-03-22\|F`       | `RWtqVXhMY0dTcldmbVk...` |
+| Rule | Token Signature                  | Illustrative Token       |
+| ---- | -------------------------------- | ------------------------ |
+| T1   | `GARCIA\|M\|F\|1988-03-22`       | `Xk9mT2pLc1VhR3dNZUZ...` |
+| T2   | `GARCIA\|MARIA\|1988-03-22\|902` | `bHdRa0VuWXBCdkxhTnI...` |
+| T3   | `GARCIA\|MARIA\|F\|1988-03-22`   | `cTdYc1pNdkpUa2JQeHo...` |
+| T4   | `452387291\|F\|1988-03-22`       | `ZnBOdFdtS2haQWdWcko...` |
+| T5   | `GARCIA\|MAR\|F`                 | `RWtqVXhMY0dTcldmbVk...` |
 
 **CLN-201 (Maria Garcia, 1988-03-22):**
 
-| Rule | Token Signature                    | Illustrative Token       |
-| ---- | ---------------------------------- | ------------------------ |
-| T1   | `452-38-7291\|1988-03-22\|F`       | `Xk9mT2pLc1VhR3dNZUZ...` |
-| T2   | `MARIA\|GARCIA\|1988-03-22\|F`     | `bHdRa0VuWXBCdkxhTnI...` |
-| T3   | `MARIA\|GARCIA\|452-38-7291`       | `cTdYc1pNdkpUa2JQeHo...` |
-| T4   | `MARIA\|GARCIA\|1988-03-22\|90210` | `ZnBOdFdtS2haQWdWcko...` |
-| T5   | `MAR\|GARCIA\|1988-03-22\|F`       | `RWtqVXhMY0dTcldmbVk...` |
+| Rule | Token Signature                  | Illustrative Token       |
+| ---- | -------------------------------- | ------------------------ |
+| T1   | `GARCIA\|M\|F\|1988-03-22`       | `Xk9mT2pLc1VhR3dNZUZ...` |
+| T2   | `GARCIA\|MARIA\|1988-03-22\|902` | `bHdRa0VuWXBCdkxhTnI...` |
+| T3   | `GARCIA\|MARIA\|F\|1988-03-22`   | `cTdYc1pNdkpUa2JQeHo...` |
+| T4   | `452387291\|F\|1988-03-22`       | `ZnBOdFdtS2haQWdWcko...` |
+| T5   | `GARCIA\|MAR\|F`                 | `RWtqVXhMY0dTcldmbVk...` |
 
 **Observation:** HOS-101 and CLN-201 produce **identical tokens** for all five rules because their normalized attributes are identical.
 
 **HOS-102 (tom O'Reilly, 1995-11-03):**
 
-| Rule | Token Signature                    | Illustrative Token       |
-| ---- | ---------------------------------- | ------------------------ |
-| T1   | `671-82-9134\|1995-11-03\|M`       | `UXdlcnR5VWlPcEFzRGZ...` |
-| T2   | `TOM\|O'REILLY\|1995-11-03\|M`     | `WnhjdmJubUtMbUpIR2d...` |
-| T3   | `TOM\|O'REILLY\|671-82-9134`       | `QWxza2RqZmhHa0xQb1p...` |
-| T4   | `TOM\|O'REILLY\|1995-11-03\|30301` | `TW5iVmN4WmFRd0VyVHl...` |
-| T5   | `TOM\|O'REILLY\|1995-11-03\|M`     | `SWp1aHlHdEZyRGVTd1d...` |
+| Rule | Token Signature                  | Illustrative Token       |
+| ---- | -------------------------------- | ------------------------ |
+| T1   | `O'REILLY\|T\|M\|1995-11-03`     | `UXdlcnR5VWlPcEFzRGZ...` |
+| T2   | `O'REILLY\|TOM\|1995-11-03\|303` | `WnhjdmJubUtMbUpIR2d...` |
+| T3   | `O'REILLY\|TOM\|M\|1995-11-03`   | `QWxza2RqZmhHa0xQb1p...` |
+| T4   | `671829134\|M\|1995-11-03`       | `TW5iVmN4WmFRd0VyVHl...` |
+| T5   | `O'REILLY\|TOM\|M`               | `SWp1aHlHdEZyRGVTd1d...` |
 
 **CLN-202 (Thomas O'Reilly, 1995-11-03, no SSN):**
 
-| Rule | Token Signature                       | Illustrative Token       |
-| ---- | ------------------------------------- | ------------------------ |
-| T1   | — (SSN missing)                       | *Not generated*          |
-| T2   | `THOMAS\|O'REILLY\|1995-11-03\|M`     | `RHZiTmNYemFRd0VyWnR...` |
-| T3   | — (SSN missing)                       | *Not generated*          |
-| T4   | `THOMAS\|O'REILLY\|1995-11-03\|30301` | `S2p1aHlHdEZyRGVWd1h...` |
-| T5   | `THO\|O'REILLY\|1995-11-03\|M`        | `VXl0ckVXcUFzRGZHaEp...` |
+| Rule | Token Signature                     | Illustrative Token       |
+| ---- | ----------------------------------- | ------------------------ |
+| T1   | `O'REILLY\|T\|M\|1995-11-03`        | `RHZiTmNYemFRd0VyWnR...` |
+| T2   | `O'REILLY\|THOMAS\|1995-11-03\|303` | `S2p1aHlHdEZyRGVWd1h...` |
+| T3   | `O'REILLY\|THOMAS\|M\|1995-11-03`   | `VXl0ckVXcUFzRGZHaEp...` |
+| T4   | — (SSN missing)                     | *Not generated*          |
+| T5   | `O'REILLY\|THO\|M`                  | `QmFzZTY0UExhY2Vob2w...` |
 
-**Observation:** HOS-102 and CLN-202 do **not** match on any rule:
-
-- T1, T3: CLN-202 missing SSN
-- T2, T4, T5: First name differs (TOM vs THOMAS) → different token signatures
+**Observation:** HOS-102 and CLN-202 can match on **T1** (first initial) even though the full first name differs (TOM vs THOMAS). They do **not** match on rules that require the full first name, and they cannot generate T4 because the SSN is missing.
 
 ### Step 3: Matching Decisions
 
 When comparing tokens across the two systems:
 
-| Record Pair       | T1  | T2  | T3  | T4  | T5  | Match?              |
-| ----------------- | --- | --- | --- | --- | --- | ------------------- |
-| HOS-101 ↔ CLN-201 | ✓   | ✓   | ✓   | ✓   | ✓   | **Yes** (all rules) |
-| HOS-102 ↔ CLN-202 | —   | ✗   | —   | ✗   | ✗   | **No**              |
-| HOS-101 ↔ HOS-102 | ✗   | ✗   | ✗   | ✗   | ✗   | No                  |
-| CLN-201 ↔ CLN-202 | ✗   | ✗   | ✗   | ✗   | ✗   | No                  |
+| Record Pair       | T1  | T2  | T3  | T4  | T5  | Match?                |
+| ----------------- | --- | --- | --- | --- | --- | --------------------- |
+| HOS-101 ↔ CLN-201 | ✓   | ✓   | ✓   | ✓   | ✓   | **Yes** (all rules)   |
+| HOS-102 ↔ CLN-202 | ✓   | ✗   | ✗   | —   | ✗   | **Depends** (T1 only) |
+| HOS-101 ↔ HOS-102 | ✗   | ✗   | ✗   | ✗   | ✗   | No                    |
+| CLN-201 ↔ CLN-202 | ✗   | ✗   | ✗   | ✗   | ✗   | No                    |
 
 **Interpretation:**
 
 - **HOS-101 and CLN-201 are the same person.** Despite surface differences ("María" vs "Maria", suffix "Jr."), normalization produces identical attributes, so all tokens match.
-- **HOS-102 and CLN-202 are likely the same person but do not match.** "Tom" and "Thomas" normalize differently; without an SSN on CLN-202, there's no high-confidence link. T5 might have matched if both used "THO" (first 3 characters), but "TOM" ≠ "THO".
+- **HOS-102 and CLN-202 may be the same person, but only match on T1.** Depending on your matching policy, you might require multiple-rule agreement (higher precision) or accept single-rule matches (higher recall).
 
 ### Key Takeaways
 
 1. **Normalization is critical.** Two records with superficially different inputs (accents, suffixes, date formats) can match perfectly after normalization.
-2. **Missing attributes reduce matching opportunities.** CLN-202 couldn't use T1 or T3 because SSN was missing.
+2. **Missing attributes reduce matching opportunities.** CLN-202 couldn't generate T4 because SSN was missing.
 3. **Name variations may prevent matches.** "Tom" vs "Thomas" is a common real-world issue; T5's 3-character prefix helps only if the first 3 letters are identical.
-4. **Multiple rules provide fallback.** Even if T1 fails (SSN missing), T2/T4/T5 may still match if other attributes align.
+4. **Multiple rules provide fallback.** Even if T4 can't be generated (SSN missing), other rules may still match if other attributes align.
 
 ### Related Pages
 
@@ -313,6 +314,7 @@ For records from different organizations to match:
 3. **Same rules**: Token generation logic must match exactly
 
 OpenToken ensures this through:
+
 - Dual Java/Python implementations with byte-identical outputs
 - Comprehensive normalization documentation
 - Interoperability testing

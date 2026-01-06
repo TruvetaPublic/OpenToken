@@ -4,258 +4,187 @@ layout: default
 
 # Token Rules
 
-OpenToken generates five distinct token types (T1-T5), each combining different attributes to balance precision and recall in person matching.
+OpenToken generates five distinct token types (T1-T5). Each rule defines a **token signature** (a deterministic, normalized string) which is then transformed into the output token via hashing (and optionally encryption).
 
 ---
 
 ## Overview
 
 Each token rule defines:
+
 - **Required attributes**: Must all be present and valid
-- **Concatenation order**: Determines the token hash input
+- **Concatenation order**: Determines the token signature
 - **Use case**: When this rule is most effective
 
-```
-Token = HMAC-SHA256(attribute1 + "|" + attribute2 + "|" + ... | key)
-```
+**Notation used below:**
+
+- `U(X)` = uppercase(X)
+- `[0]` = first character
+- `[0:3]` = first 3 characters
 
 ---
 
-## T1: SSN + Birth Date + Sex
+## T1: Last Name + First Initial + Sex + Birth Date
 
-**Purpose:** Highest confidence matching using government ID
+**Purpose:** Higher recall matching that tolerates first-name variation
 
-### Composition
+### T1 Signature
 
-| Attribute | Required | Example |
-|-----------|----------|---------|
-| SSN | Yes | `078-05-1120` |
-| BirthDate | Yes | `1985-03-15` |
-| Sex | Yes | `M` |
-
-### Token Formula
-
-```
-T1 = Hash(SSN | BirthDate | Sex)
+```text
+T1 = U(LastName) | U(FirstName[0]) | U(Sex) | BirthDate
 ```
 
-### Characteristics
+### T1 Characteristics
 
-- **Precision**: Highest (very low false positive rate)
-- **Recall**: Lower (SSN often missing)
-- **Best for**: Regulatory compliance, insurance matching, billing reconciliation
+- **Precision**: Medium-high
+- **Recall**: High
+- **Best for**: Candidate generation and matching when nicknames/first-name variation are common
 
-### Example
+### T1 Example
 
-```
+```text
 Input:
-  SSN: 078-05-1120
-  BirthDate: 1985-03-15
-  Sex: M
-
-Normalized:
-  SSN: 078-05-1120
-  BirthDate: 1985-03-15
-  Sex: M
-
-Token Input: "078-05-1120|1985-03-15|M"
-Token (hashed): a3f2e8d4c1b5...
-```
-
----
-
-## T2: First Name + Last Name + Birth Date + Sex
-
-**Purpose:** Name-based matching when SSN unavailable
-
-### Composition
-
-| Attribute | Required | Example |
-|-----------|----------|---------|
-| FirstName | Yes | `JOHN` |
-| LastName | Yes | `SMITH` |
-| BirthDate | Yes | `1985-03-15` |
-| Sex | Yes | `M` |
-
-### Token Formula
-
-```
-T2 = Hash(FirstName | LastName | BirthDate | Sex)
-```
-
-### Characteristics
-
-- **Precision**: High
-- **Recall**: Good (common fields)
-- **Best for**: Clinical record linkage, patient matching
-
-### Example
-
-```
-Input:
-  FirstName: John
-  LastName: Smith Jr.
-  BirthDate: 03/15/1985
+  FirstName: Thomas
+  LastName: O'Reilly
+  BirthDate: 11/03/1995
   Sex: Male
 
 Normalized:
-  FirstName: JOHN
-  LastName: SMITH
-  BirthDate: 1985-03-15
+  FirstName: THOMAS
+  LastName: O'REILLY
+  BirthDate: 1995-11-03
   Sex: M
 
-Token Input: "JOHN|SMITH|1985-03-15|M"
-Token (hashed): b7c4d9e2f5a1...
+Token Signature: "O'REILLY|T|M|1995-11-03"
 ```
 
 ---
 
-## T3: First Name + Last Name + SSN
+## T2: Last Name + First Name + Birth Date + ZIP-3
 
-**Purpose:** Match when birth date is uncertain or inconsistent
+**Purpose:** Adds geography; useful when postal code is available
 
-### Composition
+### T2 Signature
 
-| Attribute | Required | Example |
-|-----------|----------|---------|
-| FirstName | Yes | `JOHN` |
-| LastName | Yes | `SMITH` |
-| SSN | Yes | `078-05-1120` |
-
-### Token Formula
-
-```
-T3 = Hash(FirstName | LastName | SSN)
+```text
+T2 = U(LastName) | U(FirstName) | BirthDate | U(PostalCode[0:3])
 ```
 
-### Characteristics
+### T2 Characteristics
 
 - **Precision**: High
-- **Recall**: Moderate (requires SSN)
-- **Best for**: Records with DOB discrepancies
+- **Recall**: Good (requires postal code)
+- **Best for**: Matching within regions; cases where sex is missing or unreliable
 
-### Example
+### T2 Example
 
-```
+```text
 Input:
-  FirstName: John
-  LastName: Smith
-  SSN: 078-05-1120
+  FirstName: Maria
+  LastName: Garcia
+  BirthDate: 03/22/1988
+  PostalCode: 90210-4455
 
 Normalized:
-  FirstName: JOHN
-  LastName: SMITH
-  SSN: 078-05-1120
+  FirstName: MARIA
+  LastName: GARCIA
+  BirthDate: 1988-03-22
+  PostalCode: 90210
 
-Token Input: "JOHN|SMITH|078-05-1120"
-Token (hashed): c8d5e1f3a2b4...
+Token Signature: "GARCIA|MARIA|1988-03-22|902"
 ```
 
 ---
 
-## T4: First Name + Last Name + Birth Date + Postal Code
+## T3: Last Name + First Name + Sex + Birth Date
 
-**Purpose:** Geographic-aware matching
+**Purpose:** Higher precision than T1 by requiring the full first name
 
-### Composition
+### T3 Signature
 
-| Attribute | Required | Example |
-|-----------|----------|---------|
-| FirstName | Yes | `JOHN` |
-| LastName | Yes | `SMITH` |
-| BirthDate | Yes | `1985-03-15` |
-| PostalCode | Yes | `98101` |
-
-### Token Formula
-
-```
-T4 = Hash(FirstName | LastName | BirthDate | PostalCode)
+```text
+T3 = U(LastName) | U(FirstName) | U(Sex) | BirthDate
 ```
 
-### Characteristics
+### T3 Characteristics
 
-- **Precision**: Medium-high
-- **Recall**: Good (no SSN needed)
-- **Best for**: Local/regional matching, address-based studies
+- **Precision**: High
+- **Recall**: Medium-high
+- **Best for**: Stricter matching when you expect name stability
 
-### Example
+### T3 Example
 
-```
-Input:
-  FirstName: John
-  LastName: Smith
-  BirthDate: 1985-03-15
-  PostalCode: 98101-1234
-
-Normalized:
-  FirstName: JOHN
-  LastName: SMITH
-  BirthDate: 1985-03-15
-  PostalCode: 98101
-
-Token Input: "JOHN|SMITH|1985-03-15|98101"
-Token (hashed): d9e6f2a4b5c7...
+```text
+Token Signature: "GARCIA|MARIA|F|1988-03-22"
 ```
 
 ---
 
-## T5: First Name (3 chars) + Last Name + Birth Date + Sex
+## T4: SSN (Digits Only) + Sex + Birth Date
 
-**Purpose:** Fuzzy name matching with partial first name
+**Purpose:** Very high precision matching when SSN is present
 
-### Composition
+### T4 Signature
 
-| Attribute | Required | Example |
-|-----------|----------|---------|
-| FirstName (first 3) | Yes | `JOH` |
-| LastName | Yes | `SMITH` |
-| BirthDate | Yes | `1985-03-15` |
-| Sex | Yes | `M` |
-
-### Token Formula
-
-```
-T5 = Hash(FirstName[0:3] | LastName | BirthDate | Sex)
+```text
+T4 = SSN_digits | U(Sex) | BirthDate
 ```
 
-### Characteristics
+Notes:
+
+- The SSN is normalized to digits only (dashes removed).
+
+### T4 Characteristics
+
+- **Precision**: Very high
+- **Recall**: Low (SSN often missing)
+- **Best for**: High-confidence linking when SSN exists and is valid
+
+### T4 Example
+
+```text
+Input SSN: 452-38-7291
+SSN_digits: 452387291
+
+Token Signature: "452387291|F|1988-03-22"
+```
+
+---
+
+## T5: Last Name + First 3 Letters + Sex
+
+**Purpose:** Highest recall / lowest precision (use cautiously)
+
+### T5 Signature
+
+```text
+T5 = U(LastName) | U(FirstName[0:3]) | U(Sex)
+```
+
+### T5 Characteristics
 
 - **Precision**: Lower
-- **Recall**: Higher (tolerates name variations)
-- **Best for**: Deduplication, finding potential matches
+- **Recall**: Highest
+- **Best for**: Broad matching / candidate generation, followed by stricter confirmation
 
-### Example
+### T5 Example
 
+```text
+FirstName: Jonathan -> FirstName[0:3] = JON
+Token Signature: "SMITH|JON|M"
 ```
-Input:
-  FirstName: Jonathan
-  LastName: Smith
-  BirthDate: 1985-03-15
-  Sex: M
-
-Normalized:
-  FirstName (3 chars): JON
-  LastName: SMITH
-  BirthDate: 1985-03-15
-  Sex: M
-
-Token Input: "JON|SMITH|1985-03-15|M"
-Token (hashed): e1f3a5b7c9d2...
-```
-
-Note: "John", "Jonathan", "Johnny" all produce `JOH` → same T5 token.
 
 ---
 
 ## Token Rule Summary
 
-| Rule | Attributes | Precision | Recall | Primary Use |
-|------|------------|-----------|--------|-------------|
-| T1 | SSN, DOB, Sex | ★★★★★ | ★★ | Regulatory |
-| T2 | Name, DOB, Sex | ★★★★ | ★★★★ | Clinical |
-| T3 | Name, SSN | ★★★★ | ★★★ | DOB issues |
-| T4 | Name, DOB, ZIP | ★★★ | ★★★★ | Geographic |
-| T5 | Name(3), DOB, Sex | ★★ | ★★★★★ | Dedup |
+| RuleId | Signature attributes           | Typical precision | Typical recall |
+| ------ | ------------------------------ | ----------------- | -------------- |
+| T1     | Last, First[0], Sex, BirthDate | Medium-high       | High           |
+| T2     | Last, First, BirthDate, ZIP3   | High              | Good           |
+| T3     | Last, First, Sex, BirthDate    | High              | Medium-high    |
+| T4     | SSN(digits), Sex, BirthDate    | Very high         | Low            |
+| T5     | Last, First[0:3], Sex          | Lower             | Highest        |
 
 ---
 
@@ -270,10 +199,9 @@ When a required attribute is missing or invalid:
 ```json
 {
   "recordId": "12345",
-  "tokensGenerated": ["T2", "T4", "T5"],
+  "tokensGenerated": ["T1", "T2", "T3", "T5"],
   "tokensSkipped": {
-    "T1": "SSN_MISSING",
-    "T3": "SSN_MISSING"
+    "T4": "SSN_MISSING"
   }
 }
 ```
@@ -287,28 +215,31 @@ OpenToken supports defining custom token rules:
 ### Java
 
 ```java
-public class CustomToken extends BaseToken {
-    @Override
-    public String getName() {
-        return "T6";
-    }
-    
-    @Override
-    public List<String> getRequiredAttributes() {
-        return List.of("FirstName", "LastName", "MRN");
-    }
+public class CustomToken implements Token {
+  @Override
+  public String getIdentifier() {
+    return "T6";
+  }
+
+  @Override
+  public ArrayList<AttributeExpression> getDefinition() {
+    // Return AttributeExpression list in the exact concatenation order.
+    // See existing tokens in com.truveta.opentoken.tokens.definitions.
+    throw new UnsupportedOperationException("Example only");
+  }
 }
 ```
 
 ### Python
 
 ```python
-class CustomToken(BaseToken):
-    def get_name(self):
-        return "T6"
-    
-    def get_required_attributes(self):
-        return ["FirstName", "LastName", "MRN"]
+class CustomToken(Token):
+  def get_identifier(self) -> str:
+    return "T6"
+
+  def get_definition(self) -> list[AttributeExpression]:
+    # Return AttributeExpression list in the exact concatenation order.
+    raise NotImplementedError("Example only")
 ```
 
 See [Token Registration](../reference/token-registration.md) for registration details.
