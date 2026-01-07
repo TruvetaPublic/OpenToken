@@ -104,7 +104,7 @@ OpenToken is implemented in **Java and Python**. Both produce **byte-identical t
 
 - **No Reversal**: Tokens cannot be decrypted back to original data without the encryption key
 - **Deterministic**: Same input always produces the same token (enables matching)
-- **Privacy-Focused**: Designed for regulated environments where PII must be protected (healthcare is one common example)
+- **Privacy-Focused**: Designed for regulated environments where PII must be protected
 - **Validation**: Rejects invalid or placeholder values before processing
 
 ## Who Uses OpenToken?
