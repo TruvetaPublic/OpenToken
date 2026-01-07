@@ -238,7 +238,34 @@ For complete details about all metadata fields, examples, and security considera
 
 ## Quick Start
 
-### Token Generation (Encryption Mode)  <!-- omit in toc -->
+### Public Key Exchange Workflow (Recommended for Production)  <!-- omit in toc -->
+
+For secure token exchange without sharing secrets, use the public-key cryptography workflow with ECDH key exchange. This approach is more secure and suitable for production environments where multiple parties need to exchange encrypted tokens.
+
+📘 **[Complete End-to-End Workflow Guide](./docs/public-key-workflow.md)**
+
+**Quick Overview:**
+
+1. **Receiver generates key pair** → saves to `~/.opentoken/`
+2. **Receiver shares public key** → `receiver_public_key.pem`
+3. **Sender uses receiver's public key** → generates tokens with derived keys
+4. **Output includes sender's public key** → packaged as ZIP
+5. **Receiver decrypts** → uses sender's public key to derive same keys
+
+**Benefits:**
+- ✅ No shared secrets transmitted
+- ✅ Each party maintains their own private key
+- ✅ Perfect forward secrecy (ephemeral keys)
+- ✅ NIST-compliant P-256 elliptic curve
+- ✅ Separate hashing and encryption keys via HKDF
+
+**Note:** CLI integration for public-key mode is in progress (v1.13.0). Currently available as programmatic API. See the [workflow guide](./docs/public-key-workflow.md) for complete examples in Java and Python.
+
+---
+
+### Token Generation (Encryption Mode - Legacy)  <!-- omit in toc -->
+
+**Note:** This secret-based mode is maintained for backward compatibility. For new implementations, use the [public-key workflow](#public-key-exchange-workflow-recommended-for-production) above.
 
 #### Java  <!-- omit in toc -->
 
@@ -380,6 +407,13 @@ Key anchors in the guide:
 
 - Language Development: [Java & Python](docs/dev-guide-development.md#3-language-development-java--python)
 - Registration: [Token & Attribute Registration](docs/dev-guide-development.md#4-token--attribute-registration)
+
+Additional documentation:
+
+- **[Public-Key Exchange Workflow](docs/public-key-workflow.md)** - End-to-end guide with command-line instructions for ECDH key exchange
+- [Public-Key Cryptography Implementation Plan](docs/public-key-implementation-plan.md) - Comprehensive technical analysis and roadmap for transitioning from secret-based to public-key cryptography (v1.13.0)
+- [Metadata Format](docs/metadata-format.md) - Documentation for OpenToken metadata files
+- [Branch Workflow and Release Process](docs/branch-workflow-and-release-process.md) - Git workflow and release procedures
 
 Quick parity note: Java and Python implementations produce identical tokens for the same normalized input values.
 

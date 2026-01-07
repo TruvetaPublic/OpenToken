@@ -50,4 +50,34 @@ public class CommandLineArguments {
         @Parameter(names = {
                         "--hash-only" }, description = "Hash-only mode. Generates tokens with hashing only, skipping encryption.", required = false)
         private boolean hashOnly = false;
+
+        @Getter
+        @Parameter(names = {
+                        "--receiver-public-key" }, description = "Path to receiver's public key file for ECDH key exchange.", required = false)
+        private String receiverPublicKey = null;
+
+        @Getter
+        @Parameter(names = {
+                        "--sender-public-key" }, description = "Path to sender's public key file (for decryption with ECDH).", required = false)
+        private String senderPublicKey = null;
+
+        @Getter
+        @Parameter(names = {
+                        "--sender-keypair-path" }, description = "Path to sender's private key file (default: ~/.opentoken/keypair.pem).", required = false)
+        private String senderKeypairPath = null;
+
+        @Getter
+        @Parameter(names = {
+                        "--receiver-keypair-path" }, description = "Path to receiver's private key file (default: ~/.opentoken/keypair.pem).", required = false)
+        private String receiverKeypairPath = null;
+
+        @Getter
+        @Parameter(names = {
+                        "--generate-keypair" }, description = "Generate a new ECDH P-256 key pair and exit.", required = false)
+        private boolean generateKeypair = false;
+
+        @Getter
+        @Parameter(names = {
+                        "--decrypt-with-ecdh" }, description = "Decrypt mode using ECDH key exchange.", required = false)
+        private boolean decryptWithEcdh = false;
 }

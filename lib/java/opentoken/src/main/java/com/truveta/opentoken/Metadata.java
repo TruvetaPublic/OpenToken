@@ -19,6 +19,17 @@ public class Metadata {
     public static final String ENCRYPTION_SECRET_HASH = "EncryptionSecretHash";
     public static final String HASHING_SECRET_HASH = "HashingSecretHash";
     public static final String BLANK_TOKENS_BY_RULE = "BlankTokensByRule";
+    
+    // Key exchange metadata keys
+    public static final String KEY_EXCHANGE_METHOD = "KeyExchangeMethod";
+    public static final String SENDER_PUBLIC_KEY_HASH = "SenderPublicKeyHash";
+    public static final String RECEIVER_PUBLIC_KEY_HASH = "ReceiverPublicKeyHash";
+    public static final String CURVE = "Curve";
+    
+    // Key exchange values
+    public static final String KEY_EXCHANGE_METHOD_ECDH = "ECDH-P256";
+    public static final String KEY_EXCHANGE_METHOD_SECRET = "SharedSecret";
+    public static final String CURVE_P256 = "P-256";
 
     // Metadata values
     public static final String PLATFORM_JAVA = "Java";
@@ -64,6 +75,61 @@ public class Metadata {
             metadataMap.put(secretKey, calculateSecureHash(secretToHash));
         }
         return metadataMap;
+    }
+    
+    /**
+     * Adds key exchange metadata for ECDH-based encryption.
+     * 
+     * @param senderPublicKeyBytes the sender's public key bytes
+     * @param receiverPublicKeyBytes the receiver's public key bytes
+     * @return the metadata map for method chaining
+     */
+    public Map<String, Object> addKeyExchangeMetadata(byte[] senderPublicKeyBytes, byte[] receiverPublicKeyBytes) {
+        metadataMap.put(KEY_EXCHANGE_METHOD, KEY_EXCHANGE_METHOD_ECDH);
+        metadataMap.put(CURVE, CURVE_P256);
+        
+        if (senderPublicKeyBytes != null) {
+            metadataMap.put(SENDER_PUBLIC_KEY_HASH, calculateSecureHashBytes(senderPublicKeyBytes));
+        }
+        
+        if (receiverPublicKeyBytes != null) {
+            metadataMap.put(RECEIVER_PUBLIC_KEY_HASH, calculateSecureHashBytes(receiverPublicKeyBytes));
+        }
+        
+        return metadataMap;
+    }
+    
+    /**
+     * Calculates a secure SHA-256 hash of the given byte array.
+     * The hash is returned as a hexadecimal string.
+     *
+     * @param input the input bytes to hash
+     * @return the SHA-256 hash as a hexadecimal string
+     * @throws HashCalculationException if SHA-256 algorithm is not available
+     */
+    public static String calculateSecureHashBytes(byte[] input) {
+        if (input == null || input.length == 0) {
+            return null;
+        }
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(input);
+
+            // Convert bytes to hexadecimal string
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new HashCalculationException("SHA-256 algorithm not available", e);
+        }
     }
 
     /**
