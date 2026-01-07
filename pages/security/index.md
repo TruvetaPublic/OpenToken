@@ -76,109 +76,6 @@ HMAC-SHA256(message, secret_key) = SHA256((key ⊕ opad) || SHA256((key ⊕ ipad
 
 ---
 
-## Validation Rules
-
-All person attributes are validated before token generation. Invalid records are marked and tracked in metadata.
-
-### FirstName Validation
-
-| Requirement                       | Reason                                            | Examples                       |
-| --------------------------------- | ------------------------------------------------- | ------------------------------ |
-| Not null/empty                    | Must identify the person                          | ❌ "" or NULL                   |
-| Not a placeholder                 | Distinguishes real names from data quality issues | ❌ "Unknown", "Test", "Patient" |
-| At least one alphabetic character | Must contain actual name                          | ❌ "123", "---"                 |
-
-**Placeholder Values Rejected:**
-"Unknown", "Test", "NotAvailable", "Patient", "Sample", "Anonymous", "Missing", "N/A", "TBD"
-
-### LastName Validation
-
-| Requirement                                  | Reason                                  | Examples             |
-| -------------------------------------------- | --------------------------------------- | -------------------- |
-| Not null/empty                               | Must identify the person                | ❌ "" or NULL         |
-| At least 2 characters (with exceptions)      | Ensures sufficient match discrimination | ❌ "A", "Z"           |
-| Exception: "Ng" accepted                     | Common single-letter surname            | ✓ "Ng"               |
-| For 2-char names: At least one vowel OR "Ng" | Reduces false matches on common letters | ❌ "AA", ✓ "An", "Ng" |
-| Not a placeholder                            | Distinguishes real names                | ❌ "Unknown", "Test"  |
-
-**Validation Examples:**
-```
-Valid: "Smith", "O'Brien", "García", "Ng", "Lee"
-Invalid: "A", "AA", "Zz", "Unknown", "Test"
-```
-
-### BirthDate Validation
-
-| Requirement         | Reason                       | Examples                               |
-| ------------------- | ---------------------------- | -------------------------------------- |
-| After 1910-01-01    | Eliminates implausible dates | ❌ 1900-01-01, ✓ 1950-01-01             |
-| Not in the future   | Validates data quality       | ❌ 2025-01-01 (if today is 2024)        |
-| Valid calendar date | Must be a real date          | ❌ 1980-02-30, ✓ 1980-02-29 (leap year) |
-
-**Accepted Formats:**
-- `YYYY-MM-DD` (recommended)
-- `MM/DD/YYYY`
-- `MM-DD-YYYY`
-- `DD.MM.YYYY`
-
-### Sex Validation
-
-| Requirement                | Reason                  | Examples                     |
-| -------------------------- | ----------------------- | ---------------------------- |
-| Must be "Male" or "Female" | Standard classification | ✓ "Male", "M", "Female", "F" |
-| Case-insensitive           | User input variations   | ✓ "male", "FEMALE", "F"      |
-
-### PostalCode Validation
-
-**US ZIP Codes:**
-
-| Rule                                       | Reason                | Examples                        |
-| ------------------------------------------ | --------------------- | ------------------------------- |
-| Valid format: 5, 4, 3, or 9 digits         | Standard USPS formats | ✓ "98004", "9800", "98004-1234" |
-| Area codes 000, 555, 888 invalid for ZIP-3 | Reserved for testing  | ❌ "000", "555", "888"           |
-| Not placeholder values                     | Data quality          | ❌ "00000", "11111", "12345"     |
-| Auto-pad ZIP-3 to 5 digits                 | Normalization         | "980" → "98000"                 |
-
-**Canadian Postal Codes:**
-
-| Rule                                  | Reason               | Examples                                      |
-| ------------------------------------- | -------------------- | --------------------------------------------- |
-| Format: `AdA dAd` (A=letter, d=digit) | Canada Post standard | ✓ "K1A 1A1", "M5V 3A8"                        |
-| Valid inputs: 3–6 characters          | Flexible input       | ✓ "K1A", "K1A1", "K1A1A1", "K1A 1A1"          |
-| Auto-format with space                | Normalization        | "K1A1A1" → "K1A 1A1"                          |
-| Not reserved/placeholder codes        | Data quality         | ❌ "K1A 1A1" (reserved), "X0X 0X0" (fictional) |
-
-**Postal Code Examples:**
-```
-Valid US: "98004", "9800", "98004-1234"
-Valid Canadian: "K1A 1A1", "M5V3A8", "V6B"
-Invalid: "00000" (placeholder), "123" (too short), "ABCDE" (invalid format)
-```
-
-### SSN Validation
-
-Social Security Numbers follow strict validation rules to prevent invalid or placeholder values.
-
-| Validation                       | Reason                          | Valid            | Invalid                        |
-| -------------------------------- | ------------------------------- | ---------------- | ------------------------------ |
-| **Area** (first 3 digits)        | Government assigns valid ranges | 001–665, 667–899 | 000, 666, 900–999              |
-| **Group** (middle 2 digits)      | Never 00                        | 01–99            | 00                             |
-| **Serial** (last 4 digits)       | Never 0000                      | 0001–9999        | 0000                           |
-| **Not common invalid sequences** | Reduce placeholder/test values  | 123-45-6789      | 111-11-1111, 222-22-2222, etc. |
-
-**Validation Examples:**
-```
-Valid: 123-45-6789, 987-65-4321, 555-12-3456
-Invalid:
-  000-00-0000 (area 000)
-  666-00-0000 (area 666)
-  123-00-0000 (group 00)
-  123-45-0000 (serial 0000)
-  111-11-1111 (common invalid sequence)
-```
-
----
-
 ## Key Management & Secrets
 
 This section provides practical guidance for managing the cryptographic secrets OpenToken requires.
@@ -288,7 +185,7 @@ Each run produces a `.metadata.json` with SHA-256 hashes of secrets:
 }
 ```
 
-Use `tools/hash_calculator.py` to verify:
+Use [tools/hash_calculator.py](https://github.com/TruvetaPublic/OpenToken/blob/main/tools/hash_calculator.py) to verify:
 
 ```bash
 python tools/hash_calculator.py \

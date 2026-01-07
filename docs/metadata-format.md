@@ -35,7 +35,7 @@ SHA-256(secret_value) -> hex-encoded string
 
 A Python tool is provided to independently calculate the same SHA-256 hashes used in the metadata file. This tool can be used to verify that the correct secrets were used or to calculate hashes for comparison purposes.
 
-The tool is located at `tools/hash_calculator.py` and can be used as follows:
+The tool is located at [tools/hash_calculator.py](https://github.com/TruvetaPublic/OpenToken/blob/main/tools/hash_calculator.py) and can be used as follows:
 
 ```bash
 # Calculate hash for a hashing secret
