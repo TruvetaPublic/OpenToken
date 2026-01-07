@@ -169,7 +169,7 @@ The token generation pipeline ensures **high collision resistance**:
 2. **HMAC-SHA256**: Adds secret key; prevents pre-computed tables
 3. **AES-256**: Adds another layer of encryption; prevents token re-identification
 
-Even with SHA-256's theoretical weaknesses, OpenToken's combination is secure for healthcare use.
+Even with SHA-256's theoretical weaknesses, OpenToken's combination is secure for regulated PII use cases.
 
 ## Next Steps
 

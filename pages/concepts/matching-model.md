@@ -4,7 +4,7 @@ layout: default
 
 # Matching Model
 
-OpenToken uses a multi-rule tokenization strategy to enable privacy-preserving person matching across healthcare datasets.
+OpenToken uses a multi-rule tokenization strategy to enable privacy-preserving person matching across datasets that contain PII.
 
 ---
 
@@ -47,7 +47,7 @@ The matching model generates cryptographically secure tokens from personal ident
 
 ## Why Multiple Token Rules?
 
-Real-world healthcare data is messy:
+Real-world data is messy:
 
 - Names may have typos or variations
 - Dates may be recorded differently
@@ -194,7 +194,7 @@ This section walks through a complete example: raw input data → normalization 
 
 ### Sample Dataset
 
-Consider four fictional patient records from two different healthcare systems:
+Consider four fictional person records from two different systems:
 
 | RecordId | FirstName | LastName   | BirthDate  | Sex    | PostalCode | SSN         |
 | -------- | --------- | ---------- | ---------- | ------ | ---------- | ----------- |
@@ -255,23 +255,23 @@ For detailed rule compositions, see [Token Rules](token-rules.md).
 
 **HOS-102 (tom O'Reilly, 1995-11-03):**
 
-| Rule | Token Signature                  | Illustrative Token       |
-| ---- | -------------------------------- | ------------------------ |
-| T1   | `OREILLY\|T\|M\|1995-11-03`      | `UXdlcnR5VWlPcEFzRGZ...` |
-| T2   | `OREILLY\|TOM\|1995-11-03\|303`  | `WnhjdmJubUtMbUpIR2d...` |
-| T3   | `OREILLY\|TOM\|M\|1995-11-03`    | `QWxza2RqZmhHa0xQb1p...` |
-| T4   | `671829134\|M\|1995-11-03`       | `TW5iVmN4WmFRd0VyVHl...` |
-| T5   | `OREILLY\|TOM\|M`                | `SWp1aHlHdEZyRGVTd1d...` |
+| Rule | Token Signature                 | Illustrative Token       |
+| ---- | ------------------------------- | ------------------------ |
+| T1   | `OREILLY\|T\|M\|1995-11-03`     | `UXdlcnR5VWlPcEFzRGZ...` |
+| T2   | `OREILLY\|TOM\|1995-11-03\|303` | `WnhjdmJubUtMbUpIR2d...` |
+| T3   | `OREILLY\|TOM\|M\|1995-11-03`   | `QWxza2RqZmhHa0xQb1p...` |
+| T4   | `671829134\|M\|1995-11-03`      | `TW5iVmN4WmFRd0VyVHl...` |
+| T5   | `OREILLY\|TOM\|M`               | `SWp1aHlHdEZyRGVTd1d...` |
 
 **CLN-202 (Thomas O'Reilly, 1995-11-03, no SSN):**
 
-| Rule | Token Signature                     | Illustrative Token       |
-| ---- | ----------------------------------- | ------------------------ |
-| T1   | `OREILLY\|T\|M\|1995-11-03`         | `RHZiTmNYemFRd0VyWnR...` |
-| T2   | `OREILLY\|THOMAS\|1995-11-03\|303`  | `S2p1aHlHdEZyRGVWd1h...` |
-| T3   | `OREILLY\|THOMAS\|M\|1995-11-03`    | `VXl0ckVXcUFzRGZHaEp...` |
-| T4   | — (SSN missing)                     | *Not generated*          |
-| T5   | `OREILLY\|THO\|M`                   | `QmFzZTY0UExhY2Vob2w...` |
+| Rule | Token Signature                    | Illustrative Token       |
+| ---- | ---------------------------------- | ------------------------ |
+| T1   | `OREILLY\|T\|M\|1995-11-03`        | `RHZiTmNYemFRd0VyWnR...` |
+| T2   | `OREILLY\|THOMAS\|1995-11-03\|303` | `S2p1aHlHdEZyRGVWd1h...` |
+| T3   | `OREILLY\|THOMAS\|M\|1995-11-03`   | `VXl0ckVXcUFzRGZHaEp...` |
+| T4   | — (SSN missing)                    | *Not generated*          |
+| T5   | `OREILLY\|THO\|M`                  | `QmFzZTY0UExhY2Vob2w...` |
 
 **Observation:** HOS-102 and CLN-202 can match on **T1** (first initial) even though the full first name differs (TOM vs THOMAS). They do **not** match on rules that require the full first name, and they cannot generate T4 because the SSN is missing.
 

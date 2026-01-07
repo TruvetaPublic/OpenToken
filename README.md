@@ -1,6 +1,6 @@
 # OpenToken
 
-Privacy-preserving tokenization and matching library for healthcare data. OpenToken generates deterministic, cryptographically secure tokens from person attributes (name, birthdate, SSN, etc.) so datasets can be matched without exposing raw identifiers.
+Privacy-preserving tokenization and matching library for secure PII-based person linkage. OpenToken generates deterministic, cryptographically secure tokens from person attributes (name, birthdate, SSN, etc.) so datasets can be matched without exposing raw identifiers.
 
 ## Introduction
 
@@ -46,7 +46,7 @@ Perfect for understanding privacy-preserving record linkage concepts before divi
 
 ## Why OpenToken
 
-- Healthcare-grade validation and normalization for names, birthdates, SSN, postal codes, sex
+- Practical validation and normalization for common PII-derived attributes (names, birthdates, SSN, postal codes, sex)
 - Secure pipeline: SHA-256 → HMAC-SHA256 → AES-256 (or hash-only mode)
 - Multiple token rules (T1–T5) to increase match confidence across varied data quality
 

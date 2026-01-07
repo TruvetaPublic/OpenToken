@@ -6,13 +6,13 @@ layout: default
 
 ## What is OpenToken?
 
-OpenToken is a privacy-preserving tokenization and matching library designed for healthcare and other domains requiring secure person linkage. It generates cryptographically secure matching tokens from person attributes, enabling matching across datasets without directly comparing names, birthdates, SSNs, and other sensitive identifiers.
+OpenToken is a privacy-preserving tokenization and matching library for secure person linkage using PII-derived attributes. It generates cryptographically secure matching tokens from person attributes, enabling matching across datasets without directly comparing names, birthdates, SSNs, and other sensitive identifiers.
 
 Both Java and Python implementations produce **byte-identical tokens** for the same normalized input, enabling flexible deployment and cross-language workflows.
 
 ## The Problem
 
-Healthcare organizations need to match patients across datasets—finding the same person across insurance claims, clinical records, and research databases. Direct comparison of names and birthdates raises privacy concerns and is error-prone due to typos and data quality variations. **OpenToken solves this by generating deterministic cryptographic tokens from person data.**
+Organizations often need to match people across datasets—finding the same person across systems and time. Direct comparison of names and birthdates raises privacy concerns and is error-prone due to typos and data quality variations. **OpenToken solves this by generating deterministic cryptographic tokens from person data.**
 
 ## The Solution
 
@@ -54,7 +54,7 @@ OpenToken uses **5 distinct token rules (T1–T5)** that define which attributes
 
 ### Validation & Normalization
 
-Before tokens are generated, attributes are validated against healthcare-grade rules:
+Before tokens are generated, attributes are validated against practical, PII-focused rules:
 
 - **FirstName/LastName**: No placeholders, proper length, diacritics normalized
 - **BirthDate**: 1910–today, valid format (YYYY-MM-DD)
@@ -104,14 +104,14 @@ OpenToken is implemented in **Java and Python**. Both produce **byte-identical t
 
 - **No Reversal**: Tokens cannot be decrypted back to original data without the encryption key
 - **Deterministic**: Same input always produces the same token (enables matching)
-- **Healthcare-Grade**: Follows HIPAA best practices for handling patient data
+- **Privacy-Focused**: Designed for regulated environments where PII must be protected (healthcare is one common example)
 - **Validation**: Rejects invalid or placeholder values before processing
 
 ## Who Uses OpenToken?
 
 - **Data Engineers**: Building person matching pipelines
-- **Privacy/Infra Engineers**: Securing sensitive data in healthcare systems
-- **Healthcare Organizations**: Matching patients across datasets while preserving privacy
+- **Privacy/Infra Engineers**: Securing sensitive data in regulated systems
+- **Data/Platform Teams**: Linking records across datasets while preserving privacy
 - **Researchers**: Linking datasets for cohort studies without exposing raw identifiers
 
 ## Next Steps
