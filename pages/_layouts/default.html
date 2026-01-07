@@ -27,15 +27,15 @@
       <div class="wrapper">
         <nav class="site-sidebar">
           <ul>
-            <li><a href="{{ '/' | relative_url }}">Home</a></li>
-            <li><a href="{{ '/quickstarts/' | relative_url }}">Quickstarts</a></li>
-            <li><a href="{{ '/concepts/' | relative_url }}">Concepts</a></li>
-            <li><a href="{{ '/operations/' | relative_url }}">Operations</a></li>
-            <li><a href="{{ '/config/' | relative_url }}">Configuration</a></li>
-            <li><a href="{{ '/reference/' | relative_url }}">Reference</a></li>
-            <li><a href="{{ '/security.html' | relative_url }}">Security</a></li>
-            <li><a href="{{ '/specification.html' | relative_url }}">Specification</a></li>
-            <li><a href="{{ '/community/' | relative_url }}">Community</a></li>
+            <li><a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="{{ '/quickstarts/' | relative_url }}" {% if page.url contains '/quickstarts/' %}class="active"{% endif %}>Quickstarts</a></li>
+            <li><a href="{{ '/concepts/' | relative_url }}" {% if page.url contains '/concepts/' %}class="active"{% endif %}>Concepts</a></li>
+            <li><a href="{{ '/operations/' | relative_url }}" {% if page.url contains '/operations/' %}class="active"{% endif %}>Operations</a></li>
+            <li><a href="{{ '/config/' | relative_url }}" {% if page.url contains '/config/' %}class="active"{% endif %}>Configuration</a></li>
+            <li><a href="{{ '/reference/' | relative_url }}" {% if page.url contains '/reference/' %}class="active"{% endif %}>Reference</a></li>
+            <li><a href="{{ '/security.html' | relative_url }}" {% if page.url contains '/security' %}class="active"{% endif %}>Security</a></li>
+            <li><a href="{{ '/specification.html' | relative_url }}" {% if page.url contains '/specification' %}class="active"{% endif %}>Specification</a></li>
+            <li><a href="{{ '/community/' | relative_url }}" {% if page.url contains '/community/' %}class="active"{% endif %}>Community</a></li>
           </ul>
         </nav>
 

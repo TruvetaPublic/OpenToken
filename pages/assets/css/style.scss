@@ -132,11 +132,20 @@ body {
     border-radius: 6px;
     font-weight: 500;
     transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    margin-left: -3px;
 }
 
 .site-sidebar a:hover {
     background: rgba(59, 130, 246, 0.1);
     color: var(--accent-blue);
+}
+
+.site-sidebar a.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+    font-weight: 700;
+    border-left-color: var(--accent-blue);
 }
 
 /* Main Content */
