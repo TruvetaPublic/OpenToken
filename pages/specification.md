@@ -79,7 +79,7 @@ All of the following must be provided per record:
 
 ### Validation Rules
 
-Attributes are validated **after normalization**. See [Security](security.md) for detailed rules:
+Attributes are validated **after normalization**. See [Concepts: Normalization and Validation](concepts/normalization-and-validation.md) for detailed rules:
 
 - **FirstName/LastName**: At least one alphabetic character after diacritic removal
 - **BirthDate**: Valid date within allowed range

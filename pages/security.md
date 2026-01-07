@@ -13,7 +13,6 @@ OpenToken generates cryptographically secure tokens for privacy-preserving perso
 **Key security properties:**
 - Tokens are one-way (cannot reverse to original data without secrets)
 - Same input produces same token (deterministic matching)
-- Validation rejects placeholders and malformed data before tokenization
 - Metadata tracks processing statistics without exposing person data
 
 ---
@@ -240,9 +239,7 @@ python tools/hash_calculator.py \
 - Different secret produces different tokens for same input
 
 **✓ Data quality issues:**
-- Validation rejects placeholders (`Unknown`, `Test`, `N/A`)
-- Normalization handles format variations (dates, names, ZIP codes)
-- Invalid records tracked in metadata (not silently processed)
+Metadata captures processing statistics; data quality guidance lives in the concepts documentation.
 
 ### What OpenToken Does NOT Protect Against
 
@@ -287,34 +284,11 @@ OpenToken provides cryptographic primitives but **users are responsible for:**
 - Protection after decryption (decrypted tokens are plaintext hashes)
 - Protection against authorized users misusing tokens
 
-### Validation Safeguards
+### Data Quality: Normalization and Validation
 
-OpenToken validates all attributes before tokenization:
+Normalization and validation rules are documented separately to keep this page focused on cryptography and secret management.
 
-**FirstName and LastName:**
-- Reject empty/null values
-- Reject placeholders (`Unknown`, `Test`, `NotAvailable`, `Patient`, `Sample`)
-- Require at least one alphabetic character after normalization
-
-**BirthDate:**
-- Reject dates before 1910-01-01 (implausible)
-- Reject future dates (invalid)
-- Normalize multiple formats to `YYYY-MM-DD`
-
-**SocialSecurityNumber:**
-- Reject reserved area codes (000, 666, 900-999)
-- Reject zero group or serial numbers
-- Reject common invalid sequences (111-11-1111, etc.)
-
-**PostalCode:**
-- Reject placeholder ZIP codes (00000, 11111, 12345)
-- Reject reserved Canadian postal codes
-- Auto-pad short ZIP codes to 5 digits
-
-**Sex:**
-- Accept only `Male` or `Female` (case-insensitive)
-
-See [Concepts: Normalization and Validation](concepts/normalization-and-validation.md) for complete validation rules.
+See [Concepts: Normalization and Validation](concepts/normalization-and-validation.md).
 
 ---
 

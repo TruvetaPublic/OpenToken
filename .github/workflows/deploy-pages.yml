@@ -1,5 +1,5 @@
 # GitHub Pages deployment workflow
-# Publishes documentation from /docs folder to GitHub Pages
+# Publishes documentation from /pages folder to GitHub Pages
 
 name: Deploy GitHub Pages
 

@@ -56,8 +56,7 @@ This site organizes quickstarts, concepts, operations guidance, configuration, r
 	- [Metadata Format](reference/metadata-format.md)
 	- [Token Registration](reference/token-registration.md)
 - Security
-	- [Security Overview](security.md)
-	- [Security Details](security/index.md)
+	- [Security](security.md)
 - Specification
 	- [Specification](specification.md)
 - Community
