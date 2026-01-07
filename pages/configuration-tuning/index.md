@@ -14,14 +14,14 @@ OpenToken processes CSV and Parquet files. Both formats support the same attribu
 
 Input columns are case-insensitive and support common aliases:
 
-| Attribute                  | Accepted Column Names                                  | Required | Type   | Example                      |
-| -------------------------- | ------------------------------------------------------ | -------- | ------ | ---------------------------- |
-| **Record ID**              | `RecordId`, `Id`                                       | Optional | String | `patient_123`, `uuid-abc...` |
-| **First Name**             | `FirstName`, `GivenName`                               | Yes      | String | `John`                       |
-| **Last Name**              | `LastName`, `Surname`                                  | Yes      | String | `Doe`                        |
-| **Birth Date**             | `BirthDate`, `DateOfBirth`                             | Yes      | Date   | `1980-01-15`                 |
-| **Sex**                    | `Sex`, `Gender`                                        | Yes      | String | `Male`, `M`, `Female`, `F`   |
-| **Postal Code**            | `PostalCode`, `ZipCode`, `ZIP3`, `ZIP4`, `ZIP5`        | Yes      | String | `98004`, `K1A 1A1`           |
+| Attribute                  | Accepted Column Names                                  | Required | Type   | Example                                       |
+| -------------------------- | ------------------------------------------------------ | -------- | ------ | --------------------------------------------- |
+| **Record ID**              | `RecordId`, `Id`                                       | Optional | String | `patient_123`, `uuid-abc...`                  |
+| **First Name**             | `FirstName`, `GivenName`                               | Yes      | String | `John`                                        |
+| **Last Name**              | `LastName`, `Surname`                                  | Yes      | String | `Doe`                                         |
+| **Birth Date**             | `BirthDate`, `DateOfBirth`                             | Yes      | Date   | `1980-01-15`                                  |
+| **Sex**                    | `Sex`, `Gender`                                        | Yes      | String | `Male`, `M`, `Female`, `F`                    |
+| **Postal Code**            | `PostalCode`, `ZipCode`, `ZIP3`, `ZIP4`, `ZIP5`        | Yes      | String | `98004`, `K1A 1A1`                            |
 | **Social Security Number** | `SocialSecurityNumber`, `NationalIdentificationNumber` | Yes      | String | `123-45-6789` (digits-only values normalized) |
 
 ### CSV Format
@@ -213,50 +213,6 @@ java -jar opentoken-cli-*.jar \
 - Debugging attribute normalization issues
 - Verifying token consistency across datasets
 - Re-encrypting with different keys
-
----
-
-## Performance Tuning
-
-### Batch Processing
-
-For large datasets, consider:
-
-1. **Split input files**: Process multiple files in parallel
-   ```bash
-   # Process 10 files in parallel
-   for file in data_*.csv; do
-     java -jar opentoken-cli-*.jar \
-       -i "$file" -t csv -o "tokens_${file%.csv}.csv" \
-       -h "HashingKey" -e "EncryptionKey" &
-   done
-   wait
-   ```
-
-2. **Use Parquet format**: More efficient than CSV for large datasets
-   ```bash
-   java -jar opentoken-cli-*.jar \
-     -i data.parquet -t parquet -o tokens.parquet \
-     -h "HashingKey" -e "EncryptionKey"
-   ```
-
-3. **Use PySpark bridge**: For distributed processing at scale
-   ```python
-   from opentoken_pyspark import SparkPersonTokenProcessor
-   processor = SparkPersonTokenProcessor(spark, "key", "secret")
-   tokens_df = processor.process_dataframe(input_df)
-   ```
-
-### Memory Usage
-
-- **Java**: Tokens are generated in-memory with streaming output. Large files (1GB+) may require heap adjustment:
-  ```bash
-  java -Xmx4g -jar opentoken-cli-*.jar ...
-  ```
-
-- **Python**: Streaming I/O minimizes memory footprint. Ideal for constraint environments.
-
-- **PySpark**: Distributed across cluster; memory per node configurable.
 
 ---
 

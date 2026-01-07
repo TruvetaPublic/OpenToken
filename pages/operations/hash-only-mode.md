@@ -26,20 +26,20 @@ Token Signature → SHA-256 Hash → HMAC-SHA256(hash, secret) → AES-256-GCM E
 
 ## When to Use Hash-Only Mode
 
+Hash-only mode is primarily used to support **overlap analysis workflows** where you receive **encrypted tokens from an external partner** and want to build an internal dataset that can be joined against those tokens.
+
 **Use hash-only when:**
 
-- Token matching within a single organization (no external sharing)
-- Raw data is already protected at rest
-- Encryption overhead is unnecessary
-- Faster processing is preferred
-- Smaller token output is desired
+- You are creating an internal tokenized dataset that will be matched against **encrypted tokens received from an external partner** (after decrypting their tokens to the hash-only equivalent)
+- You need faster processing or smaller token size for **internal analytics and overlap reporting**
+- Raw data and tokens are already protected at rest within your environment
 
 **Use encryption mode when:**
 
-- Sharing tokens with external parties
-- Defense in depth is required
-- Regulatory requirements mandate encryption
-- Tokens may be stored in less-secure systems
+- Sharing tokens with external parties (encrypted tokens are the artifact that should be exchanged)
+- Defense in depth is required for tokens stored outside your boundary
+- Regulatory or contractual requirements mandate encryption of shared artifacts
+- Tokens may be stored in less-secure systems or shared across multiple organizations
 
 ---
 
@@ -147,7 +147,12 @@ No `EncryptionSecretHash` field is present in hash-only mode.
 
 ## Matching Hash-Only Tokens
 
-Hash-only tokens can be matched directly without decryption:
+Hash-only tokens can be matched directly without decryption when **both sides are in hash-only form**. In an external-partner workflow, this typically means:
+
+1. Partner generates and shares **encrypted tokens**.
+2. You run [Decrypting Tokens](decrypting-tokens.md) to convert the partner's encrypted tokens into their hash-only equivalent.
+3. You generate **hash-only tokens** for your own dataset using the same hashing secret.
+4. You join the two hash-only datasets to measure overlap.
 
 ```sql
 -- Match records between datasets

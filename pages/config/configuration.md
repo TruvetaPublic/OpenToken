@@ -223,6 +223,5 @@ See [Spark or Databricks](../operations/spark-or-databricks.md) for cluster conf
 
 ## Next Steps
 
-- **Performance tuning**: [Performance Tuning](performance-tuning.md)
 - **Batch processing**: [Running Batch Jobs](../operations/running-batch-jobs.md)
 - **Metadata format**: [Reference: Metadata Format](../reference/metadata-format.md)

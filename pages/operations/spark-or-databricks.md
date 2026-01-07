@@ -326,5 +326,4 @@ See the notebooks in `lib/python/opentoken-pyspark/notebooks/`:
 ## Next Steps
 
 - **Batch processing**: [Running Batch Jobs](running-batch-jobs.md)
-- **Performance tuning**: [Performance Tuning](../config/performance-tuning.md)
 - **Overlap analysis**: See the [Dataset_Overlap_Analysis_Guide.ipynb](https://github.com/TruvetaPublic/OpenToken/blob/main/lib/python/opentoken-pyspark/notebooks/Dataset_Overlap_Analysis_Guide.ipynb) example notebook

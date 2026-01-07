@@ -10,7 +10,7 @@ Complete reference for OpenToken CLI arguments, modes, and examples.
 
 Treat generated token outputs and metadata as **sensitive**. In particular, `--hash-only` output is intended for internal use and should not be shared externally (for example, in tickets, chats, or public repos).
 
-If you need cross-organization matching, use encrypted mode and follow a controlled exchange process: [Sharing Tokenized Data](../operations/sharing-tokenized-data.md).
+Hash-only mode is primarily used to build **internal overlap-analysis datasets** that can be joined against **encrypted tokens received from external partners** (after decryption). If you need to **exchange** tokens across organizations, use encrypted mode and follow a controlled exchange process: [Sharing Tokenized Data](../operations/sharing-tokenized-data.md).
 
 ## Command Syntax
 

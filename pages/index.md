@@ -49,7 +49,6 @@ This site organizes quickstarts, concepts, operations guidance, configuration, r
 	- [Mock Data Workflows](operations/mock-data-workflows.md)
 - Configuration
 	- [Configuration](config/configuration.md)
-	- [Performance Tuning](config/performance-tuning.md)
 - Reference
 	- [CLI Reference](reference/cli.md)
 	- [Java API Reference](reference/java-api.md)

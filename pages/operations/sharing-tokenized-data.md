@@ -74,16 +74,25 @@ java -jar opentoken-cli-*.jar \
   -e "$SHARED_ENCRYPTION_KEY"
 ```
 
-**Hash-only mode (internal or trusted-partner scenarios):**
+**Hash-only mode (overlap analysis helper, internal artifact):**
+
+Hash-only output is primarily used **inside your environment** to support overlap analysis against encrypted tokens received from a partner:
 
 ```bash
 java -jar opentoken-cli-*.jar \
   --hash-only \
-  -i patient_data.csv \
+  -i local_patient_data.csv \
   -t csv \
-  -o tokens_for_partner.csv \
+  -o local_hash_only_tokens.csv \
   -h "$SHARED_HASHING_SECRET"
 ```
+
+Typical pattern:
+
+1. Both parties exchange **encrypted tokens** only.
+2. You decrypt the partner's encrypted tokens to the hash-only equivalent (see [Decrypting Tokens](decrypting-tokens.md)).
+3. You generate **hash-only tokens** for your own dataset.
+4. You perform overlap analysis by joining the two hash-only datasets.
 
 See [Hash-Only Mode](hash-only-mode.md) for trade-offs between encrypted and hash-only tokens.
 

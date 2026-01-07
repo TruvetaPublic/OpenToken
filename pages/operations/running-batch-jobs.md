@@ -211,7 +211,6 @@ Check the metadata file after each run for:
 
 ## Next Steps
 
-- **Performance tuning**: [Performance Tuning](../config/performance-tuning.md)
 - **Distributed processing**: [Spark or Databricks](spark-or-databricks.md)
 - **Hash-only mode**: [Hash-Only Mode](hash-only-mode.md)
 - **Decrypt tokens**: [Decrypting Tokens](decrypting-tokens.md)

@@ -120,7 +120,7 @@ java -jar opentoken-cli-*.jar \
 
 `--hash-only` output is intended for **internal use** and should **not** be shared externally. Hash-only tokens are deterministic and can still be linkable across datasets.
 
-If you need cross-organization matching, use encrypted mode and follow [Sharing Tokenized Data](../operations/sharing-tokenized-data.md).
+The primary use case for hash-only mode is to build an **internal overlap-analysis dataset** that you join against **encrypted tokens received from an external partner** (after decrypting their tokens to the hash-only equivalent). If you need to exchange tokens across organizations, use encrypted mode and follow [Sharing Tokenized Data](../operations/sharing-tokenized-data.md).
 
 ## Understanding the Output
 

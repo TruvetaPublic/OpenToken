@@ -187,4 +187,3 @@ java -Xmx4g -jar opentoken-cli-*.jar ...
 - [Python Quickstart](python-quickstart.md) - Cross-language parity
 - [CLI Reference](../reference/cli.md) - All command options
 - [Java API Reference](../reference/java-api.md) - Programmatic usage
-- [Performance Tuning](../config/performance-tuning.md) - Optimize for large datasets
