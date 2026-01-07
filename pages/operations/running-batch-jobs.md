@@ -132,36 +132,6 @@ cat resources/output.metadata.json
 
 ---
 
-## Parallelization Strategies
-
-### File Splitting
-
-For large datasets, split input files and process in parallel:
-
-```bash
-# Process multiple files in parallel
-for file in data_*.csv; do
-  java -jar opentoken-cli-*.jar \
-    -i "$file" -t csv -o "tokens_${file%.csv}.csv" \
-    -h "HashingKey" -e "EncryptionKey" &
-done
-wait
-```
-
-### Parquet Format
-
-Parquet is more efficient than CSV for large datasets:
-
-```bash
-java -jar opentoken-cli-*.jar \
-  -i data.parquet -t parquet -o tokens.parquet \
-  -h "HashingKey" -e "EncryptionKey"
-```
-
-For distributed processing at scale, see [Spark or Databricks](spark-or-databricks.md).
-
----
-
 ## Exit Codes
 
 | Exit Code | Meaning                                                 |
