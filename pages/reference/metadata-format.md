@@ -13,7 +13,7 @@ OpenToken generates a metadata file alongside every token output file. Metadata 
 - **Processing statistics**: Counts of total records, invalid attributes, and blank tokens
 - **System information**: Platform (Java/Python), runtime version, library version
 - **Secure hashes**: SHA-256 hashes of secrets for verification (not the secrets themselves)
-- **Audit trail**: Input/output paths, processing timestamp
+- **Audit trail**: What was processed and how (platform, version, and validation statistics)
 
 Metadata files:
 - Always use JSON format with `.metadata.json` extension
@@ -55,9 +55,6 @@ Extension: .metadata.json
     "RuleId": integer,
     ...
   },
-  "InputFilePath": "string",
-  "OutputFilePath": "string",
-  "ProcessingTimestamp": "string (ISO 8601)",
   "HashingSecretHash": "string (hex)",
   "EncryptionSecretHash": "string (hex, optional)"
 }
@@ -74,7 +71,7 @@ Extension: .metadata.json
 | `Platform`         | String | Processing platform/language         | `"Java"` or `"Python"` |
 | `JavaVersion`      | String | Java runtime version (Java only)     | `"21.0.0"`             |
 | `PythonVersion`    | String | Python runtime version (Python only) | `"3.11.5"`             |
-| `OpenTokenVersion` | String | OpenToken library version            | `"1.7.0"`              |
+| `OpenTokenVersion` | String | OpenToken library version            | `"1.12.2"`             |
 
 **Notes:**
 - Only `JavaVersion` OR `PythonVersion` appears (not both)
@@ -101,18 +98,6 @@ Extension: .metadata.json
 - Blank tokens occur when a rule requires an invalid attribute
 - Example: Invalid `BirthDate` causes blank tokens for T1, T2, T3, T4 (but not T5)
 
-### File Paths and Timing
-
-| Field                 | Type   | Description               | Example                        |
-| --------------------- | ------ | ------------------------- | ------------------------------ |
-| `InputFilePath`       | String | Path to input file        | `"../../resources/sample.csv"` |
-| `OutputFilePath`      | String | Path to output token file | `"../../resources/output.csv"` |
-| `ProcessingTimestamp` | String | ISO 8601 timestamp (UTC)  | `"2024-01-15T10:30:45Z"`       |
-
-**Notes:**
-- Paths are as provided to CLI (may be relative or absolute)
-- Timestamp is in UTC with `Z` suffix
-
 ### Secret Hashes
 
 | Field                  | Type   | Description                                    | Example                                 |
@@ -135,7 +120,7 @@ Extension: .metadata.json
 {
   "Platform": "Java",
   "JavaVersion": "21.0.0",
-  "OpenTokenVersion": "1.7.0",
+  "OpenTokenVersion": "1.12.2",
   "TotalRows": 101,
   "TotalRowsWithInvalidAttributes": 9,
   "InvalidAttributesByType": {
@@ -152,9 +137,6 @@ Extension: .metadata.json
     "T4": 8,
     "T5": 7
   },
-  "InputFilePath": "/app/resources/input.csv",
-  "OutputFilePath": "/app/resources/output.csv",
-  "ProcessingTimestamp": "2024-01-15T10:30:45Z",
   "HashingSecretHash": "e0b4e60b6a9f7ea3b13c0d6a6e1b8c5d4e3f2a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0",
   "EncryptionSecretHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8"
 }
@@ -166,7 +148,7 @@ Extension: .metadata.json
 {
   "Platform": "Python",
   "PythonVersion": "3.11.5",
-  "OpenTokenVersion": "1.7.0",
+  "OpenTokenVersion": "1.12.2",
   "TotalRows": 50,
   "TotalRowsWithInvalidAttributes": 2,
   "InvalidAttributesByType": {
@@ -175,9 +157,6 @@ Extension: .metadata.json
   "BlankTokensByRule": {
     "T2": 2
   },
-  "InputFilePath": "/data/input.csv",
-  "OutputFilePath": "/data/tokens.csv",
-  "ProcessingTimestamp": "2024-01-15T14:22:10Z",
   "HashingSecretHash": "abc123def456789abc123def456789abc123def456789abc123def456789abc123"
 }
 ```
@@ -343,8 +322,8 @@ python tools/hash_calculator.py \
 ### Audit Trail
 
 Metadata provides an audit record of:
-- What was processed (input/output paths)
-- When it was processed (timestamp)
+- What was processed (record counts and attribute-level statistics)
+- When it was processed (inferred from surrounding system logs or job metadata)
 - How it was processed (platform, version)
 - What secrets were used (via hashes)
 - What errors occurred (invalid attributes)

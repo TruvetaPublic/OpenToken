@@ -11,9 +11,9 @@ Overview of the metadata produced alongside tokens and how to use it for auditin
 Every OpenToken run generates a metadata file (`.metadata.json`) alongside the token output. This metadata provides:
 
 - Processing statistics (records processed, validation failures, blank tokens)
-- System information (platform, version, timestamp)
+- System information (platform and version)
 - Secure secret verification (SHA-256 hashes, not actual secrets)
-- Audit trail (input/output paths, processing timestamp)
+- Audit trail (platform, library version, and validation statistics)
 
 ## Key Concepts
 
@@ -51,9 +51,8 @@ python tools/hash_calculator.py \
 ### Audit Trail
 
 Metadata provides:
-- When processing occurred (`ProcessingTimestamp`)
-- What files were processed (`InputFilePath`, `OutputFilePath`)
-- What platform and version (`Platform`, `OpenTokenVersion`)
+- What platform and version (`Platform`, `OpenTokenVersion`, and `JavaVersion`/`PythonVersion`)
+- What data quality outcomes (record counts and attribute-level statistics)
 
 **Use cases:**
 - Compliance audits (who/when/where)

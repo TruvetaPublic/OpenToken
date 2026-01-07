@@ -135,7 +135,7 @@ Every run generates a `.metadata.json` file:
 {
   "Platform": "Java",
   "JavaVersion": "21.0.0",
-  "OpenTokenVersion": "1.7.0",
+  "OpenTokenVersion": "1.12.2",
   "TotalRows": 100,
   "TotalRowsWithInvalidAttributes": 3,
   "InvalidAttributesByType": {
@@ -146,11 +146,8 @@ Every run generates a `.metadata.json` file:
     "T1": 2,
     "T4": 1
   },
-  "ProcessingTimestamp": "2024-01-15T10:30:45Z",
   "HashingSecretHash": "e0b4e60b...",
-  "EncryptionSecretHash": "a1b2c3d4...",
-  "InputPath": "/path/to/input.csv",
-  "OutputPath": "/path/to/output.csv"
+  "EncryptionSecretHash": "a1b2c3d4..."
 }
 ```
 

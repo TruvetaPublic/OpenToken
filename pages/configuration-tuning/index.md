@@ -141,9 +141,6 @@ Always JSON format, suffixed `.metadata.json` (e.g., `output.metadata.json`):
     "T4": 1,
     "T5": 1
   },
-  "InputFilePath": "../../resources/sample.csv",
-  "OutputFilePath": "../../resources/output.csv",
-  "ProcessingTimestamp": "2024-01-15T10:30:45Z",
   "HashingSecretHash": "abc123def456...",
   "EncryptionSecretHash": "fed456abc123..."
 }

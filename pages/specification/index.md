@@ -102,14 +102,14 @@ Every token generation run produces a `.metadata.json` file containing:
 - Processing counts (total records, invalid attributes, blank tokens)
 - Platform/version information
 - SHA-256 hashes of secrets (not the secrets themselves)
-- Input/output paths and timestamp
+- (Input/output file paths and timestamps are tracked via job configuration and logs, not stored directly in metadata)
 
 **Example metadata:**
 ```json
 {
   "Platform": "Java",
   "JavaVersion": "21.0.0",
-  "OpenTokenVersion": "1.7.0",
+  "OpenTokenVersion": "1.12.2",
   "TotalRows": 101,
   "TotalRowsWithInvalidAttributes": 9,
   "InvalidAttributesByType": {
@@ -121,7 +121,6 @@ Every token generation run produces a `.metadata.json` file containing:
     "T1": 5,
     "T2": 12
   },
-  "ProcessingTimestamp": "2024-01-15T10:30:45Z",
   "HashingSecretHash": "e0b4e60b...",
   "EncryptionSecretHash": "a1b2c3d4..."
 }

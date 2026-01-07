@@ -207,28 +207,34 @@ def process_csv(input_path, output_path, hashing_secret, encryption_key):
 
 ## PySpark Integration
 
-For distributed processing:
+For distributed processing on Spark, use the `opentoken_pyspark` bridge:
 
 ```python
-from opentoken_pyspark import OpenTokenUDF
+from opentoken_pyspark import OpenTokenProcessor
 
-# Create UDF
-opentoken_udf = OpenTokenUDF(
+processor = OpenTokenProcessor(
     hashing_secret="HashingSecret",
-    encryption_key="EncryptionKey-32Characters-Here"
+    encryption_key="EncryptionKey-32Characters-Here",
 )
 
-# Apply to DataFrame
-df_tokens = df.withColumn(
-    "tokens",
-    opentoken_udf.generate_tokens(
-        df.FirstName, df.LastName, df.BirthDate,
-        df.Sex, df.PostalCode, df.SSN
-    )
-)
+# df must include the standard person columns (or aliases), e.g.:
+# RecordId, FirstName, LastName, BirthDate, Sex, PostalCode, SSN
+df_tokens = processor.process_dataframe(df)
+
+df_tokens.show()
 ```
 
-See [Spark or Databricks](../operations/spark-or-databricks.md) for details.
+For overlap analysis between two tokenized datasets, use:
+
+```python
+from opentoken_pyspark import OpenTokenOverlapAnalyzer
+
+analyzer = OpenTokenOverlapAnalyzer("EncryptionKey-32Characters-Here")
+results = analyzer.analyze_overlap(tokens_df1, tokens_df2, ["T1", "T2"])
+analyzer.print_summary(results)
+```
+
+See [Spark or Databricks](../operations/spark-or-databricks.md) for end-to-end PySpark examples.
 
 ## Cross-Language Parity
 
