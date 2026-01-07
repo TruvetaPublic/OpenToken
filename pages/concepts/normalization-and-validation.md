@@ -275,7 +275,7 @@ Notes:
 
 - `.metadata.json` does not include per-record invalid reasons (like `INVALID_LENGTH`) or per-record token skip details.
 - To understand why a specific row didn’t generate a token, inspect that row’s output token columns (blank means not generated).
-- For the full schema, see `docs/metadata-format.md`.
+- For the full schema, see [docs/metadata-format.md](https://github.com/TruvetaPublic/OpenToken/blob/main/docs/metadata-format.md).
 
 ---
 

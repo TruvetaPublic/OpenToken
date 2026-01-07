@@ -64,7 +64,7 @@ public class MiddleNameAttribute extends BaseAttribute {
 }
 ```
 
-2. **Register in service file** at `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute`:
+2. **Register in service file** at [lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute](https://github.com/TruvetaPublic/OpenToken/blob/main/lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute):
 
 ```
 com.truveta.opentoken.attributes.general.DateAttribute
@@ -129,7 +129,7 @@ public class T6Token implements Token {
 }
 ```
 
-2. **Register in service file** at `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token`:
+2. **Register in service file** at [lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token](https://github.com/TruvetaPublic/OpenToken/blob/main/lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token):
 
 ```
 com.truveta.opentoken.tokens.definitions.T1Token
@@ -275,12 +275,12 @@ This verifies that identical inputs produce identical token outputs in both lang
 
 ### Java Files
 
-| Type                   | Location                                                                                             |
-| ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| Attribute classes      | `lib/java/opentoken/src/main/java/com/truveta/opentoken/attributes/`                                 |
-| Token classes          | `lib/java/opentoken/src/main/java/com/truveta/opentoken/tokens/definitions/`                         |
-| Attribute service file | `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute` |
-| Token service file     | `lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token`         |
+| Type                   | Location                                                                                                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Attribute classes      | `lib/java/opentoken/src/main/java/com/truveta/opentoken/attributes/`                                                                                                                                                                                          |
+| Token classes          | `lib/java/opentoken/src/main/java/com/truveta/opentoken/tokens/definitions/`                                                                                                                                                                                  |
+| Attribute service file | [lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute](https://github.com/TruvetaPublic/OpenToken/blob/main/lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.attributes.Attribute) |
+| Token service file     | [lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token](https://github.com/TruvetaPublic/OpenToken/blob/main/lib/java/opentoken/src/main/resources/META-INF/services/com.truveta.opentoken.tokens.Token)                 |
 
 ### Python Files
 

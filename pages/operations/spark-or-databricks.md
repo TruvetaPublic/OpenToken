@@ -308,10 +308,10 @@ tokens_df.write.mode("overwrite").format("delta").saveAsTable("main.pprl.person_
 
 ## Example Notebooks
 
-See `lib/python/opentoken-pyspark/notebooks/`:
+See the notebooks in `lib/python/opentoken-pyspark/notebooks/`:
 
-- `Custom_Token_Definition_Guide.ipynb` – Define custom token rules
-- `Dataset_Overlap_Analysis_Guide.ipynb` – Find overlapping records across datasets
+- [Custom_Token_Definition_Guide.ipynb](https://github.com/TruvetaPublic/OpenToken/blob/main/lib/python/opentoken-pyspark/notebooks/Custom_Token_Definition_Guide.ipynb) – Define custom token rules
+- [Dataset_Overlap_Analysis_Guide.ipynb](https://github.com/TruvetaPublic/OpenToken/blob/main/lib/python/opentoken-pyspark/notebooks/Dataset_Overlap_Analysis_Guide.ipynb) – Find overlapping records across datasets
 
 ---
 
@@ -327,4 +327,4 @@ See `lib/python/opentoken-pyspark/notebooks/`:
 
 - **Batch processing**: [Running Batch Jobs](running-batch-jobs.md)
 - **Performance tuning**: [Performance Tuning](../config/performance-tuning.md)
-- **Overlap analysis**: See example notebook `Dataset_Overlap_Analysis_Guide.ipynb`
+- **Overlap analysis**: See the [Dataset_Overlap_Analysis_Guide.ipynb](https://github.com/TruvetaPublic/OpenToken/blob/main/lib/python/opentoken-pyspark/notebooks/Dataset_Overlap_Analysis_Guide.ipynb) example notebook
