@@ -10,23 +10,17 @@ Configuration options for OpenToken inputs, outputs, secrets, and runtime behavi
 
 ## CLI Arguments
 
-### Required Arguments
+OpenToken can be run from Java or Python CLIs, or via the helper shell/PowerShell scripts.
 
-| Argument | Alias             | Description                      | Example                  |
-| -------- | ----------------- | -------------------------------- | ------------------------ |
-| `-i`     | `--input`         | Input file path (CSV or Parquet) | `-i data.csv`            |
-| `-t`     | `--type`          | Input file type                  | `-t csv` or `-t parquet` |
-| `-o`     | `--output`        | Output file path                 | `-o tokens.csv`          |
-| `-h`     | `--hashingsecret` | HMAC-SHA256 hashing secret       | `-h "MyHashingKey"`      |
+At a high level you must always specify:
 
-### Optional Arguments
+- the input path and type (CSV or Parquet)
+- an output path for tokens
+- a hashing secret (required)
+- either an encryption key (for encrypted mode) or `--hash-only` (for hash-only mode)
+- optionally `--decrypt` when reading previously encrypted tokens
 
-| Argument | Alias             | Description                       | Default                       |
-| -------- | ----------------- | --------------------------------- | ----------------------------- |
-| `-e`     | `--encryptionkey` | AES-256 encryption key (32 chars) | Required unless `--hash-only` |
-| `-ot`    | `--output-type`   | Output file type                  | Same as input type            |
-|          | `--hash-only`     | Hash-only mode (no encryption)    | `false`                       |
-| `-d`     | `--decrypt`       | Decrypt mode                      | `false`                       |
+For the complete, authoritative list of flags, short options, and defaults, see the [CLI Reference](../reference/cli.md).
 
 ---
 
@@ -141,11 +135,13 @@ Each run produces two files:
 
 ## Processing Modes
 
-| Mode                     | Flag          | Requires      | Output                    |
-| ------------------------ | ------------- | ------------- | ------------------------- |
-| **Encryption** (default) | None          | `-h` and `-e` | Encrypted tokens          |
-| **Hash-only**            | `--hash-only` | `-h` only     | HMAC-SHA256 hashed tokens |
-| **Decrypt**              | `-d`          | `-e` only     | Decrypted (hashed) tokens |
+OpenToken supports three processing modes that control how token signatures are transformed:
+
+- **Encryption (default)** – produces encrypted tokens suitable for external exchange; requires both a hashing secret and an encryption key.
+- **Hash-only** – produces one-way hashed tokens for internal matching and overlap analysis; requires only the hashing secret.
+- **Decrypt** – takes previously encrypted tokens and decrypts them back to their hashed form (equivalent to hash-only output).
+
+For the exact CLI flags that enable each mode, see the [CLI Reference](../reference/cli.md).
 
 ---
 

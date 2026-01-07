@@ -4,7 +4,7 @@ layout: default
 
 # CLI Reference
 
-Complete reference for OpenToken CLI arguments, modes, and examples.
+Complete reference for OpenToken CLI arguments, modes, and examples. This page is the single source of truth for CLI flags and options; other documentation (such as Configuration) links here instead of duplicating them.
 
 ## Security Note
 
