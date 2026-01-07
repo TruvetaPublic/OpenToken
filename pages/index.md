@@ -31,6 +31,7 @@ This site organizes quickstarts, concepts, operations guidance, configuration, r
 
 ## Table of Contents
 
+- [Overview](overview/index.md)
 - Quickstarts
   - [Quickstarts Hub](quickstarts/index.md) — Start here
   - [CLI Quickstart](quickstarts/cli-quickstart.md)
