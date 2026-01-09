@@ -328,16 +328,6 @@ lib/python/
 
 Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`
 
-### Draft Pull Requests (Mandatory)
-
-All new pull requests MUST be created in **draft** mode. The agent should never open a non-draft ("ready for review") PR initially. C
-
-Agent Rules:
-
-- Always set `draft: true` when invoking pull request creation tools.
-- If a PR was accidentally opened as ready, immediately update it to draft and leave a comment noting the correction.
-- Do not convert out of draft automatically; wait for explicit user request or all readiness conditions met.
-
 ## Debugging & Troubleshooting
 
 ### Common Build Issues
