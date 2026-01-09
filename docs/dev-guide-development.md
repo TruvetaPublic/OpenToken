@@ -35,6 +35,7 @@ This guide centralizes contributor-facing information. It covers local setup, la
     - [Python Registration](#python-registration)
     - [Cross-language Parity Checklist](#cross-language-parity-checklist)
     - [Quick Reference](#quick-reference)
+      - [Common Generic Attributes (ready to reuse)](#common-generic-attributes-ready-to-reuse)
   - [Building \& Testing](#building--testing)
     - [Full Multi-language Build](#full-multi-language-build)
     - [Docker Image](#docker-image)
@@ -296,7 +297,8 @@ Prerequisites:
 
 | Java Version | PySpark Version | PyArrow Version | Notes                                           |
 | ------------ | --------------- | --------------- | ----------------------------------------------- |
-| **Java 21**  | **4.0.1+**      | **17.0.0+**     | **Recommended** - Native Java 21 support        |
+| Java 21      | 4.1.x+          | **17.0.0+**     | Native Java 21 support                          |
+| **Java 21**  | **4.0.x+**      | **17.0.0+**     | **Recommended** - Native Java 21 support        |
 | Java 8-17    | 3.5.x           | <20             | Legacy support - use if you cannot upgrade Java |
 
 Install (from repo root):
