@@ -46,6 +46,7 @@ This site organizes quickstarts, concepts, operations guidance, configuration, r
   - [Running Batch Jobs](operations/running-batch-jobs.md)
   - [Spark or Databricks](operations/spark-or-databricks.md)
   - [Sharing Tokenized Data](operations/sharing-tokenized-data.md)
+  - [PPRL Demo Walkthrough](operations/pprl-demo-walkthrough.md)
   - [Decrypting Tokens](operations/decrypting-tokens.md)
   - [Hash-Only Mode](operations/hash-only-mode.md)
   - [Mock Data Workflows](operations/mock-data-workflows.md)
