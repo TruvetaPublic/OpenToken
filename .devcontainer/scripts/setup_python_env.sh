@@ -6,9 +6,18 @@ echo "=== Setting up Python environment ==="
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$SCRIPT_DIR/../.."
 
-# Create venv at repo root
+# Create venv at repo root (handles cases where mount exists but env not yet created)
 cd "$REPO_ROOT"
-if [ ! -d .venv ]; then
+mkdir -p .venv
+if [ "$(id -u)" -eq 0 ]; then
+  chown -R "$(id -u)":"$(id -g)" .venv 2>/dev/null || true
+else
+  if command -v sudo >/dev/null 2>&1; then
+    sudo chown -R "$(id -u)":"$(id -g)" .venv 2>/dev/null || true
+  fi
+fi
+
+if [ ! -f .venv/bin/activate ]; then
   echo "Creating virtual environment..."
   python -m venv .venv
 else
@@ -32,6 +41,6 @@ pip install --no-cache-dir \
   -r dev-requirements.txt \
   -e opentoken \
   -e opentoken-cli \
-  -e opentoken-pyspark
+  -e "opentoken-pyspark[spark40]"
 
 echo "✓ Python environment setup complete"
