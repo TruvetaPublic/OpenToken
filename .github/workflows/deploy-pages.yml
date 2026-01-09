@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - main
-      - dev/mattwise-42/github-pages-doc-creation # TODO: remove before merging
     paths:
       - "pages/**"
       - ".github/workflows/deploy-pages.yml"
