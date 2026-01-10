@@ -9,8 +9,6 @@ import os
 import shutil
 import tempfile
 import zipfile
-from pathlib import Path
-from typing import Optional
 
 from cryptography.hazmat.primitives.asymmetric import ec
 

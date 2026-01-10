@@ -97,6 +97,8 @@ python -m opentoken_cli.main \
   -o ../../../resources/output.zip
 ```
 
+**Hash-only (skip encryption):** add `-h`/`--hash-only` to either command to emit hashed tokens only while still deriving keys via ECDH.
+
 **What happens:**
 1. CLI loads receiver's public key
 2. CLI generates sender's key pair (if not exists) in `~/.opentoken/`
@@ -111,12 +113,12 @@ python -m opentoken_cli.main \
 
 ```bash
 # Java
-java -jar opentoken-cli/target/opentoken-cli-*.jar --decrypt-with-ecdh \
+java -jar opentoken-cli/target/opentoken-cli-*.jar --decrypt \
   -i ../../received_tokens/output.zip \
   -o ../../received_tokens/decrypted_tokens.csv
 
 # Python
-python -m opentoken_cli.main --decrypt-with-ecdh \
+python -m opentoken_cli.main --decrypt \
   -i ../../../received_tokens/output.zip \
   -o ../../../received_tokens/decrypted_tokens.csv
 ```
@@ -130,17 +132,19 @@ python -m opentoken_cli.main --decrypt-with-ecdh \
 
 ### Key CLI Arguments
 
-| Argument | Description |
-|----------|-------------|
-| `--generate-keypair` | Generate a new ECDH P-256 key pair |
-| `--receiver-public-key <path>` | Path to receiver's public key (for sender) |
-| `--sender-public-key <path>` | Path to sender's public key (for receiver, optional if in ZIP) |
-| `--sender-keypair-path <path>` | Custom location for sender's key pair (default: `~/.opentoken/`) |
-| `--receiver-keypair-path <path>` | Custom location for receiver's key pair (default: `~/.opentoken/`) |
-| `--decrypt-with-ecdh` | Decrypt mode using ECDH key exchange |
-| `-i, --input <path>` | Input file path |
-| `-o, --output <path>` | Output file path (use `.zip` extension for packaged output) |
-| `-t, --type <format>` | Input/output format (`csv` or `parquet`) |
+| Argument                         | Description                                                                              |
+| -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `--generate-keypair`             | Generate a new ECDH key pair (default curve P-256)                                       |
+| `--ecdh-curve`                   | Optional elliptic curve name (e.g., `P-256`, `secp384r1`); defaults to `P-256`           |
+| `--receiver-public-key <path>`   | Path to receiver's public key (for sender)                                               |
+| `--sender-public-key <path>`     | Path to sender's public key (for receiver, optional if in ZIP)                           |
+| `--sender-keypair-path <path>`   | Custom location for sender's key pair (default: `~/.opentoken/`)                         |
+| `--receiver-keypair-path <path>` | Custom location for receiver's key pair (default: `~/.opentoken/`)                       |
+| `-h, --hash-only`                | Hash-only mode. Generate hashed tokens without encryption (keys still derived via ECDH). |
+| `-d, --decrypt`                  | Decrypt mode using ECDH key exchange                                                     |
+| `-i, --input <path>`             | Input file path                                                                          |
+| `-o, --output <path>`            | Output file path (use `.zip` extension for packaged output)                              |
+| `-t, --type <format>`            | Input/output format (`csv` or `parquet`)                                                 |
 
 ---
 
@@ -176,7 +180,7 @@ pip install -e .
 
 ### Step 1: Receiver Generates Key Pair
 
-The receiver must first generate an ECDH P-256 key pair. This only needs to be done once and can be reused for multiple data exchanges.
+The receiver must first generate an ECDH key pair (default curve: P-256). You can override the curve with `--ecdh-curve` (for example, `--ecdh-curve secp384r1`). This only needs to be done once and can be reused for multiple data exchanges.
 
 #### Option A: Using CLI (Recommended)
 

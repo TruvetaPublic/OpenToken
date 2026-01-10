@@ -2,7 +2,6 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-import pytest
 from opentoken.attributes.attribute_loader import AttributeLoader
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.attributes.person.last_name_attribute import LastNameAttribute

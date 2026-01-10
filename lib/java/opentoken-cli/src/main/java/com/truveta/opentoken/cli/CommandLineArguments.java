@@ -15,16 +15,6 @@ public class CommandLineArguments {
         public static final String TYPE_PARQUET = "parquet";
 
         @Getter
-        @Parameter(names = { "-h",
-                        "--hashingsecret" }, description = "Hashing Secret to hash token signatures.", required = false)
-        private String hashingSecret = null;
-
-        @Getter
-        @Parameter(names = { "-e",
-                        "--encryptionkey" }, description = "Encryption key to encrypt tokens with.", required = false)
-        private String encryptionKey = null;
-
-        @Getter
         @Parameter(names = { "-i", "--input" }, description = "Input file path.", required = true)
         private String inputPath = "csv";
 
@@ -40,16 +30,6 @@ public class CommandLineArguments {
         @Parameter(names = { "-ot",
                         "--output-type" }, description = "Output file type if different from input.", required = false)
         private String outputType = "";
-
-        @Getter
-        @Parameter(names = { "-d",
-                        "--decrypt" }, description = "Decrypt mode. Decrypts tokens from input file.", required = false)
-        private boolean decrypt = false;
-
-        @Getter
-        @Parameter(names = {
-                        "--hash-only" }, description = "Hash-only mode. Generates tokens with hashing only, skipping encryption.", required = false)
-        private boolean hashOnly = false;
 
         @Getter
         @Parameter(names = {
@@ -78,6 +58,17 @@ public class CommandLineArguments {
 
         @Getter
         @Parameter(names = {
-                        "--decrypt-with-ecdh" }, description = "Decrypt mode using ECDH key exchange.", required = false)
+                        "-h",
+                        "--hash-only" }, description = "Hash-only mode. Generates hashed tokens without encryption.", required = false)
+        private boolean hashOnly = false;
+
+        @Getter
+        @Parameter(names = {
+                        "-d", "--decrypt" }, description = "Decrypt mode using ECDH key exchange.", required = false)
         private boolean decryptWithEcdh = false;
+
+        @Getter
+        @Parameter(names = {
+                        "--ecdh-curve" }, description = "Elliptic curve name for ECDH (default: P-256 / secp256r1).", required = false)
+        private String ecdhCurve = "P-256";
 }

@@ -169,37 +169,31 @@ Getting started examples are available in the notebooks: lib/python/opentoken-py
 
 ## Usage
 
-### Arguments  <!-- omit in toc -->
+### CLI Arguments  <!-- omit in toc -->
 
-The driver accepts multiple command line arguments:
+OpenToken CLI is now **ECDH-only** — all invocations use public-key cryptography.
 
-- `-t | --type`: This argument is used to specify the input file type. You can provide the file type as a string. Types `csv` or `parquet` are supported.
+**Required Arguments:**
 
-- `-i | --input`: This argument is used to specify the input file path. You can provide the path to an input file containing the sample data for person matching.
+- `-i | --input`: Input file path containing person attributes
+- `-t | --type`: Input file type (`csv` or `parquet`)
+- `-o | --output`: Output file path for tokens (`.zip` recommended for automatic packaging)
+- `--receiver-public-key`: Path to receiver's public key file (generate via `--generate-keypair`)
 
-- `-o | --output`: This argument is used to specify the output file path. The generated tokens will be written to this file.
+**Optional Arguments:**
 
-- `-ot | --output-type`: Optional. This argument is used to specify the output file type. If not provided, the input type will be used as output type. You can provide the file type as a string. Types `csv` or `parquet` are supported.
+- `-ot | --output-type`: Output file type if different from input (defaults to input type)
+- `--sender-keypair-path`: Path to sender's private key file (default: `~/.opentoken/keypair.pem`)
+- `--decrypt-with-ecdh`: Decrypt mode using ECDH key exchange
+- `--sender-public-key`: Path to sender's public key file (for decryption with ECDH)
+- `--receiver-keypair-path`: Path to receiver's private key file (default: `~/.opentoken/keypair.pem`)
+- `--generate-keypair`: Generate a new ECDH key pair and exit
 
-- `-h | --hashingsecret`: This argument is used to specify the hashing secret for the `HMAC-SHA256` digest. The generated tokens are hashed using this digest.
+**Note:** Hashing and encryption keys are automatically derived from the ECDH key exchange. No manual secrets needed.
 
-- `-e | --encryptionkey`: This argument is used to specify the encryption key for the `AES-256` symmetric encryption. The generated tokens are encrypted using this key. Required unless using `--hash-only` mode.
+### Input/Output Formats  <!-- omit in toc -->
 
-- `-d | --decrypt`: Optional. When provided, the tool operates in decryption mode. It decrypts tokens from a previously encrypted OpenToken output file. In decryption mode, only the encryption key (`-e`) is required. The input file can be either CSV or Parquet format containing encrypted tokens with columns: `RuleId`, `Token`, and `RecordId`.
-
-- `--hash-only`: Optional. When provided, the tool operates in hash-only mode. It generates tokens using HMAC-SHA256 hashing only, skipping the AES encryption step. In hash-only mode, only the hashing secret (`-h`) is required; the encryption key (`-e`) is not needed. This mode is useful for token matching scenarios where encryption is not necessary.
-
-- `-d | --decrypt`: Optional. When provided, the tool operates in decryption mode. It decrypts tokens from a previously encrypted OpenToken output file. In decryption mode, only the encryption key (`-e`) is required. The input file can be either CSV or Parquet format containing encrypted tokens with columns: `RuleId`, `Token`, and `RecordId`.
-
-The encryption logic is: 
-> $Base64(AES-Encrypt(HMAC-SHA256(Hex(Sha256(token-signature)))))$
-
-The hash-only logic is:
-> $Base64(HMAC-SHA256(Hex(Sha256(token-signature))))$
-
-### Accepted input  <!-- omit in toc -->
-
-The input file (in csv format) must contain at least the following columns and values (one each):
+**Input:** CSV or Parquet files with these person attribute columns:
 
 | Accepted Column Names                              | Required | Accepted Values                                                                                                                                                                                                         |
 | -------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -211,30 +205,17 @@ The input file (in csv format) must contain at least the following columns and v
 | BirthDate, DateOfBirth                             | Required | Dates in either format: `yyyy/MM/dd`, `MM/dd/yyyy`, `MM-dd-yyyy`, `dd.MM.yyyy`                                                                                                                                          |
 | SocialSecurityNumber, NationalIdentificationNumber | Required | 9 digit number, with or without dashes, e.g. `ddd-dd-dddd`                                                                                                                                                              |
 
-**Note 1:** RecordId is optional. When not provided in the input file, the system automatically generates a unique UUID for each record in the output. Auto-generated UUIDs are suitable for initial overlap analysis, but for linkage of actual data records, providing real RecordIds from your source data is recommended.
+**Output:** 
+- Token files (CSV or Parquet) with columns: `RecordId`, `RuleId`, `Token` (encrypted, base64-encoded)
+- Metadata JSON with processing statistics, elliptic curve used, and system information
+- ZIP archive (recommended): auto-packages tokens, metadata, and sender's public key
 
-**Note 2:** No attribute values (other than RecordId) can be empty to be considered valid.
+**Notes:**
+- RecordId is optional; UUIDs auto-generated if omitted
+- No attribute values (except RecordId) can be empty
+- For actual record linkage, provide real RecordIds from your source system
 
-**Note 3:** Commas are only used for separation of field values, not for within values.
-
-The output file (in csv format) contains the following columns:
-
-- RecordId
-- TokenId
-- Token
-
-### Metadata  <!-- omit in toc -->
-
-The library generates a metadata file containing information about the token generation process, including processing statistics, system information, and secure hashes of the secrets used. The metadata file is written to the same directory as the output file with the suffix `.metadata.json`.
-
-The metadata includes key fields such as:
-
-- Processing statistics (total records, valid/invalid counts)
-- System information (Java version, library version, timestamp)
-- Security hashes (SHA-256 hashes of the hashing secret and encryption key)
-- Input/output file paths
-
-For complete details about all metadata fields, examples, and security considerations, see the [Metadata Format Documentation](./docs/metadata-format.md).
+For complete metadata documentation, see [Metadata Format](./docs/metadata-format.md).
 
 ## Quick Start
 
@@ -259,145 +240,41 @@ For secure token exchange without sharing secrets, use the public-key cryptograp
 - ✅ NIST-compliant P-256 elliptic curve
 - ✅ Separate hashing and encryption keys via HKDF
 
-**Note:** CLI integration for public-key mode is in progress (v1.13.0). Currently available as programmatic API. See the [workflow guide](./docs/public-key-workflow.md) for complete examples in Java and Python.
-
----
-
-### Token Generation (Encryption Mode - Legacy)  <!-- omit in toc -->
-
-**Note:** This secret-based mode is maintained for backward compatibility. For new implementations, use the [public-key workflow](#public-key-exchange-workflow-recommended-for-production) above.
-
-#### Java  <!-- omit in toc -->
-
-```shell
-cd lib/java
-mvn clean install -DskipTests
-java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i ../../resources/sample.csv -t csv -o ../../resources/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
-
-#### Python  <!-- omit in toc -->
-
-```shell
-# Install core library first
-cd lib/python/opentoken
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt -r dev-requirements.txt -e .
-
-# Install and run CLI
-cd ../opentoken-cli
-pip install -r requirements.txt -e .
-python -m opentoken_cli.main \
-  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
-
-### Token Decryption  <!-- omit in toc -->
-
-To decrypt previously encrypted tokens, use the `-d` or `--decrypt` flag. The decryption mode requires only the encryption key that was used to encrypt the tokens.
-
-#### Java  <!-- omit in toc -->
-
-```shell
-cd lib/java
-mvn clean install -DskipTests
-java -jar opentoken-cli/target/opentoken-cli-*.jar -d \
-  -i ../../resources/output.csv -t csv -o ../../resources/hashed-output.csv \
-  -e "Secret-Encryption-Key-Goes-Here."
-```
-
-#### Python  <!-- omit in toc -->
-
-```shell
-cd lib/python/opentoken-cli
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt -e . -e ../opentoken
-python -m opentoken_cli.main -d \
-  -i ../../../resources/output.csv -t csv -o ../../../resources/hashed-output.csv \
-  -e "Secret-Encryption-Key-Goes-Here."
-```
-
-**Note:** Decryption mode supports both CSV and Parquet input/output formats. The decrypted output will contain the HMAC-SHA256 hashed tokens (base64 encoded) before AES encryption. Cross-language compatibility is supported - tokens encrypted by Java can be decrypted by Python and vice versa.
-
-### Token Generation (Hash-Only Mode)  <!-- omit in toc -->
-
-To generate tokens with HMAC-SHA256 hashing only (skipping the AES encryption step), use the `--hash-only` flag. This is useful for token matching scenarios where encryption is not necessary. Only the hashing secret is required in this mode.
-
-#### Java  <!-- omit in toc -->
-
-```shell
-cd lib/java
-mvn clean install -DskipTests
-java -jar opentoken-cli/target/opentoken-cli-*.jar --hash-only \
-  -i ../../resources/sample.csv -t csv -o ../../resources/hashed-output.csv \
-  -h "HashingKey"
-```
-
-#### Python  <!-- omit in toc -->
-
-```shell
-cd lib/python/opentoken-cli
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt -e . -e ../opentoken
-python -m opentoken_cli.main --hash-only \
-  -i ../../../resources/sample.csv -t csv -o ../../../resources/hashed-output.csv \
-  -h "HashingKey"
-```
-
-**Note:** Hash-only mode supports both CSV and Parquet input/output formats. The output will contain HMAC-SHA256 hashed tokens (base64 encoded) without AES encryption. Cross-language compatibility is guaranteed - tokens generated by Java will be identical to those generated by Python when using the same hashing secret.
+📘 **[Complete End-to-End Workflow Guide](./docs/public-key-workflow.md)** with command-line instructions for both Java and Python.
 
 ### Docker  <!-- omit in toc -->
 
-#### Using Convenience Scripts (Recommended)
-
-Use the provided scripts to automatically build and run OpenToken via Docker:
+You can build and run OpenToken via Docker using the convenience scripts:
 
 **Bash (Linux/Mac):**
 
 ```bash
-./run-opentoken.sh -i ./resources/sample.csv -o ./resources/output.csv -t csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+./run-opentoken.sh -i ./resources/sample.csv -o ./resources/output.zip -t csv \
+  --receiver-public-key /path/to/receiver_public_key.pem
 ```
 
 **PowerShell (Windows):**
 
 ```powershell
-.\run-opentoken.ps1 -i .\resources\sample.csv -o .\resources\output.csv -FileType csv `
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+.\run-opentoken.ps1 -i .\resources\sample.csv -o .\resources\output.zip -FileType csv `
+  -ReceiverPublicKey C:\path\to\receiver_public_key.pem
 ```
 
-These scripts automatically:
-
-- Build the Docker image (if needed)
-- Mount input/output directories
-- Handle path conversions for your OS
-- Support both CSV and Parquet formats
-
-Run with `--help` (Bash) or `-Help` (PowerShell) for all options, including:
-
-- `-t` or `-FileType` for format selection (csv/parquet)
-- `-s` or `-SkipBuild` to skip rebuilding the image
-- `-v` or `-Verbose` for detailed output
-
-#### Manual Docker Commands
-
-Alternatively, build and run using Docker manually (from repository root):
+Or build and run manually (from repository root):
 
 ```shell
 # Build the Docker image
 docker build -t opentoken:latest .
 
-# Run with sample data
+# Run with ECDH
 docker run --rm -v $(pwd)/resources:/app/resources \
   opentoken:latest \
-  -i /app/resources/sample.csv -t csv -o /app/resources/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+  -i /app/resources/sample.csv -t csv -o /app/resources/output.zip \
+  --receiver-public-key /app/resources/receiver_public_key.pem
 ```
 
 **Note:** These commands must be run from the repository root directory.
 The Docker container mounts the `resources` directory to access input files and write output files.
-If running in a dev container environment, use the absolute path: `-v /workspaces/OpenToken/resources:/app/resources`
 
 ## Development & Documentation
 

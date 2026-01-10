@@ -5,8 +5,7 @@ Copyright (c) Truveta. All rights reserved.
 import pytest
 
 from opentoken.keyexchange.key_pair_manager import KeyPairManager
-from opentoken.keyexchange.key_exchange import KeyExchange, DerivedKeys
-from opentoken.keyexchange.key_exchange_exception import KeyExchangeException
+from opentoken.keyexchange.key_exchange import KeyExchange
 
 
 class TestKeyExchange:

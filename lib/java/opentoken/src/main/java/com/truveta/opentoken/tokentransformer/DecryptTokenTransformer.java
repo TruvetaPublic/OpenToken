@@ -29,6 +29,7 @@ public class DecryptTokenTransformer implements TokenTransformer {
     private static final Logger logger = LoggerFactory.getLogger(DecryptTokenTransformer.class);
 
     private final SecretKeySpec secretKey;
+    private final byte[] encryptionKeyBytes;
 
     /**
      * Initializes the underlying cipher (AES) with the decryption secret.
@@ -43,13 +44,27 @@ public class DecryptTokenTransformer implements TokenTransformer {
      */
     public DecryptTokenTransformer(String encryptionKey)
             throws InvalidKeyException, InvalidAlgorithmParameterException {
-        if (encryptionKey.length() != EncryptionConstants.KEY_BYTE_LENGTH) {
-            logger.error("Invalid Argument. Key must be {} characters long", EncryptionConstants.KEY_BYTE_LENGTH);
+        this(encryptionKey, encryptionKey == null ? null : encryptionKey.getBytes(StandardCharsets.ISO_8859_1));
+    }
+
+    /**
+     * Initializes the cipher with raw key bytes to avoid charset expansion.
+     */
+    public DecryptTokenTransformer(byte[] encryptionKey)
+            throws InvalidKeyException, InvalidAlgorithmParameterException {
+        this(encryptionKey == null ? null : new String(encryptionKey, StandardCharsets.ISO_8859_1), encryptionKey);
+    }
+
+    private DecryptTokenTransformer(String encryptionKey, byte[] encryptionKeyBytes)
+            throws InvalidKeyException, InvalidAlgorithmParameterException {
+        this.encryptionKeyBytes = encryptionKeyBytes == null ? null : encryptionKeyBytes.clone();
+        if (this.encryptionKeyBytes == null || this.encryptionKeyBytes.length != EncryptionConstants.KEY_BYTE_LENGTH) {
+            logger.error("Invalid Argument. Key must be {} bytes long", EncryptionConstants.KEY_BYTE_LENGTH);
             throw new InvalidKeyException(
-                    String.format("Key must be %s characters long", EncryptionConstants.KEY_BYTE_LENGTH));
+                    String.format("Key must be %s bytes long", EncryptionConstants.KEY_BYTE_LENGTH));
         }
 
-        this.secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), EncryptionConstants.AES);
+        this.secretKey = new SecretKeySpec(this.encryptionKeyBytes, EncryptionConstants.AES);
     }
 
     /**

@@ -16,7 +16,6 @@ class TokenReader(ABC, Iterator[Dict[str, str]]):
     @abstractmethod
     def __iter__(self) -> Iterator[Dict[str, str]]:
         """Return the iterator object."""
-        pass
 
     @abstractmethod
     def __next__(self) -> Dict[str, str]:
@@ -33,12 +32,10 @@ class TokenReader(ABC, Iterator[Dict[str, str]]):
         Returns:
             A token dictionary containing RuleId, Token, and RecordId.
         """
-        pass
 
     @abstractmethod
     def close(self):
         """Close the reader and release any resources."""
-        pass
 
     def __enter__(self):
         """Context manager entry."""

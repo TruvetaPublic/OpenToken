@@ -11,6 +11,8 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.truveta.opentoken.keyexchange.KeyPairManager;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,8 +32,13 @@ class MainTest {
     private Path outputParquet;
     private PrintStream originalErr;
 
-    private static final String HASHING_SECRET = "TestHashingSecret";
-    private static final String ENCRYPTION_KEY = "TestEncryptionKeyValue1234567890"; // Must be exactly 32 chars
+    // Helper method to generate a keypair directory and return path to files
+    private Path createAndSaveKeyPair(String dirName) throws Exception {
+        Path keyDir = tempDir.resolve(dirName);
+        KeyPairManager kpm = new KeyPairManager(keyDir.toString());
+        kpm.generateAndSaveKeyPair();
+        return keyDir;
+    }
 
     @BeforeEach
     void setUp() throws IOException {
@@ -55,13 +62,16 @@ class MainTest {
     }
 
     @Test
-    void testTokenGenerationCsvToCsv() throws IOException {
+    void testTokenGenerationCsvToCsv() throws Exception {
+        Path receiverDir = createAndSaveKeyPair("receiver");
+        Path senderDir = createAndSaveKeyPair("sender");
+
         String[] args = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
         };
 
         assertDoesNotThrow(() -> Main.main(args));
@@ -75,14 +85,17 @@ class MainTest {
     }
 
     @Test
-    void testTokenGenerationCsvToParquet() throws IOException {
+    void testTokenGenerationCsvToParquet() throws Exception {
+        Path receiverDir = createAndSaveKeyPair("receiver_parquet");
+        Path senderDir = createAndSaveKeyPair("sender_parquet");
+
         String[] args = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputParquet.toString(),
                 "-ot", "parquet",
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
         };
 
         assertDoesNotThrow(() -> Main.main(args));
@@ -92,12 +105,14 @@ class MainTest {
     }
 
     @Test
-    void testHashOnlyMode() throws IOException {
+    void testHashOnlyMode() throws Exception {
+        Path receiverDir = createAndSaveKeyPair("receiver_hashonly");
+
         String[] args = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
                 "--hash-only"
         };
 
@@ -108,14 +123,18 @@ class MainTest {
     }
 
     @Test
-    void testDecryptMode() throws IOException {
+    void testDecryptMode() throws Exception {
+        // Generate keypairs
+        Path receiverDir = createAndSaveKeyPair("receiver_decrypt");
+        Path senderDir = createAndSaveKeyPair("sender_decrypt");
+
         // First, generate encrypted tokens
         String[] encryptArgs = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
         };
         Main.main(encryptArgs);
 
@@ -126,7 +145,8 @@ class MainTest {
                 "-i", outputCsv.toString(),
                 "-t", "csv",
                 "-o", decryptedCsv.toString(),
-                "-e", ENCRYPTION_KEY
+                "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
+                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString()
         };
 
         assertDoesNotThrow(() -> Main.main(decryptArgs));
@@ -136,13 +156,14 @@ class MainTest {
     }
 
     @Test
-    void testInvalidInputType() throws IOException {
+    void testInvalidInputType() throws Exception {
+        Path receiverDir = createAndSaveKeyPair("receiver_invalidinput");
         String[] args = {
                 "-i", inputCsv.toString(),
                 "-t", "invalid",
                 "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                "--sender-keypair-path", receiverDir.resolve("keypair.pem").toString()
         };
 
         // Should not throw, but should log error and return early
@@ -152,14 +173,15 @@ class MainTest {
     }
 
     @Test
-    void testInvalidOutputType() {
+    void testInvalidOutputType() throws Exception {
+        Path receiverDir = createAndSaveKeyPair("receiver_invalidoutput");
         String[] args = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputCsv.toString(),
                 "-ot", "invalid",
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                "--sender-keypair-path", receiverDir.resolve("keypair.pem").toString()
         };
 
         // Should not throw, but should log error and return early
@@ -167,28 +189,29 @@ class MainTest {
     }
 
     @Test
-    void testMissingHashingSecret() {
+    void testMissingReceiverPublicKey() {
         String[] args = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputCsv.toString(),
-                "-e", ENCRYPTION_KEY
+                "--sender-keypair-path", tempDir.resolve("sender").resolve("keypair.pem").toString()
         };
 
-        // Should not throw, but should log error and return early
+        // Should not throw, but should log error and return early due to missing receiver public key
         assertDoesNotThrow(() -> Main.main(args));
     }
 
     @Test
-    void testMissingEncryptionKeyWithoutHashOnly() {
+    void testMissingSenderKeypairWithEncryption() throws Exception {
+        Path receiverDir = createAndSaveKeyPair("receiver_missing_sender");
         String[] args = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString()
         };
 
-        // Should not throw, but should log error and return early
+        // Should not throw, but should still proceed (sender keypair will be created in default location or current dir)
         assertDoesNotThrow(() -> Main.main(args));
     }
 
@@ -210,13 +233,16 @@ class MainTest {
     }
 
     @Test
-    void testOutputTypeDefaultsToInputType() throws IOException {
+    void testOutputTypeDefaultsToInputType() throws Exception {
+        Path receiverDir = createAndSaveKeyPair("receiver_outputdefault");
+        Path senderDir = createAndSaveKeyPair("sender_outputdefault");
+
         String[] args = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
         };
 
         assertDoesNotThrow(() -> Main.main(args));
@@ -228,16 +254,19 @@ class MainTest {
     }
 
     @Test
-    void testParquetInputToParquetOutput() throws IOException {
+    void testParquetInputToParquetOutput() throws Exception {
         // First create a parquet file from CSV
         Path tempParquet = tempDir.resolve("temp.parquet");
+        Path receiverDir = createAndSaveKeyPair("receiver_parquet_input");
+        Path senderDir = createAndSaveKeyPair("sender_parquet_input");
+
         String[] createArgs = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", tempParquet.toString(),
                 "-ot", "parquet",
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
         };
         Main.main(createArgs);
 
@@ -248,21 +277,26 @@ class MainTest {
                 "-i", tempParquet.toString(),
                 "-t", "parquet",
                 "-o", outputParquet2.toString(),
-                "-e", ENCRYPTION_KEY
+                "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
+                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString()
         };
 
         assertDoesNotThrow(() -> Main.main(args));
     }
 
     @Test
-    void testDecryptCsvToParquet() throws IOException {
+    void testDecryptCsvToParquet() throws Exception {
+        // Generate keypairs
+        Path receiverDir = createAndSaveKeyPair("receiver_decrypt_parquet");
+        Path senderDir = createAndSaveKeyPair("sender_decrypt_parquet");
+
         // First generate encrypted tokens
         String[] encryptArgs = {
                 "-i", inputCsv.toString(),
                 "-t", "csv",
                 "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
+                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
         };
         Main.main(encryptArgs);
 
@@ -274,7 +308,8 @@ class MainTest {
                 "-t", "csv",
                 "-o", decryptedParquet.toString(),
                 "-ot", "parquet",
-                "-e", ENCRYPTION_KEY
+                "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
+                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString()
         };
 
         assertDoesNotThrow(() -> Main.main(decryptArgs));

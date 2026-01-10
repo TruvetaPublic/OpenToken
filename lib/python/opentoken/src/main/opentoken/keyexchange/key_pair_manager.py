@@ -29,16 +29,32 @@ class KeyPairManager:
     DEFAULT_KEY_DIR = os.path.join(os.path.expanduser("~"), ".opentoken")
     DEFAULT_PRIVATE_KEY_FILENAME = "keypair.pem"
     DEFAULT_PUBLIC_KEY_FILENAME = "public_key.pem"
-    EC_CURVE = ec.SECP256R1()
+    EC_CURVE_DEFAULT_NAME = "p-256"
 
-    def __init__(self, key_directory: str = None):
+    CURVE_ALIASES = {
+        "p-256": ec.SECP256R1,
+        "p256": ec.SECP256R1,
+        "secp256r1": ec.SECP256R1,
+        "prime256v1": ec.SECP256R1,
+        "p-384": ec.SECP384R1,
+        "p384": ec.SECP384R1,
+        "secp384r1": ec.SECP384R1,
+        "p-521": ec.SECP521R1,
+        "p521": ec.SECP521R1,
+        "secp521r1": ec.SECP521R1,
+    }
+
+    def __init__(self, key_directory: str = None, curve_name: str = None):
         """
         Creates a KeyPairManager.
 
         Args:
             key_directory: The directory to store keys. Defaults to ~/.opentoken.
+            curve_name: Optional elliptic curve name (aliases supported, default P-256).
         """
         self.key_directory = key_directory or self.DEFAULT_KEY_DIR
+        self.curve_name = curve_name or self.EC_CURVE_DEFAULT_NAME
+        self.ec_curve = self._resolve_curve(self.curve_name)
 
     def get_or_create_key_pair(self) -> Tuple[ec.EllipticCurvePrivateKey, ec.EllipticCurvePublicKey]:
         """
@@ -73,10 +89,10 @@ class KeyPairManager:
             KeyExchangeException: If key generation fails.
         """
         try:
-            private_key = ec.generate_private_key(self.EC_CURVE, default_backend())
+            private_key = ec.generate_private_key(self.ec_curve, default_backend())
             public_key = private_key.public_key()
 
-            logger.debug("Generated new ECDH key pair using curve SECP256R1")
+            logger.debug(f"Generated new ECDH key pair using curve {self.curve_name}")
             return private_key, public_key
         except Exception as e:
             raise KeyExchangeException("Failed to generate ECDH key pair", e)
@@ -237,3 +253,9 @@ class KeyPairManager:
             The key directory.
         """
         return self.key_directory
+
+    def _resolve_curve(self, curve_name: str):
+        normalized = curve_name.lower().replace("_", "").replace("-", "").replace(" ", "")
+        if normalized in self.CURVE_ALIASES:
+            return self.CURVE_ALIASES[normalized]()
+        raise KeyExchangeException(f"Unsupported elliptic curve: {curve_name}")

@@ -3,7 +3,6 @@ Tests for USPostalCodeAttribute.
 """
 
 import pickle
-import pytest
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from opentoken.attributes.person.us_postal_code_attribute import USPostalCodeAttribute
 

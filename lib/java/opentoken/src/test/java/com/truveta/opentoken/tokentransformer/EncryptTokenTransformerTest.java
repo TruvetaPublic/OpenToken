@@ -55,7 +55,7 @@ class EncryptTokenTransformerTest {
         Exception exception = Assertions.assertThrows(InvalidKeyException.class, () -> {
             new EncryptTokenTransformer(INVALID_KEY); // Key is too short
         });
-        Assertions.assertEquals("Key must be 32 characters long", exception.getMessage());
+        Assertions.assertEquals("Key must be 32 bytes long", exception.getMessage());
     }
 
     @Test

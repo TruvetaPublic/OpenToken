@@ -5,7 +5,7 @@ package com.truveta.opentoken.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,19 +43,17 @@ class CommandLineArgumentsTest {
                         "-t", "csv",
                         "-o", "output.csv",
                         "-ot", "parquet",
-                        "-h", "hashSecret",
-                        "-e", "encryptKey",
                         "-d",
-                        "--hash-only");
+                        "-h",
+                        "--ecdh-curve", "P-384");
 
         assertEquals("input.csv", args.getInputPath());
         assertEquals("csv", args.getInputType());
         assertEquals("output.csv", args.getOutputPath());
         assertEquals("parquet", args.getOutputType());
-        assertEquals("hashSecret", args.getHashingSecret());
-        assertEquals("encryptKey", args.getEncryptionKey());
-        assertTrue(args.isDecrypt());
+        assertTrue(args.isDecryptWithEcdh());
         assertTrue(args.isHashOnly());
+        assertEquals("P-384", args.getEcdhCurve());
     }
 
     @Test
@@ -69,17 +67,15 @@ class CommandLineArgumentsTest {
                         "--type", "parquet",
                         "--output", "output.parquet",
                         "--output-type", "csv",
-                        "--hashingsecret", "myHashSecret",
-                        "--encryptionkey", "myEncryptionKey",
-                        "--decrypt");
+                        "--decrypt",
+                        "--ecdh-curve", "P-521");
 
         assertEquals("input.parquet", args.getInputPath());
         assertEquals("parquet", args.getInputType());
         assertEquals("output.parquet", args.getOutputPath());
         assertEquals("csv", args.getOutputType());
-        assertEquals("myHashSecret", args.getHashingSecret());
-        assertEquals("myEncryptionKey", args.getEncryptionKey());
-        assertTrue(args.isDecrypt());
+        assertTrue(args.isDecryptWithEcdh());
+        assertEquals("P-521", args.getEcdhCurve());
     }
 
     @Test
@@ -90,11 +86,10 @@ class CommandLineArgumentsTest {
                 .build()
                 .parse("-i", "input.csv", "-t", "csv", "-o", "output.csv");
 
-        assertNull(args.getHashingSecret());
-        assertNull(args.getEncryptionKey());
         assertEquals("", args.getOutputType());
-        assertFalse(args.isDecrypt());
+        assertFalse(args.isDecryptWithEcdh());
         assertFalse(args.isHashOnly());
+        assertEquals("P-256", args.getEcdhCurve());
     }
 
     @Test
@@ -143,12 +138,10 @@ class CommandLineArgumentsTest {
                         "-i", "input.csv",
                         "-t", "csv",
                         "-o", "output.csv",
-                        "-h", "hashSecret",
                         "--hash-only");
 
         assertTrue(args.isHashOnly());
-        assertFalse(args.isDecrypt());
-        assertEquals("hashSecret", args.getHashingSecret());
-        assertNull(args.getEncryptionKey());
+        assertFalse(args.isDecryptWithEcdh());
+        assertEquals("P-256", args.getEcdhCurve());
     }
 }

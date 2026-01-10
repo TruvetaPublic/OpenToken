@@ -59,12 +59,13 @@ public class KeyPairManager {
     public static final String EC_CURVE = "secp256r1";
     
     private final String keyDirectory;
+    private final String curveName;
     
     /**
      * Creates a KeyPairManager with the default key directory.
      */
     public KeyPairManager() {
-        this(DEFAULT_KEY_DIR);
+        this(DEFAULT_KEY_DIR, EC_CURVE);
     }
     
     /**
@@ -73,7 +74,18 @@ public class KeyPairManager {
      * @param keyDirectory the directory to store keys
      */
     public KeyPairManager(String keyDirectory) {
+        this(keyDirectory, EC_CURVE);
+    }
+
+    /**
+     * Creates a KeyPairManager with a custom key directory and curve.
+     *
+     * @param keyDirectory the directory to store keys
+     * @param curveName the elliptic curve name (e.g., P-256, secp256r1)
+     */
+    public KeyPairManager(String keyDirectory, String curveName) {
         this.keyDirectory = keyDirectory;
+        this.curveName = normalizeCurveName(curveName);
     }
     
     /**
@@ -106,15 +118,50 @@ public class KeyPairManager {
     public KeyPair generateKeyPair() throws KeyExchangeException {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(EC_ALGORITHM);
-            ECGenParameterSpec ecSpec = new ECGenParameterSpec(EC_CURVE);
+            ECGenParameterSpec ecSpec = new ECGenParameterSpec(curveName);
             keyPairGenerator.initialize(ecSpec, new SecureRandom());
             
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            logger.debug("Generated new ECDH key pair using curve {}", EC_CURVE);
+            logger.debug("Generated new ECDH key pair using curve {}", curveName);
             
             return keyPair;
         } catch (NoSuchAlgorithmException | java.security.InvalidAlgorithmParameterException e) {
             throw new KeyExchangeException("Failed to generate ECDH key pair", e);
+        }
+    }
+
+    /**
+     * Normalizes common curve aliases to JCE-compatible names.
+     *
+     * @param curve raw curve input
+     * @return normalized curve name
+     */
+    public static String normalizeCurveName(String curve) {
+        if (curve == null || curve.isBlank()) {
+            return EC_CURVE;
+        }
+
+        String value = curve.trim();
+        String lower = value.toLowerCase();
+
+        switch (lower) {
+            case "p-256":
+            case "p256":
+            case "prime256v1":
+            case "secp256r1":
+                return "secp256r1";
+            case "p-384":
+            case "p384":
+            case "prime384v1":
+            case "secp384r1":
+                return "secp384r1";
+            case "p-521":
+            case "p521":
+            case "prime521v1":
+            case "secp521r1":
+                return "secp521r1";
+            default:
+                return value; // Use as-is for custom curves
         }
     }
     

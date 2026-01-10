@@ -2,10 +2,7 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-import hashlib
-import hmac
 import logging
-from typing import Tuple
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes

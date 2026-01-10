@@ -82,11 +82,14 @@ public class Metadata {
      * 
      * @param senderPublicKeyBytes the sender's public key bytes
      * @param receiverPublicKeyBytes the receiver's public key bytes
+     * @param curveName the elliptic curve used for ECDH (e.g., P-256)
      * @return the metadata map for method chaining
      */
-    public Map<String, Object> addKeyExchangeMetadata(byte[] senderPublicKeyBytes, byte[] receiverPublicKeyBytes) {
-        metadataMap.put(KEY_EXCHANGE_METHOD, KEY_EXCHANGE_METHOD_ECDH);
-        metadataMap.put(CURVE, CURVE_P256);
+    public Map<String, Object> addKeyExchangeMetadata(byte[] senderPublicKeyBytes, byte[] receiverPublicKeyBytes,
+            String curveName) {
+        String curveValue = (curveName == null || curveName.isBlank()) ? CURVE_P256 : curveName;
+        metadataMap.put(KEY_EXCHANGE_METHOD, "ECDH-" + curveValue);
+        metadataMap.put(CURVE, curveValue);
         
         if (senderPublicKeyBytes != null) {
             metadataMap.put(SENDER_PUBLIC_KEY_HASH, calculateSecureHashBytes(senderPublicKeyBytes));

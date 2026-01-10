@@ -6,7 +6,6 @@ import os
 import tempfile
 import shutil
 import pytest
-from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization

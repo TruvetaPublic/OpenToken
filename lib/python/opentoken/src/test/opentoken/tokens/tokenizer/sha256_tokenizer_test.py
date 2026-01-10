@@ -3,7 +3,7 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 import hashlib
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 
 import pytest
 
