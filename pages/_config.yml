@@ -1,0 +1,6 @@
+title: OpenToken
+description: Privacy-preserving tokenization and matching library for secure PII-based person linkage
+markdown: kramdown
+theme: jekyll-theme-cayman
+plugins:
+  - jekyll-seo-tag
