@@ -26,15 +26,16 @@ The OpenToken PySpark Bridge provides a seamless interface between PySpark DataF
 
 OpenToken PySpark supports multiple Spark versions to accommodate different Java environments and cluster configurations:
 
-| Spark Version | PySpark Version | PyArrow Version | Pandas Version | Java Version | Installation Extra |
-|---------------|-----------------|-----------------|----------------|--------------|-------------------|
+| Spark Version | PySpark Version | PyArrow Version | Pandas Version | Java Version | Installation Extra            |
+| ------------- | --------------- | --------------- | -------------- | ------------ | ----------------------------- |
 | **4.0.x**     | >=4.0.1, <5.0   | >=17.0.0, <18.0 | >=2.0.0, <2.4  | **21**       | `[spark40]` **(Recommended)** |
-| 3.5.x         | >=3.5.0, <3.6   | >=15.0.0, <20   | >=1.5, <2.3    | 8-17         | `[spark35]` |
-| 3.4.x         | >=3.4.0, <3.5   | >=10.0.0, <15   | >=1.5, <2.2    | 8-17         | `[spark34]` |
+| 4.1.x         | >=4.1.0, <5.0   | >=17.0.0, <18.0 | >=2.0.0, <2.4  | **21**       | `[spark41]`                   |
+| 3.5.x         | >=3.5.0, <3.6   | >=15.0.0, <20   | >=1.5, <2.3    | 8-17         | `[spark35]`                   |
+| 3.4.x         | >=3.4.0, <3.5   | >=10.0.0, <15   | >=1.5, <2.2    | 8-17         | `[spark34]`                   |
 
 **Important:** 
 - PySpark 3.5.x and earlier are **NOT compatible** with Java 21
-- If you're using Java 21, you **must** use PySpark 4.0.1+ (Spark 4.0.x)
+- If you're using Java 21, you **must** use PySpark 4.0.x+ or 4.1.x+ (Spark 4.0.x recommended)
 - For managed clusters (Databricks, EMR, Azure Synapse), PySpark is typically pre-installed
 
 ### Installation Options

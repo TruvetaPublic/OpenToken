@@ -241,7 +241,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        spark-version: ["3.4", "3.5", "4.0"]
+        spark-version: ["3.4", "3.5", "4.0", "4.1"]
     steps:
       - uses: actions/checkout@v4
 
@@ -252,7 +252,7 @@ jobs:
           enable-python: true
           python-version: ${{ matrix.python-version }}
           # Spark 3.4/3.5 require Java 8-17, Spark 4.0+ requires Java 21
-          java-version: ${{ matrix.spark-version == '4.0' && '21' || '17' }}
+          java-version: ${{ (matrix.spark-version == '4.0' || matrix.spark-version == '4.1') && '21' || '17' }}
 
       - name: Install OpenToken core library
         run: |
@@ -265,10 +265,12 @@ jobs:
           pip install pytest pytest-cov flake8
           if [ "${{ matrix.spark-version }}" = "4.0" ]; then
             pip install -e "lib/python/opentoken-pyspark[spark40]"
-          elif [ "${{ matrix.spark-version }}" = "3.5" ]; then
-            pip install -e "lib/python/opentoken-pyspark[spark35]"
+          elif [ "${{ matrix.spark-version }}" = "4.1" ]; then
+            pip install -e "lib/python/opentoken-pyspark[spark41]"
           elif [ "${{ matrix.spark-version }}" = "3.4" ]; then
             pip install -e "lib/python/opentoken-pyspark[spark34]"
+          elif [ "${{ matrix.spark-version }}" = "3.5" ]; then
+            pip install -e "lib/python/opentoken-pyspark[spark35]"
           else
             echo "Unsupported Spark version for PySpark bridge: '${{ matrix.spark-version }}'."
             echo "Please update .github/workflows/ci.yml to handle this Spark version."
