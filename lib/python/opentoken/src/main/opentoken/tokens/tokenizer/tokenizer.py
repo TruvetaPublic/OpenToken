@@ -30,4 +30,3 @@ class Tokenizer(ABC):
             Exception: If an error occurs during tokenization, such as
                        unsupported encoding or cryptographic algorithm issues.
         """
-        pass

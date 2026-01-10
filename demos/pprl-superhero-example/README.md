@@ -2,7 +2,15 @@
 
 This demonstration shows how to use OpenToken for privacy-preserving record linkage between two organizations sharing patient data.
 
-For a step-by-step walkthrough, start with the Jupyter notebook: [PPRL_Superhero_Demo.ipynb](PPRL_Superhero_Demo.ipynb). You can also run the full demo end-to-end with `./run_end_to_end.sh`.
+For a step-by-step walkthrough, start with the Jupyter notebook: [PPRL_Superhero_Demo.ipynb](PPRL_Superhero_Demo.ipynb). 
+
+You can also run the full demo end-to-end using the ECDH public-key exchange approach:
+
+```bash
+cd demos/pprl-superhero-example
+chmod +x run_end_to_end.sh
+./run_end_to_end.sh
+```
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -187,20 +195,16 @@ This demonstration shows how to properly compare tokens from two organizations t
 
 ### Quick Start Guide <!-- omit in toc -->
 
-### Notebook walkthrough (recommended) <!-- omit in toc -->
-
-For a step-by-step walkthrough, start with the Jupyter notebook:
+For a step-by-step walkthrough with the ECDH public-key exchange approach, start with the Jupyter notebook:
 
 - Open [PPRL_Superhero_Demo.ipynb](PPRL_Superhero_Demo.ipynb)
 - Run the cells from top to bottom
 
-The notebook walks through dataset generation, tokenization, and overlap analysis (including an example of relaxing the match policy).
+The notebook walks through dataset generation, tokenization with ECDH key exchange, and overlap analysis.
 
 ### End-to-end script (one command) <!-- omit in toc -->
 
-If you want to run the same demo end-to-end without the notebook, use the script below.
-
-### Run End-to-End (one command, recommended) <!-- omit in toc -->
+If you want to run the same demo end-to-end without the notebook using ECDH public-key exchange:
 
 ```bash
 cd demos/pprl-superhero-example
@@ -208,11 +212,15 @@ chmod +x run_end_to_end.sh
 ./run_end_to_end.sh
 ```
 
-This runs dataset generation, tokenization (building Java if needed), and overlap analysis.
+This runs:
+1. Dataset generation
+2. Pharmacy key pair generation (ECDH, default P-256; override with `--ecdh-curve` if needed)
+3. Hospital tokenization with ECDH (sender)
+4. Pharmacy token decryption and overlap analysis
 
 ### What the script does (step-by-step) <!-- omit in toc -->
 
-You can also run the same three steps manually. These commands assume you are in the demo directory:
+You can also run the same steps manually. These commands assume you are in the demo directory:
 
 ```bash
 cd demos/pprl-superhero-example
@@ -229,50 +237,64 @@ This creates:
 - `datasets/hospital_superhero_data.csv` (100 records)
 - `datasets/pharmacy_superhero_data.csv` (120 records with 40 overlapping)
 
-#### Step 2: Tokenize the Data <!-- omit in toc -->
-
-Each organization tokenizes their own dataset independently:
+#### Step 2: Generate Pharmacy Key Pair (ECDH) <!-- omit in toc -->
 
 ```bash
-chmod +x scripts/tokenize_hospital.sh scripts/tokenize_pharmacy.sh
-
-# Hospital tokenizes hospital data
-./scripts/tokenize_hospital.sh
-
-# Pharmacy tokenizes pharmacy data
-./scripts/tokenize_pharmacy.sh
+chmod +x scripts/tokenize_pharmacy_generate_keys.sh
+./scripts/tokenize_pharmacy_generate_keys.sh
 ```
 
-These scripts simulate two separate tokenization processes:
+This creates:
 
-1. **Hospital tokenizes their dataset** → `outputs/hospital_tokens.csv`
-2. **Pharmacy tokenizes their dataset** → `outputs/pharmacy_tokens.csv`
-3. Metadata files are created for both datasets
+- `keys/pharmacy_keypair.pem` (private key - KEEP SECRET)
+- `keys/pharmacy_public_key.pem` (public key - share with hospital)
 
-**Critical Requirements**:
+**Important**: Treat the private key file with the same security level as a password or encryption key. Keep it in a secure location with appropriate file permissions.
 
-- Both organizations must use the **same hashing and encryption keys**
-- Keys must be shared securely between organizations before tokenization
-- In production, use strong keys and secure key exchange protocols
+#### Step 3: Tokenize Data with ECDH Key Exchange <!-- omit in toc -->
 
-#### Step 3: Measure Overlap <!-- omit in toc -->
+```bash
+chmod +x scripts/tokenize_hospital.sh
+./scripts/tokenize_hospital.sh
+```
+
+This script:
+
+1. Loads pharmacy's public key
+2. Generates hospital's ephemeral ECDH key pair (default P-256; override with `--ecdh-curve`)
+3. Performs ECDH key exchange to derive shared encryption keys
+4. Tokenizes hospital data using derived keys
+5. Creates `outputs/hospital_tokens_ecdh.zip` containing:
+   - Encrypted tokens CSV
+   - Metadata with key exchange details
+   - Hospital's public key (for pharmacy to decrypt)
+
+#### Step 4: Pharmacy Decryption and Overlap Analysis <!-- omit in toc -->
+
+```bash
+chmod +x scripts/tokenize_pharmacy_decrypt.sh
+./scripts/tokenize_pharmacy_decrypt.sh
+```
+
+This script:
+
+1. Extracts hospital's public key from the ZIP file
+2. Loads pharmacy's private key
+3. Performs ECDH key exchange to derive the same keys as hospital
+4. Decrypts tokens to reveal HMAC-SHA256 hashes
+5. Outputs `pharmacy_decrypted_hospital_tokens.csv`
+
+Then analyze the overlap:
 
 ```bash
 python scripts/analyze_overlap.py
 ```
 
-This script performs the record linkage analysis:
+This script:
 
-1. **Loads** encrypted tokens from both datasets
-2. **Decrypts** tokens to get the underlying HMAC-SHA256 hashes
-   - Decryption is necessary because OpenToken uses random IVs for encryption
-   - Each tokenization produces different encrypted values for the same data
-   - Decryption reveals the deterministic hash values that can be compared
-3. **Compares** decrypted tokens to find matches
-4. **Reports** matching statistics
-5. **Saves** results to `outputs/matching_records.csv`
-
-**Note**: The analysis script requires the encryption key to decrypt tokens. This key must match the one used during tokenization.
+1. Loads pharmacy's tokens and hospital's decrypted tokens
+2. Compares them to find matching records
+3. Outputs `outputs/matching_records_ecdh.csv` with results
 
 ## Outputs
 
@@ -346,6 +368,70 @@ This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (t
 3. Open `outputs/matching_records.csv`: you should see about **40** rows, and most (or all) rows should have `TokenCount` = `5`.
 
 ## Decryption and privacy
+
+### ECDH Public-Key Exchange Workflow <!-- omit in toc -->
+
+1. **Pharmacy (Receiver) generates key pair:**
+   ```bash
+   ./scripts/tokenize_pharmacy_generate_keys.sh
+   ```
+   Creates ECDH key pair (default P-256; override with `--ecdh-curve`):
+   - `keys/pharmacy_keypair.pem` (private key - KEEP SECRET)
+   - `keys/pharmacy_public_key.pem` (public key - share with hospital)
+
+2. **Pharmacy shares public key with Hospital (Sender)**
+   
+   The pharmacy's public key can be safely transmitted over any channel.
+
+3. **Hospital tokenizes with ECDH:**
+   ```bash
+   ./scripts/tokenize_hospital.sh
+   ```
+   Hospital:
+   - Loads pharmacy's public key
+   - Generates their own ECDH key pair (default P-256; override with `--ecdh-curve`)
+   - Performs ECDH key exchange to derive encryption keys
+   - Generates and encrypts tokens
+   - Outputs `hospital_tokens_ecdh.zip` containing:
+     - Encrypted tokens
+     - Metadata with key exchange details
+     - Hospital's public key (for pharmacy to decrypt)
+
+4. **Hospital sends encrypted tokens to Pharmacy**
+   
+   The ZIP package can be safely transmitted over any channel.
+
+5. **Pharmacy decrypts tokens:**
+   ```bash
+   ./scripts/tokenize_pharmacy_ecdh_decrypt.sh
+   ```
+   Pharmacy:
+   - Extracts hospital's public key from ZIP
+   - Loads their own private key
+   - Performs ECDH key exchange (derives same keys as hospital)
+   - Decrypts tokens to get HMAC-SHA256 hashes
+   - Outputs `pharmacy_decrypted_hospital_tokens.csv`
+
+6. **Pharmacy analyzes overlap:**
+   ```bash
+   python scripts/analyze_overlap_ecdh.py
+   ```
+   Compares decrypted tokens to find matching records.
+
+#### ECDH Advantages
+
+✓ **No pre-shared secrets** - Keys are derived dynamically
+✓ **Forward secrecy** - Ephemeral key pairs for each exchange
+✓ **Symmetric key exchange** - Both parties independently derive identical keys
+✓ **Secure channels not required** - Public keys can be transmitted openly
+
+#### Security Properties
+
+- **Encryption**: AES-256-GCM (same as secret-based approach)
+- **Key Exchange**: ECDH (default P-256 / secp256r1; configurable via `--ecdh-curve`)
+- **Key Derivation**: HKDF-SHA256 (RFC 5869)
+- **Separate keys**: Independent hashing and encryption keys
+- **Random IVs**: Each token encryption uses a fresh random IV
 
 ### Understanding Token Decryption in PPRL <!-- omit in toc -->
 
@@ -449,23 +535,25 @@ This demo uses exact-match tokens built from normalized values, so typos, nickna
 
 ```text
 pprl-superhero-example/
-├── README.md                          # This file
-├── run_end_to_end.sh                  # Complete demo runner (all 3 steps)
-├── datasets/                          # Generated datasets
+├── README.md                                    # This file
+├── run_end_to_end.sh                            # ECDH demo runner (all 4 steps)
+├── PPRL_Superhero_Demo.ipynb                    # Jupyter notebook walkthrough
+├── datasets/                                    # Generated datasets
 │   ├── hospital_superhero_data.csv
 │   └── pharmacy_superhero_data.csv
-├── scripts/                           # Individual scripts for demo
-│   ├── generate_superhero_datasets.py # Generate test data
-│   ├── tokenize_hospital.sh           # Tokenize hospital dataset
-│   ├── tokenize_pharmacy.sh           # Tokenize pharmacy dataset
-│   ├── tokenize_datasets.sh           # Wrapper (calls both scripts)
-│   └── analyze_overlap.py            # Analyze overlaps
-└── outputs/                           # Tokenization outputs
-    ├── hospital_tokens.csv
-    ├── hospital_tokens.metadata.json
-    ├── pharmacy_tokens.csv
-    ├── pharmacy_tokens.metadata.json
-    └── matching_records.csv
+├── keys/                                        # ECDH key pairs (generated by demo)
+│   ├── pharmacy_keypair.pem                     # Pharmacy's private key (KEEP SECRET)
+│   └── pharmacy_public_key.pem                  # Pharmacy's public key
+├── scripts/                                     # Individual scripts for demo
+│   ├── generate_superhero_datasets.py           # Generate test data
+│   ├── tokenize_hospital.sh                     # Tokenize hospital dataset (ECDH sender)
+│   ├── tokenize_pharmacy_generate_keys.sh       # Generate pharmacy key pair (ECDH)
+│   ├── tokenize_pharmacy_decrypt.sh             # Decrypt hospital tokens (ECDH receiver)
+│   └── analyze_overlap.py                       # Analyze overlaps (ECDH)
+└── outputs/                                     # Tokenization outputs
+    ├── hospital_tokens_ecdh.zip                 # ECDH: Hospital tokens + public key
+    ├── pharmacy_decrypted_hospital_tokens.csv   # ECDH: Decrypted hospital tokens
+    └── matching_records_ecdh.csv                # ECDH: Matching record pairs
 ```
 
 ## Customize and next steps
@@ -482,19 +570,19 @@ num_pharmacy = 250      # Pharmacy records
 overlap_percentage = 0.30  # 30% overlap
 ```
 
-### Using Different Secrets <!-- omit in toc -->
+### ECDH Workflow Customization <!-- omit in toc -->
 
-Edit both tokenization scripts (and keep them identical across parties):
-
-- `scripts/tokenize_hospital.sh`
-- `scripts/tokenize_pharmacy.sh`
+For ECDH workflows, key management is automatic:
 
 ```bash
-HASHING_SECRET="YourCustomHashingKey"
-ENCRYPTION_KEY="YourCustomEncryptionKey-32"
-```
+# Regenerate pharmacy key pair (deletes old keys)
+rm -rf keys/
+./scripts/tokenize_pharmacy_generate_keys.sh
 
-**Important**: Both datasets must use the same secrets for tokens to be comparable!
+# Use custom key locations
+export RECEIVER_KEYPAIR_PATH="/custom/path/to/keys"
+./scripts/tokenize_pharmacy_decrypt.sh
+```
 
 ### Adjusting Match Criteria <!-- omit in toc -->
 
@@ -509,9 +597,9 @@ matches = find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=
 
 ### "No matches found" <!-- omit in toc -->
 
-**Cause**: Datasets were tokenized with different secrets.
+**Cause**: ECDH key exchange failed or keys don't match between sender and receiver.
 
-**Solution**: Ensure both tokenizations use identical hashing and encryption keys.
+**Solution**: Ensure pharmacy's public key is correctly shared with hospital, and hospital's public key is properly extracted by pharmacy during decryption.
 
 ### "Invalid attribute" errors during tokenization <!-- omit in toc -->
 

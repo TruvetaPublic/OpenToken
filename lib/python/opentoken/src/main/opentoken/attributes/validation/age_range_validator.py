@@ -21,7 +21,6 @@ class AgeRangeValidator(SerializableAttributeValidator):
 
     def __init__(self):
         """Initialize the validator with default age range (0-120)."""
-        pass
 
     def eval(self, value: str) -> bool:
         """

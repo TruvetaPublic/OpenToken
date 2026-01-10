@@ -26,7 +26,6 @@ class Token(ABC):
         Returns:
             The unique identifier for the token.
         """
-        pass
 
     @abstractmethod
     def get_definition(self) -> List[AttributeExpression]:
@@ -36,4 +35,3 @@ class Token(ABC):
         Returns:
             The list of attribute expressions that define the token.
         """
-        pass

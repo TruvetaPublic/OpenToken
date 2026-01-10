@@ -23,4 +23,3 @@ class SerializableAttributeValidator(AttributeValidator, ABC):
     """
     # This is a marker interface that combines AttributeValidator and serializable capability
     # No additional methods are required
-    pass

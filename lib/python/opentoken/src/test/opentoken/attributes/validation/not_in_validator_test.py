@@ -3,7 +3,6 @@ Tests for NotInValidator.
 """
 
 import pickle
-import pytest
 
 from opentoken.attributes.validation.not_in_validator import NotInValidator
 

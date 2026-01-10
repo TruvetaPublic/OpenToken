@@ -4,8 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 Tests for the TokenDecryptionProcessor class.
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 from opentoken_cli.processor.token_decryption_processor import TokenDecryptionProcessor
 from opentoken_cli.processor.token_constants import TokenConstants
 from opentoken.tokens.token import Token

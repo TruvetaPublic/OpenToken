@@ -21,4 +21,3 @@ class AttributeValidator(ABC):
         Returns:
             True if the attribute is valid, False otherwise
         """
-        pass

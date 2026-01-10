@@ -29,7 +29,6 @@ class CombinedAttribute(SerializableAttribute, ABC):
         Returns:
             List[SerializableAttribute]: The list of attribute implementations
         """
-        pass
 
     def validate(self, value: str) -> bool:
         """

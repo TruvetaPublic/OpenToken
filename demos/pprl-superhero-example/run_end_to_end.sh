@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
-# Run the Superhero PPRL example end-to-end:
+# Run the Superhero PPRL example end-to-end with ECDH public-key exchange:
 #  1) Generate datasets
-#  2) Tokenize with OpenToken (builds Java if needed)
-#  3) Decrypt-and-compare tokens to measure overlap
+#  2) Generate pharmacy (receiver) key pair
+#  3) Hospital tokenizes with ECDH (sender)
+#  4) Pharmacy decrypts and performs overlap analysis
 #
 set -euo pipefail
 
@@ -20,15 +21,12 @@ DEMO_DIR="${SCRIPT_DIR}"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 DATASETS_DIR="${DEMO_DIR}/datasets"
 OUTPUTS_DIR="${DEMO_DIR}/outputs"
+KEYS_DIR="${DEMO_DIR}/keys"
 JAVA_DIR="${PROJECT_ROOT}/lib/java/opentoken"
 VENV_ACTIVATE="${PROJECT_ROOT}/.venv/bin/activate"
 
-# Keys (keep in sync with tokenization scripts and analyze_overlap.py)
-HASHING_SECRET="SuperHeroHashingKey2024"
-ENCRYPTION_KEY="SuperHero-Encryption-Key-32chars" # Must be exactly 32 characters
-
 echo "============================================================"
-echo "Superhero PPRL - End-to-End Demo Runner"
+echo "Superhero PPRL - ECDH Public-Key Exchange Demo"
 echo "============================================================"
 echo "Project root: ${PROJECT_ROOT}"
 echo "Demo dir    : ${DEMO_DIR}"
@@ -52,30 +50,43 @@ if ! python -c "import cryptography" >/dev/null 2>&1; then
 fi
 
 # Step 1: Generate datasets
-echo -e "${BLUE}Step 1/3: Generating datasets...${NC}"
+echo -e "${BLUE}Step 1/4: Generating datasets...${NC}"
 mkdir -p "${DATASETS_DIR}"
 python "${DEMO_DIR}/scripts/generate_superhero_datasets.py"
 echo ""
 
-# Step 2: Tokenize datasets (builds Java if needed)
-echo -e "${BLUE}Step 2/3: Tokenizing datasets with OpenToken...${NC}"
-chmod +x "${DEMO_DIR}/scripts/tokenize_hospital.sh" || true
-chmod +x "${DEMO_DIR}/scripts/tokenize_pharmacy.sh" || true
-"${DEMO_DIR}/scripts/tokenize_hospital.sh"
-"${DEMO_DIR}/scripts/tokenize_pharmacy.sh"
+# Step 2: Generate pharmacy (receiver) key pair
+echo -e "${BLUE}Step 2/4: Generating pharmacy key pair (ECDH P-256)...${NC}"
+chmod +x "${DEMO_DIR}/scripts/tokenize_pharmacy_generate_keys.sh" || true
+"${DEMO_DIR}/scripts/tokenize_pharmacy_generate_keys.sh"
 echo ""
 
-# Step 3: Analyze overlap (decrypt + compare)
-echo -e "${BLUE}Step 3/3: Analyzing overlap (decrypting and comparing tokens)...${NC}"
+# Step 3: Hospital tokenizes with ECDH
+echo -e "${BLUE}Step 3/4: Hospital tokenizes with ECDH (sender)...${NC}"
+chmod +x "${DEMO_DIR}/scripts/tokenize_hospital.sh" || true
+"${DEMO_DIR}/scripts/tokenize_hospital.sh"
+echo ""
+
+# Step 4: Pharmacy decrypts and analyzes overlap
+echo -e "${BLUE}Step 4/4: Pharmacy decrypts tokens and analyzes overlap...${NC}"
+chmod +x "${DEMO_DIR}/scripts/tokenize_pharmacy_decrypt.sh" || true
+"${DEMO_DIR}/scripts/tokenize_pharmacy_decrypt.sh"
+echo ""
+
+# Run overlap analysis with ECDH decrypted tokens
+echo "Running overlap analysis on ECDH-decrypted tokens..."
 python "${DEMO_DIR}/scripts/analyze_overlap.py"
 echo ""
 
 echo "============================================================"
-echo -e "${GREEN}End-to-end run complete!${NC}"
+echo -e "${GREEN}ECDH Public-Key Exchange demo complete!${NC}"
 echo "Outputs:"
-echo "  - ${OUTPUTS_DIR}/hospital_tokens.csv"
-echo "  - ${OUTPUTS_DIR}/pharmacy_tokens.csv"
-echo "  - ${OUTPUTS_DIR}/matching_records.csv"
-echo "  - ${OUTPUTS_DIR}/hospital_tokens.metadata.json"
-echo "  - ${OUTPUTS_DIR}/pharmacy_tokens.metadata.json"
+echo "  Key Exchange:"
+echo "    - ${KEYS_DIR}/pharmacy_keypair.pem (pharmacy's private key)"
+echo "    - ${KEYS_DIR}/pharmacy_public_key.pem (pharmacy's public key)"
+echo "  Tokenization:"
+echo "    - ${OUTPUTS_DIR}/hospital_tokens_ecdh.zip (contains tokens + hospital's public key)"
+echo "  Decryption & Analysis:"
+echo "    - ${OUTPUTS_DIR}/pharmacy_decrypted_hospital_tokens.csv (decrypted tokens)"
+echo "    - ${OUTPUTS_DIR}/matching_records_ecdh.csv (matching record pairs)"
 echo "============================================================"

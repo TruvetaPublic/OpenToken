@@ -21,7 +21,6 @@ class YearRangeValidator(SerializableAttributeValidator):
 
     def __init__(self):
         """Initialize the validator with default year range (1910-current year)."""
-        pass
 
     @property
     def max_year(self) -> int:

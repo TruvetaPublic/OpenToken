@@ -5,7 +5,6 @@ Copyright (c) Truveta. All rights reserved.
 
 import pickle
 import pytest
-import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute

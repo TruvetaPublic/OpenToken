@@ -81,7 +81,6 @@ class TokenParquetReader(TokenReader):
     def close(self):
         """Close the file handle."""
         # PyArrow ParquetFile doesn't need explicit closing
-        pass
 
     def __enter__(self):
         """Context manager entry."""

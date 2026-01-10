@@ -15,16 +15,6 @@ public class CommandLineArguments {
         public static final String TYPE_PARQUET = "parquet";
 
         @Getter
-        @Parameter(names = { "-h",
-                        "--hashingsecret" }, description = "Hashing Secret to hash token signatures.", required = false)
-        private String hashingSecret = null;
-
-        @Getter
-        @Parameter(names = { "-e",
-                        "--encryptionkey" }, description = "Encryption key to encrypt tokens with.", required = false)
-        private String encryptionKey = null;
-
-        @Getter
         @Parameter(names = { "-i", "--input" }, description = "Input file path.", required = true)
         private String inputPath = "csv";
 
@@ -42,12 +32,43 @@ public class CommandLineArguments {
         private String outputType = "";
 
         @Getter
-        @Parameter(names = { "-d",
-                        "--decrypt" }, description = "Decrypt mode. Decrypts tokens from input file.", required = false)
-        private boolean decrypt = false;
+        @Parameter(names = {
+                        "--receiver-public-key" }, description = "Path to receiver's public key file for ECDH key exchange.", required = false)
+        private String receiverPublicKey = null;
 
         @Getter
         @Parameter(names = {
-                        "--hash-only" }, description = "Hash-only mode. Generates tokens with hashing only, skipping encryption.", required = false)
+                        "--sender-public-key" }, description = "Path to sender's public key file (for decryption with ECDH).", required = false)
+        private String senderPublicKey = null;
+
+        @Getter
+        @Parameter(names = {
+                        "--sender-keypair-path" }, description = "Path to sender's private key file (default: ~/.opentoken/keypair.pem).", required = false)
+        private String senderKeypairPath = null;
+
+        @Getter
+        @Parameter(names = {
+                        "--receiver-keypair-path" }, description = "Path to receiver's private key file (default: ~/.opentoken/keypair.pem).", required = false)
+        private String receiverKeypairPath = null;
+
+        @Getter
+        @Parameter(names = {
+                        "--generate-keypair" }, description = "Generate a new ECDH P-256 key pair and exit.", required = false)
+        private boolean generateKeypair = false;
+
+        @Getter
+        @Parameter(names = {
+                        "-h",
+                        "--hash-only" }, description = "Hash-only mode. Generates hashed tokens without encryption.", required = false)
         private boolean hashOnly = false;
+
+        @Getter
+        @Parameter(names = {
+                        "-d", "--decrypt" }, description = "Decrypt mode using ECDH key exchange.", required = false)
+        private boolean decryptWithEcdh = false;
+
+        @Getter
+        @Parameter(names = {
+                        "--ecdh-curve" }, description = "Elliptic curve name for ECDH (default: P-256 / secp256r1).", required = false)
+        private String ecdhCurve = "P-256";
 }

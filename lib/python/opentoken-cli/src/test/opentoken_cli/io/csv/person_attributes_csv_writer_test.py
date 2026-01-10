@@ -5,7 +5,6 @@ Copyright (c) Truveta. All rights reserved.
 import os
 import tempfile
 
-import pytest
 
 from opentoken_cli.io.csv.person_attributes_csv_writer import PersonAttributesCSVWriter
 

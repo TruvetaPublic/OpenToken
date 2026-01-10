@@ -26,4 +26,3 @@ class MetadataWriter(ABC):
         Args:
             metadata_map: The metadata to write
         """
-        pass

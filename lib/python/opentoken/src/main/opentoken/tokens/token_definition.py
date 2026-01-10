@@ -2,12 +2,9 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-import importlib
-import pkgutil
 from typing import Dict, List, Set
 from opentoken.attributes.attribute_expression import AttributeExpression
 from opentoken.tokens.base_token_definition import BaseTokenDefinition
-from opentoken.tokens.token import Token
 
 
 class TokenDefinition(BaseTokenDefinition):

@@ -4,10 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 Integration tests for the main module.
 """
 
-import os
 import pytest
-import tempfile
-from pathlib import Path
 
 from opentoken_cli.main import (
     main,
