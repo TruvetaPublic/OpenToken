@@ -157,9 +157,7 @@ public class KeyExchange {
             byte[] prk = hkdfExtract(salt.getBytes(StandardCharsets.UTF_8), ikm);
             
             // Step 2: Expand - expand the PRK to the desired length
-            byte[] okm = hkdfExpand(prk, info.getBytes(StandardCharsets.UTF_8), length);
-            
-            return okm;
+            return hkdfExpand(prk, info.getBytes(StandardCharsets.UTF_8), length);
         } catch (Exception e) {
             throw new KeyExchangeException("HKDF key derivation failed", e);
         }
