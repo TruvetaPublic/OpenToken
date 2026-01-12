@@ -32,6 +32,21 @@ class MainTest {
         private Path outputParquet;
         private PrintStream originalErr;
 
+        private String[] tokenizeCommand(String... args) {
+                return withCommand("tokenize", args);
+        }
+
+        private String[] decryptCommand(String... args) {
+                return withCommand("decrypt", args);
+        }
+
+        private String[] withCommand(String command, String... args) {
+                String[] fullArgs = new String[args.length + 1];
+                fullArgs[0] = command;
+                System.arraycopy(args, 0, fullArgs, 1, args.length);
+                return fullArgs;
+        }
+
         // Helper method to generate a keypair directory and return path to files
         private Path createAndSaveKeyPair(String dirName) throws Exception {
                 Path keyDir = tempDir.resolve(dirName);
@@ -66,13 +81,12 @@ class MainTest {
                 Path receiverDir = createAndSaveKeyPair("receiver");
                 Path senderDir = createAndSaveKeyPair("sender");
 
-                String[] args = {
+                String[] args = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputCsv.toString(),
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
 
                 assertDoesNotThrow(() -> Main.main(args));
 
@@ -89,14 +103,13 @@ class MainTest {
                 Path receiverDir = createAndSaveKeyPair("receiver_parquet");
                 Path senderDir = createAndSaveKeyPair("sender_parquet");
 
-                String[] args = {
+                String[] args = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputParquet.toString(),
                                 "-ot", "parquet",
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
 
                 assertDoesNotThrow(() -> Main.main(args));
 
@@ -108,13 +121,12 @@ class MainTest {
         void testHashOnlyMode() throws Exception {
                 Path receiverDir = createAndSaveKeyPair("receiver_hashonly");
 
-                String[] args = {
+                String[] args = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputCsv.toString(),
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--hash-only"
-                };
+                                "--hash-only");
 
                 assertDoesNotThrow(() -> Main.main(args));
 
@@ -129,25 +141,22 @@ class MainTest {
                 Path senderDir = createAndSaveKeyPair("sender_decrypt");
 
                 // First, generate encrypted tokens
-                String[] encryptArgs = {
+                String[] encryptArgs = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputCsv.toString(),
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
                 Main.main(encryptArgs);
 
                 // Now decrypt them
                 Path decryptedCsv = tempDir.resolve("decrypted.csv");
-                String[] decryptArgs = {
-                                "-d",
+                String[] decryptArgs = decryptCommand(
                                 "-i", outputCsv.toString(),
                                 "-t", "csv",
                                 "-o", decryptedCsv.toString(),
                                 "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
-                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString()
-                };
+                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString());
 
                 assertDoesNotThrow(() -> Main.main(decryptArgs));
 
@@ -158,13 +167,12 @@ class MainTest {
         @Test
         void testInvalidInputType() throws Exception {
                 Path receiverDir = createAndSaveKeyPair("receiver_invalidinput");
-                String[] args = {
+                String[] args = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "invalid",
                                 "-o", outputCsv.toString(),
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--sender-keypair-path", receiverDir.resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", receiverDir.resolve("keypair.pem").toString());
 
                 // Should not throw, but should log error and return early
                 assertDoesNotThrow(() -> Main.main(args));
@@ -175,14 +183,13 @@ class MainTest {
         @Test
         void testInvalidOutputType() throws Exception {
                 Path receiverDir = createAndSaveKeyPair("receiver_invalidoutput");
-                String[] args = {
+                String[] args = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputCsv.toString(),
                                 "-ot", "invalid",
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--sender-keypair-path", receiverDir.resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", receiverDir.resolve("keypair.pem").toString());
 
                 // Should not throw, but should log error and return early
                 assertDoesNotThrow(() -> Main.main(args));
@@ -190,12 +197,11 @@ class MainTest {
 
         @Test
         void testMissingReceiverPublicKey() {
-                String[] args = {
+                String[] args = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputCsv.toString(),
-                                "--sender-keypair-path", tempDir.resolve("sender").resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", tempDir.resolve("sender").resolve("keypair.pem").toString());
 
                 // Should not throw, but should log error and return early due to missing receiver public key
                 assertDoesNotThrow(() -> Main.main(args));
@@ -204,12 +210,11 @@ class MainTest {
         @Test
         void testMissingSenderKeypairWithEncryption() throws Exception {
                 Path receiverDir = createAndSaveKeyPair("receiver_missing_sender");
-                String[] args = {
+                String[] args = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputCsv.toString(),
-                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString()
-                };
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString());
 
                 // Should not throw, but should still proceed (sender keypair will be created in default location or current dir)
                 assertDoesNotThrow(() -> Main.main(args));
@@ -221,12 +226,10 @@ class MainTest {
                 Path dummyTokens = tempDir.resolve("tokens.csv");
                 Files.writeString(dummyTokens, "RecordId,RuleId,Token\ntest-001,T1,encrypted_token\n");
 
-                String[] args = {
-                                "-d",
+                String[] args = decryptCommand(
                                 "-i", dummyTokens.toString(),
                                 "-t", "csv",
-                                "-o", outputCsv.toString()
-                };
+                                "-o", outputCsv.toString());
 
                 // Should not throw, but should log error and return early
                 assertDoesNotThrow(() -> Main.main(args));
@@ -237,13 +240,12 @@ class MainTest {
                 Path receiverDir = createAndSaveKeyPair("receiver_outputdefault");
                 Path senderDir = createAndSaveKeyPair("sender_outputdefault");
 
-                String[] args = {
+                String[] args = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputCsv.toString(),
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
 
                 assertDoesNotThrow(() -> Main.main(args));
 
@@ -260,26 +262,23 @@ class MainTest {
                 Path receiverDir = createAndSaveKeyPair("receiver_parquet_input");
                 Path senderDir = createAndSaveKeyPair("sender_parquet_input");
 
-                String[] createArgs = {
+                String[] createArgs = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", tempParquet.toString(),
                                 "-ot", "parquet",
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
                 Main.main(createArgs);
 
                 // Now use parquet as input
                 Path outputParquet2 = tempDir.resolve("output2.parquet");
-                String[] args = {
-                                "-d",
+                String[] args = decryptCommand(
                                 "-i", tempParquet.toString(),
                                 "-t", "parquet",
                                 "-o", outputParquet2.toString(),
                                 "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
-                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString()
-                };
+                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString());
 
                 assertDoesNotThrow(() -> Main.main(args));
         }
@@ -291,26 +290,23 @@ class MainTest {
                 Path senderDir = createAndSaveKeyPair("sender_decrypt_parquet");
 
                 // First generate encrypted tokens
-                String[] encryptArgs = {
+                String[] encryptArgs = tokenizeCommand(
                                 "-i", inputCsv.toString(),
                                 "-t", "csv",
                                 "-o", outputCsv.toString(),
                                 "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
-                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString()
-                };
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
                 Main.main(encryptArgs);
 
                 // Decrypt CSV to Parquet
                 Path decryptedParquet = tempDir.resolve("decrypted.parquet");
-                String[] decryptArgs = {
-                                "-d",
+                String[] decryptArgs = decryptCommand(
                                 "-i", outputCsv.toString(),
                                 "-t", "csv",
                                 "-o", decryptedParquet.toString(),
                                 "-ot", "parquet",
                                 "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
-                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString()
-                };
+                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString());
 
                 assertDoesNotThrow(() -> Main.main(decryptArgs));
                 assertTrue(Files.exists(decryptedParquet));

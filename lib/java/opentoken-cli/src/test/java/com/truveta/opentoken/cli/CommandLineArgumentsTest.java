@@ -5,7 +5,7 @@ package com.truveta.opentoken.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,135 +13,179 @@ import org.junit.jupiter.api.Test;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import com.truveta.opentoken.cli.commands.DecryptCommand;
+import com.truveta.opentoken.cli.commands.GenerateKeypairCommand;
+import com.truveta.opentoken.cli.commands.TokenizeCommand;
 
 /**
- * Unit tests for {@link CommandLineArguments}.
+ * Verifies argument parsing for the CLI subcommands.
  */
 class CommandLineArgumentsTest {
 
-    @Test
-    void testRequiredParameters() {
-        CommandLineArguments args = new CommandLineArguments();
-        JCommander.newBuilder()
-                .addObject(args)
-                .build()
-                .parse("-i", "input.csv", "-t", "csv", "-o", "output.csv");
-
-        assertEquals("input.csv", args.getInputPath());
-        assertEquals("csv", args.getInputType());
-        assertEquals("output.csv", args.getOutputPath());
+    private JCommander buildCommander(String name, Object command) {
+        return JCommander.newBuilder().addCommand(name, command).build();
     }
 
     @Test
-    void testAllParameters() {
-        CommandLineArguments args = new CommandLineArguments();
-        JCommander.newBuilder()
-                .addObject(args)
-                .build()
-                .parse(
-                        "-i", "input.csv",
-                        "-t", "csv",
-                        "-o", "output.csv",
-                        "-ot", "parquet",
-                        "-d",
-                        "-h",
-                        "--ecdh-curve", "P-384");
+    void testTokenizeRequiredParameters() {
+        TokenizeCommand command = new TokenizeCommand();
+        JCommander jc = buildCommander("tokenize", command);
 
-        assertEquals("input.csv", args.getInputPath());
-        assertEquals("csv", args.getInputType());
-        assertEquals("output.csv", args.getOutputPath());
-        assertEquals("parquet", args.getOutputType());
-        assertTrue(args.isDecryptWithEcdh());
-        assertTrue(args.isHashOnly());
-        assertEquals("P-384", args.getEcdhCurve());
+        jc.parse("tokenize",
+                "-i", "input.csv",
+                "-t", "csv",
+                "-o", "output.csv",
+                "--receiver-public-key", "receiver.pem");
+
+        assertEquals("input.csv", command.getInputPath());
+        assertEquals("csv", command.getInputType());
+        assertEquals("output.csv", command.getOutputPath());
+        assertNull(command.getOutputType());
+        assertFalse(command.isHashOnly());
+        assertEquals("P-256", command.getEcdhCurve());
     }
 
     @Test
-    void testLongParameterNames() {
-        CommandLineArguments args = new CommandLineArguments();
-        JCommander.newBuilder()
-                .addObject(args)
-                .build()
-                .parse(
-                        "--input", "input.parquet",
-                        "--type", "parquet",
-                        "--output", "output.parquet",
-                        "--output-type", "csv",
-                        "--decrypt",
-                        "--ecdh-curve", "P-521");
+    void testTokenizeAllParameters() {
+        TokenizeCommand command = new TokenizeCommand();
+        JCommander jc = buildCommander("tokenize", command);
 
-        assertEquals("input.parquet", args.getInputPath());
-        assertEquals("parquet", args.getInputType());
-        assertEquals("output.parquet", args.getOutputPath());
-        assertEquals("csv", args.getOutputType());
-        assertTrue(args.isDecryptWithEcdh());
-        assertEquals("P-521", args.getEcdhCurve());
+        jc.parse("tokenize",
+                "-i", "input.parquet",
+                "-t", "parquet",
+                "-o", "output.parquet",
+                "-ot", "csv",
+                "--receiver-public-key", "receiver.pem",
+                "--sender-keypair-path", "sender/keypair.pem",
+                "--hash-only",
+                "--ecdh-curve", "P-384");
+
+        assertEquals("input.parquet", command.getInputPath());
+        assertEquals("parquet", command.getInputType());
+        assertEquals("output.parquet", command.getOutputPath());
+        assertEquals("csv", command.getOutputType());
+        assertTrue(command.isHashOnly());
+        assertEquals("P-384", command.getEcdhCurve());
+        assertEquals("receiver.pem", command.getReceiverPublicKey());
+        assertEquals("sender/keypair.pem", command.getSenderKeypairPath());
     }
 
     @Test
-    void testDefaultValues() {
-        CommandLineArguments args = new CommandLineArguments();
-        JCommander.newBuilder()
-                .addObject(args)
-                .build()
-                .parse("-i", "input.csv", "-t", "csv", "-o", "output.csv");
+    void testTokenizeMissingRequiredInput() {
+        TokenizeCommand command = new TokenizeCommand();
+        JCommander jc = buildCommander("tokenize", command);
 
-        assertEquals("", args.getOutputType());
-        assertFalse(args.isDecryptWithEcdh());
-        assertFalse(args.isHashOnly());
-        assertEquals("P-256", args.getEcdhCurve());
+        assertThrows(ParameterException.class, () -> jc.parse("tokenize",
+                "-t", "csv",
+                "-o", "output.csv",
+                "--receiver-public-key", "receiver.pem"));
     }
 
     @Test
-    void testMissingRequiredInput() {
-        CommandLineArguments args = new CommandLineArguments();
-        JCommander jc = JCommander.newBuilder()
-                .addObject(args)
-                .build();
+    void testTokenizeMissingRequiredType() {
+        TokenizeCommand command = new TokenizeCommand();
+        JCommander jc = buildCommander("tokenize", command);
 
-        assertThrows(ParameterException.class, () -> jc.parse("-t", "csv", "-o", "output.csv"));
+        assertThrows(ParameterException.class, () -> jc.parse("tokenize",
+                "-i", "input.csv",
+                "-o", "output.csv",
+                "--receiver-public-key", "receiver.pem"));
     }
 
     @Test
-    void testMissingRequiredType() {
-        CommandLineArguments args = new CommandLineArguments();
-        JCommander jc = JCommander.newBuilder()
-                .addObject(args)
-                .build();
+    void testTokenizeMissingRequiredOutput() {
+        TokenizeCommand command = new TokenizeCommand();
+        JCommander jc = buildCommander("tokenize", command);
 
-        assertThrows(ParameterException.class, () -> jc.parse("-i", "input.csv", "-o", "output.csv"));
+        assertThrows(ParameterException.class, () -> jc.parse("tokenize",
+                "-i", "input.csv",
+                "-t", "csv",
+                "--receiver-public-key", "receiver.pem"));
     }
 
     @Test
-    void testMissingRequiredOutput() {
-        CommandLineArguments args = new CommandLineArguments();
-        JCommander jc = JCommander.newBuilder()
-                .addObject(args)
-                .build();
+    void testTokenizeMissingReceiverPublicKey() {
+        TokenizeCommand command = new TokenizeCommand();
+        JCommander jc = buildCommander("tokenize", command);
 
-        assertThrows(ParameterException.class, () -> jc.parse("-i", "input.csv", "-t", "csv"));
+        assertThrows(ParameterException.class, () -> jc.parse("tokenize",
+                "-i", "input.csv",
+                "-t", "csv",
+                "-o", "output.csv"));
     }
 
     @Test
-    void testTypeConstants() {
-        assertEquals("csv", CommandLineArguments.TYPE_CSV);
-        assertEquals("parquet", CommandLineArguments.TYPE_PARQUET);
+    void testDecryptRequiredParameters() {
+        DecryptCommand command = new DecryptCommand();
+        JCommander jc = buildCommander("decrypt", command);
+
+        jc.parse("decrypt",
+                "-i", "tokens.csv",
+                "-t", "csv",
+                "-o", "output.csv",
+                "--sender-public-key", "sender.pem",
+                "--receiver-keypair-path", "receiver/keypair.pem");
+
+        assertEquals("tokens.csv", command.getInputPath());
+        assertEquals("csv", command.getInputType());
+        assertEquals("output.csv", command.getOutputPath());
+        assertNull(command.getOutputType());
+        assertEquals("sender.pem", command.getSenderPublicKey());
+        assertEquals("receiver/keypair.pem", command.getReceiverKeypairPath());
+        assertEquals("P-256", command.getEcdhCurve());
     }
 
     @Test
-    void testHashOnlyWithoutDecrypt() {
-        CommandLineArguments args = new CommandLineArguments();
-        JCommander.newBuilder()
-                .addObject(args)
-                .build()
-                .parse(
-                        "-i", "input.csv",
-                        "-t", "csv",
-                        "-o", "output.csv",
-                        "--hash-only");
+    void testDecryptMissingRequiredInput() {
+        DecryptCommand command = new DecryptCommand();
+        JCommander jc = buildCommander("decrypt", command);
 
-        assertTrue(args.isHashOnly());
-        assertFalse(args.isDecryptWithEcdh());
-        assertEquals("P-256", args.getEcdhCurve());
+        assertThrows(ParameterException.class, () -> jc.parse("decrypt",
+                "-t", "csv",
+                "-o", "output.csv"));
+    }
+
+    @Test
+    void testDecryptMissingRequiredType() {
+        DecryptCommand command = new DecryptCommand();
+        JCommander jc = buildCommander("decrypt", command);
+
+        assertThrows(ParameterException.class, () -> jc.parse("decrypt",
+                "-i", "tokens.csv",
+                "-o", "output.csv"));
+    }
+
+    @Test
+    void testDecryptMissingRequiredOutput() {
+        DecryptCommand command = new DecryptCommand();
+        JCommander jc = buildCommander("decrypt", command);
+
+        assertThrows(ParameterException.class, () -> jc.parse("decrypt",
+                "-i", "tokens.csv",
+                "-t", "csv"));
+    }
+
+    @Test
+    void testGenerateKeypairDefaults() {
+        GenerateKeypairCommand command = new GenerateKeypairCommand();
+        JCommander jc = buildCommander("generate-keypair", command);
+
+        jc.parse("generate-keypair");
+
+        assertEquals("P-256", command.getEcdhCurve());
+        assertNull(command.getOutputDir());
+    }
+
+    @Test
+    void testGenerateKeypairCustomValues() {
+        GenerateKeypairCommand command = new GenerateKeypairCommand();
+        JCommander jc = buildCommander("generate-keypair", command);
+
+        jc.parse("generate-keypair",
+                "--ecdh-curve", "P-384",
+                "--output-dir", "/tmp/keys");
+
+        assertEquals("P-384", command.getEcdhCurve());
+        assertEquals("/tmp/keys", command.getOutputDir());
     }
 }
