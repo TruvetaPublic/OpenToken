@@ -15,15 +15,15 @@ public class CommandLineArguments {
         public static final String TYPE_PARQUET = "parquet";
 
         @Getter
-        @Parameter(names = { "-i", "--input" }, description = "Input file path.", required = true)
+        @Parameter(names = { "-i", "--input" }, description = "Input file path.", required = false)
         private String inputPath = "csv";
 
         @Getter
-        @Parameter(names = { "-t", "--type" }, description = "Input file type.", required = true)
+        @Parameter(names = { "-t", "--type" }, description = "Input file type.", required = false)
         private String inputType = "";
 
         @Getter
-        @Parameter(names = { "-o", "--output" }, description = "Output file path.", required = true)
+        @Parameter(names = { "-o", "--output" }, description = "Output file path.", required = false)
         private String outputPath = "";
 
         @Getter

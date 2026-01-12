@@ -9,9 +9,8 @@ Our approach to person matching relies on building a set of matching tokens (or 
 - [Demo](#demo)
 - [Overview](#overview)
 - [Usage](#usage)
+    - [Available Commands](#available-commands)
 - [Quick Start](#quick-start)
-    - [Using Convenience Scripts (Recommended)](#using-convenience-scripts-recommended)
-    - [Manual Docker Commands](#manual-docker-commands)
 - [Development \& Documentation](#development--documentation)
 - [Contributing](#contributing)
 
@@ -171,23 +170,40 @@ Getting started examples are available in the notebooks: lib/python/opentoken-py
 
 ### CLI Arguments  <!-- omit in toc -->
 
-OpenToken CLI is now **ECDH-only** — all invocations use public-key cryptography.
+OpenToken CLI is now **ECDH-only** and uses a **subcommand-based interface** for clear operation separation.
 
-**Required Arguments:**
+#### Available Commands
 
+**`generate-keypair`** - Generate a new ECDH key pair
+- `--ecdh-curve`: Elliptic curve name (default: P-256)
+- `--output-dir`: Directory to save keys (default: ~/.opentoken)
+
+**`tokenize`** - Tokenize person attributes using ECDH key exchange
+
+*Required:*
 - `-i | --input`: Input file path containing person attributes
 - `-t | --type`: Input file type (`csv` or `parquet`)
 - `-o | --output`: Output file path for tokens (`.zip` recommended for automatic packaging)
-- `--receiver-public-key`: Path to receiver's public key file (generate via `--generate-keypair`)
+- `--receiver-public-key`: Path to receiver's public key file
 
-**Optional Arguments:**
-
+*Optional:*
 - `-ot | --output-type`: Output file type if different from input (defaults to input type)
 - `--sender-keypair-path`: Path to sender's private key file (default: `~/.opentoken/keypair.pem`)
-- `--decrypt-with-ecdh`: Decrypt mode using ECDH key exchange
-- `--sender-public-key`: Path to sender's public key file (for decryption with ECDH)
+- `--hash-only`: Hash-only mode (generates hashed tokens without encryption)
+- `--ecdh-curve`: Elliptic curve name (default: P-256)
+
+**`decrypt`** - Decrypt tokens using ECDH key exchange
+
+*Required:*
+- `-i | --input`: Input file path (or ZIP package)
+- `-t | --type`: Input file type (`csv` or `parquet`)
+- `-o | --output`: Output file path
+
+*Optional:*
+- `-ot | --output-type`: Output file type if different from input
+- `--sender-public-key`: Path to sender's public key file (extracted from ZIP if not provided)
 - `--receiver-keypair-path`: Path to receiver's private key file (default: `~/.opentoken/keypair.pem`)
-- `--generate-keypair`: Generate a new ECDH key pair and exit
+- `--ecdh-curve`: Elliptic curve name (default: P-256)
 
 **Note:** Hashing and encryption keys are automatically derived from the ECDH key exchange. No manual secrets needed.
 
@@ -249,14 +265,14 @@ You can build and run OpenToken via Docker using the convenience scripts:
 **Bash (Linux/Mac):**
 
 ```bash
-./run-opentoken.sh -i ./resources/sample.csv -o ./resources/output.zip -t csv \
+./run-opentoken.sh tokenize -i ./resources/sample.csv -o ./resources/output.zip -t csv \
   --receiver-public-key /path/to/receiver_public_key.pem
 ```
 
 **PowerShell (Windows):**
 
 ```powershell
-.\run-opentoken.ps1 -i .\resources\sample.csv -o .\resources\output.zip -FileType csv `
+.\run-opentoken.ps1 tokenize -i .\resources\sample.csv -o .\resources\output.zip -FileType csv `
   -ReceiverPublicKey C:\path\to\receiver_public_key.pem
 ```
 
@@ -268,7 +284,7 @@ docker build -t opentoken:latest .
 
 # Run with ECDH
 docker run --rm -v $(pwd)/resources:/app/resources \
-  opentoken:latest \
+  opentoken:latest tokenize \
   -i /app/resources/sample.csv -t csv -o /app/resources/output.zip \
   --receiver-public-key /app/resources/receiver_public_key.pem
 ```

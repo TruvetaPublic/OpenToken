@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.truveta.opentoken.Metadata;
+import com.truveta.opentoken.cli.commands.DecryptCommand;
+import com.truveta.opentoken.cli.commands.GenerateKeypairCommand;
+import com.truveta.opentoken.cli.commands.TokenizeCommand;
 import com.truveta.opentoken.cli.io.MetadataWriter;
 import com.truveta.opentoken.cli.io.PersonAttributesReader;
 import com.truveta.opentoken.cli.io.PersonAttributesWriter;
@@ -66,37 +69,134 @@ public class Main {
      * @throws IOException if an I/O error occurs while creating readers or writers
      */
     public static void main(String[] args) throws IOException {
-        CommandLineArguments commandLineArguments = loadCommandLineArguments(args);
+        // Create subcommand objects
+        GenerateKeypairCommand generateKeypairCommand = new GenerateKeypairCommand();
+        TokenizeCommand tokenizeCommand = new TokenizeCommand();
+        DecryptCommand decryptCommand = new DecryptCommand();
 
-        // Handle keypair generation mode
-        if (commandLineArguments.isGenerateKeypair()) {
-            generateKeypair(commandLineArguments.getEcdhCurve());
+        // Build JCommander with subcommands
+        JCommander jc = JCommander.newBuilder()
+                .programName("opentoken")
+                .addCommand("generate-keypair", generateKeypairCommand)
+                .addCommand("tokenize", tokenizeCommand)
+                .addCommand("decrypt", decryptCommand)
+                .build();
+
+        // Parse arguments
+        try {
+            jc.parse(args);
+        } catch (Exception e) {
+            logger.error("Error parsing arguments: {}", e.getMessage());
+            jc.usage();
             return;
         }
 
-        String inputPath = commandLineArguments.getInputPath();
-        String inputType = commandLineArguments.getInputType();
-        String outputPath = commandLineArguments.getOutputPath();
-        String outputType = commandLineArguments.getOutputType();
-        boolean decryptWithEcdh = commandLineArguments.isDecryptWithEcdh();
-        boolean hashOnly = commandLineArguments.isHashOnly();
-        String receiverPublicKeyPath = commandLineArguments.getReceiverPublicKey();
-        String senderPublicKeyPath = commandLineArguments.getSenderPublicKey();
-        String senderKeypairPath = commandLineArguments.getSenderKeypairPath();
-        String receiverKeypairPath = commandLineArguments.getReceiverKeypairPath();
-        String ecdhCurveInput = commandLineArguments.getEcdhCurve();
+        // Get the parsed command
+        String parsedCommand = jc.getParsedCommand();
+
+        if (parsedCommand == null) {
+            logger.error("No command specified. Use one of: generate-keypair, tokenize, decrypt");
+            jc.usage();
+            return;
+        }
+
+        // Route to appropriate handler
+        switch (parsedCommand) {
+            case "generate-keypair":
+                handleGenerateKeypair(generateKeypairCommand);
+                break;
+            case "tokenize":
+                handleTokenize(tokenizeCommand);
+                break;
+            case "decrypt":
+                handleDecrypt(decryptCommand);
+                break;
+            default:
+                logger.error("Unknown command: {}", parsedCommand);
+                jc.usage();
+        }
+    }
+
+    /**
+     * Handles the generate-keypair subcommand.
+     *
+     * @param command the parsed command object
+     */
+    private static void handleGenerateKeypair(GenerateKeypairCommand command) {
+        String keyDir = command.getOutputDir() != null
+                ? command.getOutputDir()
+                : KeyPairManager.DEFAULT_KEY_DIR;
+        generateKeypair(command.getEcdhCurve(), keyDir);
+    }
+
+    /**
+     * Handles the tokenize subcommand.
+     *
+     * @param command the parsed command object
+     * @throws IOException if an I/O error occurs
+     */
+    private static void handleTokenize(TokenizeCommand command) throws IOException {
+        String inputPath = command.getInputPath();
+        String inputType = command.getInputType();
+        String outputPath = command.getOutputPath();
+        String outputType = command.getOutputType();
+        String receiverPublicKeyPath = command.getReceiverPublicKey();
+        String senderKeypairPath = command.getSenderKeypairPath();
+        boolean hashOnly = command.isHashOnly();
+        String ecdhCurveInput = command.getEcdhCurve();
+
         String ecdhCurveNormalized = KeyPairManager.normalizeCurveName(ecdhCurveInput);
         String ecdhCurveDisplay = displayCurveName(ecdhCurveNormalized, ecdhCurveInput);
 
         if (outputType == null || outputType.isEmpty()) {
-            outputType = inputType; // defaulting to input type if not provided
+            outputType = inputType;
         }
 
-        String mode = decryptWithEcdh ? "Decrypt with ECDH"
-                : (hashOnly ? "Hash-only (ECDH-derived hash key, no encryption)" : "Encrypt with ECDH");
+        String mode = hashOnly ? "Hash-only (ECDH-derived hash key, no encryption)" : "Encrypt with ECDH";
         logger.info("Mode: {}", mode);
         logger.info("ECDH Curve: {} (normalized: {})", ecdhCurveDisplay, ecdhCurveNormalized);
         logger.info("Receiver Public Key: {}", receiverPublicKeyPath);
+        logger.info("Input Path: {}", inputPath);
+        logger.info("Input Type: {}", inputType);
+        logger.info("Output Path: {}", outputPath);
+        logger.info("Output Type: {}", outputType);
+
+        // Validate input and output types
+        if (!("csv".equals(inputType) || "parquet".equals(inputType))) {
+            logger.error("Only csv and parquet input types are supported!");
+            return;
+        }
+        if (!("csv".equals(outputType) || "parquet".equals(outputType))) {
+            logger.error("Only csv and parquet output types are supported!");
+            return;
+        }
+
+        processTokensWithEcdh(inputPath, outputPath, inputType, outputType,
+                receiverPublicKeyPath, senderKeypairPath, ecdhCurveNormalized, ecdhCurveDisplay, hashOnly);
+    }
+
+    /**
+     * Handles the decrypt subcommand.
+     *
+     * @param command the parsed command object
+     * @throws IOException if an I/O error occurs
+     */
+    private static void handleDecrypt(DecryptCommand command) throws IOException {
+        String inputPath = command.getInputPath();
+        String inputType = command.getInputType();
+        String outputPath = command.getOutputPath();
+        String outputType = command.getOutputType();
+        String senderPublicKeyPath = command.getSenderPublicKey();
+        String receiverKeypairPath = command.getReceiverKeypairPath();
+        String ecdhCurveInput = command.getEcdhCurve();
+
+        String ecdhCurveNormalized = KeyPairManager.normalizeCurveName(ecdhCurveInput);
+
+        if (outputType == null || outputType.isEmpty()) {
+            outputType = inputType;
+        }
+
+        logger.info("Mode: Decrypt with ECDH");
         logger.info("Sender Public Key: {}", senderPublicKeyPath);
         logger.info("Input Path: {}", inputPath);
         logger.info("Input Type: {}", inputType);
@@ -104,33 +204,18 @@ public class Main {
         logger.info("Output Type: {}", outputType);
 
         // Validate input and output types
-        if (!(CommandLineArguments.TYPE_CSV.equals(inputType)
-                || CommandLineArguments.TYPE_PARQUET.equals(inputType))) {
+        if (!("csv".equals(inputType) || "parquet".equals(inputType))) {
             logger.error("Only csv and parquet input types are supported!");
             return;
         }
-        if (!(CommandLineArguments.TYPE_CSV.equals(outputType)
-                || CommandLineArguments.TYPE_PARQUET.equals(outputType))) {
+        if (!("csv".equals(outputType) || "parquet".equals(outputType))) {
             logger.error("Only csv and parquet output types are supported!");
             return;
         }
 
-        // Process based on mode
-        if (decryptWithEcdh) {
-            // ECDH-based decryption
-            decryptTokensWithEcdh(inputPath, outputPath, inputType, outputType,
-                    senderPublicKeyPath, receiverKeypairPath, ecdhCurveNormalized);
-            logger.info("Token decryption completed successfully.");
-        } else {
-            // ECDH-based encryption (token generation)
-            if (receiverPublicKeyPath == null || receiverPublicKeyPath.isBlank()) {
-                logger.error(
-                        "Receiver's public key must be specified (--receiver-public-key). Generate one with --generate-keypair first.");
-                return;
-            }
-            processTokensWithEcdh(inputPath, outputPath, inputType, outputType,
-                    receiverPublicKeyPath, senderKeypairPath, ecdhCurveNormalized, ecdhCurveDisplay, hashOnly);
-        }
+        decryptTokensWithEcdh(inputPath, outputPath, inputType, outputType,
+                senderPublicKeyPath, receiverKeypairPath, ecdhCurveNormalized);
+        logger.info("Token decryption completed successfully.");
     }
 
     /**
@@ -145,9 +230,9 @@ public class Main {
     private static PersonAttributesReader createPersonAttributesReader(String inputPath, String inputType)
             throws IOException {
         switch (inputType.toLowerCase()) {
-            case CommandLineArguments.TYPE_CSV:
+            case "csv":
                 return new PersonAttributesCSVReader(inputPath);
-            case CommandLineArguments.TYPE_PARQUET:
+            case "parquet":
                 return new PersonAttributesParquetReader(inputPath);
             default:
                 throw new IllegalArgumentException("Unsupported input type: " + inputType);
@@ -166,9 +251,9 @@ public class Main {
     private static PersonAttributesWriter createPersonAttributesWriter(String outputPath,
             String outputType) throws IOException {
         switch (outputType.toLowerCase()) {
-            case CommandLineArguments.TYPE_CSV:
+            case "csv":
                 return new PersonAttributesCSVWriter(outputPath);
-            case CommandLineArguments.TYPE_PARQUET:
+            case "parquet":
                 return new PersonAttributesParquetWriter(outputPath);
             default:
                 throw new IllegalArgumentException("Unsupported output type: " + outputType);
@@ -186,9 +271,9 @@ public class Main {
      */
     private static TokenReader createTokenReader(String inputPath, String inputType) throws IOException {
         switch (inputType.toLowerCase()) {
-            case CommandLineArguments.TYPE_CSV:
+            case "csv":
                 return new TokenCSVReader(inputPath);
-            case CommandLineArguments.TYPE_PARQUET:
+            case "parquet":
                 return new TokenParquetReader(inputPath);
             default:
                 throw new IllegalArgumentException("Unsupported input type: " + inputType);
@@ -206,27 +291,13 @@ public class Main {
      */
     private static TokenWriter createTokenWriter(String outputPath, String outputType) throws IOException {
         switch (outputType.toLowerCase()) {
-            case CommandLineArguments.TYPE_CSV:
+            case "csv":
                 return new TokenCSVWriter(outputPath);
-            case CommandLineArguments.TYPE_PARQUET:
+            case "parquet":
                 return new TokenParquetWriter(outputPath);
             default:
                 throw new IllegalArgumentException("Unsupported output type: " + outputType);
         }
-    }
-
-    /**
-     * Parses and loads command-line arguments using JCommander.
-     *
-     * @param args raw command-line arguments
-     * @return populated {@link CommandLineArguments}
-     */
-    private static CommandLineArguments loadCommandLineArguments(String[] args) {
-        logger.debug("Processing command line arguments. {}", String.join("|", args));
-        CommandLineArguments commandLineArguments = new CommandLineArguments();
-        JCommander.newBuilder().addObject(commandLineArguments).build().parse(args);
-        logger.info("Command line arguments processed.");
-        return commandLineArguments;
     }
 
     /**
@@ -254,17 +325,18 @@ public class Main {
     }
 
     /**
-     * Generates a new ECDH key pair and saves it to the default location.
+     * Generates a new ECDH key pair and saves it to the specified location.
      *
      * @param ecdhCurveInput the user-provided curve name (e.g., "P-256")
+     * @param keyDir the directory to save the key pair
      */
-    private static void generateKeypair(String ecdhCurveInput) {
+    private static void generateKeypair(String ecdhCurveInput, String keyDir) {
         try {
             String ecdhCurveNormalized = KeyPairManager.normalizeCurveName(ecdhCurveInput);
             String ecdhCurveDisplay = displayCurveName(ecdhCurveNormalized, ecdhCurveInput);
 
             logger.info("Generating new ECDH key pair (curve: {})...", ecdhCurveDisplay);
-            KeyPairManager keyPairManager = new KeyPairManager(KeyPairManager.DEFAULT_KEY_DIR, ecdhCurveNormalized);
+            KeyPairManager keyPairManager = new KeyPairManager(keyDir, ecdhCurveNormalized);
             keyPairManager.generateAndSaveKeyPair();
 
             logger.info("✓ Key pair generated successfully");

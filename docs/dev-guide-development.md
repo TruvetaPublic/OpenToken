@@ -226,18 +226,18 @@ CLI usage (from project root):
 
 ```shell
 # After installing opentoken-cli
-python -m opentoken_cli.main [OPTIONS]
+opentoken [SUBCOMMAND] [OPTIONS]
 ```
 
 Arguments mirror Java implementation.
 
-Example:
+Example (using tokenize subcommand):
 
 ```shell
 # After installing opentoken-cli
-python -m opentoken_cli.main \
-  -i resources/sample.csv -t csv -o lib/python/opentoken-cli/target/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+opentoken tokenize \
+  -i resources/sample.csv -t csv -o lib/python/opentoken-cli/target/output.zip \
+  --receiver-public-key /path/to/receiver_public_key.pem
 ```
 
 Programmatic API (simplified):
@@ -378,14 +378,14 @@ When adding attributes/tokens: update Java first, run sync tool, then implement 
 
 ### Cross-language Tips
 
-| Task            | Java Command                                             | Python Command                     |
-| --------------- | -------------------------------------------------------- | ---------------------------------- |
-| Build / Package | `cd lib/java && mvn clean install`                       | `pip install -e .`                 |
-| Run Tests       | `mvn test`                                               | `pytest src/test`                  |
-| Lint / Style    | `mvn checkstyle:check`                                   | (pep8 / flake8 if configured)      |
-| Run CLI         | `java -jar opentoken-cli/target/opentoken-cli-*.jar ...` | `python -m opentoken_cli.main ...` |
-| Add Token       | SPI entry & class                                        | new module in `tokens/definitions` |
-| Add Attribute   | SPI entry & class                                        | class + loader import              |
+| Task            | Java Command                                                          | Python Command                     |
+| --------------- | --------------------------------------------------------------------- | ---------------------------------- |
+| Build / Package | `cd lib/java && mvn clean install`                                    | `pip install -e .`                 |
+| Run Tests       | `mvn test`                                                            | `pytest src/test`                  |
+| Lint / Style    | `mvn checkstyle:check`                                                | (pep8 / flake8 if configured)      |
+| Run CLI         | `java -jar opentoken-cli/target/opentoken-cli-*.jar [subcommand] ...` | `opentoken [subcommand] ...`       |
+| Add Token       | SPI entry & class                                                     | new module in `tokens/definitions` |
+| Add Attribute   | SPI entry & class                                                     | class + loader import              |
 
 Maintain the same functional behavior and normalization between languages.
 
@@ -524,26 +524,56 @@ docker build . -t opentoken
 
 The CLI is provided by the `opentoken-cli` package in both Java and Python.
 
-Minimum required arguments:
+**New CLI Interface (Subcommand-based):**
+
+OpenToken now uses ECDH key exchange exclusively. The CLI has three subcommands:
 
 ```shell
-# Java
-java -jar lib/java/opentoken-cli/target/opentoken-cli-*.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+# Java - Generate key pair
+java -jar lib/java/opentoken-cli/target/opentoken-cli-*.jar generate-keypair
 
-# Python
-python -m opentoken_cli.main -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+# Python - Generate key pair
+opentoken generate-keypair
+
+# Java - Tokenize with ECDH
+java -jar lib/java/opentoken-cli/target/opentoken-cli-*.jar tokenize \
+  -i input.csv -t csv -o output.zip --receiver-public-key /path/to/receiver_public_key.pem
+
+# Python - Tokenize with ECDH
+opentoken tokenize \
+  -i input.csv -t csv -o output.zip --receiver-public-key /path/to/receiver_public_key.pem
+
+# Java - Decrypt with ECDH
+java -jar lib/java/opentoken-cli/target/opentoken-cli-*.jar decrypt \
+  -i output.zip -t csv -o decrypted.csv
+
+# Python - Decrypt with ECDH
+opentoken decrypt \
+  -i output.zip -t csv -o decrypted.csv
 ```
 
-Arguments:
+**Subcommands:**
 
-| Flag                  | Description                                     |
-| --------------------- | ----------------------------------------------- |
-| `-t, --type`          | Input file type (`csv` or `parquet`)            |
-| `-i, --input`         | Input file path                                 |
-| `-o, --output`        | Output file path                                |
-| `-ot, --output-type`  | (Optional) Output file type (defaults to input) |
-| `-h, --hashingsecret` | Hashing secret for HMAC-SHA256                  |
-| `-e, --encryptionkey` | AES-256 encryption key                          |
+| Subcommand         | Description                                   |
+| ------------------ | --------------------------------------------- |
+| `generate-keypair` | Generate a new ECDH key pair (default: P-256) |
+| `tokenize`         | Tokenize person attributes using ECDH         |
+| `decrypt`          | Decrypt tokens using ECDH                     |
+
+**Common Arguments:**
+
+| Flag                      | Description                                     | Required For      |
+| ------------------------- | ----------------------------------------------- | ----------------- |
+| `-t, --type`              | Input file type (`csv` or `parquet`)            | tokenize, decrypt |
+| `-i, --input`             | Input file path                                 | tokenize, decrypt |
+| `-o, --output`            | Output file path                                | tokenize, decrypt |
+| `-ot, --output-type`      | (Optional) Output file type (defaults to input) | tokenize, decrypt |
+| `--receiver-public-key`   | Path to receiver's public key                   | tokenize          |
+| `--sender-public-key`     | Path to sender's public key (optional)          | decrypt           |
+| `--sender-keypair-path`   | Custom sender key pair location                 | tokenize          |
+| `--receiver-keypair-path` | Custom receiver key pair location               | decrypt           |
+| `--hash-only`             | Hash-only mode (skip encryption)                | tokenize          |
+| `--ecdh-curve`            | Elliptic curve (default: P-256)                 | all               |
 
 ## Development Container
 

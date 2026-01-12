@@ -2,23 +2,30 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
+import argparse
 import logging
+import os
 import sys
 
-from opentoken_cli.command_line_arguments import CommandLineArguments
+from opentoken_cli.commands import GenerateKeypairCommand, TokenizeCommand, DecryptCommand
 from opentoken_cli.io.csv.person_attributes_csv_reader import PersonAttributesCSVReader
 from opentoken_cli.io.csv.person_attributes_csv_writer import PersonAttributesCSVWriter
+from opentoken_cli.io.csv.token_csv_reader import TokenCSVReader
+from opentoken_cli.io.csv.token_csv_writer import TokenCSVWriter
 from opentoken_cli.io.json.metadata_json_writer import MetadataJsonWriter
 from opentoken_cli.io.parquet.person_attributes_parquet_reader import PersonAttributesParquetReader
 from opentoken_cli.io.parquet.person_attributes_parquet_writer import PersonAttributesParquetWriter
+from opentoken_cli.io.parquet.token_parquet_reader import TokenParquetReader
+from opentoken_cli.io.parquet.token_parquet_writer import TokenParquetWriter
 from opentoken_cli.processor.person_attributes_processor import PersonAttributesProcessor
+from opentoken_cli.processor.token_decryption_processor import TokenDecryptionProcessor
 from opentoken_cli.io.output_packager import OutputPackager
 from opentoken.metadata import Metadata
+from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 from opentoken.keyexchange import KeyPairManager, KeyExchange, PublicKeyLoader, KeyExchangeException
 
-import os
 from cryptography.hazmat.primitives import serialization
 
 
@@ -32,64 +39,138 @@ logger = logging.getLogger(__name__)
 
 def main():
     """Main entry point for the OpenToken application."""
-    command_line_arguments = _load_command_line_arguments(sys.argv[1:])
+    # Build argument parser with subcommands
+    parser = argparse.ArgumentParser(
+        prog='opentoken',
+        description='OpenToken command line tool for ECDH-based secure token generation'
+    )
     
-    # Handle keypair generation mode
-    if command_line_arguments.generate_keypair:
-        _generate_keypair()
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    
+    # Configure subcommands
+    GenerateKeypairCommand.configure_parser(subparsers)
+    TokenizeCommand.configure_parser(subparsers)
+    DecryptCommand.configure_parser(subparsers)
+    
+    # Parse arguments
+    try:
+        args = parser.parse_args()
+    except SystemExit as e:
+        if e.code != 0:
+            sys.exit(e.code)
         return
     
-    input_path = command_line_arguments.input_path
-    input_type = command_line_arguments.input_type
-    output_path = command_line_arguments.output_path
-    output_type = command_line_arguments.output_type if command_line_arguments.output_type else input_type
-    decrypt_with_ecdh = command_line_arguments.decrypt_with_ecdh
-    hash_only = command_line_arguments.hash_only
-    ecdh_curve = command_line_arguments.ecdh_curve
-    receiver_public_key_path = command_line_arguments.receiver_public_key
-    sender_public_key_path = command_line_arguments.sender_public_key
-    sender_keypair_path = command_line_arguments.sender_keypair_path
-    receiver_keypair_path = command_line_arguments.receiver_keypair_path
+    # Check if a command was specified
+    if not args.command:
+        logger.error("No command specified. Use one of: generate-keypair, tokenize, decrypt")
+        parser.print_help()
+        sys.exit(1)
+    
+    # Route to appropriate handler
+    if args.command == 'generate-keypair':
+        command = GenerateKeypairCommand.from_args(args)
+        _handle_generate_keypair(command)
+    elif args.command == 'tokenize':
+        command = TokenizeCommand.from_args(args)
+        _handle_tokenize(command)
+    elif args.command == 'decrypt':
+        command = DecryptCommand.from_args(args)
+        _handle_decrypt(command)
+    else:
+        logger.error(f"Unknown command: {args.command}")
+        parser.print_help()
+        sys.exit(1)
 
-    mode = 'Decrypt with ECDH' if decrypt_with_ecdh else ('Hash-only (ECDH-derived hash key, no encryption)' if hash_only else 'Encrypt with ECDH')
+
+def _handle_generate_keypair(command: GenerateKeypairCommand):
+    """
+    Handle the generate-keypair subcommand.
+    
+    Args:
+        command: The parsed command object.
+    """
+    key_dir = command.output_dir if command.output_dir else None
+    _generate_keypair(command.ecdh_curve, key_dir)
+
+
+def _handle_tokenize(command: TokenizeCommand):
+    """
+    Handle the tokenize subcommand.
+    
+    Args:
+        command: The parsed command object.
+    """
+    input_path = command.input_path
+    input_type = command.input_type
+    output_path = command.output_path
+    output_type = command.output_type if command.output_type else input_type
+    receiver_public_key_path = command.receiver_public_key
+    sender_keypair_path = command.sender_keypair_path
+    hash_only = command.hash_only
+    ecdh_curve = command.ecdh_curve
+    
+    mode = 'Hash-only (ECDH-derived hash key, no encryption)' if hash_only else 'Encrypt with ECDH'
     logger.info(f"Mode: {mode}")
     logger.info(f"ECDH Curve: {ecdh_curve}")
     logger.info(f"Receiver Public Key: {receiver_public_key_path}")
+    logger.info(f"Input Path: {input_path}")
+    logger.info(f"Input Type: {input_type}")
+    logger.info(f"Output Path: {output_path}")
+    logger.info(f"Output Type: {output_type}")
+    
+    # Validate input and output types
+    if input_type not in ['csv', 'parquet']:
+        logger.error("Only csv and parquet input types are supported!")
+        sys.exit(1)
+    if output_type not in ['csv', 'parquet']:
+        logger.error("Only csv and parquet output types are supported!")
+        sys.exit(1)
+    
+    _process_tokens_with_ecdh(input_path, output_path, input_type, output_type,
+                             receiver_public_key_path, sender_keypair_path, hash_only, ecdh_curve)
+
+
+def _handle_decrypt(command: DecryptCommand):
+    """
+    Handle the decrypt subcommand.
+    
+    Args:
+        command: The parsed command object.
+    """
+    input_path = command.input_path
+    input_type = command.input_type
+    output_path = command.output_path
+    output_type = command.output_type if command.output_type else input_type
+    sender_public_key_path = command.sender_public_key
+    receiver_keypair_path = command.receiver_keypair_path
+    ecdh_curve = command.ecdh_curve
+    
+    logger.info("Mode: Decrypt with ECDH")
     logger.info(f"Sender Public Key: {sender_public_key_path}")
     logger.info(f"Input Path: {input_path}")
     logger.info(f"Input Type: {input_type}")
     logger.info(f"Output Path: {output_path}")
     logger.info(f"Output Type: {output_type}")
-
+    
     # Validate input and output types
-    if input_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
+    if input_type not in ['csv', 'parquet']:
         logger.error("Only csv and parquet input types are supported!")
-        return
-    if output_type not in [CommandLineArguments.TYPE_CSV, CommandLineArguments.TYPE_PARQUET]:
+        sys.exit(1)
+    if output_type not in ['csv', 'parquet']:
         logger.error("Only csv and parquet output types are supported!")
-        return
-
-    # Process based on mode
-    if decrypt_with_ecdh:
-        # ECDH-based decryption
-        _decrypt_tokens_with_ecdh(input_path, output_path, input_type, output_type,
-                     sender_public_key_path, receiver_keypair_path, ecdh_curve)
-        logger.info("Token decryption completed successfully.")
-    else:
-        # ECDH-based encryption (token generation)
-        if not receiver_public_key_path or not receiver_public_key_path.strip():
-            logger.error("Receiver's public key must be specified (--receiver-public-key). Generate one with --generate-keypair first.")
-            return
-        _process_tokens_with_ecdh(input_path, output_path, input_type, output_type,
-                                 receiver_public_key_path, sender_keypair_path, hash_only, ecdh_curve)
+        sys.exit(1)
+    
+    _decrypt_tokens_with_ecdh(input_path, output_path, input_type, output_type,
+                             sender_public_key_path, receiver_keypair_path, ecdh_curve)
+    logger.info("Token decryption completed successfully.")
 
 
 def _create_person_attributes_reader(input_path: str, input_type: str):
     """Create a PersonAttributesReader based on input type."""
     input_type_lower = input_type.lower()
-    if input_type_lower == CommandLineArguments.TYPE_CSV:
+    if input_type_lower == 'csv':
         return PersonAttributesCSVReader(input_path)
-    elif input_type_lower == CommandLineArguments.TYPE_PARQUET:
+    elif input_type_lower == 'parquet':
         return PersonAttributesParquetReader(input_path)
     else:
         raise ValueError(f"Unsupported input type: {input_type}")
@@ -98,27 +179,41 @@ def _create_person_attributes_reader(input_path: str, input_type: str):
 def _create_person_attributes_writer(output_path: str, output_type: str):
     """Create a PersonAttributesWriter based on output type."""
     output_type_lower = output_type.lower()
-    if output_type_lower == CommandLineArguments.TYPE_CSV:
+    if output_type_lower == 'csv':
         return PersonAttributesCSVWriter(output_path)
-    elif output_type_lower == CommandLineArguments.TYPE_PARQUET:
+    elif output_type_lower == 'parquet':
         return PersonAttributesParquetWriter(output_path)
     else:
         raise ValueError(f"Unsupported output type: {output_type}")
 
 
-def _load_command_line_arguments(args: list) -> CommandLineArguments:
-    """Load and parse command line arguments."""
-    logger.debug(f"Processing command line arguments: {' | '.join(args)}")
-    command_line_arguments = CommandLineArguments.parse_args(args)
-    logger.info("Command line arguments processed.")
-    return command_line_arguments
+def _create_token_reader(input_path: str, input_type: str):
+    """Create a TokenReader based on input type."""
+    input_type_lower = input_type.lower()
+    if input_type_lower == 'csv':
+        return TokenCSVReader(input_path)
+    elif input_type_lower == 'parquet':
+        return TokenParquetReader(input_path)
+    else:
+        raise ValueError(f"Unsupported input type: {input_type}")
 
 
-def _generate_keypair(ecdh_curve: str = "P-256"):
-    """Generate a new ECDH key pair and save it to the default location."""
+def _create_token_writer(output_path: str, output_type: str):
+    """Create a TokenWriter based on output type."""
+    output_type_lower = output_type.lower()
+    if output_type_lower == 'csv':
+        return TokenCSVWriter(output_path)
+    elif output_type_lower == 'parquet':
+        return TokenParquetWriter(output_path)
+    else:
+        raise ValueError(f"Unsupported output type: {output_type}")
+
+
+def _generate_keypair(ecdh_curve: str = "P-256", key_dir: str = None):
+    """Generate a new ECDH key pair and save it to the specified location."""
     try:
         logger.info(f"Generating new ECDH key pair (curve: {ecdh_curve})...")
-        key_pair_manager = KeyPairManager(curve_name=ecdh_curve)
+        key_pair_manager = KeyPairManager(key_directory=key_dir, curve_name=ecdh_curve)
         private_key, public_key = key_pair_manager.generate_and_save_key_pair()
         
         logger.info("✓ Key pair generated successfully")
@@ -199,8 +294,9 @@ def _process_tokens_with_ecdh(input_path: str, output_path: str, input_type: str
             PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
             
             # Write metadata
-            metadata_path = temp_output_path + Metadata.METADATA_FILE_EXTENSION
-            metadata_writer = MetadataJsonWriter(temp_output_path)
+            base_path = temp_output_path.rsplit('.', 1)[0] if '.' in temp_output_path else temp_output_path
+            metadata_path = base_path + Metadata.METADATA_FILE_EXTENSION
+            metadata_writer = MetadataJsonWriter(base_path)
             metadata_writer.write(metadata_map)
             
             # Package output as ZIP if needed
