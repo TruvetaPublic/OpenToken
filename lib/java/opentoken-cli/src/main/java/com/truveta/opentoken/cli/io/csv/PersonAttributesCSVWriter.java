@@ -6,6 +6,9 @@ package com.truveta.opentoken.cli.io.csv;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -33,6 +36,12 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
      * @throws IOException if an I/O error occurs
      */
     public PersonAttributesCSVWriter(String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        Path parentDir = path.getParent();
+        if (parentDir != null) {
+            Files.createDirectories(parentDir);
+        }
+
         fileWriter = new BufferedWriter(new FileWriter(filePath));
         // Use LF line endings to match Python output
         CSVFormat format = CSVFormat.Builder.create(CSVFormat.DEFAULT)

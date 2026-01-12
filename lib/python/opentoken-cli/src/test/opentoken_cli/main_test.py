@@ -1,51 +1,43 @@
 """
 Copyright (c) Truveta. All rights reserved.
 
-Integration tests for the main module.
+Tests for the Python CLI entry point.
 """
+
+import zipfile
+from pathlib import Path
 
 import pytest
 
 from opentoken_cli.main import (
     main,
-    _load_command_line_arguments,
-    _mask_string,
     _create_person_attributes_reader,
     _create_person_attributes_writer,
     _create_token_reader,
     _create_token_writer,
 )
-from opentoken_cli.command_line_arguments import CommandLineArguments
-from unittest.mock import patch
+from opentoken.keyexchange import KeyPairManager
 
 
-class TestMainHelperFunctions:
-    """Unit tests for main module helper functions."""
+def _create_keypair_dir(tmp_path: Path, name: str) -> Path:
+    """Create an ECDH key pair in a temporary directory."""
+    key_dir = tmp_path / name
+    manager = KeyPairManager(str(key_dir), curve_name="P-256")
+    manager.generate_and_save_key_pair()
+    return key_dir
 
-    def test_mask_string_with_long_string(self):
-        """Test masking a long string shows first 3 chars."""
-        result = _mask_string("TestSecretValue")
-        assert result == "Tes************"
 
-    def test_mask_string_with_short_string(self):
-        """Test masking a short string returns unchanged."""
-        result = _mask_string("abc")
-        assert result == "abc"
-
-    def test_mask_string_with_none(self):
-        """Test masking None returns None."""
-        result = _mask_string(None)
-        assert result is None
-
-    def test_load_command_line_arguments(self):
-        """Test loading command line arguments."""
-        args = ["-i", "input.csv", "-t", "csv", "-o", "output.csv"]
-        result = _load_command_line_arguments(args)
-        
-        assert isinstance(result, CommandLineArguments)
-        assert result.input_path == "input.csv"
-        assert result.input_type == "csv"
-        assert result.output_path == "output.csv"
+@pytest.fixture
+def temp_input_csv(tmp_path):
+    """Create a temporary input CSV file for CLI tests."""
+    csv_file = tmp_path / "input.csv"
+    csv_content = (
+        "RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber\n"
+        "test-001,John,Doe,98004,Male,2000-01-01,142-32-9123\n"
+        "test-002,Jane,Smith,12345,Female,1990-05-15,221-57-0098\n"
+    )
+    csv_file.write_text(csv_content)
+    return csv_file
 
 
 class TestReaderWriterFactories:
@@ -53,15 +45,14 @@ class TestReaderWriterFactories:
 
     def test_create_person_attributes_reader_csv(self, tmp_path):
         """Test creating CSV person attributes reader."""
-        # Create test CSV file
         csv_file = tmp_path / "test.csv"
         csv_file.write_text("RecordId,FirstName,LastName\nrec-1,John,Doe\n")
-        
+
         reader = _create_person_attributes_reader(str(csv_file), "csv")
         assert reader is not None
         reader.close()
 
-    def test_create_person_attributes_reader_invalid_type(self, tmp_path):
+    def test_create_person_attributes_reader_invalid_type(self):
         """Test that invalid type raises ValueError."""
         with pytest.raises(ValueError, match="Unsupported input type"):
             _create_person_attributes_reader("/path/to/file", "invalid")
@@ -69,7 +60,7 @@ class TestReaderWriterFactories:
     def test_create_person_attributes_writer_csv(self, tmp_path):
         """Test creating CSV person attributes writer."""
         output_file = tmp_path / "output.csv"
-        
+
         writer = _create_person_attributes_writer(str(output_file), "csv")
         assert writer is not None
         writer.close()
@@ -81,10 +72,9 @@ class TestReaderWriterFactories:
 
     def test_create_token_reader_csv(self, tmp_path):
         """Test creating CSV token reader."""
-        # Create test CSV file with token format
         csv_file = tmp_path / "tokens.csv"
         csv_file.write_text("RuleId,Token,RecordId\nT1,token123,rec-1\n")
-        
+
         reader = _create_token_reader(str(csv_file), "csv")
         assert reader is not None
         reader.close()
@@ -97,7 +87,7 @@ class TestReaderWriterFactories:
     def test_create_token_writer_csv(self, tmp_path):
         """Test creating CSV token writer."""
         output_file = tmp_path / "output_tokens.csv"
-        
+
         writer = _create_token_writer(str(output_file), "csv")
         assert writer is not None
         writer.close()
@@ -108,197 +98,106 @@ class TestReaderWriterFactories:
             _create_token_writer("/path/to/file", "invalid")
 
 
-class TestMainIntegration:
-    """Integration tests for the main function."""
+class TestCliSubcommands:
+    """Integration tests for subcommand-based CLI workflows."""
 
-    HASHING_SECRET = "TestHashingSecret"
-    ENCRYPTION_KEY = "TestEncryptionKeyValue1234567890"  # Must be 32 chars
+    def test_generate_keypair_subcommand_creates_files(self, tmp_path):
+        """Ensure the generate-keypair subcommand writes key material."""
+        output_dir = tmp_path / "keys"
 
-    @pytest.fixture
-    def temp_input_csv(self, tmp_path):
-        """Create a temporary input CSV file."""
-        csv_file = tmp_path / "input.csv"
-        csv_content = "RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber\n"
-        csv_content += "test-001,John,Doe,98004,Male,2000-01-01,123-45-6789\n"
-        csv_content += "test-002,Jane,Smith,12345,Female,1990-05-15,234-56-7890\n"
-        csv_file.write_text(csv_content)
-        return csv_file
+        main([
+            "generate-keypair",
+            "--output-dir", str(output_dir),
+            "--ecdh-curve", "P-256",
+        ])
 
-    def test_main_token_generation_csv_to_csv(self, temp_input_csv, tmp_path):
-        """Test token generation from CSV to CSV."""
-        output_file = tmp_path / "output.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(temp_input_csv),
-            '-t', 'csv',
-            '-o', str(output_file),
-            '-h', self.HASHING_SECRET,
-            '-e', self.ENCRYPTION_KEY
-        ]):
-            main()
-        
-        assert output_file.exists()
-        assert output_file.stat().st_size > 0
-        
-        # Check metadata file
-        metadata_file = tmp_path / "output.metadata.json"
-        assert metadata_file.exists()
+        private_key = output_dir / "keypair.pem"
+        public_key = output_dir / "public_key.pem"
+        assert private_key.exists()
+        assert public_key.exists()
 
-    def test_main_hash_only_mode(self, temp_input_csv, tmp_path):
-        """Test hash-only mode generates tokens without encryption."""
-        output_file = tmp_path / "output.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(temp_input_csv),
-            '-t', 'csv',
-            '-o', str(output_file),
-            '-h', self.HASHING_SECRET,
-            '--hash-only'
-        ]):
-            main()
-        
-        assert output_file.exists()
-        assert output_file.stat().st_size > 0
+    def test_tokenize_creates_encrypted_package(self, temp_input_csv, tmp_path):
+        """Tokenize command should emit a ZIP with tokens, metadata, and sender key."""
+        receiver_dir = _create_keypair_dir(tmp_path, "receiver")
+        sender_dir = _create_keypair_dir(tmp_path, "sender")
+        output_zip = tmp_path / "tokens.zip"
 
-    def test_main_invalid_input_type(self, temp_input_csv, tmp_path, caplog):
-        """Test that invalid input type logs error."""
-        output_file = tmp_path / "output.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(temp_input_csv),
-            '-t', 'invalid',
-            '-o', str(output_file),
-            '-h', self.HASHING_SECRET,
-            '-e', self.ENCRYPTION_KEY
-        ]):
-            main()
-        
-        # Should not create output file
-        assert not output_file.exists()
+        main([
+            "tokenize",
+            "-i", str(temp_input_csv),
+            "-t", "csv",
+            "-o", str(output_zip),
+            "--receiver-public-key", str(receiver_dir / "public_key.pem"),
+            "--sender-keypair-path", str(sender_dir / "keypair.pem"),
+        ])
 
-    def test_main_invalid_output_type(self, temp_input_csv, tmp_path, caplog):
-        """Test that invalid output type logs error."""
-        output_file = tmp_path / "output.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(temp_input_csv),
-            '-t', 'csv',
-            '-o', str(output_file),
-            '-ot', 'invalid',
-            '-h', self.HASHING_SECRET,
-            '-e', self.ENCRYPTION_KEY
-        ]):
-            main()
-        
-        # Should not create output file  
-        assert not output_file.exists()
+        assert output_zip.exists()
+        with zipfile.ZipFile(output_zip) as zf:
+            names = set(zf.namelist())
+            assert any(name.endswith(".csv") for name in names)
+            assert any(name.endswith(".metadata.json") for name in names)
+            assert "sender_public_key.pem" in names
 
-    def test_main_missing_hashing_secret(self, temp_input_csv, tmp_path, caplog):
-        """Test that missing hashing secret logs error."""
-        output_file = tmp_path / "output.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(temp_input_csv),
-            '-t', 'csv',
-            '-o', str(output_file),
-            '-e', self.ENCRYPTION_KEY
-        ]):
-            main()
-        
-        # Should not create output file
-        assert not output_file.exists()
+    def test_hash_only_mode_creates_package_without_encryption(self, temp_input_csv, tmp_path):
+        """Hash-only mode should still package outputs without encryption key usage."""
+        receiver_dir = _create_keypair_dir(tmp_path, "receiver_hash")
+        sender_dir = _create_keypair_dir(tmp_path, "sender_hash")
+        output_zip = tmp_path / "hashed.zip"
 
-    def test_main_missing_encryption_key_without_hash_only(self, temp_input_csv, tmp_path, caplog):
-        """Test that missing encryption key without hash-only logs error."""
-        output_file = tmp_path / "output.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(temp_input_csv),
-            '-t', 'csv',
-            '-o', str(output_file),
-            '-h', self.HASHING_SECRET
-        ]):
-            main()
-        
-        # Should not create output file
-        assert not output_file.exists()
+        main([
+            "tokenize",
+            "-i", str(temp_input_csv),
+            "-t", "csv",
+            "-o", str(output_zip),
+            "--receiver-public-key", str(receiver_dir / "public_key.pem"),
+            "--sender-keypair-path", str(sender_dir / "keypair.pem"),
+            "--hash-only",
+        ])
 
-    def test_main_decrypt_mode(self, tmp_path):
-        """Test decrypt mode with encrypted tokens."""
-        # First generate encrypted tokens
-        input_file = tmp_path / "input.csv"
-        input_file.write_text(
-            "RecordId,FirstName,LastName,BirthDate,SocialSecurityNumber\n"
-            "rec-1,John,Doe,2000-01-01,123-45-6789\n"
-        )
-        encrypted_output = tmp_path / "encrypted.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(input_file),
-            '-t', 'csv',
-            '-o', str(encrypted_output),
-            '-h', self.HASHING_SECRET,
-            '-e', self.ENCRYPTION_KEY
-        ]):
-            main()
-        
-        assert encrypted_output.exists()
-        
-        # Now decrypt the tokens
-        decrypted_output = tmp_path / "decrypted.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(encrypted_output),
-            '-t', 'csv',
-            '-o', str(decrypted_output),
-            '-d',
-            '-e', self.ENCRYPTION_KEY
-        ]):
-            main()
-        
-        assert decrypted_output.exists()
-        assert decrypted_output.stat().st_size > 0
+        assert output_zip.exists()
+        with zipfile.ZipFile(output_zip) as zf:
+            assert any(name.endswith(".csv") for name in zf.namelist())
 
-    def test_main_decrypt_mode_missing_encryption_key(self, tmp_path, caplog):
-        """Test that decrypt mode without encryption key logs error."""
-        # Create dummy encrypted tokens file
-        tokens_file = tmp_path / "tokens.csv"
-        tokens_file.write_text("RuleId,Token,RecordId\nT1,token123,rec-1\n")
-        output_file = tmp_path / "output.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(tokens_file),
-            '-t', 'csv',
-            '-o', str(output_file),
-            '-d'
-        ]):
-            main()
-        
-        # Should not create output file
-        assert not output_file.exists()
+    def test_decrypt_round_trip_from_zip(self, temp_input_csv, tmp_path):
+        """End-to-end encrypt then decrypt workflow using subcommands."""
+        receiver_dir = _create_keypair_dir(tmp_path, "receiver_decrypt")
+        sender_dir = _create_keypair_dir(tmp_path, "sender_decrypt")
+        encrypted_zip = tmp_path / "encrypted.zip"
 
-    def test_main_output_type_defaults_to_input_type(self, temp_input_csv, tmp_path):
-        """Test that output type defaults to input type when not specified."""
-        output_file = tmp_path / "output.csv"
-        
-        with patch('sys.argv', [
-            'main.py',
-            '-i', str(temp_input_csv),
-            '-t', 'csv',
-            '-o', str(output_file),
-            # No -ot specified, should default to csv
-            '-h', self.HASHING_SECRET,
-            '-e', self.ENCRYPTION_KEY
-        ]):
-            main()
-        
-        assert output_file.exists()
+        main([
+            "tokenize",
+            "-i", str(temp_input_csv),
+            "-t", "csv",
+            "-o", str(encrypted_zip),
+            "--receiver-public-key", str(receiver_dir / "public_key.pem"),
+            "--sender-keypair-path", str(sender_dir / "keypair.pem"),
+        ])
+
+        decrypted_csv = tmp_path / "decrypted.csv"
+        main([
+            "decrypt",
+            "-i", str(encrypted_zip),
+            "-t", "csv",
+            "-o", str(decrypted_csv),
+            "--receiver-keypair-path", str(receiver_dir / "keypair.pem"),
+        ])
+
+        assert decrypted_csv.exists()
+        contents = decrypted_csv.read_text()
+        assert "RecordId" in contents
+
+    def test_invalid_input_type_exits(self, temp_input_csv, tmp_path):
+        """Invalid input types should raise SystemExit."""
+        receiver_dir = _create_keypair_dir(tmp_path, "receiver_invalid")
+        sender_dir = _create_keypair_dir(tmp_path, "sender_invalid")
+        output_zip = tmp_path / "invalid.zip"
+
+        with pytest.raises(SystemExit):
+            main([
+                "tokenize",
+                "-i", str(temp_input_csv),
+                "-t", "invalid",
+                "-o", str(output_zip),
+                "--receiver-public-key", str(receiver_dir / "public_key.pem"),
+                "--sender-keypair-path", str(sender_dir / "keypair.pem"),
+            ])

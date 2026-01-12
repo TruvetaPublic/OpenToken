@@ -64,6 +64,11 @@
             "auto_sync": true
         },
         {
+            "path": "keyexchange/",
+            "priority": "medium",
+            "auto_sync": true
+        },
+        {
             "path": "../test/java/com/truveta/opentoken/",
             "priority": "medium",
             "auto_sync": true,
@@ -126,6 +131,18 @@
                     "sync_priority": "high",
                     "description": "Encryption constants shared by transformers",
                     "auto_sync": false
+                },
+                "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/PemUtils.java": {
+                    "target_file": "lib/python/opentoken/src/main/opentoken/keyexchange/pem_utils.py",
+                    "sync_priority": "medium",
+                    "description": "PEM utilities for key exchange support",
+                    "auto_sync": false
+                },
+                "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/package-info.java": {
+                    "target_file": "lib/python/opentoken/src/main/opentoken/keyexchange/package-info.py",
+                    "sync_priority": "low",
+                    "description": "Package documentation for key exchange module",
+                    "auto_sync": false
                 }
             },
             "critical_cli_files": {
@@ -133,13 +150,6 @@
                     "target_file": "lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
                     "sync_priority": "high",
                     "description": "Main entry point - critical for CLI compatibility",
-                    "auto_sync": false,
-                    "requires_manual_review": true
-                },
-                "lib/java/opentoken-cli/src/main/java/com/truveta/opentoken/cli/CommandLineArguments.java": {
-                    "target_file": "lib/python/opentoken-cli/src/main/opentoken_cli/command_line_arguments.py",
-                    "sync_priority": "high",
-                    "description": "CLI argument parsing - affects user interface",
                     "auto_sync": false,
                     "requires_manual_review": true
                 },
@@ -263,6 +273,12 @@
                     "target_directory": "lib/python/opentoken/src/main/opentoken/tokentransformer/",
                     "sync_priority": "medium",
                     "description": "Token transformation logic",
+                    "auto_sync": true
+                },
+                "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/": {
+                    "target_directory": "lib/python/opentoken/src/main/opentoken/keyexchange/",
+                    "sync_priority": "medium",
+                    "description": "ECDH key exchange and key derivation",
                     "auto_sync": true
                 },
                 "lib/java/opentoken/src/test/java/com/truveta/opentoken/": {

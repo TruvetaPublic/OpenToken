@@ -4,6 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 import base64
 import logging
 import secrets
+from typing import Union
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from opentoken.tokentransformer.token_transformer import TokenTransformer
@@ -20,21 +21,24 @@ class EncryptTokenTransformer(TokenTransformer):
     See: https://datatracker.ietf.org/doc/html/rfc3826 (AES)
     """
 
-    def __init__(self, encryption_key: str):
+    def __init__(self, encryption_key: Union[str, bytes]):
         """
         Initializes the underlying cipher (AES) with the encryption secret.
 
         Args:
-            encryption_key: The encryption key. The key must be 32 characters long.
+            encryption_key: The encryption key as bytes or latin-1 safe string.
 
         Raises:
             ValueError: If the encryption key is not 32 characters long.
         """
-        if len(encryption_key) != EncryptionConstants.KEY_BYTE_LENGTH:
+        key_bytes = (encryption_key if isinstance(encryption_key, bytes)
+                     else encryption_key.encode('latin-1'))
+
+        if len(key_bytes) != EncryptionConstants.KEY_BYTE_LENGTH:
             logger.error(f"Invalid Argument. Key must be {EncryptionConstants.KEY_BYTE_LENGTH} characters long")
             raise ValueError(f"Key must be {EncryptionConstants.KEY_BYTE_LENGTH} characters long")
 
-        self.encryption_key = encryption_key.encode('utf-8')
+        self.encryption_key = key_bytes
 
     def transform(self, token: str) -> str:
         """

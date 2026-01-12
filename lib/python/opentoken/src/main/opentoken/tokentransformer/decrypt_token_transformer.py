@@ -3,6 +3,7 @@ Copyright (c) Truveta. All rights reserved.
 """
 import base64
 import logging
+from typing import Union
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from opentoken.tokentransformer.token_transformer import TokenTransformer
@@ -21,21 +22,41 @@ class DecryptTokenTransformer(TokenTransformer):
     - Both expect 12-byte IV and 16-byte tag; key length enforced at init.
     """
 
-    def __init__(self, encryption_key: str):
+    def __init__(self, encryption_key: Union[str, bytes, bytearray, memoryview]):
         """
         Initializes the underlying cipher (AES) with the decryption secret.
 
         Args:
-            encryption_key: The encryption key. The key must be 32 characters long.
+            encryption_key: The encryption key as bytes or latin-1 safe string.
 
         Raises:
-            ValueError: If the encryption key is not 32 characters long.
+            ValueError: If the encryption key is missing or not 32 bytes long.
+            TypeError: If the encryption key is not bytes-like.
         """
-        if len(encryption_key) != EncryptionConstants.KEY_BYTE_LENGTH:
-            logger.error(f"Invalid Argument. Key must be {EncryptionConstants.KEY_BYTE_LENGTH} characters long")
-            raise ValueError(f"Key must be {EncryptionConstants.KEY_BYTE_LENGTH} characters long")
+        key_bytes = self._normalize_key_bytes(encryption_key)
+        self.encryption_key = key_bytes
+        
+    @staticmethod
+    def _normalize_key_bytes(encryption_key: Union[str, bytes, bytearray, memoryview]) -> bytes:
+        if encryption_key is None:
+            logger.error("Invalid Argument. Encryption key must not be None")
+            raise ValueError("Encryption key must not be None")
 
-        self.encryption_key = encryption_key.encode('utf-8')
+        if isinstance(encryption_key, str):
+            key_bytes = encryption_key.encode('latin-1')
+        elif isinstance(encryption_key, (bytes, bytearray, memoryview)):
+            key_bytes = bytes(encryption_key)
+        else:
+            raise TypeError("Encryption key must be a str or bytes-like object")
+
+        if len(key_bytes) != EncryptionConstants.KEY_BYTE_LENGTH:
+            logger.error(
+                "Invalid Argument. Key must be %s bytes long",
+                EncryptionConstants.KEY_BYTE_LENGTH
+            )
+            raise ValueError(f"Key must be {EncryptionConstants.KEY_BYTE_LENGTH} bytes long")
+
+        return key_bytes
 
     def transform(self, token: str) -> str:
         """Decrypt a base64 encoded token produced by the encrypt transformer.

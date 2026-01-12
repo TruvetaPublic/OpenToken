@@ -12,6 +12,7 @@ from opentoken.keyexchange.key_pair_manager import KeyPairManager
 from opentoken.keyexchange.key_exchange import KeyExchange, DerivedKeys
 from opentoken.keyexchange.public_key_loader import PublicKeyLoader
 from opentoken.keyexchange.key_exchange_exception import KeyExchangeException
+from opentoken.keyexchange.pem_utils import PemUtils
 
 __all__ = [
     'KeyPairManager',
@@ -19,4 +20,5 @@ __all__ = [
     'DerivedKeys',
     'PublicKeyLoader',
     'KeyExchangeException',
+    'PemUtils',
 ]

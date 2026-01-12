@@ -37,7 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def main():
+def main(argv=None):
     """Main entry point for the OpenToken application."""
     # Build argument parser with subcommands
     parser = argparse.ArgumentParser(
@@ -45,7 +45,7 @@ def main():
         description='OpenToken command line tool for ECDH-based secure token generation'
     )
     
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest='command', help='Available commands', required=True)
     
     # Configure subcommands
     GenerateKeypairCommand.configure_parser(subparsers)
@@ -54,17 +54,11 @@ def main():
     
     # Parse arguments
     try:
-        args = parser.parse_args()
+        args = parser.parse_args(argv)
     except SystemExit as e:
         if e.code != 0:
             sys.exit(e.code)
         return
-    
-    # Check if a command was specified
-    if not args.command:
-        logger.error("No command specified. Use one of: generate-keypair, tokenize, decrypt")
-        parser.print_help()
-        sys.exit(1)
     
     # Route to appropriate handler
     if args.command == 'generate-keypair':
