@@ -151,7 +151,7 @@ public class OutputPackager {
                 // Extract the tokens file (CSV or Parquet, but not metadata or public key)
                 if ((entryName.endsWith(".csv") || entryName.endsWith(".parquet")) 
                     && !entryName.endsWith(".metadata.json")
-                    && !entryName.equals(SENDER_PUBLIC_KEY_FILENAME)) {
+                    && !SENDER_PUBLIC_KEY_FILENAME.equals(entryName)) {
                     
                     logger.debug("Extracting tokens file: {}", entryName);
                     try (FileOutputStream fos = new FileOutputStream(outputPath)) {
