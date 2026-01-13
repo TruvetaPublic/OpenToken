@@ -1,39 +1,33 @@
 # OpenToken  <!-- omit in toc -->
 
+Privacy-preserving tokenization and matching library for secure PII-based person linkage. OpenToken generates deterministic, cryptographically secure tokens from person attributes (name, birthdate, SSN, etc.) so datasets can be matched without exposing raw identifiers.
+
 ## Introduction
 
 Our approach to person matching relies on building a set of matching tokens (or token signatures) per person which are derived from deterministic person data but preserve privacy by using cryptographically secure hashing algorithms.
 
 - [Introduction](#introduction)
-- [Highlights](#highlights)
-- [Demo](#demo)
+- [Why OpenToken](#why-opentoken)
 - [Overview](#overview)
+- [Demo](#demo)
+- [Quickstart](#quickstart)
 - [Usage](#usage)
     - [Available Commands](#available-commands)
 - [Quick Start](#quick-start)
 - [Development \& Documentation](#development--documentation)
 - [Contributing](#contributing)
+## Why OpenToken
 
-## Highlights
+- Practical validation and normalization for common PII-derived attributes (names, birthdates, SSN, postal codes, sex)
+- Secure pipeline: SHA-256 → HMAC-SHA256 → AES-256 (or hash-only mode)
+- Multiple token rules (T1–T5) to increase match confidence across varied data quality
 
-- Multi-language Support
-- Cryptographically Secure encryption that prevents re-identification
-- Enables straightforward person-matching by comparing 5 deterministic and unique tokens, providing a high degree of confidence in matches
-
-## Demo
-
-New to OpenToken? Start with the **[PPRL Superhero Demo](demos/pprl-superhero-example/)** — a beginner-friendly, end-to-end walkthrough showing how two parties (hospital and pharmacy) can privately find matching records without exposing raw identifiers.
-
-The demo includes:
-
-- **Interactive Jupyter notebook** with step-by-step explanations
-- **One-command runner** (`run_end_to_end.sh`) for quick execution
-- Synthetic superhero dataset generation
-- Token generation and overlap analysis examples
-
-Perfect for understanding privacy-preserving record linkage concepts before diving into production use.
 
 ## Overview
+
+- **Multi-language parity**: Java and Python implementations produce identical token outputs
+- **Deterministic tokens**: Same input always produces the same cryptographically secure token
+- **Privacy-preserving**: Tokens cannot be reversed to recover original person data
 
 ### Library <!-- omit in toc -->
 
@@ -86,6 +80,45 @@ The token generation rules above generate the following token signatures:
 | T5      | `DOE\|JOH\|MALE`              | `QpBpGBqaMhagfcHGZhVavn23ko03jkyS9Vo4qe78E4sKw+Zq2CIw4MMWG8VXVwInnsFBVk6NSDUI79wECf5DchV5CXQ9AFqR` |
 
 **Note:** The tokens in the example above have been generated using the hash key `HashingKey` and encryption key `Secret-Encryption-Key-Goes-Here.`
+
+## Demo
+
+New to OpenToken? Start with the **[PPRL Superhero Demo](demos/pprl-superhero-example/)** — a beginner-friendly, end-to-end walkthrough showing how two parties (hospital and pharmacy) can privately find matching records without exposing raw identifiers.
+
+The demo includes:
+
+- **Interactive Jupyter notebook** with step-by-step explanations
+- **One-command runner** (`run_end_to_end.sh`) for quick execution
+- Synthetic superhero dataset generation
+- Token generation and overlap analysis examples
+
+Perfect for understanding privacy-preserving record linkage concepts before diving into production use.
+
+## Quickstart
+
+**Docker/CLI workflow:**
+
+```bash
+./run-opentoken.sh tokenize \
+  -i ./resources/sample.csv -t csv -o ./resources/output.zip \
+  --receiver-public-key /path/to/receiver_public_key.pem
+```
+
+**Java CLI:**
+
+```bash
+cd lib/java && mvn clean install -DskipTests
+
+# Receiver generates a keypair (share the public key with sender)
+java -jar opentoken-cli/target/opentoken-cli-*.jar generate-keypair \
+  --ecdh-curve P-384 \
+  --output-dir ~/.opentoken
+
+# Sender tokenizes using receiver's public key
+java -jar opentoken-cli/target/opentoken-cli-*.jar tokenize \
+  -i ../../resources/sample.csv -t csv -o ../../resources/output.zip \
+  --receiver-public-key /path/to/receiver_public_key.pem
+```
 
 ### Data Flow  <!-- omit in toc -->
 
