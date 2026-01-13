@@ -3,7 +3,7 @@
  * <p>
  * This package provides classes for managing ECDH key pairs, performing key exchange,
  * and deriving cryptographic keys for token hashing and encryption. The implementation
- * uses the P-256 (secp256r1) curve for broad compatibility and security.
+ * uses the P-384 (secp384r1) curve for broad compatibility and security.
  * 
  * <h2>Main Components</h2>
  * <ul>

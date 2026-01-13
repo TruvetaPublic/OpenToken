@@ -26,9 +26,10 @@ class Metadata:
     CURVE = "Curve"
     
     # Key exchange values
-    KEY_EXCHANGE_METHOD_ECDH = "ECDH-P-256"
+    KEY_EXCHANGE_METHOD_ECDH = "ECDH"
     KEY_EXCHANGE_METHOD_SECRET = "SharedSecret"
     CURVE_P256 = "P-256"
+    CURVE_P384 = "P-384"
 
     # Metadata values
     PLATFORM_PYTHON = "Python"
@@ -85,12 +86,12 @@ class Metadata:
         Args:
             sender_public_key_bytes: The sender's public key bytes
             receiver_public_key_bytes: The receiver's public key bytes
-            curve_name: The elliptic curve used for ECDH (e.g., P-256)
+            curve_name: The elliptic curve used for ECDH (e.g., P-384)
             
         Returns:
             The metadata map for method chaining
         """
-        curve_value = self.CURVE_P256 if not curve_name or not curve_name.strip() else curve_name
+        curve_value = self.CURVE_P384 if not curve_name or not curve_name.strip() else curve_name
         self.metadata_map[self.KEY_EXCHANGE_METHOD] = f"ECDH-{curve_value}"
         self.metadata_map[self.CURVE] = curve_value
         

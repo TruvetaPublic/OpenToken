@@ -19,17 +19,18 @@ public class Metadata {
     public static final String ENCRYPTION_SECRET_HASH = "EncryptionSecretHash";
     public static final String HASHING_SECRET_HASH = "HashingSecretHash";
     public static final String BLANK_TOKENS_BY_RULE = "BlankTokensByRule";
-    
+
     // Key exchange metadata keys
     public static final String KEY_EXCHANGE_METHOD = "KeyExchangeMethod";
     public static final String SENDER_PUBLIC_KEY_HASH = "SenderPublicKeyHash";
     public static final String RECEIVER_PUBLIC_KEY_HASH = "ReceiverPublicKeyHash";
     public static final String CURVE = "Curve";
-    
+
     // Key exchange values
-    public static final String KEY_EXCHANGE_METHOD_ECDH = "ECDH-P256";
+    public static final String KEY_EXCHANGE_METHOD_ECDH = "ECDH";
     public static final String KEY_EXCHANGE_METHOD_SECRET = "SharedSecret";
     public static final String CURVE_P256 = "P-256";
+    public static final String CURVE_P384 = "P-384";
 
     // Metadata values
     public static final String PLATFORM_JAVA = "Java";
@@ -76,32 +77,32 @@ public class Metadata {
         }
         return metadataMap;
     }
-    
+
     /**
      * Adds key exchange metadata for ECDH-based encryption.
      * 
      * @param senderPublicKeyBytes the sender's public key bytes
      * @param receiverPublicKeyBytes the receiver's public key bytes
-     * @param curveName the elliptic curve used for ECDH (e.g., P-256)
+    * @param curveName the elliptic curve used for ECDH (e.g., P-384)
      * @return the metadata map for method chaining
      */
     public Map<String, Object> addKeyExchangeMetadata(byte[] senderPublicKeyBytes, byte[] receiverPublicKeyBytes,
             String curveName) {
-        String curveValue = (curveName == null || curveName.isBlank()) ? CURVE_P256 : curveName;
+        String curveValue = (curveName == null || curveName.isBlank()) ? CURVE_P384 : curveName;
         metadataMap.put(KEY_EXCHANGE_METHOD, "ECDH-" + curveValue);
         metadataMap.put(CURVE, curveValue);
-        
+
         if (senderPublicKeyBytes != null) {
             metadataMap.put(SENDER_PUBLIC_KEY_HASH, calculateSecureHashBytes(senderPublicKeyBytes));
         }
-        
+
         if (receiverPublicKeyBytes != null) {
             metadataMap.put(RECEIVER_PUBLIC_KEY_HASH, calculateSecureHashBytes(receiverPublicKeyBytes));
         }
-        
+
         return metadataMap;
     }
-    
+
     /**
      * Calculates a secure SHA-256 hash of the given byte array.
      * The hash is returned as a hexadecimal string.

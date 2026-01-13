@@ -53,7 +53,7 @@ import java.security.PublicKey;
  *   encryption/hashing keys, generates tokens via HMAC-SHA256 hashing and AES-256 encryption.</li>
  *   <li><b>Decrypt mode</b>: Uses ECDH key exchange with sender's public key to derive
  *   matching keys and decrypt tokens.</li>
- *   <li><b>Key generation</b>: Generates new ECDH key pairs (default P-256 curve).</li>
+ *   <li><b>Key generation</b>: Generates new ECDH key pairs (default P-384 curve).</li>
  * </ul>
  * Input and output formats support CSV and Parquet.
  */
@@ -327,7 +327,7 @@ public class Main {
     /**
      * Generates a new ECDH key pair and saves it to the specified location.
      *
-     * @param ecdhCurveInput the user-provided curve name (e.g., "P-256")
+        * @param ecdhCurveInput the user-provided curve name (e.g., "P-384")
      * @param keyDir the directory to save the key pair
      */
     private static void generateKeypair(String ecdhCurveInput, String keyDir) {

@@ -56,7 +56,7 @@ python "${DEMO_DIR}/scripts/generate_superhero_datasets.py"
 echo ""
 
 # Step 2: Generate pharmacy (receiver) key pair
-echo -e "${BLUE}Step 2/4: Generating pharmacy key pair (ECDH P-256)...${NC}"
+echo -e "${BLUE}Step 2/4: Generating pharmacy key pair (ECDH P-384)...${NC}"
 chmod +x "${DEMO_DIR}/scripts/tokenize_pharmacy_generate_keys.sh" || true
 "${DEMO_DIR}/scripts/tokenize_pharmacy_generate_keys.sh"
 echo ""

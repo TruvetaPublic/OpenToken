@@ -22,14 +22,14 @@ class KeyPairManager:
     Manages ECDH key pair lifecycle for OpenToken.
 
     Handles generation, loading, and saving of elliptic curve key pairs
-    used for Diffie-Hellman key exchange. Uses the P-256 (secp256r1) curve
+    used for Diffie-Hellman key exchange. Uses the P-384 (secp384r1) curve
     for broad compatibility and security.
     """
 
     DEFAULT_KEY_DIR = os.path.join(os.path.expanduser("~"), ".opentoken")
     DEFAULT_PRIVATE_KEY_FILENAME = "keypair.pem"
     DEFAULT_PUBLIC_KEY_FILENAME = "public_key.pem"
-    EC_CURVE_DEFAULT_NAME = "p-256"
+    EC_CURVE_DEFAULT_NAME = "p-384"
 
     CURVE_ALIASES = {
         "p-256": ec.SECP256R1,
@@ -50,7 +50,7 @@ class KeyPairManager:
 
         Args:
             key_directory: The directory to store keys. Defaults to ~/.opentoken.
-            curve_name: Optional elliptic curve name (aliases supported, default P-256).
+            curve_name: Optional elliptic curve name (aliases supported, default P-384).
         """
         self.key_directory = key_directory or self.DEFAULT_KEY_DIR
         self.curve_name = curve_name or self.EC_CURVE_DEFAULT_NAME
@@ -80,7 +80,7 @@ class KeyPairManager:
 
     def generate_key_pair(self) -> Tuple[ec.EllipticCurvePrivateKey, ec.EllipticCurvePublicKey]:
         """
-        Generates a new ECDH key pair using the P-256 curve.
+        Generates a new ECDH key pair using the configured curve.
 
         Returns:
             A tuple of (private_key, public_key).

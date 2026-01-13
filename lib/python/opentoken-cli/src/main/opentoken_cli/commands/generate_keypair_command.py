@@ -9,7 +9,7 @@ class GenerateKeypairCommand:
 
     def __init__(self):
         """Initialize command with default values."""
-        self.ecdh_curve = "P-256"
+        self.ecdh_curve = "P-384"
         self.output_dir = None
 
     @staticmethod
@@ -32,8 +32,8 @@ class GenerateKeypairCommand:
         parser.add_argument(
             '--ecdh-curve',
             dest='ecdh_curve',
-            help='Elliptic curve name for ECDH (default: P-256 / secp256r1)',
-            default='P-256',
+            help='Elliptic curve name for ECDH (default: P-384 / secp384r1)',
+            default='P-384',
             required=False
         )
         

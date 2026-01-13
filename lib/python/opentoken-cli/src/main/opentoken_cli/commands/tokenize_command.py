@@ -16,7 +16,7 @@ class TokenizeCommand:
         self.receiver_public_key = None
         self.sender_keypair_path = None
         self.hash_only = False
-        self.ecdh_curve = "P-256"
+        self.ecdh_curve = "P-384"
 
     @staticmethod
     def configure_parser(subparsers):
@@ -91,8 +91,8 @@ class TokenizeCommand:
         parser.add_argument(
             '--ecdh-curve',
             dest='ecdh_curve',
-            help='Elliptic curve name for ECDH (default: P-256 / secp256r1)',
-            default='P-256',
+            help='Elliptic curve name for ECDH (default: P-384 / secp384r1)',
+            default='P-384',
             required=False
         )
         

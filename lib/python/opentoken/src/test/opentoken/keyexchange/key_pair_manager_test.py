@@ -38,8 +38,8 @@ class TestKeyPairManager:
         assert isinstance(private_key, ec.EllipticCurvePrivateKey)
         assert isinstance(public_key, ec.EllipticCurvePublicKey)
 
-        # Verify it's using P-256 curve
-        assert isinstance(public_key.curve, ec.SECP256R1)
+        # Verify it's using P-384 curve
+        assert isinstance(public_key.curve, ec.SECP384R1)
 
     def test_generate_and_save_key_pair(self, key_pair_manager, temp_dir):
         """Test generating and saving a key pair."""

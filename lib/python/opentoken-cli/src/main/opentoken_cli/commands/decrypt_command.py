@@ -15,7 +15,7 @@ class DecryptCommand:
         self.output_type = None
         self.sender_public_key = None
         self.receiver_keypair_path = None
-        self.ecdh_curve = "P-256"
+        self.ecdh_curve = "P-384"
 
     @staticmethod
     def configure_parser(subparsers):
@@ -82,8 +82,8 @@ class DecryptCommand:
         parser.add_argument(
             '--ecdh-curve',
             dest='ecdh_curve',
-            help='Elliptic curve name for ECDH (default: P-256 / secp256r1)',
-            default='P-256',
+            help='Elliptic curve name for ECDH (default: P-384 / secp384r1)',
+            default='P-384',
             required=False
         )
         

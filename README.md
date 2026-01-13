@@ -175,7 +175,7 @@ OpenToken CLI is now **ECDH-only** and uses a **subcommand-based interface** for
 #### Available Commands
 
 **`generate-keypair`** - Generate a new ECDH key pair
-- `--ecdh-curve`: Elliptic curve name (default: P-256)
+- `--ecdh-curve`: Elliptic curve name (default: P-384)
 - `--output-dir`: Directory to save keys (default: ~/.opentoken)
 
 **`tokenize`** - Tokenize person attributes using ECDH key exchange
@@ -190,7 +190,7 @@ OpenToken CLI is now **ECDH-only** and uses a **subcommand-based interface** for
 - `-ot | --output-type`: Output file type if different from input (defaults to input type)
 - `--sender-keypair-path`: Path to sender's private key file (default: `~/.opentoken/keypair.pem`)
 - `--hash-only`: Hash-only mode (generates hashed tokens without encryption)
-- `--ecdh-curve`: Elliptic curve name (default: P-256)
+- `--ecdh-curve`: Elliptic curve name (default: P-384)
 
 **`decrypt`** - Decrypt tokens using ECDH key exchange
 
@@ -203,7 +203,7 @@ OpenToken CLI is now **ECDH-only** and uses a **subcommand-based interface** for
 - `-ot | --output-type`: Output file type if different from input
 - `--sender-public-key`: Path to sender's public key file (extracted from ZIP if not provided)
 - `--receiver-keypair-path`: Path to receiver's private key file (default: `~/.opentoken/keypair.pem`)
-- `--ecdh-curve`: Elliptic curve name (default: P-256)
+- `--ecdh-curve`: Elliptic curve name (default: P-384)
 
 **Note:** Hashing and encryption keys are automatically derived from the ECDH key exchange. No manual secrets needed.
 
@@ -253,7 +253,7 @@ For secure token exchange without sharing secrets, use the public-key cryptograp
 - ✅ No shared secrets transmitted
 - ✅ Each party maintains their own private key
 - ✅ Perfect forward secrecy (ephemeral keys)
-- ✅ NIST-compliant P-256 elliptic curve
+- ✅ NIST-compliant elliptic curves (default: P-384)
 - ✅ Separate hashing and encryption keys via HKDF
 
 📘 **[Complete End-to-End Workflow Guide](./docs/public-key-workflow.md)** with command-line instructions for both Java and Python.

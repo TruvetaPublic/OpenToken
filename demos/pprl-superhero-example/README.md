@@ -214,7 +214,7 @@ chmod +x run_end_to_end.sh
 
 This runs:
 1. Dataset generation
-2. Pharmacy key pair generation (ECDH, default P-256; override with `--ecdh-curve` if needed)
+2. Pharmacy key pair generation (ECDH, default P-384; override with `--ecdh-curve` if needed)
 3. Hospital tokenization with ECDH (sender)
 4. Pharmacy token decryption and overlap analysis
 
@@ -261,7 +261,7 @@ chmod +x scripts/tokenize_hospital.sh
 This script:
 
 1. Loads pharmacy's public key
-2. Generates hospital's ephemeral ECDH key pair (default P-256; override with `--ecdh-curve`)
+2. Generates hospital's ephemeral ECDH key pair (default P-384; override with `--ecdh-curve`)
 3. Performs ECDH key exchange to derive shared encryption keys
 4. Tokenizes hospital data using derived keys
 5. Creates `outputs/hospital_tokens_ecdh.zip` containing:
@@ -375,7 +375,7 @@ This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (t
    ```bash
    ./scripts/tokenize_pharmacy_generate_keys.sh
    ```
-   Creates ECDH key pair (default P-256; override with `--ecdh-curve`):
+   Creates ECDH key pair (default P-384; override with `--ecdh-curve`):
    - `keys/pharmacy_keypair.pem` (private key - KEEP SECRET)
    - `keys/pharmacy_public_key.pem` (public key - share with hospital)
 
@@ -389,7 +389,7 @@ This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (t
    ```
    Hospital:
    - Loads pharmacy's public key
-   - Generates their own ECDH key pair (default P-256; override with `--ecdh-curve`)
+   - Generates their own ECDH key pair (default P-384; override with `--ecdh-curve`)
    - Performs ECDH key exchange to derive encryption keys
    - Generates and encrypts tokens
    - Outputs `hospital_tokens_ecdh.zip` containing:
@@ -428,7 +428,7 @@ This demo creates files under `datasets/` (raw synthetic data) and `outputs/` (t
 #### Security Properties
 
 - **Encryption**: AES-256-GCM (same as secret-based approach)
-- **Key Exchange**: ECDH (default P-256 / secp256r1; configurable via `--ecdh-curve`)
+- **Key Exchange**: ECDH (default P-384 / secp384r1; configurable via `--ecdh-curve`)
 - **Key Derivation**: HKDF-SHA256 (RFC 5869)
 - **Separate keys**: Independent hashing and encryption keys
 - **Random IVs**: Each token encryption uses a fresh random IV

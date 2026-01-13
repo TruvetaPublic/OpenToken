@@ -37,7 +37,7 @@ The public-key workflow uses **Elliptic Curve Diffie-Hellman (ECDH)** for secure
 └─────┬──────┘                           └──────┬──────┘
       │                                         │
       │ 1. Generate key pair                    │
-      │    (P-256 curve)                        │
+      │    (P-384 curve)                        │
       │                                         │
       │ 2. Share public key ────────────────────>
       │                                         │
@@ -136,13 +136,13 @@ opentoken decrypt \
 
 | Command            | Description                                        |
 | ------------------ | -------------------------------------------------- |
-| `generate-keypair` | Generate a new ECDH key pair (default curve P-256) |
+| `generate-keypair` | Generate a new ECDH key pair (default curve P-384) |
 | `tokenize`         | Tokenize person attributes using ECDH key exchange |
 | `decrypt`          | Decrypt tokens using ECDH key exchange             |
 
 | Argument                         | Description                                                                              |
 | -------------------------------- | ---------------------------------------------------------------------------------------- |
-| `--ecdh-curve`                   | Optional elliptic curve name (e.g., `P-256`, `secp384r1`); defaults to `P-256`           |
+| `--ecdh-curve`                   | Optional elliptic curve name (e.g., `P-384`, `secp256r1`); defaults to `P-384`           |
 | `--receiver-public-key <path>`   | Path to receiver's public key (for tokenize)                                             |
 | `--sender-public-key <path>`     | Path to sender's public key (for decrypt, optional if in ZIP)                            |
 | `--sender-keypair-path <path>`   | Custom location for sender's key pair (default: `~/.opentoken/`)                         |
@@ -186,7 +186,7 @@ pip install -e .
 
 ### Step 1: Receiver Generates Key Pair
 
-The receiver must first generate an ECDH key pair (default curve: P-256). You can override the curve with `--ecdh-curve` (for example, `--ecdh-curve secp384r1`). This only needs to be done once and can be reused for multiple data exchanges.
+The receiver must first generate an ECDH key pair (default curve: P-384). You can override the curve with `--ecdh-curve` (for example, `--ecdh-curve secp256r1`). This only needs to be done once and can be reused for multiple data exchanges.
 
 #### Option A: Using CLI (Recommended)
 
@@ -882,11 +882,11 @@ head -1 ~/opentoken_exchange/receiver_public_key.pem
 **Cause:** The public key is not an elliptic curve key or uses the wrong curve.
 
 **Solution:**
-- Regenerate the key pair using `KeyPairManager` (uses P-256 by default)
+- Regenerate the key pair using `KeyPairManager` (uses P-384 by default)
 - Verify the key type:
 ```bash
 openssl ec -pubin -in public_key.pem -text -noout
-# Should show: ASN1 OID: prime256v1
+# Should show: ASN1 OID: secp384r1
 ```
 
 ### Issue: "Key derivation mismatch"
@@ -982,7 +982,7 @@ using ECDH key exchange as described in docs/public-key-workflow.md
 
 [Step 1] Receiver Generates Key Pair
 ----------------------------------------------------------------------
-  Generating P-256 ECDH key pair for receiver...
+  Generating P-384 ECDH key pair for receiver...
 ✓ Receiver key pair generated
   Private key: /tmp/opentoken_demo_xxx/receiver_keys/keypair.pem (0600 permissions)
   Public key:  /tmp/opentoken_demo_xxx/receiver_keys/public_key.pem

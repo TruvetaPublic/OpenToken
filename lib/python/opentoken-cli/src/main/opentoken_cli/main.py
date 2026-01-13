@@ -203,12 +203,12 @@ def _create_token_writer(output_path: str, output_type: str):
         raise ValueError(f"Unsupported output type: {output_type}")
 
 
-def _generate_keypair(ecdh_curve: str = "P-256", key_dir: str = None):
+def _generate_keypair(ecdh_curve: str = "P-384", key_dir: str = None):
     """Generate a new ECDH key pair and save it to the specified location."""
     try:
         logger.info(f"Generating new ECDH key pair (curve: {ecdh_curve})...")
         key_pair_manager = KeyPairManager(key_directory=key_dir, curve_name=ecdh_curve)
-        private_key, public_key = key_pair_manager.generate_and_save_key_pair()
+        _, _ = key_pair_manager.generate_and_save_key_pair()
         
         logger.info("✓ Key pair generated successfully")
         logger.info(f"✓ Private key saved to: {key_pair_manager.get_key_directory()}/keypair.pem (0600 permissions)")
@@ -220,7 +220,7 @@ def _generate_keypair(ecdh_curve: str = "P-256", key_dir: str = None):
 
 def _process_tokens_with_ecdh(input_path: str, output_path: str, input_type: str, output_type: str,
                               receiver_public_key_path: str, sender_keypair_path: str = None,
-                              hash_only: bool = False, ecdh_curve: str = "P-256"):
+                              hash_only: bool = False, ecdh_curve: str = "P-384"):
     """
     Process tokens using ECDH-based key exchange.
     
@@ -265,6 +265,8 @@ def _process_tokens_with_ecdh(input_path: str, output_path: str, input_type: str
         
         # Create temporary output for tokens
         temp_output_path = output_path.replace('.zip', f'_temp.{output_type}') if output_path.endswith('.zip') else f"{output_path}_temp"
+        base_path = temp_output_path.rsplit('.', 1)[0] if '.' in temp_output_path else temp_output_path
+        metadata_path = base_path + Metadata.METADATA_FILE_EXTENSION
         
         with _create_person_attributes_reader(input_path, input_type) as reader, \
              _create_person_attributes_writer(temp_output_path, output_type) as writer:
@@ -288,28 +290,26 @@ def _process_tokens_with_ecdh(input_path: str, output_path: str, input_type: str
             PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
             
             # Write metadata
-            base_path = temp_output_path.rsplit('.', 1)[0] if '.' in temp_output_path else temp_output_path
-            metadata_path = base_path + Metadata.METADATA_FILE_EXTENSION
             metadata_writer = MetadataJsonWriter(base_path)
             metadata_writer.write(metadata_map)
-            
-            # Package output as ZIP if needed
-            if OutputPackager.is_zip_file(output_path):
-                OutputPackager.package_output(temp_output_path, metadata_path, 
-                                            sender_public_key, output_path)
-                logger.info(f"✓ Output package created: {output_path}")
-                logger.info(f"  ├─ tokens.{output_type} ({'hashed' if hash_only else 'encrypted'})")
-                logger.info("  ├─ tokens.metadata.json")
-                logger.info("  └─ sender_public_key.pem")
-                
-                # Clean up temp files
-                if os.path.exists(temp_output_path):
-                    os.remove(temp_output_path)
-                if os.path.exists(metadata_path):
-                    os.remove(metadata_path)
-            else:
-                logger.info("✓ Tokens generated successfully")
-                logger.info("Note: Use .zip extension for automatic packaging with sender's public key")
+
+        # Package output as ZIP if needed (after writer is closed/flushed)
+        if OutputPackager.is_zip_file(output_path):
+            OutputPackager.package_output(temp_output_path, metadata_path,
+                                        sender_public_key, output_path)
+            logger.info(f"✓ Output package created: {output_path}")
+            logger.info(f"  ├─ tokens.{output_type} ({'hashed' if hash_only else 'encrypted'})")
+            logger.info("  ├─ tokens.metadata.json")
+            logger.info("  └─ sender_public_key.pem")
+
+            # Clean up temp files
+            if os.path.exists(temp_output_path):
+                os.remove(temp_output_path)
+            if os.path.exists(metadata_path):
+                os.remove(metadata_path)
+        else:
+            logger.info("✓ Tokens generated successfully")
+            logger.info("Note: Use .zip extension for automatic packaging with sender's public key")
         
     except Exception as e:
         logger.error(f"Error processing tokens with ECDH: {e}", exc_info=True)
@@ -317,7 +317,7 @@ def _process_tokens_with_ecdh(input_path: str, output_path: str, input_type: str
 
 def _decrypt_tokens_with_ecdh(input_path: str, output_path: str, input_type: str, output_type: str,
                               sender_public_key_path: str = None, receiver_keypair_path: str = None,
-                              ecdh_curve: str = "P-256"):
+                              ecdh_curve: str = "P-384"):
     """
     Decrypt tokens using ECDH-based key exchange.
     

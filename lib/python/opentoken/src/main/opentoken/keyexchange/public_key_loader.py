@@ -19,7 +19,7 @@ class PublicKeyLoader:
     Loads and validates public keys for OpenToken key exchange.
 
     Supports loading EC public keys in PEM format from files or strings,
-    and validates that they use the expected curve (P-256/secp256r1).
+    and validates that they use a supported curve (P-256/P-384/P-521).
     """
 
     def load_public_key(self, file_path: str) -> ec.EllipticCurvePublicKey:
@@ -115,9 +115,9 @@ class PublicKeyLoader:
         curve_name = self._get_curve_name(curve)
         logger.debug(f"Public key uses curve: {curve_name}")
 
-        # Validate it's a supported curve (P-256)
-        if not isinstance(curve, ec.SECP256R1):
-            logger.warning(f"Public key uses curve {curve_name}, expected SECP256R1 (P-256)")
+        # Validate it's a supported curve
+        if not isinstance(curve, (ec.SECP256R1, ec.SECP384R1, ec.SECP521R1)):
+            logger.warning(f"Public key uses unsupported curve {curve_name}")
 
         logger.debug("Public key validation passed")
 

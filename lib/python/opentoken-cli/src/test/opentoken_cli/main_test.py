@@ -22,7 +22,7 @@ from opentoken.keyexchange import KeyPairManager
 def _create_keypair_dir(tmp_path: Path, name: str) -> Path:
     """Create an ECDH key pair in a temporary directory."""
     key_dir = tmp_path / name
-    manager = KeyPairManager(str(key_dir), curve_name="P-256")
+    manager = KeyPairManager(str(key_dir), curve_name="P-384")
     manager.generate_and_save_key_pair()
     return key_dir
 
@@ -108,7 +108,6 @@ class TestCliSubcommands:
         main([
             "generate-keypair",
             "--output-dir", str(output_dir),
-            "--ecdh-curve", "P-256",
         ])
 
         private_key = output_dir / "keypair.pem"

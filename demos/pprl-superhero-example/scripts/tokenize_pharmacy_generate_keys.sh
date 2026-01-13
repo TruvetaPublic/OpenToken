@@ -2,7 +2,7 @@
 #
 # Generate a key pair for the pharmacy (receiver) in the ECDH public-key exchange.
 #
-# This script should be run once by the pharmacy to create their ECDH P-256 key pair.
+# This script should be run once by the pharmacy to create their ECDH P-384 key pair.
 # The public key is then shared with the hospital (sender).
 #
 # Output:
@@ -16,7 +16,7 @@ DEMO_DIR="${SCRIPT_DIR}/.."
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
 echo "============================================================"
-echo "Generating Pharmacy Key Pair (ECDH P-256)"
+echo "Generating Pharmacy Key Pair (ECDH P-384)"
 echo "============================================================"
 echo ""
 
@@ -46,33 +46,21 @@ if [ -f "${KEYPAIR_FILE}" ] && [ -f "${PUBLIC_KEY_FILE}" ]; then
   echo ""
   echo "Using existing keys. (Delete the keys directory to regenerate.)"
 else
-  echo "Generating new ECDH P-256 key pair for pharmacy..."
+  echo "Generating new ECDH P-384 key pair for pharmacy..."
   echo "  Private Key: ${KEYPAIR_FILE}"
   echo "  Public Key:  ${PUBLIC_KEY_FILE}"
   echo ""
-  
-  # CLI currently requires -t/-i/-o even for key generation; pass /dev/null placeholders.
-  java -jar "${JAR_FILE}" --generate-keypair \
-    -t csv \
-    -i /dev/null \
-    -o /dev/null \
-    --receiver-keypair-path "${DEMO_DIR}/keys/pharmacy"
-  
-  # The CLI currently writes generated keys to ~/.opentoken by default.
-  DEFAULT_KEY_DIR="${HOME}/.opentoken"
 
-  # Prefer keys written to the requested receiver-keypair-path if the CLI adds support later.
-  if [ -f "${DEMO_DIR}/keys/pharmacy.pem" ]; then
-    mv "${DEMO_DIR}/keys/pharmacy.pem" "${KEYPAIR_FILE}"
-  elif [ -f "${DEFAULT_KEY_DIR}/keypair.pem" ]; then
-    cp "${DEFAULT_KEY_DIR}/keypair.pem" "${KEYPAIR_FILE}"
-  fi
+  TEMP_KEY_DIR="${DEMO_DIR}/keys/pharmacy"
+  rm -rf "${TEMP_KEY_DIR}"
+  mkdir -p "${TEMP_KEY_DIR}"
 
-  if [ -f "${DEMO_DIR}/keys/pharmacy_public.pem" ]; then
-    mv "${DEMO_DIR}/keys/pharmacy_public.pem" "${PUBLIC_KEY_FILE}"
-  elif [ -f "${DEFAULT_KEY_DIR}/public_key.pem" ]; then
-    cp "${DEFAULT_KEY_DIR}/public_key.pem" "${PUBLIC_KEY_FILE}"
-  fi
+  java -jar "${JAR_FILE}" generate-keypair \
+    --output-dir "${TEMP_KEY_DIR}" \
+    --ecdh-curve P-384
+
+  cp "${TEMP_KEY_DIR}/keypair.pem" "${KEYPAIR_FILE}"
+  cp "${TEMP_KEY_DIR}/public_key.pem" "${PUBLIC_KEY_FILE}"
 fi
 
 # Ensure standard filenames exist for CLI compatibility

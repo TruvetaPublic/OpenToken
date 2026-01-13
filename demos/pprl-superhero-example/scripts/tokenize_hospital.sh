@@ -48,17 +48,37 @@ fi
 echo "Found receiver's public key: ${RECEIVER_PUBLIC_KEY}"
 echo ""
 
+# Ensure hospital (sender) key pair exists (keep it in the demo folder)
+HOSPITAL_KEYPAIR_FILE="${DEMO_DIR}/keys/hospital_keypair.pem"
+HOSPITAL_PUBLIC_KEY_FILE="${DEMO_DIR}/keys/hospital_public_key.pem"
+if [ ! -f "${HOSPITAL_KEYPAIR_FILE}" ] || [ ! -f "${HOSPITAL_PUBLIC_KEY_FILE}" ]; then
+  echo "Hospital sender key pair not found; generating (ECDH P-384)..."
+  TEMP_HOSPITAL_KEY_DIR="${DEMO_DIR}/keys/hospital"
+  rm -rf "${TEMP_HOSPITAL_KEY_DIR}"
+  mkdir -p "${TEMP_HOSPITAL_KEY_DIR}"
+
+  java -jar "${JAR_FILE}" generate-keypair \
+    --output-dir "${TEMP_HOSPITAL_KEY_DIR}" \
+    --ecdh-curve P-384
+
+  cp "${TEMP_HOSPITAL_KEY_DIR}/keypair.pem" "${HOSPITAL_KEYPAIR_FILE}"
+  cp "${TEMP_HOSPITAL_KEY_DIR}/public_key.pem" "${HOSPITAL_PUBLIC_KEY_FILE}"
+fi
+
 echo "Running OpenToken CLI with ECDH key exchange (hospital)..."
 echo "  Input: ${DEMO_DIR}/datasets/hospital_superhero_data.csv"
 echo "  Receiver's Public Key: ${RECEIVER_PUBLIC_KEY}"
+echo "  Sender Key Pair: ${HOSPITAL_KEYPAIR_FILE}"
 echo "  Output: ${DEMO_DIR}/outputs/hospital_tokens_ecdh.zip"
 echo ""
 
-java -jar "${JAR_FILE}" \
+java -jar "${JAR_FILE}" tokenize \
   -t csv \
   -i "${DEMO_DIR}/datasets/hospital_superhero_data.csv" \
   -o "${DEMO_DIR}/outputs/hospital_tokens_ecdh.zip" \
-  --receiver-public-key "${RECEIVER_PUBLIC_KEY}"
+  --receiver-public-key "${RECEIVER_PUBLIC_KEY}" \
+  --sender-keypair-path "${HOSPITAL_KEYPAIR_FILE}" \
+  --ecdh-curve P-384
 
 echo ""
 echo "Done."

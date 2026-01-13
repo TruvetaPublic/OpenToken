@@ -18,11 +18,11 @@ import org.slf4j.LoggerFactory;
  * Loads and validates public keys for OpenToken key exchange.
  * <p>
  * Supports loading EC public keys in PEM format from files or strings,
- * and validates that they use the expected curve (P-256/secp256r1).
+ * and validates that they use a supported curve (P-256/P-384/P-521).
  */
 public class PublicKeyLoader {
     private static final Logger logger = LoggerFactory.getLogger(PublicKeyLoader.class);
-    
+
     /**
      * Loads a public key from a PEM file.
      *
@@ -33,22 +33,22 @@ public class PublicKeyLoader {
     public PublicKey loadPublicKey(String filePath) throws KeyExchangeException {
         try {
             logger.debug("Loading public key from {}", filePath);
-            
+
             // Check if file exists
             if (!Files.exists(Paths.get(filePath))) {
                 throw new KeyExchangeException("Public key file not found: " + filePath);
             }
-            
+
             PublicKey publicKey = PemUtils.loadPublicKey(filePath);
             validatePublicKey(publicKey);
-            
+
             logger.info("Successfully loaded and validated public key from {}", filePath);
             return publicKey;
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new KeyExchangeException("Failed to load public key from " + filePath, e);
         }
     }
-    
+
     /**
      * Loads a public key from a PEM-encoded string.
      *
@@ -59,19 +59,19 @@ public class PublicKeyLoader {
     public PublicKey loadPublicKeyFromString(String pemContent) throws KeyExchangeException {
         try {
             logger.debug("Loading public key from PEM string");
-            
+
             PublicKey publicKey = PemUtils.loadPublicKeyFromString(pemContent);
             validatePublicKey(publicKey);
-            
+
             logger.info("Successfully loaded and validated public key from PEM string");
             return publicKey;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new KeyExchangeException("Failed to load public key from PEM string", e);
         }
     }
-    
+
     /**
-     * Validates that a public key is an EC key using the expected curve.
+     * Validates that a public key is an EC key using a supported curve.
      *
      * @param publicKey the public key to validate
      * @throws KeyExchangeException if validation fails
@@ -80,33 +80,31 @@ public class PublicKeyLoader {
         if (publicKey == null) {
             throw new KeyExchangeException("Public key is null");
         }
-        
+
         // Check if it's an EC key
         if (!(publicKey instanceof ECPublicKey)) {
             throw new KeyExchangeException(
-                "Invalid key type: expected EC public key, got " + publicKey.getClass().getName()
-            );
+                    "Invalid key type: expected EC public key, got " + publicKey.getClass().getName());
         }
-        
+
         ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
-        
+
         // Get the curve name (this is a simplified check)
         String curveName = getCurveName(ecPublicKey);
         logger.debug("Public key uses curve: {}", curveName);
-        
+
         // Validate the algorithm
         if (!KeyPairManager.EC_ALGORITHM.equals(publicKey.getAlgorithm())) {
             throw new KeyExchangeException(
-                "Invalid key algorithm: expected " + KeyPairManager.EC_ALGORITHM + 
-                ", got " + publicKey.getAlgorithm()
-            );
+                    "Invalid key algorithm: expected " + KeyPairManager.EC_ALGORITHM +
+                            ", got " + publicKey.getAlgorithm());
         }
-        
+
         // Note: More rigorous curve validation could be added here
         // For now, we trust that if it's an EC key, it's using a standard curve
         logger.debug("Public key validation passed");
     }
-    
+
     /**
      * Gets the curve name from an EC public key.
      * <p>
@@ -119,10 +117,10 @@ public class PublicKeyLoader {
     private String getCurveName(ECPublicKey ecPublicKey) {
         // Get curve parameters
         java.security.spec.ECParameterSpec params = ecPublicKey.getParams();
-        
+
         // Get the curve field size (bit length)
         int fieldSize = params.getCurve().getField().getFieldSize();
-        
+
         // Map field size to common curve names
         switch (fieldSize) {
             case 256:
@@ -135,7 +133,7 @@ public class PublicKeyLoader {
                 return "Unknown (" + fieldSize + " bits)";
         }
     }
-    
+
     /**
      * Checks if a public key file exists.
      *

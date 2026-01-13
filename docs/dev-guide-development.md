@@ -556,7 +556,7 @@ opentoken decrypt \
 
 | Subcommand         | Description                                   |
 | ------------------ | --------------------------------------------- |
-| `generate-keypair` | Generate a new ECDH key pair (default: P-256) |
+| `generate-keypair` | Generate a new ECDH key pair (default: P-384) |
 | `tokenize`         | Tokenize person attributes using ECDH         |
 | `decrypt`          | Decrypt tokens using ECDH                     |
 
@@ -573,7 +573,7 @@ opentoken decrypt \
 | `--sender-keypair-path`   | Custom sender key pair location                 | tokenize          |
 | `--receiver-keypair-path` | Custom receiver key pair location               | decrypt           |
 | `--hash-only`             | Hash-only mode (skip encryption)                | tokenize          |
-| `--ecdh-curve`            | Elliptic curve (default: P-256)                 | all               |
+| `--ecdh-curve`            | Elliptic curve (default: P-384)                 | all               |
 
 ## Development Container
 

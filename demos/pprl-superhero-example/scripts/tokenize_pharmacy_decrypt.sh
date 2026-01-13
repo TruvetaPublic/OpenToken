@@ -58,11 +58,12 @@ echo "  Receiver Private Key: ${DEMO_DIR}/keys/pharmacy_keypair.pem"
 echo "  Output: ${DEMO_DIR}/outputs/pharmacy_decrypted_hospital_tokens.csv"
 echo ""
 
-java -jar "${JAR_FILE}" --decrypt-with-ecdh \
+java -jar "${JAR_FILE}" decrypt \
   -t csv \
   -i "${HOSPITAL_TOKENS_ZIP}" \
   -o "${DEMO_DIR}/outputs/pharmacy_decrypted_hospital_tokens.csv" \
-  --receiver-keypair-path "${DEMO_DIR}/keys/pharmacy_keypair.pem"
+  --receiver-keypair-path "${DEMO_DIR}/keys/pharmacy_keypair.pem" \
+  --ecdh-curve P-384
 
 echo ""
 echo "Done."

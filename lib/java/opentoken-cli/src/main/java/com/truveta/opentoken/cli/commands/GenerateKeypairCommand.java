@@ -13,13 +13,13 @@ import lombok.Getter;
 @Parameters(commandDescription = "Generate a new ECDH key pair")
 public class GenerateKeypairCommand {
 
-    @Getter
-    @Parameter(names = {
-            "--ecdh-curve" }, description = "Elliptic curve name for ECDH (default: P-256 / secp256r1)", required = false)
-    private String ecdhCurve = "P-256";
+        @Getter
+        @Parameter(names = {
+                        "--ecdh-curve" }, description = "Elliptic curve name for ECDH (default: P-384 / secp384r1)", required = false)
+        private String ecdhCurve = "P-384";
 
-    @Getter
-    @Parameter(names = {
-            "--output-dir" }, description = "Directory to save the key pair (default: ~/.opentoken)", required = false)
-    private String outputDir = null;
+        @Getter
+        @Parameter(names = {
+                        "--output-dir" }, description = "Directory to save the key pair (default: ~/.opentoken)", required = false)
+        private String outputDir = null;
 }
