@@ -12,10 +12,20 @@ All new pull requests MUST be created in **draft** mode. The agent should never 
 
 **Agent Rules:**
 
-- Always use the GitHub MCP tools for PR creation (activate repository management tools when needed)
+- Always use the GitHub MCP tools for all PR operations (create/update/comment/merge) (activate the appropriate MCP tool groups when needed)
+- Never use the `gh` CLI for PR operations
 - Set `draft: true` when invoking pull request creation tools
 - If a PR was accidentally opened as ready, immediately update it to draft and leave a comment noting the correction
 - Do not convert out of draft automatically; wait for explicit user request or all readiness conditions met
+
+## Updating Pull Requests
+
+When updating an existing PR (e.g., changing the description/body), the agent must use the GitHub MCP tools.
+
+**Agent Rules:**
+
+- Use GitHub MCP tools only; do not use `gh pr edit` or other `gh` commands
+- Prefer updating the PR body to include: Summary, Changes, Testing
 
 **Creating a PR with GitHub MCP:**
 
