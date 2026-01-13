@@ -277,14 +277,14 @@ def _process_tokens_with_ecdh(input_path: str, output_path: str, input_type: str
             
             # Add key exchange metadata
             sender_public_key_bytes = sender_public_key.public_bytes(
-                encoding=serialization.Encoding.PEM,
+                encoding=serialization.Encoding.DER,
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
             receiver_public_key_bytes = receiver_public_key.public_bytes(
-                encoding=serialization.Encoding.PEM,
+                encoding=serialization.Encoding.DER,
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
-            metadata.add_key_exchange_metadata(sender_public_key_bytes, receiver_public_key_bytes)
+            metadata.add_key_exchange_metadata(sender_public_key_bytes, receiver_public_key_bytes, ecdh_curve)
             
             # Process data
             PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
