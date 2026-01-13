@@ -144,6 +144,7 @@ jobs:
           thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
           thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
           thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+          sourceDir: lib/python/opentoken/src/main
 
   python-cli-tests:
     runs-on: ubuntu-latest
@@ -206,13 +207,13 @@ jobs:
         run: |
           cd lib/python/opentoken-cli
           mkdir -p target keys
-          
+
           # Generate receiver keypair
           opentoken generate-keypair --output-dir target/keys/receiver
-          
+
           # Generate sender keypair
           opentoken generate-keypair --output-dir target/keys/sender
-          
+
           # Tokenize with ECDH (sender creates encrypted tokens)
           opentoken tokenize \
             -i ../../../resources/sample.csv \
@@ -221,7 +222,7 @@ jobs:
             --receiver-public-key target/keys/receiver/public_key.pem \
             --sender-keypair-path target/keys/sender/keypair.pem \
             --ecdh-curve P-384
-          
+
           # Decrypt tokens with ECDH (receiver decrypts)
           opentoken decrypt \
             -i target/output.zip \
@@ -336,6 +337,7 @@ jobs:
           thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
           thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
           thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+          sourceDir: lib/python/opentoken-pyspark/src/main
 
   interoperability-tests:
     runs-on: ubuntu-latest
