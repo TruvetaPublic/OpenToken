@@ -150,3 +150,32 @@ class TestDecryptTokenTransformer:
         # Should throw an exception
         with pytest.raises(Exception):
             wrong_decryptor.transform(encrypted_token)
+    def test_constructor_with_bytes_key(self):
+        """Test that constructor accepts bytes directly without charset conversion."""
+        key_bytes = self.VALID_KEY.encode('latin-1')
+        transformer = DecryptTokenTransformer(key_bytes)
+        
+        # The transformer should work with bytes
+        encrypted_token = self.encryptor.transform("test-token")
+        result = transformer.transform(encrypted_token)
+        assert result == "test-token"
+
+    def test_constructor_with_bytearray_key(self):
+        """Test that constructor accepts bytearray directly."""
+        key_array = bytearray(self.VALID_KEY.encode('latin-1'))
+        transformer = DecryptTokenTransformer(key_array)
+        
+        # The transformer should work with bytearray
+        encrypted_token = self.encryptor.transform("test-token")
+        result = transformer.transform(encrypted_token)
+        assert result == "test-token"
+
+    def test_constructor_with_memoryview_key(self):
+        """Test that constructor accepts memoryview directly."""
+        key_view = memoryview(self.VALID_KEY.encode('latin-1'))
+        transformer = DecryptTokenTransformer(key_view)
+        
+        # The transformer should work with memoryview
+        encrypted_token = self.encryptor.transform("test-token")
+        result = transformer.transform(encrypted_token)
+        assert result == "test-token"

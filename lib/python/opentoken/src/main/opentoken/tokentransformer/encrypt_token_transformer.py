@@ -21,22 +21,25 @@ class EncryptTokenTransformer(TokenTransformer):
     See: https://datatracker.ietf.org/doc/html/rfc3826 (AES)
     """
 
-    def __init__(self, encryption_key: Union[str, bytes]):
+    def __init__(self, encryption_key: Union[str, bytes, bytearray, memoryview]):
         """
         Initializes the underlying cipher (AES) with the encryption secret.
 
         Args:
-            encryption_key: The encryption key as bytes or latin-1 safe string.
+            encryption_key: The encryption key as bytes, bytearray, memoryview, or latin-1 string.
+                When bytes-like objects are provided, they are used directly without
+                charset conversion (matching Java's byte[] constructor).
 
         Raises:
-            ValueError: If the encryption key is not 32 characters long.
+            ValueError: If the encryption key is not 32 bytes long.
         """
         key_bytes = (encryption_key if isinstance(encryption_key, bytes)
-                     else encryption_key.encode('latin-1'))
+                     else (bytes(encryption_key) if isinstance(encryption_key, (bytearray, memoryview))
+                           else encryption_key.encode('latin-1')))
 
         if len(key_bytes) != EncryptionConstants.KEY_BYTE_LENGTH:
-            logger.error(f"Invalid Argument. Key must be {EncryptionConstants.KEY_BYTE_LENGTH} characters long")
-            raise ValueError(f"Key must be {EncryptionConstants.KEY_BYTE_LENGTH} characters long")
+            logger.error(f"Invalid Argument. Key must be {EncryptionConstants.KEY_BYTE_LENGTH} bytes long")
+            raise ValueError(f"Key must be {EncryptionConstants.KEY_BYTE_LENGTH} bytes long")
 
         self.encryption_key = key_bytes
 

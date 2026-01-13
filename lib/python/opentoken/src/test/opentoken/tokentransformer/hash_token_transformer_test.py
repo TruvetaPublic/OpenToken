@@ -111,6 +111,50 @@ class TestHashTokenTransformer:
 
         assert hash1 == hash2  # The hashed value should be consistent
 
+    def test_constructor_with_bytes_secret(self):
+        """Test that constructor accepts bytes directly without charset conversion."""
+        secret_bytes = b"secret-bytes-key"
+        transformer = HashTokenTransformer(secret_bytes)
+        
+        # The transformer should work with bytes
+        token = "test-token"
+        result = transformer.transform(token)
+        assert result is not None
+
+    def test_constructor_with_bytearray_secret(self):
+        """Test that constructor accepts bytearray directly."""
+        secret_array = bytearray(b"bytearray-secret")
+        transformer = HashTokenTransformer(secret_array)
+        
+        # The transformer should work with bytearray
+        token = "test-token"
+        result = transformer.transform(token)
+        assert result is not None
+
+    def test_constructor_with_memoryview_secret(self):
+        """Test that constructor accepts memoryview directly."""
+        secret_view = memoryview(b"memoryview-secret")
+        transformer = HashTokenTransformer(secret_view)
+        
+        # The transformer should work with memoryview
+        token = "test-token"
+        result = transformer.transform(token)
+        assert result is not None
+
+    def test_bytes_secret_produces_expected_hash(self):
+        """Test that bytes secret produces the expected HMAC-SHA256 hash."""
+        secret_bytes = b"sampleSecret"
+        transformer = HashTokenTransformer(secret_bytes)
+        token = "sampleToken"
+        
+        hashed_token = transformer.transform(token)
+        
+        # Manually calculate expected hash with bytes
+        mac = hmac.new(secret_bytes, token.encode('utf-8'), hashlib.sha256)
+        expected_hash = base64.b64encode(mac.digest()).decode('utf-8')
+        
+        assert expected_hash == hashed_token
+
     def _calculate_expected_hash(self, secret: str, token: str) -> str:
         """
         Calculate the expected HMAC-SHA256 hash for validation.

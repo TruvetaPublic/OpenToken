@@ -27,11 +27,13 @@ class DecryptTokenTransformer(TokenTransformer):
         Initializes the underlying cipher (AES) with the decryption secret.
 
         Args:
-            encryption_key: The encryption key as bytes or latin-1 safe string.
+            encryption_key: The encryption key as bytes, bytearray, memoryview, or latin-1 string.
+                When bytes-like objects are provided, they are used directly without
+                charset conversion (matching Java's byte[] constructor).
 
         Raises:
             ValueError: If the encryption key is missing or not 32 bytes long.
-            TypeError: If the encryption key is not bytes-like.
+            TypeError: If the encryption key is not bytes-like or string.
         """
         key_bytes = self._normalize_key_bytes(encryption_key)
         self.encryption_key = key_bytes

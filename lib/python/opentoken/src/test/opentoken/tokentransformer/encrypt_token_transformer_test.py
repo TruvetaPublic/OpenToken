@@ -53,7 +53,7 @@ class TestEncryptTokenTransformer:
         with pytest.raises(ValueError) as exc_info:
             EncryptTokenTransformer(self.INVALID_KEY)  # Key is too short
         
-        assert "Key must be 32 characters long" == str(exc_info.value)
+        assert "Key must be 32 bytes long" == str(exc_info.value)
 
     def test_transform_valid_token_returns_encrypted_token(self):
         """Test that transforming a valid token returns an encrypted token."""
@@ -156,3 +156,33 @@ class TestEncryptTokenTransformer:
         decryptor = cipher.decryptor()
         decrypted_bytes = decryptor.update(ciphertext) + decryptor.finalize()
         return decrypted_bytes.decode('utf-8')
+
+    def test_constructor_with_bytes_key(self):
+        """Test that constructor accepts bytes directly without charset conversion."""
+        key_bytes = self.VALID_KEY.encode('latin-1')
+        transformer = EncryptTokenTransformer(key_bytes)
+        
+        # The transformer should work with bytes
+        result = transformer.transform("test-token")
+        assert result is not None
+        assert result != ""
+
+    def test_constructor_with_bytearray_key(self):
+        """Test that constructor accepts bytearray directly."""
+        key_array = bytearray(self.VALID_KEY.encode('latin-1'))
+        transformer = EncryptTokenTransformer(key_array)
+        
+        # The transformer should work with bytearray
+        result = transformer.transform("test-token")
+        assert result is not None
+        assert result != ""
+
+    def test_constructor_with_memoryview_key(self):
+        """Test that constructor accepts memoryview directly."""
+        key_view = memoryview(self.VALID_KEY.encode('latin-1'))
+        transformer = EncryptTokenTransformer(key_view)
+        
+        # The transformer should work with memoryview
+        result = transformer.transform("test-token")
+        assert result is not None
+        assert result != ""

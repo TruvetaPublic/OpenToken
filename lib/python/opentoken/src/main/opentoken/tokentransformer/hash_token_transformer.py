@@ -27,7 +27,9 @@ class HashTokenTransformer(TokenTransformer):
         Initializes the underlying MAC with the secret key.
 
         Args:
-            hashing_secret: The cryptographic secret key.
+            hashing_secret: The cryptographic secret key, as a string, bytes, or None.
+                When bytes/bytearray/memoryview are provided, they are used directly
+                without charset conversion (matching Java's byte[] constructor).
 
         Raises:
             ValueError: If the hashing secret is None or empty.
