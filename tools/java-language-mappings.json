@@ -2,6 +2,9 @@
     "source_language": "java",
     "source_base_path": "lib/java/opentoken/src/main/java/com/truveta/opentoken/",
     "auto_generate_unmapped": true,
+    "ignore_patterns": [
+        "**/package-info.java"
+    ],
     "critical_java_files": [
         {
             "path": "Metadata.java",
@@ -136,12 +139,6 @@
                     "target_file": "lib/python/opentoken/src/main/opentoken/keyexchange/pem_utils.py",
                     "sync_priority": "medium",
                     "description": "PEM utilities for key exchange support",
-                    "auto_sync": false
-                },
-                "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/package-info.java": {
-                    "target_file": "lib/python/opentoken/src/main/opentoken/keyexchange/package-info.py",
-                    "sync_priority": "low",
-                    "description": "Package documentation for key exchange module",
                     "auto_sync": false
                 }
             },
