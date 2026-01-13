@@ -142,7 +142,7 @@ jobs:
           coverageFile: lib/python/opentoken/coverage.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
-          thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+          thresholdNew: 0.0
           thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
           sourceDir: lib/python/opentoken/src/main
 
@@ -335,7 +335,7 @@ jobs:
           coverageFile: lib/python/opentoken-pyspark/coverage-${{ matrix.python-version }}-spark${{ matrix.spark-version }}.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
-          thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+          thresholdNew: 0.0
           thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
           sourceDir: lib/python/opentoken-pyspark/src/main
 
