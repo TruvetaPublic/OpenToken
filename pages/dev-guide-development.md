@@ -136,21 +136,31 @@ CLI usage:
 cd lib/java && java -jar opentoken-cli/target/opentoken-cli-*.jar [OPTIONS]
 ```
 
-Arguments:
+Commands:
+
+- `generate-keypair` Generate a keypair directory (`keypair.pem`, `public_key.pem`)
+- `tokenize` Tokenize input data for a receiver using ECDH
+- `decrypt` Decrypt a token package back to hash-only form
+
+Arguments (selected):
 
 - `-i, --input <path>` Input file
 - `-t, --type <csv|parquet>` Input type
 - `-o, --output <path>` Output file
 - `-ot, --output-type <type>` Optional output type
-- `-h, --hashingsecret <secret>` HMAC-SHA256 secret
-- `-e, --encryptionkey <key>` AES-256 key
+- `--receiver-public-key <path>` Receiver public key (tokenize)
+- `--sender-keypair-path <path>` Sender keypair (tokenize)
+- `--receiver-keypair-path <path>` Receiver keypair (decrypt)
+- `--hash-only` Generate hash-only output
 
 Example:
 
 ```shell
 cd lib/java && java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i opentoken/src/test/resources/sample.csv -t csv -o opentoken-cli/target/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+  tokenize \
+  -i opentoken/src/test/resources/sample.csv -t csv -o opentoken-cli/target/output.zip \
+  --receiver-public-key opentoken-cli/src/test/resources/keys/receiver/public_key.pem \
+  --sender-keypair-path opentoken-cli/src/test/resources/keys/sender/keypair.pem
 ```
 
 Programmatic API (simplified):
@@ -239,8 +249,10 @@ Example:
 ```shell
 # After installing opentoken-cli
 python -m opentoken_cli.main \
-  -i resources/sample.csv -t csv -o lib/python/opentoken-cli/target/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+  tokenize \
+  -i resources/sample.csv -t csv -o lib/python/opentoken-cli/target/output.zip \
+  --receiver-public-key resources/keys/receiver/public_key.pem \
+  --sender-keypair-path resources/keys/sender/keypair.pem
 ```
 
 Programmatic API (simplified):
@@ -530,22 +542,28 @@ Minimum required arguments:
 
 ```shell
 # Java
-java -jar lib/java/opentoken-cli/target/opentoken-cli-*.jar -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+java -jar lib/java/opentoken-cli/target/opentoken-cli-*.jar tokenize -i input.csv -t csv -o output.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path /path/to/sender/keypair.pem
 
 # Python
-python -m opentoken_cli.main -i input.csv -t csv -o output.csv -h HashingKey -e Secret-Encryption-Key-Goes-Here.
+python -m opentoken_cli.main tokenize -i input.csv -t csv -o output.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path /path/to/sender/keypair.pem
 ```
 
 Arguments:
 
-| Flag                  | Description                                     |
-| --------------------- | ----------------------------------------------- |
-| `-t, --type`          | Input file type (`csv` or `parquet`)            |
-| `-i, --input`         | Input file path                                 |
-| `-o, --output`        | Output file path                                |
-| `-ot, --output-type`  | (Optional) Output file type (defaults to input) |
-| `-h, --hashingsecret` | Hashing secret for HMAC-SHA256                  |
-| `-e, --encryptionkey` | AES-256 encryption key                          |
+| Flag                      | Description                                     |
+| ------------------------- | ----------------------------------------------- |
+| `-t, --type`              | Input file type (`csv` or `parquet`)            |
+| `-i, --input`             | Input file path                                 |
+| `-o, --output`            | Output file path                                |
+| `-ot, --output-type`      | (Optional) Output file type (defaults to input) |
+| `--receiver-public-key`   | Receiver public key (tokenize)                  |
+| `--sender-keypair-path`   | Sender keypair (tokenize)                       |
+| `--receiver-keypair-path` | Receiver keypair (decrypt)                      |
+| `--hash-only`             | Generate hash-only output                       |
 
 ## Development Container
 

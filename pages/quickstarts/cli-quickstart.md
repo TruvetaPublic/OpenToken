@@ -25,12 +25,24 @@ The fastest way to get started. No Java or Python installation required.
 ```bash
 cd /path/to/OpenToken
 
-./run-opentoken.sh \
-  -i ./resources/sample.csv \
-  -o ./resources/output.csv \
-  -t csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+# Generate a receiver keypair (share the public key with the sender)
+mkdir -p ./target/keys/receiver
+./run-opentoken.sh generate-keypair --output-dir ./target/keys/receiver
+
+# Generate a sender keypair
+mkdir -p ./target/keys/sender
+./run-opentoken.sh generate-keypair --output-dir ./target/keys/sender
+
+# Tokenize (sender encrypts tokens using receiver public key)
+./run-opentoken.sh tokenize \
+  -i ./resources/sample.csv -t csv -o ./target/output.zip \
+  --receiver-public-key ./target/keys/receiver/public_key.pem \
+  --sender-keypair-path ./target/keys/sender/keypair.pem
+
+# Decrypt (receiver decrypts using receiver private key)
+./run-opentoken.sh decrypt \
+  -i ./target/output.zip -t csv -o ./target/decrypted.csv \
+  --receiver-keypair-path ./target/keys/receiver/keypair.pem
 ```
 
 ### Windows PowerShell
@@ -38,26 +50,44 @@ cd /path/to/OpenToken
 ```powershell
 cd C:\path\to\OpenToken
 
-.\run-opentoken.ps1 `
-  -i .\resources\sample.csv `
-  -o .\resources\output.csv `
-  -FileType csv `
-  -h "HashingKey" `
-  -e "Secret-Encryption-Key-Goes-Here."
+mkdir .\target\keys\receiver -Force | Out-Null
+.\run-opentoken.ps1 generate-keypair --output-dir .\target\keys\receiver
+
+mkdir .\target\keys\sender -Force | Out-Null
+.\run-opentoken.ps1 generate-keypair --output-dir .\target\keys\sender
+
+.\run-opentoken.ps1 tokenize `
+  -i .\resources\sample.csv -FileType csv -o .\target\output.zip `
+  --receiver-public-key .\target\keys\receiver\public_key.pem `
+  --sender-keypair-path .\target\keys\sender\keypair.pem `
+ 
+
+.\run-opentoken.ps1 decrypt `
+  -i .\target\output.zip -FileType csv -o .\target\decrypted.csv `
+  --receiver-keypair-path .\target\keys\receiver\keypair.pem `
+ 
 ```
 
-## CLI Arguments
+## CLI Commands
 
-| Argument          | Short | Description                                | Required |
-| ----------------- | ----- | ------------------------------------------ | -------- |
-| `--input`         | `-i`  | Input file path (CSV or Parquet)           | Yes      |
-| `--output`        | `-o`  | Output file path                           | Yes      |
-| `--type`          | `-t`  | File type: `csv` or `parquet`              | Yes      |
-| `--hashingsecret` | `-h`  | Secret key for HMAC hashing                | Yes      |
-| `--encryptionkey` | `-e`  | 32-character key for AES encryption        | No*      |
-| `--hash-only`     |       | Skip encryption, output hashed tokens only | No       |
+OpenToken CLI uses subcommands:
 
-*Required unless `--hash-only` is specified.
+- `generate-keypair`
+- `tokenize`
+- `decrypt`
+
+See the full flag reference in [CLI Reference](../reference/cli.md).
+
+## Key Exchange Inputs (Tokenize/Decrypt)
+
+| Option                    | Used by    | Purpose                                                     |
+| ------------------------- | ---------- | ----------------------------------------------------------- |
+| `--receiver-public-key`   | `tokenize` | Receiver public key used to derive encryption keys via ECDH |
+| `--sender-keypair-path`   | `tokenize` | Sender private key used to perform ECDH                     |
+| `--receiver-keypair-path` | `decrypt`  | Receiver private key used to perform ECDH                   |
+| `--sender-public-key`     | `decrypt`  | Sender public key (usually included in the `.zip` output)   |
+
+## Example: CSV Input
 
 ## Example: CSV Input
 
@@ -69,15 +99,14 @@ patient_001,John,Doe,1980-01-15,Male,98004,123-45-6789
 patient_002,Jane,Smith,1975-03-22,Female,90210,987-65-4321
 ```
 
-**Command:**
+**Tokenize command (Java example):**
 
 ```bash
-java -jar opentoken-cli-*.jar \
-  -i sample.csv \
-  -t csv \
-  -o tokens.csv \
-  -h "MyHashingSecret" \
-  -e "MyEncryptionKey-32Characters!"
+java -jar opentoken-cli-*.jar tokenize \
+  -i sample.csv -t csv -o output.zip \
+  --receiver-public-key ./receiver/public_key.pem \
+  --sender-keypair-path ./sender/keypair.pem \
+ 
 ```
 
 **Output (`tokens.csv`):**
@@ -95,12 +124,9 @@ patient_002,T1,...
 ## Example: Parquet Input
 
 ```bash
-java -jar opentoken-cli-*.jar \
-  -i input.parquet \
-  -t parquet \
-  -o tokens.parquet \
-  -h "MyHashingSecret" \
-  -e "MyEncryptionKey-32Characters!"
+java -jar opentoken-cli-*.jar tokenize \
+  -i input.parquet -t parquet -o output.zip \
+  --receiver-public-key ./receiver/public_key.pem
 ```
 
 ## Hash-Only Mode
@@ -108,11 +134,10 @@ java -jar opentoken-cli-*.jar \
 Generate tokens without encryption (faster, but tokens cannot be decrypted):
 
 ```bash
-java -jar opentoken-cli-*.jar \
-  -i sample.csv \
-  -t csv \
-  -o tokens.csv \
-  -h "MyHashingSecret" \
+java -jar opentoken-cli-*.jar tokenize \
+  -i sample.csv -t csv -o output.zip \
+  --receiver-public-key ./receiver/public_key.pem \
+  --sender-keypair-path ./sender/keypair.pem \
   --hash-only
 ```
 
@@ -143,20 +168,22 @@ A `.metadata.json` file is created alongside the output:
   "Platform": "Java",
   "JavaVersion": "21.0.0",
   "OpenTokenVersion": "1.7.0",
+  "KeyExchangeMethod": "ECDH-P-384",
+  "Curve": "P-384",
+  "SenderPublicKeyHash": "a85b4bd6...",
+  "ReceiverPublicKeyHash": "32bc0e98...",
   "TotalRows": 2,
   "TotalRowsWithInvalidAttributes": 0,
   "InvalidAttributesByType": {},
-  "BlankTokensByRule": {},
-  "HashingSecretHash": "e0b4e60b...",
-  "EncryptionSecretHash": "a1b2c3d4..."
+  "BlankTokensByRule": {}
 }
 ```
 
 ## Troubleshooting
 
-### "Encryption key not provided"
+### "Expected a command"
 
-Either provide `-e "YourKey"` or use `--hash-only` flag.
+Make sure you provide a subcommand like `tokenize`, `decrypt`, or `generate-keypair`.
 
 ### "Invalid BirthDate"
 

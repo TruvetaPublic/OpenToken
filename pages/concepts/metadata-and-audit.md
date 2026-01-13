@@ -12,7 +12,7 @@ Every OpenToken run generates a metadata file (`.metadata.json`) alongside the t
 
 - Processing statistics (records processed, validation failures, blank tokens)
 - System information (platform and version)
-- Secure secret verification (SHA-256 hashes, not actual secrets)
+- Key verification (SHA-256 hashes of public keys, not private keys)
 - Audit trail (platform, library version, and validation statistics)
 
 ## Key Concepts
@@ -30,22 +30,23 @@ Metadata tracks:
 - Track which attributes fail validation most often
 - Identify patterns in invalid data
 
-### Secret Verification
+### Key Verification
 
-Metadata includes **SHA-256 hashes of secrets**:
-- `HashingSecretHash`: Hash of the hashing secret
-- `EncryptionSecretHash`: Hash of the encryption key (if used)
+In ECDH key exchange mode, metadata includes **SHA-256 hashes of the public keys** used during tokenization/decryption:
+
+- `SenderPublicKeyHash`
+- `ReceiverPublicKeyHash`
 
 **Purpose:**
-- Verify correct secrets were used without exposing them
-- Audit trail for compliance
-- Detect configuration errors (mismatched secrets)
+- Verify correct keys were used without exposing private keys
+- Create an audit trail for controlled partner exchange
+- Detect configuration errors (wrong public key, wrong keypair)
 
-Use `tools/hash_calculator.py` to verify:
+You can verify these values locally:
+
 ```bash
-python tools/hash_calculator.py \
-  --hashing-secret "YourSecret" \
-  --encryption-key "YourKey"
+sha256sum ./keys/sender/public_key.pem
+sha256sum ./keys/receiver/public_key.pem
 ```
 
 ### Audit Trail
@@ -69,4 +70,4 @@ For full field descriptions, JSON schema, examples, and hash verification detail
 
 - **View metadata structure**: [Reference: Metadata Format](../reference/metadata-format.md)
 - **Understand validation rules**: [Normalization & Validation](normalization-and-validation.md)
-- **Use hash calculator**: [tools/hash_calculator.py](https://github.com/TruvetaPublic/OpenToken/blob/main/tools/hash_calculator.py)
+- **Verify key hashes**: compare `sha256sum` output with metadata fields

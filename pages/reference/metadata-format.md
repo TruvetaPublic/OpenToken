@@ -12,7 +12,7 @@ OpenToken generates a metadata file alongside every token output file. Metadata 
 
 - **Processing statistics**: Counts of total records, invalid attributes, and blank tokens
 - **System information**: Platform (Java/Python), runtime version, library version
-- **Secure hashes**: SHA-256 hashes of secrets for verification (not the secrets themselves)
+- **Key fingerprints**: SHA-256 hashes of public keys used for key exchange
 - **Audit trail**: What was processed and how (platform, version, and validation statistics)
 
 Metadata files:
@@ -45,6 +45,10 @@ Extension: .metadata.json
   "JavaVersion": "string (optional, Java only)",
   "PythonVersion": "string (optional, Python only)",
   "OpenTokenVersion": "string",
+  "KeyExchangeMethod": "string (optional)",
+  "Curve": "string (optional)",
+  "SenderPublicKeyHash": "string (hex, optional)",
+  "ReceiverPublicKeyHash": "string (hex, optional)",
   "TotalRows": integer,
   "TotalRowsWithInvalidAttributes": integer,
   "InvalidAttributesByType": {
@@ -54,9 +58,7 @@ Extension: .metadata.json
   "BlankTokensByRule": {
     "RuleId": integer,
     ...
-  },
-  "HashingSecretHash": "string (hex)",
-  "EncryptionSecretHash": "string (hex, optional)"
+  }
 }
 ```
 
@@ -98,29 +100,35 @@ Extension: .metadata.json
 - Blank tokens occur when a rule requires an invalid attribute
 - Example: Invalid `BirthDate` causes blank tokens for T1, T2, T3, T4 (but not T5)
 
-### Secret Hashes
+### Key Exchange Fingerprints
 
-| Field                  | Type   | Description                                    | Example                                 |
-| ---------------------- | ------ | ---------------------------------------------- | --------------------------------------- |
-| `HashingSecretHash`    | String | SHA-256 hash of hashing secret (hex)           | `"e0b4e60b6a9f7ea3b13c0d6a6e1b8c5d..."` |
-| `EncryptionSecretHash` | String | SHA-256 hash of encryption key (hex, optional) | `"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6..."` |
+| Field                   | Type   | Description                                     | Example         |
+| ----------------------- | ------ | ----------------------------------------------- | --------------- |
+| `KeyExchangeMethod`     | String | Key exchange method in use                      | `"ECDH-P-384"`  |
+| `Curve`                 | String | Elliptic curve name                             | `"P-384"`       |
+| `SenderPublicKeyHash`   | String | SHA-256 hash of sender public key bytes (hex)   | `"a85b4bd6..."` |
+| `ReceiverPublicKeyHash` | String | SHA-256 hash of receiver public key bytes (hex) | `"32bc0e98..."` |
 
 **Security:**
 - Hashes are **not reversible** (SHA-256 is one-way)
-- Used for verification: calculate hash of your secret and compare to metadata
-- `EncryptionSecretHash` omitted in `--hash-only` mode (no encryption used)
+- Used for verification: calculate hash of the public key file and compare to metadata
+- These hashes are safe to share; they help confirm both parties used the expected keys
 
 ---
 
 ## Example Metadata
 
-### Full Example (Encryption Mode)
+### Example (ECDH Key Exchange)
 
 ```json
 {
   "Platform": "Java",
   "JavaVersion": "21.0.0",
   "OpenTokenVersion": "1.12.2",
+  "KeyExchangeMethod": "ECDH-P-384",
+  "Curve": "P-384",
+  "SenderPublicKeyHash": "a85b4bd68f9e2b7546920572b3191fae6b35bbd18dcb4c8c2b1ef4aa448158a8",
+  "ReceiverPublicKeyHash": "32bc0e98de8e04882ba7201a2041622b4e47d528c644118789ea0c089452d4f8",
   "TotalRows": 101,
   "TotalRowsWithInvalidAttributes": 9,
   "InvalidAttributesByType": {
@@ -136,32 +144,9 @@ Extension: .metadata.json
     "T3": 3,
     "T4": 8,
     "T5": 7
-  },
-  "HashingSecretHash": "e0b4e60b6a9f7ea3b13c0d6a6e1b8c5d4e3f2a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0",
-  "EncryptionSecretHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8"
+  }
 }
 ```
-
-### Hash-Only Mode Example
-
-```json
-{
-  "Platform": "Python",
-  "PythonVersion": "3.11.5",
-  "OpenTokenVersion": "1.12.2",
-  "TotalRows": 50,
-  "TotalRowsWithInvalidAttributes": 2,
-  "InvalidAttributesByType": {
-    "PostalCode": 2
-  },
-  "BlankTokensByRule": {
-    "T2": 2
-  },
-  "HashingSecretHash": "abc123def456789abc123def456789abc123def456789abc123def456789abc123"
-}
-```
-
-**Note:** No `EncryptionSecretHash` because `--hash-only` mode doesn't use encryption.
 
 ---
 
@@ -242,78 +227,27 @@ Blank tokens occur when a rule requires an invalid attribute.
 
 ---
 
-## Hash Verification
+## Key Verification
 
 ### Purpose
 
-Verify that the secrets used for token generation match expected values without exposing the secrets themselves.
+Verify that the public keys used for token generation match expected values.
 
 ### Verification Process
 
-1. **Calculate hash of your secret**:
+1. **Calculate hash of the public key file**:
    ```bash
-   python tools/hash_calculator.py --hashing-secret "HashingKey"
+   sha256sum ./keys/receiver/public_key.pem
+   sha256sum ./keys/sender/public_key.pem
    ```
 
 2. **Compare to metadata**:
    ```bash
-   cat output.metadata.json | grep HashingSecretHash
+   cat output.metadata.json | grep ReceiverPublicKeyHash
+   cat output.metadata.json | grep SenderPublicKeyHash
    ```
 
-3. **Match = correct secret used**
-
-### Hash Calculation
-
-The hash is computed as:
-```
-SHA-256(secret) → hex-encoded string (64 hex characters)
-```
-
-**Python implementation:**
-```python
-import hashlib
-
-def calculate_hash(secret: str) -> str:
-    return hashlib.sha256(secret.encode('utf-8')).hexdigest()
-
-hashing_hash = calculate_hash("HashingKey")
-encryption_hash = calculate_hash("Secret-Encryption-Key-Goes-Here.")
-```
-
-**Java implementation:**
-```java
-import java.security.MessageDigest;
-import java.nio.charset.StandardCharsets;
-
-public static String calculateHash(String secret) throws Exception {
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    byte[] hash = digest.digest(secret.getBytes(StandardCharsets.UTF_8));
-    return bytesToHex(hash);
-}
-
-private static String bytesToHex(byte[] bytes) {
-    StringBuilder result = new StringBuilder();
-    for (byte b : bytes) {
-        result.append(String.format("%02x", b));
-    }
-    return result.toString();
-}
-```
-
-### Using the Hash Calculator Tool
-
-The `tools/hash_calculator.py` script provides command-line hash calculation:
-
-```bash
-# Calculate both hashes
-python tools/hash_calculator.py \
-  --hashing-secret "HashingKey" \
-  --encryption-key "Secret-Encryption-Key-Goes-Here."
-
-# Output:
-# HashingSecretHash: e0b4e60b6a9f7ea3b13c0d6a6e1b8c5d...
-# EncryptionSecretHash: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6...
-```
+3. **Match = correct keys used**
 
 ---
 
@@ -325,7 +259,7 @@ Metadata provides an audit record of:
 - What was processed (record counts and attribute-level statistics)
 - When it was processed (inferred from surrounding system logs or job metadata)
 - How it was processed (platform, version)
-- What secrets were used (via hashes)
+- What key material was used (via public key hashes)
 - What errors occurred (invalid attributes)
 
 Store metadata files alongside token outputs for compliance and troubleshooting.
@@ -345,11 +279,11 @@ Consider retaining metadata longer than token files:
 
 ### Security
 
-Metadata files contain SHA-256 hashes of secrets:
-- ✓ Safe to log, store, and share (no secrets exposed)
-- ✓ Enables verification without revealing secrets
-- ✗ Cannot reverse hashes to recover secrets
-- ✗ Attacker with metadata alone cannot generate tokens
+Metadata files contain SHA-256 hashes of public keys:
+- ✓ Safe to log, store, and share (no private keys exposed)
+- ✓ Enables verification without revealing private keys
+- ✗ Cannot reverse hashes to recover private keys
+- ✗ Attacker with metadata alone cannot decrypt tokens
 
 ---
 
@@ -357,5 +291,5 @@ Metadata files contain SHA-256 hashes of secrets:
 
 - **View token rules**: [Concepts: Token Rules](../concepts/token-rules.md)
 - **Understand validation**: [Security](../security.md)
-- **Use hash calculator**: `tools/hash_calculator.py`
+- **Verify key hashes**: compare `sha256sum` output with metadata fields
 - **See full examples**: [Quickstarts](../quickstarts/index.md)

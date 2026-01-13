@@ -4,7 +4,7 @@ layout: default
 
 # CLI Reference
 
-Complete reference for OpenToken CLI arguments, modes, and examples. This page is the single source of truth for CLI flags and options; other documentation (such as Configuration) links here instead of duplicating them.
+Complete reference for OpenToken CLI commands, modes, and examples. This page is the single source of truth for CLI flags and options; other documentation (such as Configuration) links here instead of duplicating them.
 
 ## Security Note
 
@@ -16,63 +16,105 @@ Hash-only mode is primarily used to build **internal overlap-analysis datasets**
 
 ```bash
 # Java
-java -jar opentoken-cli-*.jar [OPTIONS]
+java -jar opentoken-cli-*.jar <command> [command options]
 
 # Python
-python -m opentoken_cli.main [OPTIONS]
+opentoken <command> [command options]
+
+# (or, equivalent)
+python -m opentoken_cli.main <command> [command options]
 ```
 
-## Required Arguments
+## Commands
 
-| Argument          | Short | Description                         |
-| ----------------- | ----- | ----------------------------------- |
-| `--input`         | `-i`  | Path to input file (CSV or Parquet) |
-| `--output`        | `-o`  | Path to output file                 |
-| `--type`          | `-t`  | File type: `csv` or `parquet`       |
-| `--hashingsecret` | `-h`  | Secret key for HMAC-SHA256 hashing  |
+OpenToken CLI is organized around three subcommands:
 
-## Optional Arguments
+- `generate-keypair` — generate an ECDH keypair for exchange
+- `tokenize` — tokenize person attributes using ECDH key exchange
+- `decrypt` — decrypt tokens using ECDH key exchange
 
-| Argument          | Short | Description                               | Default                       |
-| ----------------- | ----- | ----------------------------------------- | ----------------------------- |
-| `--encryptionkey` | `-e`  | 32-character key for AES-256 encryption   | Required unless `--hash-only` |
-| `--hash-only`     |       | Generate hashed tokens without encryption | `false`                       |
-| `--output-type`   | `-ot` | Output file type if different from input  | Same as input                 |
-| `--decrypt`       | `-d`  | Decrypt mode (input must be encrypted)    | `false`                       |
+## `generate-keypair`
+
+Generate a new keypair and write it to disk.
+
+```bash
+opentoken generate-keypair --output-dir ~/.opentoken --ecdh-curve P-384
+```
+
+**Options**
+
+| Option         | Description                                           | Default        |
+| -------------- | ----------------------------------------------------- | -------------- |
+| `--output-dir` | Directory to write `keypair.pem` and `public_key.pem` | `~/.opentoken` |
+| `--ecdh-curve` | Elliptic curve name for ECDH                          | `P-256`        |
+
+## `tokenize`
+
+Tokenize a CSV or Parquet file. For cross-organization exchange, output is typically a `.zip` package.
+
+```bash
+opentoken tokenize \
+  -i input.csv -t csv -o output.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path /path/to/sender/keypair.pem \
+  --ecdh-curve P-384
+```
+
+**Required arguments**
+
+| Argument                | Short | Description                           |
+| ----------------------- | ----- | ------------------------------------- |
+| `--input`               | `-i`  | Path to input file                    |
+| `--output`              | `-o`  | Path to output file (commonly `.zip`) |
+| `--type`                | `-t`  | Input type: `csv` or `parquet`        |
+| `--receiver-public-key` |       | Path to receiver public key (PEM)     |
+
+**Optional arguments**
+
+| Argument                | Short | Description                         | Default                    |
+| ----------------------- | ----- | ----------------------------------- | -------------------------- |
+| `--sender-keypair-path` |       | Sender keypair path (PEM)           | `~/.opentoken/keypair.pem` |
+| `--hash-only`           |       | Hash-only mode (no encryption)      | `false`                    |
+| `--output-type`         | `-ot` | Output type if different from input | Same as input              |
+| `--ecdh-curve`          |       | Elliptic curve name for ECDH        | `P-256`                    |
+
+## `decrypt`
+
+Decrypt tokens (usually from a `.zip` package) back to their hash-only representation.
+
+```bash
+opentoken decrypt \
+  -i output.zip -t csv -o decrypted.csv \
+  --receiver-keypair-path /path/to/receiver/keypair.pem \
+  --ecdh-curve P-384
+```
+
+**Required arguments**
+
+| Argument   | Short | Description                         |
+| ---------- | ----- | ----------------------------------- |
+| `--input`  | `-i`  | Input file path (or `.zip` package) |
+| `--output` | `-o`  | Output file path                    |
+| `--type`   | `-t`  | Output type: `csv` or `parquet`     |
+
+**Optional arguments**
+
+| Argument                  | Short | Description                                                           | Default                    |
+| ------------------------- | ----- | --------------------------------------------------------------------- | -------------------------- |
+| `--receiver-keypair-path` |       | Receiver keypair path (PEM)                                           | `~/.opentoken/keypair.pem` |
+| `--sender-public-key`     |       | Sender public key (PEM). If omitted, extracted from `.zip` if present |                            |
+| `--output-type`           | `-ot` | Output type if different from input                                   | Same as input              |
+| `--ecdh-curve`            |       | Elliptic curve name for ECDH                                          | `P-256`                    |
 
 ## Modes of Operation
 
-### Encrypted Mode (Default)
+### Encrypted Mode (default)
 
-Generates fully encrypted tokens using AES-256-GCM. Tokens can be decrypted later with the encryption key.
-
-```bash
-java -jar opentoken-cli-*.jar \
-  -i input.csv -t csv -o output.csv \
-  -h "HashingSecret" \
-  -e "EncryptionKey-Exactly32Chars!!"
-```
-
-**Token Pipeline:**
-```
-Signature → SHA-256 → HMAC-SHA256 → AES-256-GCM → Base64
-```
+Produces an encrypted token package suitable for controlled exchange with external partners.
 
 ### Hash-Only Mode
 
-Generates one-way hashed tokens. Faster but tokens cannot be decrypted.
-
-```bash
-java -jar opentoken-cli-*.jar \
-  -i input.csv -t csv -o output.csv \
-  -h "HashingSecret" \
-  --hash-only
-```
-
-**Token Pipeline:**
-```
-Signature → SHA-256 → HMAC-SHA256 → Base64
-```
+Produces hashed tokens without encryption. Hash-only output is intended for **internal use** (for example, overlap analysis workflows).
 
 ## File Format Examples
 
@@ -136,6 +178,10 @@ Every run generates a `.metadata.json` file:
   "Platform": "Java",
   "JavaVersion": "21.0.0",
   "OpenTokenVersion": "1.12.2",
+  "KeyExchangeMethod": "ECDH-P-384",
+  "Curve": "P-384",
+  "SenderPublicKeyHash": "a85b4bd6...",
+  "ReceiverPublicKeyHash": "32bc0e98...",
   "TotalRows": 100,
   "TotalRowsWithInvalidAttributes": 3,
   "InvalidAttributesByType": {
@@ -145,9 +191,7 @@ Every run generates a `.metadata.json` file:
   "BlankTokensByRule": {
     "T1": 2,
     "T4": 1
-  },
-  "HashingSecretHash": "e0b4e60b...",
-  "EncryptionSecretHash": "a1b2c3d4..."
+  }
 }
 ```
 
@@ -156,14 +200,13 @@ Every run generates a `.metadata.json` file:
 ### Bash (run-opentoken.sh)
 
 ```bash
-./run-opentoken.sh \
-  -i ./input.csv \
-  -o ./output.csv \
-  -t csv \
-  -h "HashingKey" \
-  -e "EncryptionKey" \
-  [--skip-build] \
-  [--verbose]
+./run-opentoken.sh tokenize \
+  -i ./input.csv -t csv -o ./output.zip \
+  --receiver-public-key ./keys/receiver/public_key.pem \
+  [--sender-keypair-path ./keys/sender/keypair.pem] \
+  [--ecdh-curve P-384] \
+  [--hash-only] \
+  [--skip-build] [--verbose]
 ```
 
 | Option         | Description               |
@@ -175,25 +218,25 @@ Every run generates a `.metadata.json` file:
 ### PowerShell (run-opentoken.ps1)
 
 ```powershell
-.\run-opentoken.ps1 `
-  -i .\input.csv `
-  -o .\output.csv `
-  -FileType csv `
-  -h "HashingKey" `
-  -e "EncryptionKey" `
-  [-SkipBuild] `
-  [-Verbose]
+.\run-opentoken.ps1 tokenize `
+  -i .\input.csv -FileType csv -o .\output.zip `
+  --receiver-public-key .\keys\receiver\public_key.pem `
+  [--sender-keypair-path .\keys\sender\keypair.pem] `
+  [--ecdh-curve P-384] `
+  [--hash-only] `
+  [-SkipBuild] [-Verbose]
 ```
 
 ## Error Messages
 
-| Error                                  | Cause                          | Solution                            |
-| -------------------------------------- | ------------------------------ | ----------------------------------- |
-| "Encryption key not provided"          | Missing `-e` in encrypted mode | Add `-e "key"` or use `--hash-only` |
-| "Encryption key must be 32 characters" | Key length wrong               | Use exactly 32 characters           |
-| "Input file not found"                 | Invalid path                   | Check file exists                   |
-| "Unknown file type"                    | Invalid `-t` value             | Use `csv` or `parquet`              |
-| "Invalid attribute: BirthDate"         | Date validation failed         | Use YYYY-MM-DD format               |
+| Error                          | Cause                                                       | Solution                                         |
+| ------------------------------ | ----------------------------------------------------------- | ------------------------------------------------ |
+| "Expected a command"           | No subcommand provided                                      | Use `generate-keypair`, `tokenize`, or `decrypt` |
+| "Input file not found"         | Invalid path                                                | Check file exists                                |
+| "Public key file not found"    | Invalid `--receiver-public-key` / `--sender-public-key`     | Check file exists and is PEM                     |
+| "Keypair file not found"       | Invalid `--sender-keypair-path` / `--receiver-keypair-path` | Check file exists and is PEM                     |
+| "Unknown file type"            | Invalid `-t` value                                          | Use `csv` or `parquet`                           |
+| "Invalid attribute: BirthDate" | Date validation failed                                      | Use YYYY-MM-DD format                            |
 
 ## Exit Codes
 
@@ -207,7 +250,7 @@ Every run generates a `.metadata.json` file:
 ## Performance Tips
 
 - Use Parquet for large datasets (faster I/O, compression)
-- Use `--hash-only` if decryption not needed (20-30% faster)
+- Use `--hash-only` if decryption not needed (faster, smaller outputs)
 - For very large files, consider [PySpark integration](../operations/spark-or-databricks.md)
 
 ## Next Steps

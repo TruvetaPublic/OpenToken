@@ -114,15 +114,19 @@ python data_generator.py 100 0.05 test_data.csv
 # 2. Process with OpenToken
 cd ../../
 ./run-opentoken.sh \
+  tokenize \
   -i tools/mockdata/test_data.csv \
-  -o resources/test_output.csv \
+  -o resources/test_output.zip \
   -t csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  --receiver-public-key resources/keys/receiver/public_key.pem \
+  --sender-keypair-path resources/keys/sender/keypair.pem
 
 # 3. Check output
-cat resources/test_output.csv
-cat resources/test_output.metadata.json
+opentoken decrypt -i resources/test_output.zip -t csv -o resources/test_output_decrypted.csv \
+  --receiver-keypair-path resources/keys/receiver/keypair.pem
+
+cat resources/test_output_decrypted.csv
+cat resources/test_output.zip.metadata.json
 ```
 
 ### Overlap Analysis Test
@@ -136,7 +140,8 @@ python data_generator.py 1000 0.0 dataset_a.csv
 python data_generator.py 1000 0.0 dataset_b.csv
 
 # Add some common records manually or use a script
-# Then process both with OpenToken using the same secrets
+# Then process both with OpenToken using the same key exchange inputs
+# (e.g., same receiver public key and curve) and compare hash-only outputs.
 ```
 
 For automated overlap analysis, see [Spark or Databricks](spark-or-databricks.md).
@@ -200,9 +205,11 @@ df.to_parquet('large_test.parquet')
 
 # Process with OpenToken
 java -jar opentoken-cli-*.jar \
+  tokenize \
   -i large_test.parquet -t parquet \
-  -o tokens.parquet \
-  -h "HashingKey" -e "EncryptionKey"
+  -o tokens.zip \
+  --receiver-public-key resources/keys/receiver/public_key.pem \
+  --sender-keypair-path resources/keys/sender/keypair.pem
 ```
 
 ---

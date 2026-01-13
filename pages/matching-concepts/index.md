@@ -130,18 +130,21 @@ When you process two datasets and compare tokens:
 
 ## Token Encryption & Decryption
 
-Tokens are encrypted to prevent re-identification, but can be decrypted to debug or verify:
+Tokens are encrypted to prevent re-identification, but can be decrypted to debug or verify.
+
+In key-exchange workflows, OpenToken derives hashing + encryption keys via ECDH from the sender's private key and the receiver's public key.
 
 ```bash
-# Generate encrypted tokens (default mode)
-java -jar opentoken-cli-*.jar \
-  -i data.csv -t csv -o output.csv \
-  -h "HashingKey" -e "EncryptionKey"
+# Tokenize for a receiver (encrypted package output)
+opentoken tokenize \
+  -i data.csv -t csv -o output.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path /path/to/sender/keypair.pem
 
-# Decrypt previously encrypted tokens
-java -jar opentoken-cli-*.jar -d \
-  -i output.csv -t csv -o decrypted.csv \
-  -e "EncryptionKey"
+# Decrypt previously encrypted tokens to hash-only form
+opentoken decrypt \
+  -i output.zip -t csv -o decrypted.csv \
+  --receiver-keypair-path /path/to/receiver/keypair.pem
 ```
 
 Decrypted tokens show the HMAC-SHA256 hash (base64 encoded) before AES encryption—useful for debugging attribute normalization issues.

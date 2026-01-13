@@ -13,34 +13,25 @@ The OpenToken CLI accepts command-line arguments for flexible token generation. 
 ### Basic Syntax
 
 ```bash
-opentoken-cli [OPTIONS] -i <input> -t <type> -o <output> -h <hashing-secret> [-e <encryption-key>]
+opentoken <command> [OPTIONS]
+
+# commands:
+#   generate-keypair
+#   tokenize
+#   decrypt
 ```
 
-### Arguments
+### Commands
 
-#### Required
+For the complete, authoritative list of flags and defaults, see the [CLI Reference](../reference/cli.md).
 
-| Argument | Alias             | Description                      | Example                  |
-| -------- | ----------------- | -------------------------------- | ------------------------ |
-| `-i`     | `--input`         | Input file path (CSV or Parquet) | `-i data.csv`            |
-| `-t`     | `--type`          | Input file type                  | `-t csv` or `-t parquet` |
-| `-o`     | `--output`        | Output file path                 | `-o tokens.csv`          |
-| `-h`     | `--hashingsecret` | HMAC-SHA256 hashing secret       | `-h "MyHashingKey"`      |
-
-#### Optional
-
-| Argument | Alias             | Description                                | Default                         | Example                |
-| -------- | ----------------- | ------------------------------------------ | ------------------------------- | ---------------------- |
-| `-e`     | `--encryptionkey` | AES-256 encryption key                     | Required (unless `--hash-only`) | `-e "MyEncryptionKey"` |
-| `-ot`    | `--output-type`   | Output file type                           | Same as input type              | `-ot parquet`          |
-|          | `--hash-only`     | Hash-only mode (no encryption)             | False                           | `--hash-only`          |
-| `-d`     | `--decrypt`       | Decrypt mode (reverse previous encryption) | False                           | `-d`                   |
+- `generate-keypair`: Create a keypair directory containing `keypair.pem` and `public_key.pem`.
+- `tokenize`: Produce tokens for a receiver using `--receiver-public-key` and (optionally) `--sender-keypair-path`.
+- `decrypt`: Decrypt a token package back to hash-only form using `--receiver-keypair-path`.
 
 ### Usage Examples
 
-#### Token Generation (Encryption Mode)
-
-Generates encrypted tokens. Both hashing secret and encryption key required.
+#### Token Generation (Key Exchange / Encrypted)
 
 **Java:**
 ```bash
@@ -48,11 +39,14 @@ cd lib/java
 mvn clean install -DskipTests
 
 java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i ../../resources/sample.csv \
-  -t csv \
-  -o ../../resources/output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  generate-keypair --output-dir ../../resources/keys/receiver --ecdh-curve P-384
+
+java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  tokenize \
+  -i ../../resources/sample.csv -t csv -o ../../resources/output.zip \
+  --receiver-public-key ../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../resources/keys/sender/keypair.pem \
+  --ecdh-curve P-384
 ```
 
 **Python:**
@@ -62,11 +56,14 @@ source ../../.venv/bin/activate
 pip install -r requirements.txt -e . -e ../opentoken
 
 python -m opentoken_cli.main \
-  -i ../../../resources/sample.csv \
-  -t csv \
-  -o ../../../resources/output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  generate-keypair --output-dir ../../../resources/keys/receiver --ecdh-curve P-384
+
+python -m opentoken_cli.main \
+  tokenize \
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.zip \
+  --receiver-public-key ../../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../../resources/keys/sender/keypair.pem \
+  --ecdh-curve P-384
 ```
 
 #### Token Generation (Hash-Only Mode)
@@ -76,45 +73,41 @@ Generates HMAC-SHA256 hashed tokens without AES encryption. Only hashing secret 
 **Java:**
 ```bash
 java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  tokenize \
   --hash-only \
-  -i ../../resources/sample.csv \
-  -t csv \
-  -o ../../resources/hashed-output.csv \
-  -h "HashingKey"
+  -i ../../resources/sample.csv -t csv -o ../../resources/hashed-output.zip \
+  --receiver-public-key ../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../resources/keys/sender/keypair.pem
 ```
 
 **Python:**
 ```bash
 python -m opentoken_cli.main \
+  tokenize \
   --hash-only \
-  -i ../../../resources/sample.csv \
-  -t csv \
-  -o ../../../resources/hashed-output.csv \
-  -h "HashingKey"
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/hashed-output.zip \
+  --receiver-public-key ../../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../../resources/keys/sender/keypair.pem
 ```
 
 #### Token Decryption
 
-Decrypts previously encrypted tokens. Only encryption key required.
+Decrypts previously encrypted token packages back to hash-only form.
 
 **Java:**
 ```bash
 java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -d \
-  -i ../../resources/output.csv \
-  -t csv \
-  -o ../../resources/decrypted.csv \
-  -e "Secret-Encryption-Key-Goes-Here."
+  decrypt \
+  -i ../../resources/output.zip -t csv -o ../../resources/decrypted.csv \
+  --receiver-keypair-path ../../resources/keys/receiver/keypair.pem
 ```
 
 **Python:**
 ```bash
 python -m opentoken_cli.main \
-  -d \
-  -i ../../../resources/output.csv \
-  -t csv \
-  -o ../../../resources/decrypted.csv \
-  -e "Secret-Encryption-Key-Goes-Here."
+  decrypt \
+  -i ../../../resources/output.zip -t csv -o ../../../resources/decrypted.csv \
+  --receiver-keypair-path ../../../resources/keys/receiver/keypair.pem
 ```
 
 ### Output Files
@@ -135,12 +128,14 @@ record1,T2,pUxPgYL9+cMxkA+8928Pil+9W+dm9kISwHYPdkZS+I2nQ/bQ/8HyL3FOVf3NYPW5NKZZO
   "JavaVersion": "21.0.0",
   "OpenTokenVersion": "1.12.2",
   "Platform": "Java",
+  "KeyExchangeMethod": "ECDH-P-384",
+  "Curve": "P-384",
+  "SenderPublicKeyHash": "a85b4bd6...",
+  "ReceiverPublicKeyHash": "32bc0e98...",
   "TotalRows": 1,
   "TotalRowsWithInvalidAttributes": 0,
   "InvalidAttributesByType": {},
-  "BlankTokensByRule": {},
-  "HashingSecretHash": "abc123...",
-  "EncryptionSecretHash": "def456..."
+  "BlankTokensByRule": {}
 }
 ```
 
@@ -161,11 +156,12 @@ Scripts automatically build and run the container.
 cd /path/to/OpenToken
 
 ./run-opentoken.sh \
+  tokenize \
   -i ./resources/sample.csv \
   -o ./resources/output.csv \
   -t csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  --receiver-public-key ./resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ./resources/keys/sender/keypair.pem
 ```
 
 **PowerShell (Windows):**
@@ -173,11 +169,12 @@ cd /path/to/OpenToken
 cd C:\path\to\OpenToken
 
 .\run-opentoken.ps1 `
+  tokenize `
   -i .\resources\sample.csv `
   -o .\resources\output.csv `
   -FileType csv `
-  -h "HashingKey" `
-  -e "Secret-Encryption-Key-Goes-Here."
+  --receiver-public-key .\resources\keys\receiver\public_key.pem `
+  --sender-keypair-path .\resources\keys\sender\keypair.pem
 ```
 
 #### Script Options
@@ -201,11 +198,10 @@ docker build -t opentoken:latest .
 # Run with sample data
 docker run --rm -v $(pwd)/resources:/app/resources \
   opentoken:latest \
-  -i /app/resources/sample.csv \
-  -t csv \
-  -o /app/resources/output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  tokenize \
+  -i /app/resources/sample.csv -t csv -o /app/resources/output.zip \
+  --receiver-public-key /app/resources/keys/receiver/public_key.pem \
+  --sender-keypair-path /app/resources/keys/sender/keypair.pem
 
 # View output
 cat resources/output.csv
@@ -282,14 +278,17 @@ See example notebooks in `lib/python/opentoken-pyspark/notebooks/`:
 
 ## Troubleshooting
 
-### "Encryption key not provided"
+### "Expected a command" / "Unknown command"
 
-**Problem**: Error when running without `-e` flag and without `--hash-only`.
+**Problem**: You invoked the CLI without a subcommand.
 
-**Solution**: Either provide encryption key `-e "YourKey"` or use `--hash-only`:
-```bash
-java -jar opentoken-cli-*.jar --hash-only -i data.csv -t csv -o output.csv -h "HashingKey"
-```
+**Solution**: Use one of `generate-keypair`, `tokenize`, or `decrypt` (see [CLI Reference](../reference/cli.md)).
+
+### "Missing receiver public key"
+
+**Problem**: `tokenize` is missing `--receiver-public-key`.
+
+**Solution**: Provide the receiver's `public_key.pem` path.
 
 ### "Invalid BirthDate" or "Date out of range"
 

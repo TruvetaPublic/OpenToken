@@ -135,29 +135,25 @@ The CLI processes CSV or Parquet files without writing code.
 **Basic usage:**
 
 ```bash
-java -jar opentoken-cli-*.jar \
-  -i input.csv -t csv -o output.csv \
-  -h "HashingSecret" -e "EncryptionKey32Chars!!!!!!!!!!"
+# Generate a keypair (sender or receiver)
+opentoken generate-keypair --output-dir ./keys --ecdh-curve P-384
+
+# Tokenize for a receiver using their public key
+opentoken tokenize \
+  -i input.csv -t csv -o output.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path ./keys/keypair.pem
 ```
 
-Or with Python:
+**Key options (tokenize/decrypt):**
 
-```bash
-python -m opentoken_cli.main \
-  -i input.csv -t csv -o output.csv \
-  -h "HashingSecret" -e "EncryptionKey32Chars!!!!!!!!!!"
-```
-
-**Key options:**
-
-| Flag                     | Purpose                        |
-| ------------------------ | ------------------------------ |
-| `-i` / `--input`         | Input file path                |
-| `-o` / `--output`        | Output file path               |
-| `-t` / `--type`          | File type (`csv` or `parquet`) |
-| `-h` / `--hashingsecret` | HMAC-SHA256 secret             |
-| `-e` / `--encryptionkey` | AES-256 key (32 chars)         |
-| `--hash-only`            | Skip encryption                |
+| Flag                      | Purpose                                                  |
+| ------------------------- | -------------------------------------------------------- |
+| `--receiver-public-key`   | Receiver public key used for ECDH (tokenize)             |
+| `--sender-keypair-path`   | Sender keypair used for ECDH (tokenize)                  |
+| `--receiver-keypair-path` | Receiver keypair used for ECDH (decrypt)                 |
+| `--sender-public-key`     | Optional override; often extracted from `.zip` (decrypt) |
+| `--hash-only`             | Skip encryption and emit hash-only output                |
 
 **Full reference:** [CLI Reference](cli.md)
 
@@ -168,7 +164,7 @@ python -m opentoken_cli.main \
 Every token generation run produces a `.metadata.json` file alongside the token output. This file contains:
 
 - Processing statistics (total rows, invalid records)
-- SHA-256 hashes of secrets (for verification, not the secrets themselves)
+- Key exchange fingerprints (e.g., SHA-256 hashes of public keys)
 - Timestamp and platform information
 
 **Full reference:** [Metadata Format](metadata-format.md)

@@ -4,6 +4,11 @@
 
 [CmdletBinding()]
 param(
+    [Parameter(Mandatory=$false, HelpMessage="Command to run: tokenize, decrypt, or generate-keypair")]
+    [ValidateSet("tokenize", "decrypt", "generate-keypair")]
+    [Alias("c")]
+    [string]$Command = "tokenize",
+
     [Parameter(Mandatory=$false, HelpMessage="Input file path (absolute or relative)")]
     [Alias("i")]
     [string]$InputFile,
@@ -17,13 +22,31 @@ param(
     [ValidateSet("csv", "parquet")]
     [string]$FileType = "csv",
 
-    [Parameter(Mandatory=$false, HelpMessage="Hashing secret key")]
-    [Alias("h")]
-    [string]$HashingSecret,
+    [Parameter(Mandatory=$false, HelpMessage="Output type if different from input: csv or parquet")]
+    [Alias("ot")]
+    [ValidateSet("csv", "parquet")]
+    [string]$OutputType,
 
-    [Parameter(Mandatory=$false, HelpMessage="Encryption key")]
-    [Alias("e")]
-    [string]$EncryptionKey,
+    [Parameter(Mandatory=$false, HelpMessage="Path to receiver public key PEM (tokenize)")]
+    [string]$ReceiverPublicKey,
+
+    [Parameter(Mandatory=$false, HelpMessage="Path to sender keypair PEM (tokenize)")]
+    [string]$SenderKeypairPath,
+
+    [Parameter(Mandatory=$false, HelpMessage="Path to receiver keypair PEM (decrypt)")]
+    [string]$ReceiverKeypairPath,
+
+    [Parameter(Mandatory=$false, HelpMessage="Path to sender public key PEM (decrypt; optional if input is .zip)")]
+    [string]$SenderPublicKey,
+
+    [Parameter(Mandatory=$false, HelpMessage="Hash-only mode (tokenize): derive hashing key but do not encrypt")]
+    [switch]$HashOnly,
+
+    [Parameter(Mandatory=$false, HelpMessage="Elliptic curve name for ECDH (default: P-384)")]
+    [string]$EcdhCurve = "P-384",
+
+    [Parameter(Mandatory=$false, HelpMessage="Output directory for generate-keypair")]
+    [string]$OutputDir,
 
     [Parameter(Mandatory=$false, HelpMessage="Docker image name (default: opentoken:latest)")]
     [string]$DockerImage = "opentoken:latest",
@@ -58,10 +81,28 @@ DESCRIPTION:
     Automatically builds the Docker image if needed and runs OpenToken with specified parameters.
 
 REQUIRED PARAMETERS:
-    -InputFile, -i <file>       Input file path (absolute or relative)
-    -OutputFile, -o <file>      Output file path (absolute or relative)
-    -HashingSecret, -h <key>    Hashing secret key
-    -EncryptionKey, -e <key>    Encryption key
+    -Command, -c <cmd>          tokenize | decrypt | generate-keypair (default: tokenize)
+
+TOKENIZE:
+    -InputFile, -i <file>       Input file path (csv/parquet)
+    -OutputFile, -o <file>      Output path (use .zip for packaged output)
+    -FileType, -t <type>        csv or parquet
+    -ReceiverPublicKey <file>   Receiver public key PEM (required)
+    [-SenderKeypairPath <file>] Sender keypair PEM (optional)
+    [-HashOnly]                 Hash-only mode (no encryption)
+    [-EcdhCurve <curve>]        Curve (default: P-384)
+
+DECRYPT:
+    -InputFile, -i <file>       Input token package (.zip) or tokens file
+    -OutputFile, -o <file>      Output decrypted file
+    -FileType, -t <type>        csv or parquet
+    [-ReceiverKeypairPath <file>] Receiver keypair PEM (recommended)
+    [-SenderPublicKey <file>]   Sender public key PEM (optional; extracted from ZIP if absent)
+    [-EcdhCurve <curve>]        Curve (default: P-384)
+
+GENERATE-KEYPAIR:
+    [-OutputDir <dir>]          Directory to write keypair.pem + public_key.pem
+    [-EcdhCurve <curve>]        Curve (default: P-384)
 
 OPTIONAL PARAMETERS:
     -FileType, -t <type>        File type: csv or parquet (default: csv)
@@ -71,8 +112,18 @@ OPTIONAL PARAMETERS:
     -Help                       Show this help message
 
 EXAMPLES:
-    # Basic usage with CSV files
-    .\run-opentoken.ps1 -i C:\Data\input.csv -o C:\Data\output.csv -h "MyHashKey" -e "MyEncryptionKey"
+    # Generate receiver keypair
+    .\run-opentoken.ps1 -c generate-keypair -OutputDir .\keys\receiver -EcdhCurve P-384
+
+    # Sender tokenizes with receiver public key
+    .\run-opentoken.ps1 -c tokenize -i .\input.csv -t csv -o .\output.zip \
+        -ReceiverPublicKey .\keys\receiver\public_key.pem \
+        -SenderKeypairPath .\keys\sender\keypair.pem \
+        -EcdhCurve P-384
+
+    # Receiver decrypts the output package
+    .\run-opentoken.ps1 -c decrypt -i .\output.zip -t csv -o .\decrypted.csv \
+        -ReceiverKeypairPath .\keys\receiver\keypair.pem
 
     # With parquet files
     .\run-opentoken.ps1 -i .\data\input.parquet -t parquet -o .\data\output.parquet -h "secret" -e "key123"
@@ -99,33 +150,39 @@ if ($Help) {
     exit 0
 }
 
-# Validate required parameters
-if (-not $InputFile) {
-    Write-Info "Input file is required (use -InputFile or -i)"
-    Write-Host ""
-    Show-Usage
-    exit 1
-}
-
-if (-not $OutputFile) {
-    Write-Info "Output file is required (use -OutputFile or -o)"
-    Write-Host ""
-    Show-Usage
-    exit 1
-}
-
-if (-not $HashingSecret) {
-    Write-Info "Hashing secret is required (use -HashingSecret or -h)"
-    Write-Host ""
-    Show-Usage
-    exit 1
-}
-
-if (-not $EncryptionKey) {
-    Write-Info "Encryption key is required (use -EncryptionKey or -e)"
-    Write-Host ""
-    Show-Usage
-    exit 1
+# Validate required parameters by command
+switch ($Command) {
+    "tokenize" {
+        if (-not $InputFile -or -not $OutputFile) {
+            Write-Info "tokenize requires -InputFile/-i and -OutputFile/-o"
+            Write-Host ""
+            Show-Usage
+            exit 1
+        }
+        if (-not $ReceiverPublicKey) {
+            Write-Info "tokenize requires -ReceiverPublicKey"
+            Write-Host ""
+            Show-Usage
+            exit 1
+        }
+    }
+    "decrypt" {
+        if (-not $InputFile -or -not $OutputFile) {
+            Write-Info "decrypt requires -InputFile/-i and -OutputFile/-o"
+            Write-Host ""
+            Show-Usage
+            exit 1
+        }
+    }
+    "generate-keypair" {
+        # OutputDir optional (defaults to ~/.opentoken in-container)
+    }
+    default {
+        Write-Info "Unknown command: $Command"
+        Write-Host ""
+        Show-Usage
+        exit 1
+    }
 }
 
 # Check if Docker is installed
@@ -141,49 +198,102 @@ catch {
     exit 1
 }
 
-# Convert to absolute paths
-$InputFileRaw = $InputFile
-$InputFile = Resolve-Path -Path $InputFile -ErrorAction SilentlyContinue
-if (-not $InputFile) {
-    Write-Info "Input file does not exist: $InputFileRaw"
-    exit 1
+function Get-FullPathIfProvided {
+    param([string]$Path)
+    if (-not $Path) { return $null }
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return [System.IO.Path]::GetFullPath($Path)
+    }
+    return [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $Path))
 }
 
-# For output file, create parent directory if it doesn't exist
-$OutputFileParent = Split-Path -Parent $OutputFile
-if ($OutputFileParent -and -not (Test-Path $OutputFileParent)) {
-    New-Item -ItemType Directory -Path $OutputFileParent -Force | Out-Null
+$InputFile = Get-FullPathIfProvided $InputFile
+$OutputFile = Get-FullPathIfProvided $OutputFile
+$ReceiverPublicKey = Get-FullPathIfProvided $ReceiverPublicKey
+$SenderKeypairPath = Get-FullPathIfProvided $SenderKeypairPath
+$ReceiverKeypairPath = Get-FullPathIfProvided $ReceiverKeypairPath
+$SenderPublicKey = Get-FullPathIfProvided $SenderPublicKey
+$OutputDir = Get-FullPathIfProvided $OutputDir
+
+if (($Command -eq "tokenize") -or ($Command -eq "decrypt")) {
+    if (-not (Test-Path $InputFile)) {
+        Write-Info "Input file does not exist: $InputFile"
+        exit 1
+    }
+    $OutputFileParent = Split-Path -Parent $OutputFile
+    if ($OutputFileParent -and -not (Test-Path $OutputFileParent)) {
+        New-Item -ItemType Directory -Path $OutputFileParent -Force | Out-Null
+    }
 }
 
-# Convert output path to absolute (may not exist yet)
-if ([System.IO.Path]::IsPathRooted($OutputFile)) {
-    $OutputFile = $OutputFile
-} else {
-    $OutputFile = Join-Path (Get-Location) $OutputFile
-}
-$OutputFile = [System.IO.Path]::GetFullPath($OutputFile)
-
-# Verify input file exists
-if (-not (Test-Path $InputFile)) {
-    Write-Info "Input file does not exist: $InputFile"
-    exit 1
+if ($Command -eq "tokenize") {
+    if (-not (Test-Path $ReceiverPublicKey)) {
+        Write-Info "Receiver public key file does not exist: $ReceiverPublicKey"
+        exit 1
+    }
 }
 
-# Get directory paths for volume mounting
-$InputDir = Split-Path -Parent $InputFile
-$InputFilename = Split-Path -Leaf $InputFile
-$OutputDir = Split-Path -Parent $OutputFile
-$OutputFilename = Split-Path -Leaf $OutputFile
+foreach ($p in @($SenderKeypairPath, $ReceiverKeypairPath, $SenderPublicKey)) {
+    if ($p -and -not (Test-Path $p)) {
+        Write-Info "Key file does not exist: $p"
+        exit 1
+    }
+}
 
-# Create output directory if it doesn't exist
-if (-not (Test-Path $OutputDir)) {
-    New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+function Ensure-Mount {
+    param(
+        [hashtable]$DirToMount,
+        [ref]$Index,
+        [string]$HostDir,
+        [ref]$VolumeArgs
+    )
+    if (-not $HostDir) { return $null }
+    if (-not $DirToMount.ContainsKey($HostDir)) {
+        $mountPoint = "/data/m$($Index.Value)"
+        $DirToMount[$HostDir] = $mountPoint
+        $VolumeArgs.Value += @("-v", "${HostDir}:$mountPoint")
+        $Index.Value++
+    }
+    return $DirToMount[$HostDir]
+}
+
+function Container-Path-For-File {
+    param(
+        [hashtable]$DirToMount,
+        [ref]$Index,
+        [ref]$VolumeArgs,
+        [string]$HostPath
+    )
+    if (-not $HostPath) { return $null }
+    $hostDir = Split-Path -Parent $HostPath
+    $base = Split-Path -Leaf $HostPath
+    $mountPoint = Ensure-Mount -DirToMount $DirToMount -Index $Index -HostDir $hostDir -VolumeArgs $VolumeArgs
+    return "$mountPoint/$base"
+}
+
+function Container-Path-For-Dir {
+    param(
+        [hashtable]$DirToMount,
+        [ref]$Index,
+        [ref]$VolumeArgs,
+        [string]$HostDir
+    )
+    if (-not $HostDir) { return $null }
+    return (Ensure-Mount -DirToMount $DirToMount -Index $Index -HostDir $HostDir -VolumeArgs $VolumeArgs)
 }
 
 if ($VerboseOutput) {
-    Write-Info "Input file: $InputFile"
-    Write-Info "Output file: $OutputFile"
-    Write-Info "File type: $FileType"
+    Write-Info "Command: $Command"
+    if ($InputFile) { Write-Info "Input: $InputFile" }
+    if ($OutputFile) { Write-Info "Output: $OutputFile" }
+    Write-Info "Type: $FileType"
+    if ($OutputType) { Write-Info "Output type: $OutputType" }
+    if ($ReceiverPublicKey) { Write-Info "Receiver public key: $ReceiverPublicKey" }
+    if ($SenderKeypairPath) { Write-Info "Sender keypair: $SenderKeypairPath" }
+    if ($ReceiverKeypairPath) { Write-Info "Receiver keypair: $ReceiverKeypairPath" }
+    if ($SenderPublicKey) { Write-Info "Sender public key: $SenderPublicKey" }
+    Write-Info "ECDH curve: $EcdhCurve"
+    Write-Info "Hash-only: $($HashOnly.IsPresent)"
     Write-Info "Docker image: $DockerImage"
 }
 
@@ -225,52 +335,57 @@ if (-not $SkipBuild) {
     }
 }
 
-# Run OpenToken via Docker
 Write-Info "Running OpenToken..."
 
-# Convert Windows paths to Docker-compatible format (with forward slashes)
-$InputDirDocker = $InputDir -replace '\\', '/'
-$OutputDirDocker = $OutputDir -replace '\\', '/'
+$dirToMount = @{}
+$idx = 0
+$volumeArgs = @()
 
-# Handle drive letter for Windows (C:\ becomes /c/)
-$InputDirDocker = $InputDirDocker -replace '^([A-Z]):', '/$1'
-$OutputDirDocker = $OutputDirDocker -replace '^([A-Z]):', '/$1'
+$inputContainer = Container-Path-For-File -DirToMount $dirToMount -Index ([ref]$idx) -VolumeArgs ([ref]$volumeArgs) -HostPath $InputFile
+$outputContainer = Container-Path-For-File -DirToMount $dirToMount -Index ([ref]$idx) -VolumeArgs ([ref]$volumeArgs) -HostPath $OutputFile
+$receiverPubContainer = Container-Path-For-File -DirToMount $dirToMount -Index ([ref]$idx) -VolumeArgs ([ref]$volumeArgs) -HostPath $ReceiverPublicKey
+$senderKeypairContainer = Container-Path-For-File -DirToMount $dirToMount -Index ([ref]$idx) -VolumeArgs ([ref]$volumeArgs) -HostPath $SenderKeypairPath
+$receiverKeypairContainer = Container-Path-For-File -DirToMount $dirToMount -Index ([ref]$idx) -VolumeArgs ([ref]$volumeArgs) -HostPath $ReceiverKeypairPath
+$senderPubContainer = Container-Path-For-File -DirToMount $dirToMount -Index ([ref]$idx) -VolumeArgs ([ref]$volumeArgs) -HostPath $SenderPublicKey
+$outputDirContainer = Container-Path-For-Dir -DirToMount $dirToMount -Index ([ref]$idx) -VolumeArgs ([ref]$volumeArgs) -HostDir $OutputDir
 
-# If input and output are in the same directory, mount once
-if ($InputDir -eq $OutputDir) {
-    if ($VerboseOutput) {
-        Write-Info "Mounting directory: $InputDir"
+$dockerArgs = @($Command)
+
+switch ($Command) {
+    "tokenize" {
+        $dockerArgs += @("-i", $inputContainer, "-t", $FileType, "-o", $outputContainer)
+        if ($OutputType) { $dockerArgs += @("-ot", $OutputType) }
+        $dockerArgs += @("--receiver-public-key", $receiverPubContainer)
+        if ($SenderKeypairPath) { $dockerArgs += @("--sender-keypair-path", $senderKeypairContainer) }
+        if ($HashOnly.IsPresent) { $dockerArgs += "--hash-only" }
+        $dockerArgs += @("--ecdh-curve", $EcdhCurve)
     }
-    
-    docker run --rm `
-        -v "${InputDir}:/data" `
-        $DockerImage `
-        -i "/data/$InputFilename" `
-        -t $FileType `
-        -o "/data/$OutputFilename" `
-        -h $HashingSecret `
-        -e $EncryptionKey
-} else {
-    # Mount input and output directories separately
-    if ($VerboseOutput) {
-        Write-Info "Mounting input directory: $InputDir"
-        Write-Info "Mounting output directory: $OutputDir"
+    "decrypt" {
+        $dockerArgs += @("-i", $inputContainer, "-t", $FileType, "-o", $outputContainer)
+        if ($OutputType) { $dockerArgs += @("-ot", $OutputType) }
+        if ($SenderPublicKey) { $dockerArgs += @("--sender-public-key", $senderPubContainer) }
+        if ($ReceiverKeypairPath) { $dockerArgs += @("--receiver-keypair-path", $receiverKeypairContainer) }
+        $dockerArgs += @("--ecdh-curve", $EcdhCurve)
     }
-    
-    docker run --rm `
-        -v "${InputDir}:/data/input" `
-        -v "${OutputDir}:/data/output" `
-        $DockerImage `
-        -i "/data/input/$InputFilename" `
-        -t $FileType `
-        -o "/data/output/$OutputFilename" `
-        -h $HashingSecret `
-        -e $EncryptionKey
+    "generate-keypair" {
+        if ($OutputDir) {
+            $outDirMount = Container-Path-For-Dir -DirToMount $dirToMount -Index ([ref]$idx) -VolumeArgs ([ref]$volumeArgs) -HostDir $OutputDir
+            $dockerArgs += @("--output-dir", $outDirMount)
+        }
+        $dockerArgs += @("--ecdh-curve", $EcdhCurve)
+    }
 }
+
+if ($VerboseOutput) {
+    Write-Info ("Docker volumes: " + ($volumeArgs -join ' '))
+    Write-Info ("Docker command: $DockerImage " + ($dockerArgs -join ' '))
+}
+
+docker run --rm @volumeArgs $DockerImage @dockerArgs
 
 if ($LASTEXITCODE -eq 0) {
     Write-Info "OpenToken completed successfully!"
-    Write-Info "Output file: $OutputFile"
+    if ($OutputFile) { Write-Info "Output: $OutputFile" }
 } else {
     Write-Info "OpenToken execution failed"
     exit 1
