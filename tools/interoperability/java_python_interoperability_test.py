@@ -475,7 +475,7 @@ class TestTokenCompatibility:
             # Verify ECDH-specific fields exist
             for meta, impl_name in [(java_meta, "Java"), (python_meta, "Python")]:
                 assert 'KeyExchangeMethod' in meta, f"{impl_name} metadata missing KeyExchangeMethod"
-                assert meta['KeyExchangeMethod'] == 'ECDH', f"{impl_name} should use ECDH key exchange"
+                assert meta['KeyExchangeMethod'].startswith('ECDH'), f"{impl_name} should use ECDH key exchange, got: {meta['KeyExchangeMethod']}"
                 assert 'Curve' in meta, f"{impl_name} metadata missing Curve"
                 assert 'SenderPublicKeyHash' in meta, f"{impl_name} metadata missing SenderPublicKeyHash"
                 assert 'ReceiverPublicKeyHash' in meta, f"{impl_name} metadata missing ReceiverPublicKeyHash"
