@@ -202,33 +202,54 @@ jobs:
           comment_mode: always
           compare_to_earlier_commit: false
 
-      - name: Run CLI smoke test
+      - name: Run CLI smoke test (ECDH key exchange)
         run: |
           cd lib/python/opentoken-cli
-          mkdir -p target
-          opentoken -i ../../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+          mkdir -p target keys
+          
+          # Generate receiver keypair
+          opentoken generate-keypair --output-dir target/keys/receiver
+          
+          # Generate sender keypair
+          opentoken generate-keypair --output-dir target/keys/sender
+          
+          # Tokenize with ECDH (sender creates encrypted tokens)
+          opentoken tokenize \
+            -i ../../../resources/sample.csv \
+            -t csv \
+            -o target/output.zip \
+            --receiver-public-key target/keys/receiver/public_key.pem \
+            --sender-keypair-path target/keys/sender/keypair.pem \
+            --ecdh-curve P-384
+          
+          # Decrypt tokens with ECDH (receiver decrypts)
+          opentoken decrypt \
+            -i target/output.zip \
+            -t csv \
+            -o target/decrypted.csv \
+            --receiver-keypair-path target/keys/receiver/keypair.pem
 
       - name: Validate CLI output files
         run: |
           cd lib/python/opentoken-cli
-          if [ ! -f "target/output.csv" ]; then
-            echo "Error: output.csv not created"
+          if [ ! -f "target/output.zip" ]; then
+            echo "Error: output.zip not created"
             exit 1
           fi
-          if [ ! -f "target/output.metadata.json" ]; then
-            echo "Error: metadata file not created"
+          if [ ! -f "target/decrypted.csv" ]; then
+            echo "Error: decrypted.csv not created"
             exit 1
           fi
 
       - name: Validate CLI output content
         run: |
           cd lib/python/opentoken-cli
-          line_count=$(wc -l < target/output.csv)
+          line_count=$(wc -l < target/decrypted.csv)
           if [ "$line_count" -le 1 ]; then
-            echo "Error: Output CSV appears to be empty or only contains headers"
+            echo "Error: Decrypted CSV appears to be empty or only contains headers"
             exit 1
           fi
-          echo "Output CSV contains $line_count lines"
+          echo "Decrypted CSV contains $line_count lines"
 
   pyspark-bridge-tests:
     runs-on: ubuntu-latest
