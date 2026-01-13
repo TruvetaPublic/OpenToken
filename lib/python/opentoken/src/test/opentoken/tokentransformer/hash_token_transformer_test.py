@@ -12,6 +12,10 @@ import pytest
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 
 
+INVALID_TOKEN_MESSAGE = "Invalid Argument. Token can't be Null."
+EMPTY_SECRET_MESSAGE = "HMAC is not properly initialized due to empty hashing secret."
+
+
 class TestHashTokenTransformer:
     """Test cases for HashTokenTransformer."""
 
@@ -57,21 +61,21 @@ class TestHashTokenTransformer:
         with pytest.raises(ValueError) as exc_info:
             self.transformer.transform(None)
 
-        assert "Invalid Argument. Token can't be None or blank." == str(exc_info.value)
+        assert INVALID_TOKEN_MESSAGE == str(exc_info.value)
 
     def test_transform_blank_token_throws_value_error(self):
         """Test that transforming a blank token throws ValueError."""
         with pytest.raises(ValueError) as exc_info:
             self.transformer.transform("")
 
-        assert "Invalid Argument. Token can't be None or blank." == str(exc_info.value)
+        assert INVALID_TOKEN_MESSAGE == str(exc_info.value)
 
     def test_transform_whitespace_token_throws_value_error(self):
         """Test that transforming a whitespace-only token throws ValueError."""
         with pytest.raises(ValueError) as exc_info:
             self.transformer.transform("   ")
 
-        assert "Invalid Argument. Token can't be None or blank." == str(exc_info.value)
+        assert INVALID_TOKEN_MESSAGE == str(exc_info.value)
 
     def test_constructor_null_secret_initializes_with_null_mac(self):
         """Test that constructor with null secret creates unusable transformer."""
@@ -80,7 +84,7 @@ class TestHashTokenTransformer:
         with pytest.raises(RuntimeError) as exc_info:
             null_secret_transformer.transform(self.VALID_TOKEN)
 
-        assert "HMAC is not properly initialized due to empty hashing secret." == str(exc_info.value)
+        assert EMPTY_SECRET_MESSAGE == str(exc_info.value)
 
     def test_constructor_blank_secret_initializes_with_null_mac(self):
         """Test that constructor with blank secret creates unusable transformer."""
@@ -89,7 +93,7 @@ class TestHashTokenTransformer:
         with pytest.raises(RuntimeError) as exc_info:
             blank_secret_transformer.transform(self.VALID_TOKEN)
 
-        assert "HMAC is not properly initialized due to empty hashing secret." == str(exc_info.value)
+        assert EMPTY_SECRET_MESSAGE == str(exc_info.value)
 
     def test_constructor_whitespace_secret_initializes_with_null_mac(self):
         """Test that constructor with whitespace-only secret creates unusable transformer."""
@@ -98,7 +102,7 @@ class TestHashTokenTransformer:
         with pytest.raises(RuntimeError) as exc_info:
             whitespace_secret_transformer.transform(self.VALID_TOKEN)
 
-        assert "HMAC is not properly initialized due to empty hashing secret." == str(exc_info.value)
+        assert EMPTY_SECRET_MESSAGE == str(exc_info.value)
 
     def test_transform_valid_token_multiple_times_returns_consistent_hash(self):
         """Test that transforming the same token multiple times returns consistent results."""

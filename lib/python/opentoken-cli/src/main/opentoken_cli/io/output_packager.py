@@ -146,6 +146,8 @@ class OutputPackager:
                         return
                     finally:
                         shutil.rmtree(temp_dir, ignore_errors=True)
+
+        logger.info("No tokens file found in ZIP package")
     
     @staticmethod
     def is_zip_file(file_path: str) -> bool:

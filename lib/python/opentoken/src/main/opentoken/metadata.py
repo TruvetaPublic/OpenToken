@@ -4,7 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 
 import hashlib
 import sys
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class Metadata:
@@ -26,7 +26,7 @@ class Metadata:
     CURVE = "Curve"
     
     # Key exchange values
-    KEY_EXCHANGE_METHOD_ECDH = "ECDH-P256"
+    KEY_EXCHANGE_METHOD_ECDH = "ECDH-P-256"
     KEY_EXCHANGE_METHOD_SECRET = "SharedSecret"
     CURVE_P256 = "P-256"
 
@@ -76,20 +76,23 @@ class Metadata:
             self.metadata_map[secret_key] = self.calculate_secure_hash(secret_to_hash)
         return self.metadata_map
     
-    def add_key_exchange_metadata(self, sender_public_key_bytes: bytes, 
-                                  receiver_public_key_bytes: bytes) -> Dict[str, Any]:
+    def add_key_exchange_metadata(self, sender_public_key_bytes: bytes,
+                                  receiver_public_key_bytes: bytes,
+                                  curve_name: str = None) -> Dict[str, Any]:
         """
         Add key exchange metadata for ECDH-based encryption.
         
         Args:
             sender_public_key_bytes: The sender's public key bytes
             receiver_public_key_bytes: The receiver's public key bytes
+            curve_name: The elliptic curve used for ECDH (e.g., P-256)
             
         Returns:
             The metadata map for method chaining
         """
-        self.metadata_map[self.KEY_EXCHANGE_METHOD] = self.KEY_EXCHANGE_METHOD_ECDH
-        self.metadata_map[self.CURVE] = self.CURVE_P256
+        curve_value = self.CURVE_P256 if not curve_name or not curve_name.strip() else curve_name
+        self.metadata_map[self.KEY_EXCHANGE_METHOD] = f"ECDH-{curve_value}"
+        self.metadata_map[self.CURVE] = curve_value
         
         if sender_public_key_bytes:
             self.metadata_map[self.SENDER_PUBLIC_KEY_HASH] = self.calculate_secure_hash_bytes(sender_public_key_bytes)
@@ -100,7 +103,7 @@ class Metadata:
         return self.metadata_map
 
     @staticmethod
-    def calculate_secure_hash(input_str: str) -> str:
+    def calculate_secure_hash(input_str: str) -> Optional[str]:
         """
         Calculate a secure SHA-256 hash of the given input.
         The hash is returned as a hexadecimal string.
@@ -127,7 +130,7 @@ class Metadata:
             raise HashCalculationException("Error calculating SHA-256 hash", e)
     
     @staticmethod
-    def calculate_secure_hash_bytes(input_bytes: bytes) -> str:
+    def calculate_secure_hash_bytes(input_bytes: bytes) -> Optional[str]:
         """
         Calculate a secure SHA-256 hash of the given byte array.
         The hash is returned as a hexadecimal string.

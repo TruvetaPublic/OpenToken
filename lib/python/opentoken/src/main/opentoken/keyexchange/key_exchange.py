@@ -75,6 +75,12 @@ class KeyExchange:
     The derived keys are used for HMAC-SHA256 hashing and AES-256-GCM encryption.
     """
 
+    # ECDH algorithm name.
+    ECDH_ALGORITHM = "ECDH"
+
+    # HMAC algorithm for key derivation.
+    HMAC_ALGORITHM = "HmacSHA256"
+
     # Salt for hashing key derivation (must be consistent across implementations)
     HASHING_KEY_SALT = b"HASHING"
 
