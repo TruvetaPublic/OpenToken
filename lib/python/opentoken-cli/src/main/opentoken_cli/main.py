@@ -308,6 +308,9 @@ def _process_tokens_with_ecdh(input_path: str, output_path: str, input_type: str
             if os.path.exists(metadata_path):
                 os.remove(metadata_path)
         else:
+            # Rename temp file to final output
+            if os.path.exists(temp_output_path):
+                os.rename(temp_output_path, output_path)
             logger.info("✓ Tokens generated successfully")
             logger.info("Note: Use .zip extension for automatic packaging with sender's public key")
         
