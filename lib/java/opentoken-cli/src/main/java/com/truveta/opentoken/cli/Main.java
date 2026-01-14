@@ -4,6 +4,8 @@
 package com.truveta.opentoken.cli;
 
 import java.io.IOException;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,32 +19,29 @@ import com.truveta.opentoken.cli.commands.DecryptCommand;
 import com.truveta.opentoken.cli.commands.GenerateKeypairCommand;
 import com.truveta.opentoken.cli.commands.TokenizeCommand;
 import com.truveta.opentoken.cli.io.MetadataWriter;
+import com.truveta.opentoken.cli.io.OutputPackager;
 import com.truveta.opentoken.cli.io.PersonAttributesReader;
 import com.truveta.opentoken.cli.io.PersonAttributesWriter;
+import com.truveta.opentoken.cli.io.TokenReader;
+import com.truveta.opentoken.cli.io.TokenWriter;
 import com.truveta.opentoken.cli.io.csv.PersonAttributesCSVReader;
 import com.truveta.opentoken.cli.io.csv.PersonAttributesCSVWriter;
+import com.truveta.opentoken.cli.io.csv.TokenCSVReader;
+import com.truveta.opentoken.cli.io.csv.TokenCSVWriter;
 import com.truveta.opentoken.cli.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.cli.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.cli.io.parquet.PersonAttributesParquetWriter;
+import com.truveta.opentoken.cli.io.parquet.TokenParquetReader;
+import com.truveta.opentoken.cli.io.parquet.TokenParquetWriter;
 import com.truveta.opentoken.cli.processor.PersonAttributesProcessor;
 import com.truveta.opentoken.cli.processor.TokenDecryptionProcessor;
+import com.truveta.opentoken.keyexchange.KeyExchange;
+import com.truveta.opentoken.keyexchange.KeyPairManager;
+import com.truveta.opentoken.keyexchange.PublicKeyLoader;
 import com.truveta.opentoken.tokentransformer.DecryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
-import com.truveta.opentoken.keyexchange.KeyExchange;
-import com.truveta.opentoken.keyexchange.KeyPairManager;
-import com.truveta.opentoken.keyexchange.PublicKeyLoader;
-import com.truveta.opentoken.cli.io.OutputPackager;
-import com.truveta.opentoken.cli.io.TokenReader;
-import com.truveta.opentoken.cli.io.TokenWriter;
-import com.truveta.opentoken.cli.io.csv.TokenCSVReader;
-import com.truveta.opentoken.cli.io.csv.TokenCSVWriter;
-import com.truveta.opentoken.cli.io.parquet.TokenParquetReader;
-import com.truveta.opentoken.cli.io.parquet.TokenParquetWriter;
-
-import java.security.KeyPair;
-import java.security.PublicKey;
 
 /**
  * Entry point for the OpenToken command-line application.
@@ -147,7 +146,6 @@ public class Main {
 
         String ecdhCurveNormalized = KeyPairManager.normalizeCurveName(ecdhCurveInput);
         String ecdhCurveDisplay = displayCurveName(ecdhCurveNormalized, ecdhCurveInput);
-
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType;
         }
@@ -191,7 +189,6 @@ public class Main {
         String ecdhCurveInput = command.getEcdhCurve();
 
         String ecdhCurveNormalized = KeyPairManager.normalizeCurveName(ecdhCurveInput);
-
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType;
         }
@@ -248,8 +245,8 @@ public class Main {
      * @throws IOException if the writer cannot be created
      * @throws IllegalArgumentException if the output type is unsupported
      */
-    private static PersonAttributesWriter createPersonAttributesWriter(String outputPath,
-            String outputType) throws IOException {
+    private static PersonAttributesWriter createPersonAttributesWriter(String outputPath, String outputType)
+            throws IOException {
         switch (outputType.toLowerCase()) {
             case "csv":
                 return new PersonAttributesCSVWriter(outputPath);
@@ -327,21 +324,21 @@ public class Main {
     /**
      * Generates a new ECDH key pair and saves it to the specified location.
      *
-        * @param ecdhCurveInput the user-provided curve name (e.g., "P-384")
+     * @param ecdhCurveInput the user-provided curve name (e.g., "P-384")
      * @param keyDir the directory to save the key pair
      */
     private static void generateKeypair(String ecdhCurveInput, String keyDir) {
         try {
             String ecdhCurveNormalized = KeyPairManager.normalizeCurveName(ecdhCurveInput);
             String ecdhCurveDisplay = displayCurveName(ecdhCurveNormalized, ecdhCurveInput);
-
             logger.info("Generating new ECDH key pair (curve: {})...", ecdhCurveDisplay);
             KeyPairManager keyPairManager = new KeyPairManager(keyDir, ecdhCurveNormalized);
             keyPairManager.generateAndSaveKeyPair();
 
-            logger.info("✓ Key pair generated successfully");
-            logger.info("✓ Private key saved to: {}/keypair.pem (0600 permissions)", keyPairManager.getKeyDirectory());
-            logger.info("✓ Public key saved to: {}/public_key.pem", keyPairManager.getKeyDirectory());
+            logger.info("\u2713 Key pair generated successfully");
+            logger.info("\u2713 Private key saved to: {}/keypair.pem (0600 permissions)",
+                    keyPairManager.getKeyDirectory());
+            logger.info("\u2713 Public key saved to: {}/public_key.pem", keyPairManager.getKeyDirectory());
         } catch (Exception e) {
             logger.error("Error generating key pair: {}", e.getMessage(), e);
         }
@@ -384,23 +381,23 @@ public class Main {
             // Load receiver's public key
             PublicKeyLoader publicKeyLoader = new PublicKeyLoader();
             PublicKey receiverPublicKey = publicKeyLoader.loadPublicKey(receiverPublicKeyPath);
-            logger.info("✓ Loaded receiver's public key");
+            logger.info("\u2713 Loaded receiver's public key");
 
             // Load or generate sender's key pair
             KeyPairManager senderKeyManager = senderKeypairPath != null
                     ? new KeyPairManager(new java.io.File(senderKeypairPath).getParent(), ecdhCurveNormalized)
                     : new KeyPairManager(KeyPairManager.DEFAULT_KEY_DIR, ecdhCurveNormalized);
             KeyPair senderKeyPair = senderKeyManager.getOrCreateKeyPair();
-            logger.info("✓ Sender key pair ready (saved to: {})", senderKeyManager.getKeyDirectory());
+            logger.info("\u2713 Sender key pair ready (saved to: {})", senderKeyManager.getKeyDirectory());
 
             // Perform ECDH key exchange
             KeyExchange keyExchange = new KeyExchange();
             KeyExchange.DerivedKeys keys = keyExchange.exchangeAndDeriveKeys(
                     senderKeyPair.getPrivate(), receiverPublicKey);
-            logger.info("✓ Performed ECDH key exchange");
-            logger.info("✓ Derived hashing key (32 bytes)");
+            logger.info("\u2713 Performed ECDH key exchange");
+            logger.info("\u2713 Derived hashing key (32 bytes)");
             if (!hashOnly) {
-                logger.info("✓ Derived encryption key (32 bytes)");
+                logger.info("\u2713 Derived encryption key (32 bytes)");
             }
 
             // Create transformers with derived keys
@@ -414,10 +411,10 @@ public class Main {
             String tempOutputPath = outputPath.endsWith(".zip")
                     ? outputPath.replace(".zip", "_temp." + outputType)
                     : outputPath + "_temp";
+            String metadataPath = null;
 
             try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
                     PersonAttributesWriter writer = createPersonAttributesWriter(tempOutputPath, outputType)) {
-
                 // Create metadata with key exchange info
                 Metadata metadata = new Metadata();
                 Map<String, Object> metadataMap = metadata.initialize();
@@ -433,54 +430,57 @@ public class Main {
                 // Write metadata
                 int dotIndex = tempOutputPath.lastIndexOf('.');
                 String metadataBasePath = dotIndex > 0 ? tempOutputPath.substring(0, dotIndex) : tempOutputPath;
-                String metadataPath = metadataBasePath + Metadata.METADATA_FILE_EXTENSION;
+                metadataPath = metadataBasePath + Metadata.METADATA_FILE_EXTENSION;
                 MetadataWriter metadataWriter = new MetadataJsonWriter(tempOutputPath);
                 metadataWriter.write(metadataMap);
+            }
 
-                // Package output as ZIP if needed
-                if (OutputPackager.isZipFile(outputPath)) {
-                    OutputPackager.packageOutput(tempOutputPath, metadataPath,
-                            senderKeyPair.getPublic(), outputPath);
-                    logger.info("✓ Output package created: {}", outputPath);
-                    logger.info("  ├─ tokens.{} ({})", outputType, hashOnly ? "hashed" : "encrypted");
-                    logger.info("  ├─ tokens.metadata.json");
-                    logger.info("  └─ sender_public_key.pem");
+            if (metadataPath == null) {
+                logger.error("Metadata path not initialized; skipping packaging");
+                return;
+            }
 
-                    // Clean up temp files
-                    new java.io.File(tempOutputPath).delete();
-                    new java.io.File(metadataPath).delete();
+            if (OutputPackager.isZipFile(outputPath)) {
+                OutputPackager.packageOutput(tempOutputPath, metadataPath,
+                        senderKeyPair.getPublic(), outputPath);
+                logger.info("\u2713 Output package created: {}", outputPath);
+                logger.info("  \u251c\u2500 tokens.{} ({})", outputType, hashOnly ? "hashed" : "encrypted");
+                logger.info("  \u251c\u2500 tokens.metadata.json");
+                logger.info("  \u2514\u2500 sender_public_key.pem");
+
+                new java.io.File(tempOutputPath).delete();
+                new java.io.File(metadataPath).delete();
+            } else {
+                logger.info("\u2713 Tokens generated successfully");
+                logger.info("Note: Use .zip extension for automatic packaging with sender's public key");
+
+                // Move temp output to final output path for non-zip outputs
+                java.io.File tempFile = new java.io.File(tempOutputPath);
+                java.io.File finalFile = new java.io.File(outputPath);
+                if (tempFile.exists()) {
+                    if (tempFile.renameTo(finalFile)) {
+                        logger.info("\u2713 Moved temp output {} to final output {}", tempOutputPath, outputPath);
+                    } else {
+                        logger.warn("Could not move temp output {} to final path {}", tempOutputPath, outputPath);
+                    }
                 } else {
-                    logger.info("✓ Tokens generated successfully");
-                    logger.info("Note: Use .zip extension for automatic packaging with sender's public key");
+                    logger.warn("Temp output not found at {}", tempOutputPath);
+                }
 
-                    // Move temp output to final output path for non-zip outputs
-                    java.io.File tempFile = new java.io.File(tempOutputPath);
-                    java.io.File finalFile = new java.io.File(outputPath);
-                    if (tempFile.exists()) {
-                        if (tempFile.renameTo(finalFile)) {
-                            logger.info("✓ Moved temp output {} to final output {}", tempOutputPath, outputPath);
-                        } else {
-                            logger.warn("Could not move temp output {} to final path {}", tempOutputPath, outputPath);
-                        }
+                // Move metadata to be alongside final output
+                int finalDot = outputPath.lastIndexOf('.');
+                String finalMetadataBase = finalDot > 0 ? outputPath.substring(0, finalDot) : outputPath;
+                String finalMetadataPath = finalMetadataBase + Metadata.METADATA_FILE_EXTENSION;
+                java.io.File metadataFile = new java.io.File(metadataPath);
+                java.io.File finalMetadataFile = new java.io.File(finalMetadataPath);
+                if (metadataFile.exists()) {
+                    if (metadataFile.renameTo(finalMetadataFile)) {
+                        logger.info("\u2713 Moved metadata {} to {}", metadataPath, finalMetadataPath);
                     } else {
-                        logger.warn("Temp output not found at {}", tempOutputPath);
+                        logger.warn("Could not move metadata {} to {}", metadataPath, finalMetadataPath);
                     }
-
-                    // Move metadata to be alongside final output
-                    int finalDot = outputPath.lastIndexOf('.');
-                    String finalMetadataBase = finalDot > 0 ? outputPath.substring(0, finalDot) : outputPath;
-                    String finalMetadataPath = finalMetadataBase + Metadata.METADATA_FILE_EXTENSION;
-                    java.io.File metadataFile = new java.io.File(metadataPath);
-                    java.io.File finalMetadataFile = new java.io.File(finalMetadataPath);
-                    if (metadataFile.exists()) {
-                        if (metadataFile.renameTo(finalMetadataFile)) {
-                            logger.info("✓ Moved metadata {} to {}", metadataPath, finalMetadataPath);
-                        } else {
-                            logger.warn("Could not move metadata {} to {}", metadataPath, finalMetadataPath);
-                        }
-                    } else {
-                        logger.warn("Metadata not found at {}", metadataPath);
-                    }
+                } else {
+                    logger.warn("Metadata not found at {}", metadataPath);
                 }
             }
 
@@ -511,7 +511,7 @@ public class Main {
             // Extract sender's public key from ZIP if needed
             if (OutputPackager.isZipFile(inputPath)) {
                 senderPublicKey = OutputPackager.extractSenderPublicKey(inputPath);
-                logger.info("✓ Extracted sender's public key from ZIP");
+                logger.info("\u2713 Extracted sender's public key from ZIP");
 
                 // Extract tokens to temp file
                 tokensInputPath = inputPath.replace(".zip", "_temp." + inputType);
@@ -519,7 +519,7 @@ public class Main {
             } else if (senderPublicKeyPath != null && !senderPublicKeyPath.isBlank()) {
                 PublicKeyLoader publicKeyLoader = new PublicKeyLoader();
                 senderPublicKey = publicKeyLoader.loadPublicKey(senderPublicKeyPath);
-                logger.info("✓ Loaded sender's public key from: {}", senderPublicKeyPath);
+                logger.info("\u2713 Loaded sender's public key from: {}", senderPublicKeyPath);
             } else {
                 logger.error("Sender's public key must be provided or available in ZIP");
                 return;
@@ -532,18 +532,17 @@ public class Main {
             KeyPair receiverKeyPair = receiverKeyManager.loadKeyPair(
                     receiverKeypairPath != null ? receiverKeypairPath
                             : receiverKeyManager.getKeyDirectory() + "/keypair.pem");
-            logger.info("✓ Loaded receiver's private key from: {}", receiverKeyManager.getKeyDirectory());
+            logger.info("\u2713 Loaded receiver's private key from: {}", receiverKeyManager.getKeyDirectory());
 
             // Perform ECDH key exchange (same as sender)
             KeyExchange keyExchange = new KeyExchange();
             KeyExchange.DerivedKeys keys = keyExchange.exchangeAndDeriveKeys(
                     receiverKeyPair.getPrivate(), senderPublicKey);
-            logger.info("✓ Performed ECDH key exchange");
-            logger.info("✓ Derived encryption key (matches sender's key)");
+            logger.info("\u2713 Performed ECDH key exchange");
+            logger.info("\u2713 Derived encryption key (matches sender's key)");
 
             // Decrypt tokens
             DecryptTokenTransformer decryptor = new DecryptTokenTransformer(keys.getEncryptionKey());
-
             try (TokenReader reader = createTokenReader(tokensInputPath, inputType);
                     TokenWriter writer = createTokenWriter(outputPath, outputType)) {
                 TokenDecryptionProcessor.process(reader, writer, decryptor);
@@ -554,8 +553,8 @@ public class Main {
                 new java.io.File(tokensInputPath).delete();
             }
 
-            logger.info("✓ Tokens decrypted successfully");
-            logger.info("✓ Output written to: {}", outputPath);
+            logger.info("\u2713 Tokens decrypted successfully");
+            logger.info("\u2713 Output written to: {}", outputPath);
 
         } catch (Exception e) {
             logger.error("Error decrypting tokens with ECDH: ", e);
