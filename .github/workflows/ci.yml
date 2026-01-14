@@ -114,6 +114,7 @@ jobs:
             -o target/hash_only_output.csv \
             -ot csv \
             --receiver-public-key target/keys/receiver/public_key.pem \
+            --sender-keypair-path target/keys/sender/keypair.pem \
             --hash-only
 
       - name: Validate Java CLI output files
@@ -354,6 +355,7 @@ jobs:
             -o target/hash_only_output.csv \
             -ot csv \
             --receiver-public-key target/keys/receiver/public_key.pem \
+            --sender-keypair-path target/keys/sender/keypair.pem \
             --hash-only
 
       - name: Validate CLI output files
