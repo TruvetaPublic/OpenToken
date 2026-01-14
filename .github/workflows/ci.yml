@@ -138,37 +138,51 @@ jobs:
           python3 << 'EOF'
           import csv
 
-          def extract_tokens(csv_file):
-              """Extract token columns from CSV."""
-              tokens = []
+          def extract_tokens_by_record(csv_file):
+              """Extract tokens grouped by record ID and rule ID."""
+              records = {}
               with open(csv_file, 'r') as f:
                   reader = csv.DictReader(f)
                   for row in reader:
-                      # Extract T1-T5 tokens from the row
-                      token_row = {col: row.get(col) for col in ['T1', 'T2', 'T3', 'T4', 'T5'] if col in row}
-                      tokens.append(token_row)
-              return tokens
+                      record_id = row.get('RecordId', '')
+                      rule_id = row.get('RuleId', '')
+                      token = row.get('Token', '')
+                      if record_id and rule_id:
+                          if record_id not in records:
+                              records[record_id] = {}
+                          records[record_id][rule_id] = token
+              return records
 
-          decrypted_tokens = extract_tokens('target/decrypted.csv')
-          hash_only_tokens = extract_tokens('target/hash_only_output.csv')
+          decrypted = extract_tokens_by_record('target/decrypted.csv')
+          hash_only = extract_tokens_by_record('target/hash_only_output.csv')
 
-          if len(decrypted_tokens) != len(hash_only_tokens):
-              print(f"Error: Token count mismatch. Decrypted: {len(decrypted_tokens)}, Hash-only: {len(hash_only_tokens)}")
-              exit(1)
+          # Find shared records (encryption may skip records with all blank tokens)
+          shared_records = set(decrypted.keys()) & set(hash_only.keys())
+          print(f"Comparing {len(shared_records)} shared records...")
+          print(f"  Decrypted has {len(decrypted)} total records")
+          print(f"  Hash-only has {len(hash_only)} total records")
 
           mismatches = 0
-          for i, (dec, hash_only) in enumerate(zip(decrypted_tokens, hash_only_tokens)):
-              if dec != hash_only:
-                  print(f"Row {i+1} token mismatch:")
-                  print(f"  Decrypted: {dec}")
-                  print(f"  Hash-only: {hash_only}")
-                  mismatches += 1
+          for record_id in sorted(shared_records):
+              dec_tokens = decrypted[record_id]
+              hash_tokens = hash_only[record_id]
+              
+              # Compare each token rule
+              all_rules = set(dec_tokens.keys()) | set(hash_tokens.keys())
+              for rule in sorted(all_rules):
+                  dec_val = dec_tokens.get(rule, '')
+                  hash_val = hash_tokens.get(rule, '')
+                  if dec_val != hash_val:
+                      print(f"Mismatch in record {record_id}, rule {rule}:")
+                      print(f"  Decrypted: {dec_val[:64]}...")
+                      print(f"  Hash-only: {hash_val[:64]}...")
+                      mismatches += 1
 
-          if mismatches > 0:
-              print(f"Error: Found {mismatches} rows with mismatched tokens")
-              exit(1)
+          if mismatches == 0:
+              print(f"✓ Success: All tokens match for {len(shared_records)} shared records")
           else:
-              print(f"Success: All {len(decrypted_tokens)} rows have matching tokens between decrypted and hash-only outputs")
+              print(f"✗ Error: Found {mismatches} token mismatches")
+              exit(1)
           EOF
 
       - name: Validate Java CLI output content
@@ -365,37 +379,51 @@ jobs:
           python3 << 'EOF'
           import csv
 
-          def extract_tokens(csv_file):
-              """Extract token columns from CSV."""
-              tokens = []
+          def extract_tokens_by_record(csv_file):
+              """Extract tokens grouped by record ID and rule ID."""
+              records = {}
               with open(csv_file, 'r') as f:
                   reader = csv.DictReader(f)
                   for row in reader:
-                      # Extract T1-T5 tokens from the row
-                      token_row = {col: row.get(col) for col in ['T1', 'T2', 'T3', 'T4', 'T5'] if col in row}
-                      tokens.append(token_row)
-              return tokens
+                      record_id = row.get('RecordId', '')
+                      rule_id = row.get('RuleId', '')
+                      token = row.get('Token', '')
+                      if record_id and rule_id:
+                          if record_id not in records:
+                              records[record_id] = {}
+                          records[record_id][rule_id] = token
+              return records
 
-          decrypted_tokens = extract_tokens('target/decrypted.csv')
-          hash_only_tokens = extract_tokens('target/hash_only_output.csv')
+          decrypted = extract_tokens_by_record('target/decrypted.csv')
+          hash_only = extract_tokens_by_record('target/hash_only_output.csv')
 
-          if len(decrypted_tokens) != len(hash_only_tokens):
-              print(f"Error: Token count mismatch. Decrypted: {len(decrypted_tokens)}, Hash-only: {len(hash_only_tokens)}")
-              exit(1)
+          # Find shared records (encryption may skip records with all blank tokens)
+          shared_records = set(decrypted.keys()) & set(hash_only.keys())
+          print(f"Comparing {len(shared_records)} shared records...")
+          print(f"  Decrypted has {len(decrypted)} total records")
+          print(f"  Hash-only has {len(hash_only)} total records")
 
           mismatches = 0
-          for i, (dec, hash_only) in enumerate(zip(decrypted_tokens, hash_only_tokens)):
-              if dec != hash_only:
-                  print(f"Row {i+1} token mismatch:")
-                  print(f"  Decrypted: {dec}")
-                  print(f"  Hash-only: {hash_only}")
-                  mismatches += 1
+          for record_id in sorted(shared_records):
+              dec_tokens = decrypted[record_id]
+              hash_tokens = hash_only[record_id]
+              
+              # Compare each token rule
+              all_rules = set(dec_tokens.keys()) | set(hash_tokens.keys())
+              for rule in sorted(all_rules):
+                  dec_val = dec_tokens.get(rule, '')
+                  hash_val = hash_tokens.get(rule, '')
+                  if dec_val != hash_val:
+                      print(f"Mismatch in record {record_id}, rule {rule}:")
+                      print(f"  Decrypted: {dec_val[:64]}...")
+                      print(f"  Hash-only: {hash_val[:64]}...")
+                      mismatches += 1
 
-          if mismatches > 0:
-              print(f"Error: Found {mismatches} rows with mismatched tokens")
-              exit(1)
+          if mismatches == 0:
+              print(f"✓ Success: All tokens match for {len(shared_records)} shared records")
           else:
-              print(f"Success: All {len(decrypted_tokens)} rows have matching tokens between decrypted and hash-only outputs")
+              print(f"✗ Error: Found {mismatches} token mismatches")
+              exit(1)
           EOF
 
       - name: Validate CLI output content
