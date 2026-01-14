@@ -51,7 +51,7 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
     }
 
     @Override
-    public void writeAttributes(Map<String, String> data) {
+    public void writeAttributes(Map<String, String> data) throws IOException {
 
         try {
             if (!headerWritten) {
@@ -64,6 +64,7 @@ public class PersonAttributesCSVWriter implements PersonAttributesWriter {
 
         } catch (IOException e) {
             logger.error("Error in writing CSV file: {}", e.getMessage());
+            throw e;
         }
     }
 

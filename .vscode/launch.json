@@ -55,7 +55,28 @@
         "-o",
         "output/decrypted.${input:outputType}",
         "--receiver-keypair-path",
-        "output/keys/keypair.pem"
+        "${env:HOME}/.opentoken/keypair.pem"
+      ]
+    },
+    {
+      "name": "Java: Hash-Only Mode",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.truveta.opentoken.cli.Main",
+      "projectName": "opentoken-cli",
+      "args": [
+        "tokenize",
+        "-i",
+        "resources/sample.${input:inputType}",
+        "-t",
+        "${input:inputType}",
+        "-o",
+        "output/hashed_tokens.zip",
+        "--receiver-public-key",
+        "${env:HOME}/.opentoken/public_key.pem",
+        "--sender-keypair-path",
+        "output/keys/keypair.pem",
+        "--hash-only"
       ]
     },
     {
@@ -118,7 +139,7 @@
         "-o",
         "output/decrypted.${input:outputType}",
         "--receiver-keypair-path",
-        "output/keys/keypair.pem"
+        "${env:HOME}/.opentoken/keypair.pem"
       ]
     },
     {
