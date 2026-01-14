@@ -4,6 +4,8 @@ Copyright (c) Truveta. All rights reserved.
 
 from unittest.mock import Mock
 
+import pytest
+
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute
@@ -14,7 +16,6 @@ from opentoken.attributes.person.social_security_number_attribute import SocialS
 from opentoken_cli.io.person_attributes_reader import PersonAttributesReader
 from opentoken_cli.io.person_attributes_writer import PersonAttributesWriter
 from opentoken_cli.processor.person_attributes_processor import PersonAttributesProcessor
-from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 from opentoken.metadata import Metadata
 
@@ -24,7 +25,9 @@ class TestPersonAttributesProcessor:
 
     def test_process_happy_path(self):
         """Test process happy path."""
-        token_transformer_list = [Mock(spec=HashTokenTransformer)]
+        transformer = Mock(spec=TokenTransformer)
+        transformer.transform.side_effect = lambda token: token
+        token_transformer_list = [transformer]
         data = {
             RecordIdAttribute: "TestRecordId",
             FirstNameAttribute: "John",
@@ -47,7 +50,9 @@ class TestPersonAttributesProcessor:
 
     def test_process_io_exception_writing_attributes(self):
         """Test process with IOException writing attributes."""
-        token_transformer_list = [Mock(spec=TokenTransformer)]
+        transformer = Mock(spec=TokenTransformer)
+        transformer.transform.side_effect = lambda token: token
+        token_transformer_list = [transformer]
         data = {
             RecordIdAttribute: "TestRecordId",
             FirstNameAttribute: "John",
@@ -63,18 +68,17 @@ class TestPersonAttributesProcessor:
 
         metadata_map = Metadata().initialize()
 
-        PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
+        with pytest.raises(IOError):
+            PersonAttributesProcessor.process(reader, writer, token_transformer_list, metadata_map)
 
         # Verify writer was called at least once
         assert writer.write_attributes.call_count >= 1
 
-        # Verify metadata was populated
-        assert len(metadata_map) > 0, "Metadata map should not be empty after processing"
-        assert "TotalRows" in metadata_map, "Metadata should contain totalRows key"
-
     def test_metadata_map_contains_correct_values(self):
         """Test metadata map contains correct values."""
-        token_transformer_list = [Mock(spec=HashTokenTransformer)]
+        transformer = Mock(spec=TokenTransformer)
+        transformer.transform.side_effect = lambda token: token
+        token_transformer_list = [transformer]
         data = {
             RecordIdAttribute: "TestRecordId",
             FirstNameAttribute: "John",
@@ -125,7 +129,9 @@ class TestPersonAttributesProcessor:
 
     def test_metadata_map_happy_path_all_attributes_present(self):
         """Test metadata map in happy path with all required attributes present."""
-        token_transformer_list = [Mock(spec=HashTokenTransformer)]
+        transformer = Mock(spec=TokenTransformer)
+        transformer.transform.side_effect = lambda token: token
+        token_transformer_list = [transformer]
         # Provide all required attributes so no blank tokens are generated
         data = {
             RecordIdAttribute: "TestRecordId",
@@ -165,7 +171,9 @@ class TestPersonAttributesProcessor:
 
     def test_metadata_map_multiple_rows(self):
         """Test metadata map multiple rows."""
-        token_transformer_list = [Mock(spec=HashTokenTransformer)]
+        transformer = Mock(spec=TokenTransformer)
+        transformer.transform.side_effect = lambda token: token
+        token_transformer_list = [transformer]
 
         # Create three data records
         data1 = {
@@ -200,7 +208,9 @@ class TestPersonAttributesProcessor:
 
     def test_metadata_map_preserves_existing_entries(self):
         """Test metadata map preserves existing entries."""
-        token_transformer_list = [Mock(spec=HashTokenTransformer)]
+        transformer = Mock(spec=TokenTransformer)
+        transformer.transform.side_effect = lambda token: token
+        token_transformer_list = [transformer]
         data = {
             RecordIdAttribute: "TestRecordId",
             FirstNameAttribute: "John",
