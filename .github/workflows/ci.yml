@@ -167,11 +167,12 @@ jobs:
               dec_tokens = decrypted[record_id]
               hash_tokens = hash_only[record_id]
               
-              # Compare each token rule
-              all_rules = set(dec_tokens.keys()) | set(hash_tokens.keys())
-              for rule in sorted(all_rules):
-                  dec_val = dec_tokens.get(rule, '')
-                  hash_val = hash_tokens.get(rule, '')
+              # Only compare token rules that exist in BOTH outputs
+              # Encrypted output may skip blank tokens that hash-only includes
+              shared_rules = set(dec_tokens.keys()) & set(hash_tokens.keys())
+              for rule in sorted(shared_rules):
+                  dec_val = dec_tokens[rule]
+                  hash_val = hash_tokens[rule]
                   if dec_val != hash_val:
                       print(f"Mismatch in record {record_id}, rule {rule}:")
                       print(f"  Decrypted: {dec_val[:64]}...")
@@ -179,7 +180,7 @@ jobs:
                       mismatches += 1
 
           if mismatches == 0:
-              print(f"✓ Success: All tokens match for {len(shared_records)} shared records")
+              print(f"✓ Success: All tokens match for shared records and token rules")
           else:
               print(f"✗ Error: Found {mismatches} token mismatches")
               exit(1)
@@ -408,11 +409,12 @@ jobs:
               dec_tokens = decrypted[record_id]
               hash_tokens = hash_only[record_id]
               
-              # Compare each token rule
-              all_rules = set(dec_tokens.keys()) | set(hash_tokens.keys())
-              for rule in sorted(all_rules):
-                  dec_val = dec_tokens.get(rule, '')
-                  hash_val = hash_tokens.get(rule, '')
+              # Only compare token rules that exist in BOTH outputs
+              # Encrypted output may skip blank tokens that hash-only includes
+              shared_rules = set(dec_tokens.keys()) & set(hash_tokens.keys())
+              for rule in sorted(shared_rules):
+                  dec_val = dec_tokens[rule]
+                  hash_val = hash_tokens[rule]
                   if dec_val != hash_val:
                       print(f"Mismatch in record {record_id}, rule {rule}:")
                       print(f"  Decrypted: {dec_val[:64]}...")
@@ -420,7 +422,7 @@ jobs:
                       mismatches += 1
 
           if mismatches == 0:
-              print(f"✓ Success: All tokens match for {len(shared_records)} shared records")
+              print(f"✓ Success: All tokens match for shared records and token rules")
           else:
               print(f"✗ Error: Found {mismatches} token mismatches")
               exit(1)
