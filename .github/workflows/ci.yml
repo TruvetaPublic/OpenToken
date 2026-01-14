@@ -80,6 +80,107 @@ jobs:
           directory: ${{ github.workspace }}/lib/java
           maven-args: "-B -DskipTests"
 
+      - name: Run CLI smoke test (ECDH key exchange)
+        run: |
+          cd lib/java
+          mkdir -p target keys
+
+          # Generate receiver keypair
+          java -jar opentoken-cli/target/opentoken-cli-*.jar generate-keypair --output-dir target/keys/receiver
+
+          # Generate sender keypair
+          java -jar opentoken-cli/target/opentoken-cli-*.jar generate-keypair --output-dir target/keys/sender
+
+          # Tokenize with ECDH (sender creates encrypted tokens)
+          java -jar opentoken-cli/target/opentoken-cli-*.jar tokenize \
+            -i ../../resources/sample.csv \
+            -t csv \
+            -o target/output.zip \
+            --receiver-public-key target/keys/receiver/public_key.pem \
+            --sender-keypair-path target/keys/sender/keypair.pem \
+            --ecdh-curve P-384
+
+          # Decrypt tokens with ECDH (receiver decrypts)
+          java -jar opentoken-cli/target/opentoken-cli-*.jar decrypt \
+            -i target/output.zip \
+            -t csv \
+            -o target/decrypted.csv \
+            --receiver-keypair-path target/keys/receiver/keypair.pem
+
+          # Tokenize with hash-only mode (no encryption)
+          java -jar opentoken-cli/target/opentoken-cli-*.jar tokenize \
+            -i ../../resources/sample.csv \
+            -t csv \
+            -o target/hash_only_output.csv \
+            -ot csv \
+            --hash-only
+
+      - name: Validate Java CLI output files
+        run: |
+          cd lib/java
+          if [ ! -f "target/output.zip" ]; then
+            echo "Error: output.zip not created"
+            exit 1
+          fi
+          if [ ! -f "target/decrypted.csv" ]; then
+            echo "Error: decrypted.csv not created"
+            exit 1
+          fi
+          if [ ! -f "target/hash_only_output.csv" ]; then
+            echo "Error: hash_only_output.csv not created"
+            exit 1
+          fi
+
+      - name: Compare Java decrypted and hash-only outputs
+        run: |
+          cd lib/java
+          python3 << 'EOF'
+          import csv
+          
+          def extract_tokens(csv_file):
+              """Extract token columns from CSV."""
+              tokens = []
+              with open(csv_file, 'r') as f:
+                  reader = csv.DictReader(f)
+                  for row in reader:
+                      # Extract T1-T5 tokens from the row
+                      token_row = {col: row.get(col) for col in ['T1', 'T2', 'T3', 'T4', 'T5'] if col in row}
+                      tokens.append(token_row)
+              return tokens
+          
+          decrypted_tokens = extract_tokens('target/decrypted.csv')
+          hash_only_tokens = extract_tokens('target/hash_only_output.csv')
+          
+          if len(decrypted_tokens) != len(hash_only_tokens):
+              print(f"Error: Token count mismatch. Decrypted: {len(decrypted_tokens)}, Hash-only: {len(hash_only_tokens)}")
+              exit(1)
+          
+          mismatches = 0
+          for i, (dec, hash_only) in enumerate(zip(decrypted_tokens, hash_only_tokens)):
+              if dec != hash_only:
+                  print(f"Row {i+1} token mismatch:")
+                  print(f"  Decrypted: {dec}")
+                  print(f"  Hash-only: {hash_only}")
+                  mismatches += 1
+          
+          if mismatches > 0:
+              print(f"Error: Found {mismatches} rows with mismatched tokens")
+              exit(1)
+          else:
+              print(f"Success: All {len(decrypted_tokens)} rows have matching tokens between decrypted and hash-only outputs")
+          EOF
+
+      - name: Validate Java CLI output content
+        run: |
+          cd lib/java
+          line_count=$(wc -l < target/decrypted.csv)
+          if [ "$line_count" -le 1 ]; then
+            echo "Error: Decrypted CSV appears to be empty or only contains headers"
+            exit 1
+          fi
+          echo "Decrypted CSV contains $line_count lines"
+
+
   python-tests:
     runs-on: ubuntu-latest
     permissions:
@@ -135,6 +236,7 @@ jobs:
           comment_mode: always
           compare_to_earlier_commit: false
 
+      # TODO: Re-enable once issues with correct threshold calculation and reporting are resolved in orgoro/coverage action
       # - name: Add Python code coverage to PR
       #   if: matrix.python-version == '3.10'
       #   uses: orgoro/coverage@v3.2
@@ -230,6 +332,14 @@ jobs:
             -o target/decrypted.csv \
             --receiver-keypair-path target/keys/receiver/keypair.pem
 
+          # Tokenize with hash-only mode (no encryption)
+          opentoken tokenize \
+            -i ../../../resources/sample.csv \
+            -t csv \
+            -o target/hash_only_output.csv \
+            -ot csv \
+            --hash-only
+
       - name: Validate CLI output files
         run: |
           cd lib/python/opentoken-cli
@@ -241,6 +351,52 @@ jobs:
             echo "Error: decrypted.csv not created"
             exit 1
           fi
+          if [ ! -f "target/hash_only_output.csv" ]; then
+            echo "Error: hash_only_output.csv not created"
+            exit 1
+          fi
+
+      - name: Compare decrypted and hash-only outputs
+        run: |
+          cd lib/python/opentoken-cli
+          # Extract token columns (T1-T5) from both files and compare
+          # Skip the metadata.json files and compare just the CSV data
+          python3 << 'EOF'
+          import csv
+          
+          def extract_tokens(csv_file):
+              """Extract token columns from CSV."""
+              tokens = []
+              with open(csv_file, 'r') as f:
+                  reader = csv.DictReader(f)
+                  for row in reader:
+                      # Extract T1-T5 tokens from the row
+                      token_row = {col: row.get(col) for col in ['T1', 'T2', 'T3', 'T4', 'T5'] if col in row}
+                      tokens.append(token_row)
+              return tokens
+          
+          decrypted_tokens = extract_tokens('target/decrypted.csv')
+          hash_only_tokens = extract_tokens('target/hash_only_output.csv')
+          
+          if len(decrypted_tokens) != len(hash_only_tokens):
+              print(f"Error: Token count mismatch. Decrypted: {len(decrypted_tokens)}, Hash-only: {len(hash_only_tokens)}")
+              exit(1)
+          
+          mismatches = 0
+          for i, (dec, hash_only) in enumerate(zip(decrypted_tokens, hash_only_tokens)):
+              if dec != hash_only:
+                  print(f"Row {i+1} token mismatch:")
+                  print(f"  Decrypted: {dec}")
+                  print(f"  Hash-only: {hash_only}")
+                  mismatches += 1
+          
+          if mismatches > 0:
+              print(f"Error: Found {mismatches} rows with mismatched tokens")
+              exit(1)
+          else:
+              print(f"Success: All {len(decrypted_tokens)} rows have matching tokens between decrypted and hash-only outputs")
+          EOF
+
 
       - name: Validate CLI output content
         run: |
