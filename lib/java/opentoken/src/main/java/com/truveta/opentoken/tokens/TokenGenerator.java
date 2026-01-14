@@ -161,13 +161,13 @@ public class TokenGenerator implements Serializable {
             throws TokenGenerationException {
         var signature = getTokenSignature(tokenId, personAttributes, result);
         logger.debug("Token signature for token id {}: {}", tokenId, signature);
+
+        if (signature == null) {
+            result.getBlankTokensByRule().add(tokenId);
+        }
+
         try {
-            String token = tokenizer.tokenize(signature);
-            // Track blank tokens by rule
-            if (Token.BLANK.equals(token)) {
-                result.getBlankTokensByRule().add(tokenId);
-            }
-            return token;
+            return tokenizer.tokenize(signature);
         } catch (Exception e) {
             logger.error("Error generating token for token id: " + tokenId, e);
             throw new TokenGenerationException("Error generating token", e);

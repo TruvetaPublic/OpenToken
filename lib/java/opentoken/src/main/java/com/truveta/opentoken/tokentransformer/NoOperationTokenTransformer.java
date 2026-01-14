@@ -3,6 +3,8 @@
  */
 package com.truveta.opentoken.tokentransformer;
 
+import com.truveta.opentoken.tokens.Token;
+
 /**
  * A <code>No Operation</code> token transformer. No transformation is
  * applied whatsoever.
@@ -17,6 +19,9 @@ public class NoOperationTokenTransformer implements TokenTransformer {
      */
     @Override
     public String transform(String token) {
+        if (token == null || token.isBlank()) {
+            token = Token.BLANK; // Return blank token for null or blank input
+        }
         return token;
     }
 }

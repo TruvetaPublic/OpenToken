@@ -8,6 +8,7 @@ import hmac
 import logging
 import threading
 from typing import Optional, Union
+from opentoken.tokens.token import Token
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
@@ -74,6 +75,9 @@ class HashTokenTransformer(TokenTransformer):
         if token is None or token.strip() == "":
             logger.error("Invalid Argument. Token can't be Null.")
             raise ValueError("Invalid Argument. Token can't be Null.")
+
+        if Token.BLANK == token:
+            return Token.BLANK  # Return blank token as is
 
         if not self._mac_available or not self.hashing_secret_bytes:
             raise RuntimeError("HMAC is not properly initialized due to empty hashing secret.")

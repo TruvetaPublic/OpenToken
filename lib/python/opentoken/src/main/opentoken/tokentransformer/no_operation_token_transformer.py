@@ -2,6 +2,7 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
+from opentoken.tokens.token import Token
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
@@ -23,4 +24,6 @@ class NoOperationTokenTransformer(TokenTransformer):
         Returns:
             The unchanged token.
         """
+        if token is None or (isinstance(token, str) and token.strip() == ""):
+            token = Token.BLANK  # Return blank token for null or blank input
         return token

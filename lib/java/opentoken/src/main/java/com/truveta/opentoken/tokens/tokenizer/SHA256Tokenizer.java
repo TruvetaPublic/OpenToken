@@ -66,14 +66,17 @@ public final class SHA256Tokenizer implements Tokenizer {
      *                                                transformer.
      */
     public String tokenize(String value) throws Exception {
+        String transformedToken;
         if (value == null || value.isBlank()) {
-            return EMPTY;
-        }
-        byte[] bytes = value.getBytes(StandardCharsets.UTF_8.name());
+            transformedToken = EMPTY;
 
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(bytes);
-        String transformedToken = Hex.encodeHexString(hash);
+        } else {
+            byte[] bytes = value.getBytes(StandardCharsets.UTF_8.name());
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(bytes);
+            transformedToken = Hex.encodeHexString(hash);
+        }
 
         for (TokenTransformer tokenTransformer : tokenTransformerList) {
             transformedToken = tokenTransformer.transform(transformedToken);

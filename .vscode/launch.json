@@ -1,181 +1,181 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Java: Generate Keypair",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.truveta.opentoken.cli.Main",
+      "projectName": "opentoken-cli",
+      "args": [
+        "generate-keypair",
+        "--output-dir",
+        "${input:keypairPath}",
+        "--ecdh-curve",
+        "P-384"
+      ]
+    },
+    {
+      "name": "Java: Tokenize (ECDH)",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.truveta.opentoken.cli.Main",
+      "projectName": "opentoken-cli",
+      "args": [
+        "tokenize",
+        "-i",
+        "resources/sample.${input:inputType}",
+        "-t",
+        "${input:inputType}",
+        "-o",
+        "output/tokens.zip",
+        "--receiver-public-key",
+        "${env:HOME}/.opentoken/public_key.pem",
+        "--sender-keypair-path",
+        "output/keys/keypair.pem",
+        "--ecdh-curve",
+        "P-384"
+      ]
+    },
+    {
+      "name": "Java: Decrypt (ECDH)",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.truveta.opentoken.cli.Main",
+      "projectName": "opentoken-cli",
+      "args": [
+        "decrypt",
+        "-i",
+        "output/tokens.zip",
+        "-t",
+        "${input:inputType}",
+        "-o",
+        "output/decrypted.${input:outputType}",
+        "--receiver-keypair-path",
+        "output/keys/keypair.pem"
+      ]
+    },
+    {
+      "name": "Python: Generate Keypair",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main"
+      },
+      "args": [
+        "generate-keypair",
+        "--output-dir",
+        "${input:keypairPath}",
+        "--ecdh-curve",
+        "P-384"
+      ]
+    },
+    {
+      "name": "Python: Tokenize (ECDH)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main"
+      },
+      "args": [
+        "tokenize",
+        "-i",
+        "resources/sample.${input:inputType}",
+        "-t",
+        "${input:inputType}",
+        "-o",
+        "output/tokens.zip",
+        "--receiver-public-key",
+        "${env:HOME}/.opentoken/public_key.pem",
+        "--sender-keypair-path",
+        "output/keys/keypair.pem",
+        "--ecdh-curve",
+        "P-384"
+      ]
+    },
+    {
+      "name": "Python: Decrypt (ECDH)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main"
+      },
+      "args": [
+        "decrypt",
+        "-i",
+        "output/tokens.zip",
+        "-t",
+        "${input:inputType}",
+        "-o",
+        "output/decrypted.${input:outputType}",
+        "--receiver-keypair-path",
+        "output/keys/keypair.pem"
+      ]
+    },
+    {
+      "name": "Python: Hash-Only Mode",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main"
+      },
+      "args": [
+        "tokenize",
+        "-i",
+        "resources/sample.${input:inputType}",
+        "-t",
+        "${input:inputType}",
+        "-o",
+        "output/hashed_tokens.zip",
+        "--receiver-public-key",
+        "${env:HOME}/.opentoken/public_key.pem",
+        "--sender-keypair-path",
+        "output/keys/keypair.pem",
+        "--hash-only"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "keypairPath",
+      "type": "pickString",
+      "description": "Select keypair type",
+      "options": [
         {
-            "name": "Java: Generate Keypair",
-            "type": "java",
-            "request": "launch",
-            "mainClass": "com.truveta.opentoken.cli.Main",
-            "projectName": "opentoken-cli",
-            "args": [
-                "generate-keypair",
-                "--output-dir",
-                "${input:keypairPath}",
-                "--ecdh-curve",
-                "P-384"
-            ]
+          "label": "Receiver",
+          "value": "~/.opentoken"
         },
         {
-            "name": "Java: Tokenize (ECDH)",
-            "type": "java",
-            "request": "launch",
-            "mainClass": "com.truveta.opentoken.cli.Main",
-            "projectName": "opentoken-cli",
-            "args": [
-                "tokenize",
-                "-i",
-                "resources/sample.${input:inputType}",
-                "-t",
-                "${input:inputType}",
-                "-o",
-                "output/tokens.zip",
-                "--receiver-public-key",
-                "output/receiver_public_key.pem",
-                "--sender-keypair-path",
-                "${env:HOME}/.opentoken/keypair.pem",
-                "--ecdh-curve",
-                "P-384"
-            ]
-        },
-        {
-            "name": "Java: Decrypt (ECDH)",
-            "type": "java",
-            "request": "launch",
-            "mainClass": "com.truveta.opentoken.cli.Main",
-            "projectName": "opentoken-cli",
-            "args": [
-                "decrypt",
-                "-i",
-                "output/tokens.zip",
-                "-t",
-                "${input:inputType}",
-                "-o",
-                "output/decrypted.${input:outputType}",
-                "--receiver-keypair-path",
-                "output/keys/keypair.pem"
-            ]
-        },
-        {
-            "name": "Python: Generate Keypair",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main"
-            },
-            "args": [
-                "generate-keypair",
-                "--output-dir",
-                "${input:keypairPath}",
-                "--ecdh-curve",
-                "P-384"
-            ]
-        },
-        {
-            "name": "Python: Tokenize (ECDH)",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main"
-            },
-            "args": [
-                "tokenize",
-                "-i",
-                "resources/sample.${input:inputType}",
-                "-t",
-                "${input:inputType}",
-                "-o",
-                "output/tokens.zip",
-                "--receiver-public-key",
-                "output/receiver_public_key.pem",
-                "--sender-keypair-path",
-                "${env:HOME}/.opentoken/keypair.pem",
-                "--ecdh-curve",
-                "P-384"
-            ]
-        },
-        {
-            "name": "Python: Decrypt (ECDH)",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main"
-            },
-            "args": [
-                "decrypt",
-                "-i",
-                "output/tokens.zip",
-                "-t",
-                "${input:inputType}",
-                "-o",
-                "output/decrypted.${input:outputType}",
-                "--receiver-keypair-path",
-                "output/keys/keypair.pem"
-            ]
-        },
-        {
-            "name": "Python: Hash-Only Mode",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/lib/python/opentoken-cli/src/main/opentoken_cli/main.py",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "lib/python/opentoken/src/main:lib/python/opentoken-cli/src/main"
-            },
-            "args": [
-                "tokenize",
-                "-i",
-                "resources/sample.${input:inputType}",
-                "-t",
-                "${input:inputType}",
-                "-o",
-                "output/hashed_tokens.zip",
-                "--receiver-public-key",
-                "output/receiver_public_key.pem",
-                "--sender-keypair-path",
-                "${env:HOME}/.opentoken/keypair.pem",
-                "--hash-only"
-            ]
+          "label": "Sender",
+          "value": "output/keys"
         }
-    ],
-    "inputs": [
-        {
-            "id": "keypairPath",
-            "type": "pickString",
-            "description": "Select keypair type",
-            "options": [
-                "~/.opentoken (Receiver)",
-                "output/keys (Sender)"
-            ],
-            "default": "output/keys (Sender)"
-        },
-        {
-            "id": "inputType",
-            "type": "pickString",
-            "description": "Select input type",
-            "options": [
-                "csv",
-                "parquet"
-            ],
-            "default": "csv"
-        },
-        {
-            "id": "outputType",
-            "type": "pickString",
-            "description": "Select output type",
-            "options": [
-                "csv",
-                "parquet"
-            ],
-            "default": "csv"
-        }
-    ]
+      ],
+      "default": "output/keys (Sender)"
+    },
+    {
+      "id": "inputType",
+      "type": "pickString",
+      "description": "Select input type",
+      "options": ["csv", "parquet"],
+      "default": "csv"
+    },
+    {
+      "id": "outputType",
+      "type": "pickString",
+      "description": "Select output type",
+      "options": ["csv", "parquet"],
+      "default": "csv"
+    }
+  ]
 }

@@ -19,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.tokens.Token;
+
 /**
  * Transforms the token using a cryptographic hash function with
  * a secret key.
@@ -90,6 +92,10 @@ public class HashTokenTransformer implements TokenTransformer {
         if (token == null || token.isBlank()) {
             logger.error("Invalid Argument. Token can't be Null.");
             throw new IllegalArgumentException("Invalid Argument. Token can't be Null.");
+        }
+
+        if (Token.BLANK.equals(token)) {
+            return Token.BLANK; // Return blank token as is
         }
 
         synchronized (this.mac) {
