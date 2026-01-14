@@ -146,6 +146,7 @@ public class Main {
 
         String ecdhCurveNormalized = KeyPairManager.normalizeCurveName(ecdhCurveInput);
         String ecdhCurveDisplay = displayCurveName(ecdhCurveNormalized, ecdhCurveInput);
+
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType;
         }
@@ -189,6 +190,7 @@ public class Main {
         String ecdhCurveInput = command.getEcdhCurve();
 
         String ecdhCurveNormalized = KeyPairManager.normalizeCurveName(ecdhCurveInput);
+
         if (outputType == null || outputType.isEmpty()) {
             outputType = inputType;
         }
