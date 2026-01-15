@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - main
-      - dev/mattwise-42/public-key-exchange
     paths:
       - "pages/**"
       - ".github/workflows/deploy-pages.yml"
