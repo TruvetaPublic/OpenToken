@@ -424,6 +424,7 @@ jobs:
           pip install -e lib/python/opentoken/
           pip install -r lib/python/opentoken-cli/requirements.txt
           pip install -e lib/python/opentoken-cli/
+          pip install pandas pyarrow
 
       - name: Run CLI smoke test (ECDH key exchange)
         run: |
@@ -431,10 +432,10 @@ jobs:
           mkdir -p target keys
 
           # Generate receiver keypair
-          opentoken generate-keypair --output-dir target/keys/receiver
+          opentoken generate-keypair --output-dir target/keys/receiver --ecdh-curve P-384
 
           # Generate sender keypair
-          opentoken generate-keypair --output-dir target/keys/sender
+          opentoken generate-keypair --output-dir target/keys/sender --ecdh-curve P-384
 
           # Tokenize with ECDH (sender creates encrypted tokens)
           opentoken tokenize \
