@@ -65,7 +65,7 @@ The public-key workflow uses **Elliptic Curve Diffie-Hellman (ECDH)** for secure
 
 ## CLI Quick Reference
 
-This section provides a quick overview of the CLI commands for the public key workflow. **Note:** CLI integration is currently in progress (Phases 3-5). The commands below show the planned interface.
+This section provides a quick overview of the CLI commands for the public key workflow.
 
 ### Receiver: Generate Key Pair
 
@@ -78,6 +78,8 @@ opentoken generate-keypair
 ```
 
 **Output:** Keys saved to `~/.opentoken/keypair.pem` (private) and `~/.opentoken/public_key.pem` (public)
+
+**Optional:** Use `--output-dir <dir>` to write keys somewhere other than `~/.opentoken/`.
 
 ### Sender: Generate Encrypted Tokens
 
@@ -131,6 +133,12 @@ opentoken decrypt \
 3. CLI performs ECDH key exchange (derives same keys as sender)
 4. CLI decrypts tokens
 5. CLI writes decrypted output
+
+#### Optional: Verify Decrypt vs Hash-only Parity
+
+To validate parity end-to-end, run a hash-only tokenization using the same sender keypair and receiver public key, then compare token values from the decrypted output to the hash-only output.
+
+- Expected result: for shared `(RecordId, RuleId)` pairs, `Token` should match between decrypted and hash-only outputs.
 
 ### Key CLI Arguments
 
@@ -346,7 +354,7 @@ The sender now runs OpenToken with the receiver's public key to generate encrypt
 4. Generate and encrypt tokens
 5. Package output as ZIP with sender's public key included
 
-#### Option A: Using CLI (Recommended - Planned Interface)
+#### Option A: Using CLI (Recommended)
 
 **Java CLI:**
 
@@ -355,7 +363,7 @@ cd lib/java
 mvn clean install
 
 # Run OpenToken with receiver's public key
-java -jar opentoken-cli/target/opentoken-cli-*.jar \
+java -jar opentoken-cli/target/opentoken-cli-*.jar tokenize \
   --receiver-public-key ~/opentoken_exchange/receiver_public_key.pem \
   -i ../../resources/sample.csv \
   -t csv \
@@ -532,7 +540,7 @@ zip -r tokens_output.zip tokens.csv tokens.metadata.json sender_public_key.pem
 
 1. **tokens.csv** (or tokens.parquet): Encrypted tokens
 2. **tokens.metadata.json**: Metadata including:
-   - Key exchange method (ECDH-P256)
+  - Key exchange method (ECDH-P-384 by default)
    - SHA-256 hash of sender's public key
    - SHA-256 hash of receiver's public key
    - Processing statistics
@@ -555,9 +563,9 @@ ls -la
 # Expected: tokens.csv, tokens.metadata.json, sender_public_key.pem
 ```
 
-#### Option A: Using CLI (Recommended - Planned Interface)
+#### Option A: Using CLI (Recommended)
 
-The CLI automatically extracts the sender's public key from the ZIP, performs ECDH, and decrypts the tokens.
+The CLI automatically extracts the sender's public key from the ZIP (if present), performs ECDH, and decrypts the tokens.
 
 **Java CLI:**
 
@@ -612,7 +620,7 @@ java -jar opentoken-cli/target/opentoken-cli-*.jar decrypt \
   -o ./decrypted_tokens.csv
 ```
 
-**Note:** CLI commands above show the planned interface. Current implementation status: **In Progress (Phase 5)**. The programmatic API (Option B below) is currently available.
+The CLI supports both tokenization and decryption using ECDH.
 
 #### Option B: Using Programmatic API (Currently Available)
 
@@ -809,10 +817,10 @@ Encryption Key (32 bytes)
 
 **Why separate keys?** Using different salts ensures the hashing key and encryption key are cryptographically independent, preventing key reuse attacks.
 
-### P-256 Curve
+### P-384 Curve
 
-**secp256r1 (P-256)** provides:
-- 128-bit security level (equivalent to AES-256)
+**secp384r1 (P-384)** provides:
+- ~192-bit security level (roughly comparable to AES-192)
 - NIST FIPS 186-4 standardization
 - Broad support in Java and Python crypto libraries
 - Fast computation on modern hardware
