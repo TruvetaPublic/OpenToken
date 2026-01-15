@@ -413,7 +413,6 @@ public class Main {
             String tempOutputPath = outputPath.endsWith(".zip")
                     ? outputPath.replace(".zip", "_temp." + outputType)
                     : outputPath + "_temp";
-            String metadataPath = null;
 
             try (PersonAttributesReader reader = createPersonAttributesReader(inputPath, inputType);
                     PersonAttributesWriter writer = createPersonAttributesWriter(tempOutputPath, outputType)) {
@@ -430,17 +429,13 @@ public class Main {
                 PersonAttributesProcessor.process(reader, writer, tokenTransformerList, metadataMap);
 
                 // Write metadata
-                int dotIndex = tempOutputPath.lastIndexOf('.');
-                String metadataBasePath = dotIndex > 0 ? tempOutputPath.substring(0, dotIndex) : tempOutputPath;
-                metadataPath = metadataBasePath + Metadata.METADATA_FILE_EXTENSION;
                 MetadataWriter metadataWriter = new MetadataJsonWriter(tempOutputPath);
                 metadataWriter.write(metadataMap);
             }
 
-            if (metadataPath == null) {
-                logger.error("Metadata path not initialized; skipping packaging");
-                return;
-            }
+            int dotIndex = tempOutputPath.lastIndexOf('.');
+            String metadataBasePath = dotIndex > 0 ? tempOutputPath.substring(0, dotIndex) : tempOutputPath;
+            String metadataPath = metadataBasePath + Metadata.METADATA_FILE_EXTENSION;
 
             if (OutputPackager.isZipFile(outputPath)) {
                 OutputPackager.packageOutput(tempOutputPath, metadataPath,
