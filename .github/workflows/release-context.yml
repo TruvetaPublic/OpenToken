@@ -29,10 +29,6 @@ on:
         description: "GitHub Release identifier when available"
         value: ${{ jobs.release-info.outputs.release-id }}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   release-info:
     runs-on: ubuntu-latest
