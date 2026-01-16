@@ -51,20 +51,20 @@ mkdir -p ./target/keys/sender
 cd C:\path\to\OpenToken
 
 mkdir .\target\keys\receiver -Force | Out-Null
-.\run-opentoken.ps1 generate-keypair --output-dir .\target\keys\receiver
+.\run-opentoken.ps1 -c generate-keypair -OutputDir .\target\keys\receiver
 
 mkdir .\target\keys\sender -Force | Out-Null
-.\run-opentoken.ps1 generate-keypair --output-dir .\target\keys\sender
+.\run-opentoken.ps1 -c generate-keypair -OutputDir .\target\keys\sender
 
-.\run-opentoken.ps1 tokenize `
-  -i .\resources\sample.csv -FileType csv -o .\target\output.zip `
-  --receiver-public-key .\target\keys\receiver\public_key.pem `
-  --sender-keypair-path .\target\keys\sender\keypair.pem `
+.\run-opentoken.ps1 -c tokenize `
+  -i .\resources\sample.csv -t csv -o .\target\output.zip `
+  -ReceiverPublicKey .\target\keys\receiver\public_key.pem `
+  -SenderKeypairPath .\target\keys\sender\keypair.pem
  
 
-.\run-opentoken.ps1 decrypt `
-  -i .\target\output.zip -FileType csv -o .\target\decrypted.csv `
-  --receiver-keypair-path .\target\keys\receiver\keypair.pem `
+.\run-opentoken.ps1 -c decrypt `
+  -i .\target\output.zip -t csv -o .\target\decrypted.csv `
+  -ReceiverKeypairPath .\target\keys\receiver\keypair.pem
  
 ```
 

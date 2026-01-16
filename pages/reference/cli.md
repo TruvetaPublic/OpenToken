@@ -218,13 +218,13 @@ Every run generates a `.metadata.json` file:
 ### PowerShell (run-opentoken.ps1)
 
 ```powershell
-.\run-opentoken.ps1 tokenize `
-  -i .\input.csv -FileType csv -o .\output.zip `
-  --receiver-public-key .\keys\receiver\public_key.pem `
-  [--sender-keypair-path .\keys\sender\keypair.pem] `
-  [--ecdh-curve P-384] `
-  [--hash-only] `
-  [-SkipBuild] [-Verbose]
+.\run-opentoken.ps1 -c tokenize `
+  -i .\input.csv -t csv -o .\output.zip `
+  -ReceiverPublicKey .\keys\receiver\public_key.pem `
+  [-SenderKeypairPath .\keys\sender\keypair.pem] `
+  [-EcdhCurve P-384] `
+  [-HashOnly] `
+  [-SkipBuild] [-VerboseOutput]
 ```
 
 ## Error Messages

@@ -305,7 +305,7 @@ You can build and run OpenToken via Docker using the convenience scripts:
 **PowerShell (Windows):**
 
 ```powershell
-.\run-opentoken.ps1 tokenize -i .\resources\sample.csv -o .\resources\output.zip -FileType csv `
+.\run-opentoken.ps1 -c tokenize -i .\resources\sample.csv -t csv -o .\resources\output.zip `
   -ReceiverPublicKey C:\path\to\receiver_public_key.pem
 ```
 

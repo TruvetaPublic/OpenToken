@@ -114,6 +114,17 @@ NOTES:
 EOF
 }
 
+# Allow invoking the script as: ./run-opentoken.sh <command> [OPTIONS]
+# e.g. ./run-opentoken.sh tokenize -i ... -o ... --receiver-public-key ...
+if [[ $# -gt 0 && "$1" != -* ]]; then
+    case "$1" in
+        tokenize|decrypt|generate-keypair)
+            COMMAND="$1"
+            shift
+            ;;
+    esac
+fi
+
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -349,29 +360,46 @@ fi
 
 log_info "Running OpenToken..."
 
-declare -A dir_to_mount
+# Use parallel arrays instead of associative array for bash 3.2 compatibility
+mount_dirs=()
+mount_points=()
 volume_args=()
 mount_index=0
 
 ensure_mount_for_dir() {
     local dir="$1"
+    local out_var="$2"
     if [[ -z "$dir" ]]; then
-        echo ""
+        printf -v "$out_var" '%s' ""
         return
     fi
-    if [[ -z "${dir_to_mount[$dir]+x}" ]]; then
-        local mount="/data/m${mount_index}"
-        dir_to_mount[$dir]="$mount"
-        volume_args+=("-v" "$dir:$mount")
+
+    # Check if directory is already mounted
+    local mount_point=""
+    local i
+    for i in "${!mount_dirs[@]}"; do
+        if [[ "${mount_dirs[$i]}" == "$dir" ]]; then
+            mount_point="${mount_points[$i]}"
+            break
+        fi
+    done
+
+    if [[ -z "$mount_point" ]]; then
+        mount_point="/data/m${mount_index}"
+        mount_dirs+=("$dir")
+        mount_points+=("$mount_point")
+        volume_args+=("-v" "$dir:$mount_point")
         mount_index=$((mount_index + 1))
     fi
-    echo "${dir_to_mount[$dir]}"
+
+    printf -v "$out_var" '%s' "$mount_point"
 }
 
 container_path_for_file() {
     local file="$1"
+    local out_var="$2"
     if [[ -z "$file" ]]; then
-        echo ""
+        printf -v "$out_var" '%s' ""
         return
     fi
     local dir
@@ -379,26 +407,29 @@ container_path_for_file() {
     local base
     base=$(basename "$file")
     local mount
-    mount=$(ensure_mount_for_dir "$dir")
-    echo "$mount/$base"
+    ensure_mount_for_dir "$dir" mount
+    printf -v "$out_var" '%s' "$mount/$base"
 }
 
 container_path_for_dir() {
     local dir="$1"
+    local out_var="$2"
     if [[ -z "$dir" ]]; then
-        echo ""
+        printf -v "$out_var" '%s' ""
         return
     fi
-    ensure_mount_for_dir "$dir"
+    local mount
+    ensure_mount_for_dir "$dir" mount
+    printf -v "$out_var" '%s' "$mount"
 }
 
-input_container=$(container_path_for_file "$INPUT_FILE")
-output_container=$(container_path_for_file "$OUTPUT_FILE")
-receiver_pub_container=$(container_path_for_file "$RECEIVER_PUBLIC_KEY")
-sender_keypair_container=$(container_path_for_file "$SENDER_KEYPAIR_PATH")
-sender_pub_container=$(container_path_for_file "$SENDER_PUBLIC_KEY")
-receiver_keypair_container=$(container_path_for_file "$RECEIVER_KEYPAIR_PATH")
-keypair_outdir_container=$(container_path_for_dir "$KEYPAIR_OUTPUT_DIR")
+container_path_for_file "$INPUT_FILE" input_container
+container_path_for_file "$OUTPUT_FILE" output_container
+container_path_for_file "$RECEIVER_PUBLIC_KEY" receiver_pub_container
+container_path_for_file "$SENDER_KEYPAIR_PATH" sender_keypair_container
+container_path_for_file "$SENDER_PUBLIC_KEY" sender_pub_container
+container_path_for_file "$RECEIVER_KEYPAIR_PATH" receiver_keypair_container
+container_path_for_dir "$KEYPAIR_OUTPUT_DIR" keypair_outdir_container
 
 docker_args=("$COMMAND")
 
@@ -443,15 +474,195 @@ if [[ $VERBOSE == true ]]; then
     log_info "Docker command: $DOCKER_IMAGE ${docker_args[*]}"
 fi
 
-docker run --rm \
-    "${volume_args[@]}" \
-    "$DOCKER_IMAGE" \
-    "${docker_args[@]}"
+docker_user_args=()
+if [[ "${OPENTOKEN_DOCKER_RUN_AS_ROOT:-}" == "1" ]]; then
+    docker_user_args=("--user" "0:0")
+else
+    docker_user_args=("--user" "$(id -u):$(id -g)")
+fi
+docker_env_args=("-e" "HOME=/tmp")
 
-if [[ $? -eq 0 ]]; then
+if [[ $VERBOSE == true ]]; then
+    log_info "Docker user: ${docker_user_args[*]}"
+    log_info "Docker env: ${docker_env_args[*]}"
+fi
+
+verify_bind_mounts() {
+    local check_cmd="true"
+
+    # Files that must be visible inside the container.
+    [[ -n "$input_container" ]] && check_cmd+=" && test -f '$input_container'"
+    [[ "$COMMAND" == "tokenize" && -n "$receiver_pub_container" ]] && check_cmd+=" && test -f '$receiver_pub_container'"
+    [[ "$COMMAND" == "tokenize" && -n "$sender_keypair_container" ]] && check_cmd+=" && test -f '$sender_keypair_container'"
+    [[ "$COMMAND" == "decrypt" && -n "$sender_pub_container" ]] && check_cmd+=" && test -f '$sender_pub_container'"
+    [[ "$COMMAND" == "decrypt" && -n "$receiver_keypair_container" ]] && check_cmd+=" && test -f '$receiver_keypair_container'"
+
+    # We keep this intentionally simple: if bind mounts don't work, we fall back to docker cp.
+    set +e
+    docker run --rm \
+        "${docker_user_args[@]}" \
+        "${docker_env_args[@]}" \
+        "${volume_args[@]}" \
+        --entrypoint sh \
+        "$DOCKER_IMAGE" \
+        -c "$check_cmd" >/dev/null 2>&1
+    local status=$?
+    set -e
+    return $status
+}
+
+run_with_bind_mounts() {
+    set +e
+    docker run --rm \
+        "${docker_user_args[@]}" \
+        "${docker_env_args[@]}" \
+        "${volume_args[@]}" \
+        "$DOCKER_IMAGE" \
+        "${docker_args[@]}"
+    local status=$?
+    set -e
+    return $status
+}
+
+run_with_docker_cp() {
+    local workdir="/tmp/opentoken-work"
+    local container_id
+    container_id=$(docker create \
+        "${docker_user_args[@]}" \
+        "${docker_env_args[@]}" \
+        --entrypoint sh \
+        "$DOCKER_IMAGE" \
+        -c "tail -f /dev/null")
+
+    cleanup_container() {
+        docker rm -f "$container_id" >/dev/null 2>&1 || true
+    }
+    local previous_exit_trap
+    previous_exit_trap=$(trap -p EXIT)
+    trap cleanup_container EXIT
+
+    docker start "$container_id" >/dev/null
+    docker exec "$container_id" sh -c "mkdir -p '$workdir'"
+
+    local input_in_container=""
+    local output_in_container=""
+    local receiver_pub_in_container=""
+    local sender_keypair_in_container=""
+    local sender_pub_in_container=""
+    local receiver_keypair_in_container=""
+    local keypair_outdir_in_container=""
+
+    if [[ -n "$INPUT_FILE" ]]; then
+        input_in_container="$workdir/$(basename "$INPUT_FILE")"
+        docker cp "$INPUT_FILE" "$container_id:$input_in_container"
+    fi
+    if [[ -n "$OUTPUT_FILE" ]]; then
+        output_in_container="$workdir/$(basename "$OUTPUT_FILE")"
+    fi
+    if [[ -n "$RECEIVER_PUBLIC_KEY" ]]; then
+        receiver_pub_in_container="$workdir/$(basename "$RECEIVER_PUBLIC_KEY")"
+        docker cp "$RECEIVER_PUBLIC_KEY" "$container_id:$receiver_pub_in_container"
+    fi
+    if [[ -n "$SENDER_KEYPAIR_PATH" ]]; then
+        sender_keypair_in_container="$workdir/$(basename "$SENDER_KEYPAIR_PATH")"
+        docker cp "$SENDER_KEYPAIR_PATH" "$container_id:$sender_keypair_in_container"
+    fi
+    if [[ -n "$SENDER_PUBLIC_KEY" ]]; then
+        sender_pub_in_container="$workdir/$(basename "$SENDER_PUBLIC_KEY")"
+        docker cp "$SENDER_PUBLIC_KEY" "$container_id:$sender_pub_in_container"
+    fi
+    if [[ -n "$RECEIVER_KEYPAIR_PATH" ]]; then
+        receiver_keypair_in_container="$workdir/$(basename "$RECEIVER_KEYPAIR_PATH")"
+        docker cp "$RECEIVER_KEYPAIR_PATH" "$container_id:$receiver_keypair_in_container"
+    fi
+    if [[ -n "$KEYPAIR_OUTPUT_DIR" ]]; then
+        keypair_outdir_in_container="$workdir/keys"
+        docker exec "$container_id" sh -c "mkdir -p '$keypair_outdir_in_container'"
+    fi
+
+    # Rebuild the command to point at in-container paths.
+    local cp_args=("$COMMAND")
+    case "$COMMAND" in
+        tokenize)
+            cp_args+=("-i" "$input_in_container" "-t" "$FILE_TYPE" "-o" "$output_in_container")
+            [[ -n "$OUTPUT_TYPE" ]] && cp_args+=("-ot" "$OUTPUT_TYPE")
+            cp_args+=("--receiver-public-key" "$receiver_pub_in_container")
+            [[ -n "$SENDER_KEYPAIR_PATH" ]] && cp_args+=("--sender-keypair-path" "$sender_keypair_in_container")
+            [[ "$HASH_ONLY" == true ]] && cp_args+=("--hash-only")
+            cp_args+=("--ecdh-curve" "$ECDH_CURVE")
+            ;;
+        decrypt)
+            cp_args+=("-i" "$input_in_container" "-t" "$FILE_TYPE" "-o" "$output_in_container")
+            [[ -n "$OUTPUT_TYPE" ]] && cp_args+=("-ot" "$OUTPUT_TYPE")
+            [[ -n "$SENDER_PUBLIC_KEY" ]] && cp_args+=("--sender-public-key" "$sender_pub_in_container")
+            [[ -n "$RECEIVER_KEYPAIR_PATH" ]] && cp_args+=("--receiver-keypair-path" "$receiver_keypair_in_container")
+            cp_args+=("--ecdh-curve" "$ECDH_CURVE")
+            ;;
+        generate-keypair)
+            if [[ -n "$KEYPAIR_OUTPUT_DIR" ]]; then
+                cp_args+=("--output-dir" "$keypair_outdir_in_container")
+            else
+                log_error "When bind-mounts are unavailable, generate-keypair requires --output-dir to copy keys back to the host."
+                return 2
+            fi
+            cp_args+=("--ecdh-curve" "$ECDH_CURVE")
+            ;;
+    esac
+
+    if [[ $VERBOSE == true ]]; then
+        log_warning "Bind mounts are not readable from the Docker daemon; falling back to docker cp workflow."
+        log_info "Container workdir: $workdir"
+    fi
+
+    set +e
+    docker exec "$container_id" java -jar /usr/local/lib/opentoken.jar "${cp_args[@]}"
+    local status=$?
+    set -e
+
+    if [[ $status -ne 0 ]]; then
+        return $status
+    fi
+
+    # Copy outputs back to the host.
+    if [[ -n "$OUTPUT_FILE" ]]; then
+        mkdir -p "$(dirname "$OUTPUT_FILE")"
+        if docker exec "$container_id" sh -c "test -f '$output_in_container'" >/dev/null 2>&1; then
+            docker cp "$container_id:$output_in_container" "$OUTPUT_FILE"
+        else
+            log_error "Expected output was not created in container: $output_in_container"
+            return 3
+        fi
+    fi
+    if [[ "$COMMAND" == "generate-keypair" && -n "$KEYPAIR_OUTPUT_DIR" ]]; then
+        mkdir -p "$KEYPAIR_OUTPUT_DIR"
+        docker cp "$container_id:$keypair_outdir_in_container/." "$KEYPAIR_OUTPUT_DIR"
+    fi
+
+    cleanup_container
+    if [[ -n "$previous_exit_trap" ]]; then
+        eval "$previous_exit_trap"
+    else
+        trap - EXIT
+    fi
+
+    return 0
+}
+
+docker_status=0
+
+if verify_bind_mounts; then
+    run_with_bind_mounts
+    docker_status=$?
+else
+    run_with_docker_cp
+    docker_status=$?
+fi
+
+if [[ $docker_status -eq 0 ]]; then
     log_success "OpenToken completed successfully!"
     [[ -n "$OUTPUT_FILE" ]] && log_success "Output: $OUTPUT_FILE"
+    exit 0
 else
-    log_error "OpenToken execution failed"
-    exit 1
+    log_error "OpenToken execution failed (exit code: $docker_status)"
+    exit "$docker_status"
 fi

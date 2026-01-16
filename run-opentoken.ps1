@@ -2,66 +2,232 @@
 # Convenience script to build and run OpenToken via Docker
 # Automatically handles Docker image building and container execution
 
-[CmdletBinding()]
+# Disable PowerShell's implicit positional binding (except where explicitly enabled)
+# so arguments like "--receiver-public-key" are not accidentally treated as values for
+# ValidateSet parameters like OutputType.
+[CmdletBinding(PositionalBinding = $false)]
 param(
-    [Parameter(Mandatory=$false, HelpMessage="Command to run: tokenize, decrypt, or generate-keypair")]
+    [Parameter(Mandatory = $false, Position = 0, HelpMessage = "Command to run: tokenize, decrypt, or generate-keypair")]
     [ValidateSet("tokenize", "decrypt", "generate-keypair")]
     [Alias("c")]
     [string]$Command = "tokenize",
 
-    [Parameter(Mandatory=$false, HelpMessage="Input file path (absolute or relative)")]
-    [Alias("i")]
+    [Parameter(Mandatory = $false, HelpMessage = "Input file path (absolute or relative)")]
+    [Alias("i", "input")]
     [string]$InputFile,
 
-    [Parameter(Mandatory=$false, HelpMessage="Output file path (absolute or relative)")]
-    [Alias("o")]
+    [Parameter(Mandatory = $false, HelpMessage = "Output file path (absolute or relative)")]
+    [Alias("o", "output")]
     [string]$OutputFile,
 
-    [Parameter(Mandatory=$false, HelpMessage="File type: csv or parquet (default: csv)")]
-    [Alias("t")]
+    [Parameter(Mandatory = $false, HelpMessage = "File type: csv or parquet (default: csv)")]
+    [Alias("t", "type")]
     [ValidateSet("csv", "parquet")]
     [string]$FileType = "csv",
 
-    [Parameter(Mandatory=$false, HelpMessage="Output type if different from input: csv or parquet")]
-    [Alias("ot")]
+    [Parameter(Mandatory = $false, HelpMessage = "Output type if different from input: csv or parquet")]
+    [Alias("ot", "output-type")]
     [ValidateSet("csv", "parquet")]
     [string]$OutputType,
 
-    [Parameter(Mandatory=$false, HelpMessage="Path to receiver public key PEM (tokenize)")]
+    [Parameter(Mandatory = $false, HelpMessage = "Path to receiver public key PEM (tokenize)")]
+    [Alias("receiver-public-key")]
     [string]$ReceiverPublicKey,
 
-    [Parameter(Mandatory=$false, HelpMessage="Path to sender keypair PEM (tokenize)")]
+    [Parameter(Mandatory = $false, HelpMessage = "Path to sender keypair PEM (tokenize)")]
+    [Alias("sender-keypair-path")]
     [string]$SenderKeypairPath,
 
-    [Parameter(Mandatory=$false, HelpMessage="Path to receiver keypair PEM (decrypt)")]
+    [Parameter(Mandatory = $false, HelpMessage = "Path to receiver keypair PEM (decrypt)")]
+    [Alias("receiver-keypair-path")]
     [string]$ReceiverKeypairPath,
 
-    [Parameter(Mandatory=$false, HelpMessage="Path to sender public key PEM (decrypt; optional if input is .zip)")]
+    [Parameter(Mandatory = $false, HelpMessage = "Path to sender public key PEM (decrypt; optional if input is .zip)")]
+    [Alias("sender-public-key")]
     [string]$SenderPublicKey,
 
-    [Parameter(Mandatory=$false, HelpMessage="Hash-only mode (tokenize): derive hashing key but do not encrypt")]
+    [Parameter(Mandatory = $false, HelpMessage = "Hash-only mode (tokenize): derive hashing key but do not encrypt")]
+    [Alias("hash-only")]
     [switch]$HashOnly,
 
-    [Parameter(Mandatory=$false, HelpMessage="Elliptic curve name for ECDH (default: P-384)")]
+    [Parameter(Mandatory = $false, HelpMessage = "Elliptic curve name for ECDH (default: P-384)")]
+    [Alias("ecdh-curve")]
     [string]$EcdhCurve = "P-384",
 
-    [Parameter(Mandatory=$false, HelpMessage="Output directory for generate-keypair")]
+    [Parameter(Mandatory = $false, HelpMessage = "Output directory for generate-keypair")]
+    [Alias("output-dir")]
     [string]$OutputDir,
 
-    [Parameter(Mandatory=$false, HelpMessage="Docker image name (default: opentoken:latest)")]
+    [Parameter(Mandatory = $false, HelpMessage = "Docker image name (default: opentoken:latest)")]
+    [Alias("image")]
     [string]$DockerImage = "opentoken:latest",
 
-    [Parameter(Mandatory=$false, HelpMessage="Skip Docker image build (use existing image)")]
-    [Alias("s")]
+    [Parameter(Mandatory = $false, HelpMessage = "Skip Docker image build (use existing image)")]
+    [Alias("s", "skip-build")]
     [switch]$SkipBuild,
 
-    [Parameter(Mandatory=$false, HelpMessage="Enable verbose output")]
-    [Alias("v")]
+    [Parameter(Mandatory = $false, HelpMessage = "Enable verbose output")]
+    [Alias("v", "verbose-output")]
     [switch]$VerboseOutput,
 
-    [Parameter(Mandatory=$false, HelpMessage="Show help message")]
-    [switch]$Help
+    [Parameter(Mandatory = $false, HelpMessage = "Show help message")]
+    [switch]$Help,
+
+    # Allow GNU-style args (e.g. --receiver-public-key) to be passed to this script.
+    # PowerShell does not bind "--foo" to parameters by default for scripts, so we
+    # capture and parse them manually.
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$CliArgs
 )
+
+# Capture parameters explicitly bound by PowerShell so we can decide whether
+# GNU-style args should override defaults.
+$script:BoundParameters = $PSBoundParameters
+
+function Apply-CliArgsIfProvided {
+    param([string[]]$CliArgsToParse)
+
+    if (-not $CliArgsToParse -or $CliArgsToParse.Count -eq 0) {
+        return @{}
+    }
+
+    $parsed = @{}
+
+    for ($j = 0; $j -lt $CliArgsToParse.Count; $j++) {
+        $rawArg = $CliArgsToParse[$j]
+        $arg = $rawArg
+        $inlineValue = $null
+
+        if ($rawArg -match '^(--[^=]+)=(.*)$') {
+            $arg = $matches[1]
+            $inlineValue = $matches[2]
+        }
+
+        switch ($arg) {
+            "--help" {
+                $parsed["Help"] = $true
+            }
+
+            "--input" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --input" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["InputFile"] = $val
+            }
+            "--output" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --output" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["OutputFile"] = $val
+            }
+            "--type" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --type" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["FileType"] = $val
+            }
+            "--output-type" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --output-type" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["OutputType"] = $val
+            }
+
+            "--receiver-public-key" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --receiver-public-key" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["ReceiverPublicKey"] = $val
+            }
+            "--sender-keypair-path" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --sender-keypair-path" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["SenderKeypairPath"] = $val
+            }
+            "--receiver-keypair-path" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --receiver-keypair-path" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["ReceiverKeypairPath"] = $val
+            }
+            "--sender-public-key" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --sender-public-key" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["SenderPublicKey"] = $val
+            }
+
+            "--hash-only" {
+                $parsed["HashOnly"] = $true
+            }
+            "--ecdh-curve" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --ecdh-curve" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["EcdhCurve"] = $val
+            }
+            "--output-dir" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --output-dir" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["OutputDir"] = $val
+            }
+
+            "--skip-build" {
+                $parsed["SkipBuild"] = $true
+            }
+            "--verbose-output" {
+                $parsed["VerboseOutput"] = $true
+            }
+            "--image" {
+                $val = $inlineValue
+                if ($null -eq $val) {
+                    if ($j + 1 -ge $CliArgsToParse.Count) { throw "Missing value for --image" }
+                    $j++
+                    $val = $CliArgsToParse[$j]
+                }
+                $parsed["DockerImage"] = $val
+            }
+
+            default {
+                throw "Unknown option: $arg"
+            }
+        }
+    }
+
+    return $parsed
+}
 
 # Function to write script output in a consistent format
 function Write-Info {
@@ -108,7 +274,7 @@ OPTIONAL PARAMETERS:
     -FileType, -t <type>        File type: csv or parquet (default: csv)
     -SkipBuild, -s              Skip Docker image build (use existing image)
     -DockerImage <name>         Docker image name (default: opentoken:latest)
-    -Verbose, -v                Enable verbose output
+    -VerboseOutput, -v          Enable verbose output
     -Help                       Show this help message
 
 EXAMPLES:
@@ -126,13 +292,18 @@ EXAMPLES:
         -ReceiverKeypairPath .\keys\receiver\keypair.pem
 
     # With parquet files
-    .\run-opentoken.ps1 -i .\data\input.parquet -t parquet -o .\data\output.parquet -h "secret" -e "key123"
+    .\run-opentoken.ps1 -c tokenize -i .\data\input.parquet -t parquet -o .\data\output.parquet \
+        -ReceiverPublicKey .\keys\receiver\public_key.pem
 
     # Skip Docker build if image already exists
-    .\run-opentoken.ps1 -i .\input.csv -o .\output.csv -h "secret" -e "key" -SkipBuild
+    .\run-opentoken.ps1 -c tokenize -i .\input.csv -t csv -o .\output.zip \
+        -ReceiverPublicKey .\keys\receiver\public_key.pem \
+        -SkipBuild
 
     # Verbose mode for troubleshooting
-    .\run-opentoken.ps1 -i .\input.csv -o .\output.csv -h "secret" -e "key" -Verbose
+    .\run-opentoken.ps1 -c tokenize -i .\input.csv -t csv -o .\output.zip \
+        -ReceiverPublicKey .\keys\receiver\public_key.pem \
+        -VerboseOutput
 
 NOTES:
     - This script must be run from the OpenToken repository root directory
@@ -142,6 +313,39 @@ NOTES:
 
 "@
     Write-Host $usage
+}
+
+try {
+    $cliParsed = Apply-CliArgsIfProvided -CliArgsToParse $CliArgs
+}
+catch {
+    Write-Info $_.Exception.Message
+    Write-Host ""
+    Show-Usage
+    exit 1
+}
+
+if ($cliParsed -and $cliParsed.Count -gt 0) {
+    foreach ($k in $cliParsed.Keys) {
+        if (-not $PSBoundParameters.ContainsKey($k)) {
+            Set-Variable -Name $k -Value $cliParsed[$k]
+        }
+    }
+}
+
+if ($VerboseOutput) {
+    $boundKeys = @()
+    if ($script:BoundParameters) {
+        $boundKeys = $script:BoundParameters.Keys
+    }
+    Write-Info "Bound parameters: $($boundKeys -join ', ')"
+    Write-Info "Remaining args: $($CliArgs -join ' ')"
+    if ($cliParsed) {
+        Write-Info "Parsed from remaining args: $($cliParsed.Keys -join ', ')"
+        Write-Info "Parsed object type: $($cliParsed.GetType().FullName) Count=$($cliParsed.Count)"
+    }
+    Write-Info "Parsed Command=$Command InputFile=$InputFile OutputFile=$OutputFile FileType=$FileType OutputType=$OutputType"
+    Write-Info "Parsed ReceiverPublicKey=$ReceiverPublicKey SenderKeypairPath=$SenderKeypairPath"
 }
 
 # Show help if requested
@@ -201,6 +405,19 @@ catch {
 function Get-FullPathIfProvided {
     param([string]$Path)
     if (-not $Path) { return $null }
+
+    # PowerShell does not reliably expand '~' when it's passed as a parameter value
+    # and later treated as a plain string. Expand it here so paths like
+    # ~/.opentoken/public_key.pem work.
+    if ($Path -eq "~") {
+        $Path = [Environment]::GetFolderPath("UserProfile")
+    }
+    elseif ($Path.StartsWith("~/") -or $Path.StartsWith("~\\")) {
+        $homeDir = [Environment]::GetFolderPath("UserProfile")
+        $suffix = $Path.Substring(2)
+        $Path = Join-Path $homeDir $suffix
+    }
+
     if ([System.IO.Path]::IsPathRooted($Path)) {
         return [System.IO.Path]::GetFullPath($Path)
     }
@@ -306,24 +523,28 @@ if (-not $SkipBuild) {
         if ($VerboseOutput) {
             Write-Info "Use -SkipBuild to suppress this check"
         }
-    } else {
+    }
+    else {
         Write-Info "Building Docker image: $DockerImage"
         Write-Info "This may take a few minutes on first run..."
 
         if ($VerboseOutput) {
             docker build -t $DockerImage .
-        } else {
+        }
+        else {
             docker build -t $DockerImage . 2>&1 | Out-Null
         }
 
         if ($LASTEXITCODE -eq 0) {
             Write-Info "Docker image built successfully"
-        } else {
+        }
+        else {
             Write-Info "Failed to build Docker image"
             exit 1
         }
     }
-} else {
+}
+else {
     Write-Info "Skipping Docker build (using existing image)"
     
     # Check if image exists
@@ -386,7 +607,8 @@ docker run --rm @volumeArgs $DockerImage @dockerArgs
 if ($LASTEXITCODE -eq 0) {
     Write-Info "OpenToken completed successfully!"
     if ($OutputFile) { Write-Info "Output: $OutputFile" }
-} else {
+}
+else {
     Write-Info "OpenToken execution failed"
     exit 1
 }

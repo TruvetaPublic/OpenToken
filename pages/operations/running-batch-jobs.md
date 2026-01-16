@@ -83,21 +83,21 @@ cd /path/to/OpenToken
 cd C:\path\to\OpenToken
 
 .\run-opentoken.ps1 `
-  tokenize `
+  -c tokenize `
   -i .\resources\sample.csv `
   -o .\resources\output.csv `
-  -FileType csv `
-  --receiver-public-key .\resources\keys\receiver\public_key.pem `
-  --sender-keypair-path .\resources\keys\sender\keypair.pem
+  -t csv `
+  -ReceiverPublicKey .\resources\keys\receiver\public_key.pem `
+  -SenderKeypairPath .\resources\keys\sender\keypair.pem
 ```
 
 ### Script Options
 
-| Option       | Bash | PowerShell   | Description          |
-| ------------ | ---- | ------------ | -------------------- |
-| File type    | `-t` | `-FileType`  | `csv` or `parquet`   |
-| Skip rebuild | `-s` | `-SkipBuild` | Reuse existing image |
-| Verbose      | `-v` | `-Verbose`   | Show detailed output |
+| Option       | Bash | PowerShell       | Description          |
+| ------------ | ---- | ---------------- | -------------------- |
+| File type    | `-t` | `-t`             | `csv` or `parquet`   |
+| Skip rebuild | `-s` | `-SkipBuild`     | Reuse existing image |
+| Verbose      | `-v` | `-VerboseOutput` | Show detailed output |
 
 ### Manual Docker Commands
 
