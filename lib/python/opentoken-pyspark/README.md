@@ -181,6 +181,67 @@ tokens_df = processor.process_dataframe(df)
 tokens_df.write.mode("overwrite").saveAsTable("my_database.person_tokens")
 ```
 
+### ECDH Key Exchange (Production-Recommended)
+
+For enhanced security, use ECDH (Elliptic Curve Diffie-Hellman) key exchange instead of shared secrets. This approach:
+- **Eliminates shared secrets** - No sensitive keys need to be transmitted or stored together
+- **Supports key rotation** - Each party can independently generate new keypairs
+- **Industry standard** - Same approach used by TLS/SSL and Signal Protocol
+
+#### Setup (One-time, Offline)
+
+```python
+from opentoken_pyspark import KeyPairManager
+
+# Receiver generates keypair (once)
+receiver_mgr = KeyPairManager(key_directory="./receiver_keys", curve_name="P-384")
+receiver_mgr.generate_and_save_key_pair()
+
+# Sender generates keypair (once)
+sender_mgr = KeyPairManager(key_directory="./sender_keys", curve_name="P-384")
+sender_mgr.generate_and_save_key_pair()
+
+# Share receiver's public key with sender (over secure channel)
+# Keep private keys secure!
+```
+
+#### Token Generation (Sender Side)
+
+```python
+from opentoken_pyspark import OpenTokenProcessor
+
+# Create processor using ECDH (keys are automatically derived)
+processor = OpenTokenProcessor.from_ecdh(
+    receiver_public_key_path="./receiver_keys/public_key.pem",
+    sender_keypair_path="./sender_keys/keypair.pem",
+    ecdh_curve="P-384"  # P-256, P-384, P-521 also supported
+)
+
+# Generate tokens (same as before)
+tokens_df = processor.process_dataframe(df)
+```
+
+#### Databricks with ECDH
+
+```python
+from opentoken_pyspark import OpenTokenProcessor
+
+# Retrieve key paths from secure storage
+receiver_pub_key = dbutils.secrets.get("opentoken", "receiver_public_key_path")
+sender_keypair = dbutils.secrets.get("opentoken", "sender_keypair_path")
+
+# Create processor with ECDH
+processor = OpenTokenProcessor.from_ecdh(
+    receiver_public_key_path=receiver_pub_key,
+    sender_keypair_path=sender_keypair,
+    ecdh_curve="P-384"
+)
+
+# Generate tokens
+tokens_df = processor.process_dataframe(df)
+tokens_df.write.mode("overwrite").saveAsTable("my_database.person_tokens")
+```
+
 ## Input DataFrame Requirements
 
 Your input DataFrame must contain the following columns (alternative names are supported):
