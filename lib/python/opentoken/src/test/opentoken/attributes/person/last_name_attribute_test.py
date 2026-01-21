@@ -456,4 +456,3 @@ class TestLastNameAttribute:
             "Validation should be idempotent: validate('A.I.') == validate('AI')"
         assert valid2, "A.I. should be valid (normalizes to 2 vowels)"
         
-        # Two
