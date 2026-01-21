@@ -68,6 +68,32 @@ public class FirstNameAttribute extends BaseAttribute {
     }
 
     @Override
+    public boolean validate(String value) {
+        if (value == null) {
+            return false;
+        }
+
+        // First, check placeholder values on the ORIGINAL value
+        // This ensures "N/A", "<masked>", etc. are properly rejected
+        NotInValidator placeholderValidator = new NotInValidator(
+                AttributeUtilities.COMMON_PLACEHOLDER_NAMES);
+        if (!placeholderValidator.eval(value)) {
+            return false;
+        }
+
+        // Normalize the value for validation
+        // This ensures that validate(normalize(x)) == validate(normalize(normalize(x)))
+        String normalizedValue = normalize(value);
+
+        // Check that normalized value is not empty
+        if (normalizedValue == null || normalizedValue.trim().isEmpty()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
     public String getName() {
         return NAME;
     }

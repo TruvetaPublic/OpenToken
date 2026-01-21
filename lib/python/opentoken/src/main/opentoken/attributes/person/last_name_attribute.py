@@ -75,15 +75,23 @@ class LastNameAttribute(BaseAttribute):
         if value is None:
             return False
 
-        # Trim the value to check its actual content
-        trimmed_value = value.strip()
-
-        # Reject single letters (even if surrounded by whitespace)
-        if len(trimmed_value) == 1:
+        # First, check placeholder values on the ORIGINAL value
+        # This ensures "N/A", "<masked>", etc. are properly rejected
+        placeholder_validator = NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES)
+        if not placeholder_validator.eval(value):
             return False
 
-        # Continue with the regular validation
-        return super().validate(value)
+        # Normalize the value for pattern matching
+        # This ensures that validate(normalize(x)) == validate(normalize(normalize(x)))
+        normalized_value = self.normalize(value)
+
+        # Reject single letters after normalization
+        if len(normalized_value) == 1:
+            return False
+
+        # Validate the normalized value against the regex pattern
+        regex_validator = RegexValidator(self.LAST_NAME_REGEX)
+        return regex_validator.eval(normalized_value)
 
     def get_name(self) -> str:
         """

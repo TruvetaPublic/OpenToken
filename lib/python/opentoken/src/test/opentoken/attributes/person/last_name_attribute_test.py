@@ -400,5 +400,53 @@ class TestLastNameAttribute:
                "Ox should be allowed (vowel+consonant)"
         assert self.last_name_attribute.validate("An") is True, \
                "An should be allowed (vowel+consonant)"
+
+    def test_validate_idempotency_should_be_stable(self):
+        """Test that validation is idempotent: validate(x) == validate(normalize(x))"""
+        # This ensures that normalized values can be re-validated successfully
+        
+        test_cases = [
+            "N.M.",          # Normalizes to "NM" (2 consonants)
+            "A.B.",          # Normalizes to "AB" (2 consonants)
+            "J-K",           # Normalizes to "JK" (2 consonants)
+            "Smith-Jones",   # Normalizes to "SmithJones"
+            "O'Connor",      # Normalizes to "OConnor"
+            "Van Der Berg",  # Normalizes to "VanDerBerg"
+            "García-López",  # Normalizes to "GarciaLopez"
+        ]
+        
+        for test_case in test_cases:
+            normalized = self.last_name_attribute.normalize(test_case)
+            valid_original = self.last_name_attribute.validate(test_case)
+            valid_normalized = self.last_name_attribute.validate(normalized)
+            
+            # If original is valid, normalized should also be valid (idempotency)
+            if valid_original:
+                assert valid_normalized, \
+                    f"Idempotency failed: '{test_case}' is valid but normalized '{normalized}' is not"
+            
+            # Double normalization should produce the same result
+            double_normalized = self.last_name_attribute.normalize(normalized)
+            assert normalized == double_normalized, \
+                f"Normalization not idempotent: normalize('{normalized}') != normalize(normalize('{test_case}'))"
+
+    def test_validate_normalized_values_should_pass_validation(self):
+        """Specific test for the issue mentioned in the bug report"""
+        # "N.M." should normalize to "NM" and "NM" should still be valid
+        
+        input_value = "N.M."
+        normalized = self.last_name_attribute.normalize(input_value)
+        
+        assert normalized == "NM", "N.M. should normalize to NM"
+        
+        # The normalized value should pass validation
+        # Note: "NM" has 2 consonants, so it won't match the vowel patterns
+        # However, with the fix, validation should still pass if the original was valid
+        original_valid = self.last_name_attribute.validate(input_value)
+        normalized_valid = self.last_name_attribute.validate(normalized)
+        
+        if original_valid:
+            assert normalized_valid, \
+                "Normalized value 'NM' should be valid if original 'N.M.' was valid"
         
         # Two

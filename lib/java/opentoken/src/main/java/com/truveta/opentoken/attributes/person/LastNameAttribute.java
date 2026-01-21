@@ -69,16 +69,26 @@ public class LastNameAttribute extends BaseAttribute {
             return false;
         }
 
-        // Trim the value to check its actual content
-        String trimmedValue = value.trim();
-
-        // Reject single letters (even if surrounded by whitespace)
-        if (trimmedValue.length() == 1) {
+        // First, check placeholder values on the ORIGINAL value
+        // This ensures "N/A", "<masked>", etc. are properly rejected
+        NotInValidator placeholderValidator = new NotInValidator(
+                AttributeUtilities.COMMON_PLACEHOLDER_NAMES);
+        if (!placeholderValidator.eval(value)) {
             return false;
         }
 
-        // Continue with the regular validation
-        return super.validate(value);
+        // Normalize the value for pattern matching
+        // This ensures that validate(normalize(x)) == validate(normalize(normalize(x)))
+        String normalizedValue = normalize(value);
+
+        // Reject single letters after normalization
+        if (normalizedValue.length() == 1) {
+            return false;
+        }
+
+        // Validate the normalized value against the regex pattern
+        RegexValidator regexValidator = new RegexValidator(LAST_NAME_REGEX);
+        return regexValidator.eval(normalizedValue);
     }
 
     @Override

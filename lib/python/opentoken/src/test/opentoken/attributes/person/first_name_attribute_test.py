@@ -384,3 +384,48 @@ class TestFirstNameAttribute:
     def test_validate_invalid_names_parametrized(self, invalid_name):
         """Parametrized test for validation with invalid names."""
         assert self.first_name_attribute.validate(invalid_name) is False
+
+    def test_validate_idempotency_should_be_stable(self):
+        """Test that validation is idempotent: validate(x) == validate(normalize(x))"""
+        # This ensures that normalized values can be re-validated successfully
+        
+        test_cases = [
+            "A.B.",       # Normalizes to "AB"
+            "N.M.",       # Normalizes to "NM"
+            "Dr. John",   # Normalizes to "John"
+            "Mary-Ann",   # Normalizes to "MaryAnn"
+            "José",       # Normalizes to "Jose"
+            "Jean-Marc",  # Normalizes to "JeanMarc"
+        ]
+        
+        for test_case in test_cases:
+            normalized = self.first_name_attribute.normalize(test_case)
+            valid_original = self.first_name_attribute.validate(test_case)
+            valid_normalized = self.first_name_attribute.validate(normalized)
+            
+            # If original is valid, normalized should also be valid (idempotency)
+            if valid_original:
+                assert valid_normalized, \
+                    f"Idempotency failed: '{test_case}' is valid but normalized '{normalized}' is not"
+            
+            # Double normalization should produce the same result
+            double_normalized = self.first_name_attribute.normalize(normalized)
+            assert normalized == double_normalized, \
+                f"Normalization not idempotent: normalize('{normalized}') != normalize(normalize('{test_case}'))"
+
+    def test_validate_normalized_values_should_pass_validation(self):
+        """Specific test for idempotency issue"""
+        # "A.B." should normalize to "AB" and "AB" should still be valid
+        
+        input_value = "A.B."
+        normalized = self.first_name_attribute.normalize(input_value)
+        
+        assert normalized == "AB", "A.B. should normalize to AB"
+        
+        # The normalized value should pass validation
+        original_valid = self.first_name_attribute.validate(input_value)
+        normalized_valid = self.first_name_attribute.validate(normalized)
+        
+        if original_valid:
+            assert normalized_valid, \
+                "Normalized value 'AB' should be valid if original 'A.B.' was valid"

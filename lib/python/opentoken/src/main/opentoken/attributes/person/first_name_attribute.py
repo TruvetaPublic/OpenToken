@@ -44,6 +44,35 @@ class FirstNameAttribute(BaseAttribute):
         validation_rules = [NotInValidator(placeholder_values)]
         super().__init__(validation_rules)
 
+    def validate(self, value: str) -> bool:
+        """
+        Validate the first name value.
+
+        Args:
+            value: The first name value to validate
+
+        Returns:
+            True if the value is a valid first name, False otherwise
+        """
+        if value is None:
+            return False
+
+        # First, check placeholder values on the ORIGINAL value
+        # This ensures "N/A", "<masked>", etc. are properly rejected
+        placeholder_validator = NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES)
+        if not placeholder_validator.eval(value):
+            return False
+
+        # Normalize the value for validation
+        # This ensures that validate(normalize(x)) == validate(normalize(normalize(x)))
+        normalized_value = self.normalize(value)
+
+        # Check that normalized value is not empty
+        if normalized_value is None or not normalized_value.strip():
+            return False
+
+        return True
+
     def get_name(self) -> str:
         return self.NAME
 
