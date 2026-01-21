@@ -75,10 +75,9 @@ class LastNameAttribute(BaseAttribute):
         if value is None:
             return False
 
-        # First, check placeholder values on the ORIGINAL value
+        # First, check placeholder values on the ORIGINAL value using built-in validators
         # This ensures "N/A", "<masked>", etc. are properly rejected
-        placeholder_validator = NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES)
-        if not placeholder_validator.eval(value):
+        if not super().validate(value):
             return False
 
         # Normalize the value for pattern matching
@@ -90,6 +89,7 @@ class LastNameAttribute(BaseAttribute):
             return False
 
         # Validate the normalized value against the regex pattern
+        # The regex validator is already configured in the constructor
         regex_validator = RegexValidator(self.LAST_NAME_REGEX)
         return regex_validator.eval(normalized_value)
 

@@ -69,11 +69,9 @@ public class LastNameAttribute extends BaseAttribute {
             return false;
         }
 
-        // First, check placeholder values on the ORIGINAL value
+        // First, check placeholder values on the ORIGINAL value using built-in validators
         // This ensures "N/A", "<masked>", etc. are properly rejected
-        NotInValidator placeholderValidator = new NotInValidator(
-                AttributeUtilities.COMMON_PLACEHOLDER_NAMES);
-        if (!placeholderValidator.eval(value)) {
+        if (!super.validate(value)) {
             return false;
         }
 
@@ -87,6 +85,7 @@ public class LastNameAttribute extends BaseAttribute {
         }
 
         // Validate the normalized value against the regex pattern
+        // The regex validator is already configured in the constructor
         RegexValidator regexValidator = new RegexValidator(LAST_NAME_REGEX);
         return regexValidator.eval(normalizedValue);
     }

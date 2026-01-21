@@ -57,10 +57,9 @@ class FirstNameAttribute(BaseAttribute):
         if value is None:
             return False
 
-        # First, check placeholder values on the ORIGINAL value
+        # First, check placeholder values on the ORIGINAL value using built-in validators
         # This ensures "N/A", "<masked>", etc. are properly rejected
-        placeholder_validator = NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES)
-        if not placeholder_validator.eval(value):
+        if not super().validate(value):
             return False
 
         # Normalize the value for validation
