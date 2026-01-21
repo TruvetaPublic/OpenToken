@@ -56,11 +56,13 @@ public class LastNameAttribute extends BaseAttribute {
      */
     private static final @NotNull String LAST_NAME_REGEX = "^\\s*(?:(?:.{3,})|(?:[^aeiouAEIOU\\s][aeiouAEIOU])|(?:[aeiouAEIOU][^aeiouAEIOU\\s])|(?:[aeiouAEIOU]{2})|(?:[Nn][Gg]))\\s*$";
 
+    private final RegexValidator regexValidator;
+
     public LastNameAttribute() {
         super(List.of(
                 new NotInValidator(
-                        AttributeUtilities.COMMON_PLACEHOLDER_NAMES),
-                new RegexValidator(LAST_NAME_REGEX)));
+                        AttributeUtilities.COMMON_PLACEHOLDER_NAMES)));
+        this.regexValidator = new RegexValidator(LAST_NAME_REGEX);
     }
 
     @Override
@@ -85,8 +87,7 @@ public class LastNameAttribute extends BaseAttribute {
         }
 
         // Validate the normalized value against the regex pattern
-        // The regex validator is already configured in the constructor
-        RegexValidator regexValidator = new RegexValidator(LAST_NAME_REGEX);
+        // Use the pre-created regex validator instance to avoid creating new instances on each call
         return regexValidator.eval(normalizedValue);
     }
 
