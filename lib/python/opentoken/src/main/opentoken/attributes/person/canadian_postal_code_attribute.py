@@ -49,12 +49,40 @@ class CanadianPostalCodeAttribute(BaseAttribute):
         Args:
             min_length: Minimum length for postal codes (default: 6)
         """
-        validation_rules = [
-            RegexValidator(self.CANADIAN_POSTAL_REGEX),
-            NotStartsWithValidator(self.INVALID_ZIP_CODES)
-        ]
+        validation_rules = []
         super().__init__(validation_rules)
         self.min_length = min_length
+        self.regex_validator = RegexValidator(self.CANADIAN_POSTAL_REGEX)
+        self.not_starts_with_validator = NotStartsWithValidator(self.INVALID_ZIP_CODES)
+
+    def validate(self, value: str) -> bool:
+        """
+        Validate the Canadian postal code value.
+
+        Args:
+            value: The postal code value to validate
+
+        Returns:
+            True if the value is a valid Canadian postal code, False otherwise
+        """
+        if value is None:
+            return False
+
+        # First, check the regex pattern on the ORIGINAL value
+        # This ensures the format is valid before normalization
+        if not self.regex_validator.eval(value):
+            return False
+
+        # Normalize the value to ensure idempotency
+        # This converts to uppercase and formats consistently
+        normalized_value = self.normalize(value)
+
+        # Validate the NORMALIZED value against the prefix validator
+        # This ensures "k1a0b1" and "K1A 0B1" are treated consistently
+        if not self.not_starts_with_validator.eval(normalized_value):
+            return False
+
+        return True
 
     def get_name(self) -> str:
         return self.NAME

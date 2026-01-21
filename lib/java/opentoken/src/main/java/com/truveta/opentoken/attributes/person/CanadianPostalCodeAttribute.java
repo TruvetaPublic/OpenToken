@@ -72,6 +72,8 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
     );
 
     private final int minLength;
+    private final RegexValidator regexValidator;
+    private final NotStartsWithValidator notStartsWithValidator;
 
     /**
      * Constructs a CanadianPostalCodeAttribute with default minimum length of 6.
@@ -86,10 +88,35 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
      * @param minLength The minimum length for postal codes (e.g., 3, 4, 5, or 6)
      */
     public CanadianPostalCodeAttribute(int minLength) {
-        super(List.of(
-                new RegexValidator(CANADIAN_POSTAL_REGEX),
-                new NotStartsWithValidator(INVALID_ZIP_CODES)));
+        super(List.of());
         this.minLength = minLength;
+        this.regexValidator = new RegexValidator(CANADIAN_POSTAL_REGEX);
+        this.notStartsWithValidator = new NotStartsWithValidator(INVALID_ZIP_CODES);
+    }
+
+    @Override
+    public boolean validate(String value) {
+        if (value == null) {
+            return false;
+        }
+
+        // First, check the regex pattern on the ORIGINAL value
+        // This ensures the format is valid before normalization
+        if (!regexValidator.eval(value)) {
+            return false;
+        }
+
+        // Normalize the value to ensure idempotency
+        // This converts to uppercase and formats consistently
+        String normalizedValue = normalize(value);
+
+        // Validate the NORMALIZED value against the prefix validator
+        // This ensures "k1a0b1" and "K1A 0B1" are treated consistently
+        if (!notStartsWithValidator.eval(normalizedValue)) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
