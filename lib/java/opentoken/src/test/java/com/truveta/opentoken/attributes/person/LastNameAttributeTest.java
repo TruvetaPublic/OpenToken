@@ -447,23 +447,29 @@ class LastNameAttributeTest {
 
     @Test
     void validate_NormalizedValuesShouldPassValidation() {
-        // Specific test for the issue mentioned in the bug report
-        // "N.M." should normalize to "NM" and "NM" should still be valid
+        // Specific test for the idempotency requirement
+        // Validation should be stable: validate(x) == validate(normalize(x))
         
-        String input = "N.M.";
-        String normalized = lastNameAttribute.normalize(input);
+        // Test case 1: "N.M." normalizes to "NM" (2 consonants - INVALID)
+        String input1 = "N.M.";
+        String normalized1 = lastNameAttribute.normalize(input1);
+        assertEquals("NM", normalized1, "N.M. should normalize to NM");
         
-        assertEquals("NM", normalized, "N.M. should normalize to NM");
+        boolean valid1 = lastNameAttribute.validate(input1);
+        boolean validNormalized1 = lastNameAttribute.validate(normalized1);
+        assertEquals(valid1, validNormalized1, 
+            "Validation should be idempotent: validate('N.M.') == validate('NM')");
+        assertFalse(valid1, "N.M. should be invalid (normalizes to 2 consonants)");
         
-        // The normalized value should pass validation
-        // Note: "NM" has 2 consonants, so it won't match the vowel patterns
-        // However, with the fix, validation should still pass if the original was valid
-        boolean originalValid = lastNameAttribute.validate(input);
-        boolean normalizedValid = lastNameAttribute.validate(normalized);
+        // Test case 2: "A.I." normalizes to "AI" (2 vowels - VALID)
+        String input2 = "A.I.";
+        String normalized2 = lastNameAttribute.normalize(input2);
+        assertEquals("AI", normalized2, "A.I. should normalize to AI");
         
-        if (originalValid) {
-            assertTrue(normalizedValid, 
-                "Normalized value 'NM' should be valid if original 'N.M.' was valid");
-        }
+        boolean valid2 = lastNameAttribute.validate(input2);
+        boolean validNormalized2 = lastNameAttribute.validate(normalized2);
+        assertEquals(valid2, validNormalized2,
+            "Validation should be idempotent: validate('A.I.') == validate('AI')");
+        assertTrue(valid2, "A.I. should be valid (normalizes to 2 vowels)");
     }
 }

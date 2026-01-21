@@ -431,22 +431,29 @@ class TestLastNameAttribute:
                 f"Normalization not idempotent: normalize('{normalized}') != normalize(normalize('{test_case}'))"
 
     def test_validate_normalized_values_should_pass_validation(self):
-        """Specific test for the issue mentioned in the bug report"""
-        # "N.M." should normalize to "NM" and "NM" should still be valid
+        """Specific test for the idempotency requirement"""
+        # Validation should be stable: validate(x) == validate(normalize(x))
         
-        input_value = "N.M."
-        normalized = self.last_name_attribute.normalize(input_value)
+        # Test case 1: "N.M." normalizes to "NM" (2 consonants - INVALID)
+        input1 = "N.M."
+        normalized1 = self.last_name_attribute.normalize(input1)
+        assert normalized1 == "NM", "N.M. should normalize to NM"
         
-        assert normalized == "NM", "N.M. should normalize to NM"
+        valid1 = self.last_name_attribute.validate(input1)
+        valid_normalized1 = self.last_name_attribute.validate(normalized1)
+        assert valid1 == valid_normalized1, \
+            "Validation should be idempotent: validate('N.M.') == validate('NM')"
+        assert not valid1, "N.M. should be invalid (normalizes to 2 consonants)"
         
-        # The normalized value should pass validation
-        # Note: "NM" has 2 consonants, so it won't match the vowel patterns
-        # However, with the fix, validation should still pass if the original was valid
-        original_valid = self.last_name_attribute.validate(input_value)
-        normalized_valid = self.last_name_attribute.validate(normalized)
+        # Test case 2: "A.I." normalizes to "AI" (2 vowels - VALID)
+        input2 = "A.I."
+        normalized2 = self.last_name_attribute.normalize(input2)
+        assert normalized2 == "AI", "A.I. should normalize to AI"
         
-        if original_valid:
-            assert normalized_valid, \
-                "Normalized value 'NM' should be valid if original 'N.M.' was valid"
+        valid2 = self.last_name_attribute.validate(input2)
+        valid_normalized2 = self.last_name_attribute.validate(normalized2)
+        assert valid2 == valid_normalized2, \
+            "Validation should be idempotent: validate('A.I.') == validate('AI')"
+        assert valid2, "A.I. should be valid (normalizes to 2 vowels)"
         
         # Two
