@@ -475,4 +475,58 @@ class FirstNameAttributeTest {
         assertEquals("Francois", firstNameAttribute.normalize("François Sr."));
         assertEquals("JeanMarc", firstNameAttribute.normalize("Jean-Marc III"));
     }
+
+    @Test
+    void validate_IdempotencyShouldBeStable() {
+        // Test that validation is idempotent: validate(x) == validate(normalize(x))
+        // This ensures that normalized values can be re-validated successfully
+        
+        String[] testCases = {
+            "A.B.",         // Normalizes to "AB"
+            "N.M.",         // Normalizes to "NM"
+            "Dr. John",     // Normalizes to "John"
+            "Mary-Ann",     // Normalizes to "MaryAnn"
+            "José",         // Normalizes to "Jose"
+            "Jean-Marc",    // Normalizes to "JeanMarc"
+        };
+        
+        for (String testCase : testCases) {
+            String normalized = firstNameAttribute.normalize(testCase);
+            boolean validOriginal = firstNameAttribute.validate(testCase);
+            boolean validNormalized = firstNameAttribute.validate(normalized);
+            
+            // If original is valid, normalized should also be valid (idempotency)
+            if (validOriginal) {
+                assertTrue(validNormalized, 
+                    String.format("Idempotency failed: '%s' is valid but normalized '%s' is not", 
+                    testCase, normalized));
+            }
+            
+            // Double normalization should produce the same result
+            String doubleNormalized = firstNameAttribute.normalize(normalized);
+            assertEquals(normalized, doubleNormalized,
+                String.format("Normalization not idempotent: normalize('%s') != normalize(normalize('%s'))",
+                normalized, testCase));
+        }
+    }
+
+    @Test
+    void validate_NormalizedValuesShouldPassValidation() {
+        // Specific test for idempotency issue
+        // "A.B." should normalize to "AB" and "AB" should still be valid
+        
+        String input = "A.B.";
+        String normalized = firstNameAttribute.normalize(input);
+        
+        assertEquals("AB", normalized, "A.B. should normalize to AB");
+        
+        // The normalized value should pass validation
+        boolean originalValid = firstNameAttribute.validate(input);
+        boolean normalizedValid = firstNameAttribute.validate(normalized);
+        
+        if (originalValid) {
+            assertTrue(normalizedValid, 
+                "Normalized value 'AB' should be valid if original 'A.B.' was valid");
+        }
+    }
 }

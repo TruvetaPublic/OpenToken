@@ -408,4 +408,68 @@ class LastNameAttributeTest {
         assertFalse(lastNameAttribute.validate("Z"), "Single letter Z should not be allowed");
         assertFalse(lastNameAttribute.validate("  B  "), "Single letter B with spaces should not be allowed");
     }
+
+    @Test
+    void validate_IdempotencyShouldBeStable() {
+        // Test that validation is idempotent: validate(x) == validate(normalize(x))
+        // This ensures that normalized values can be re-validated successfully
+        
+        // Test with values that would fail without the fix
+        String[] testCases = {
+            "N.M.",      // Normalizes to "NM" (2 consonants)
+            "A.B.",      // Normalizes to "AB" (2 consonants)
+            "J-K",       // Normalizes to "JK" (2 consonants)
+            "Smith-Jones",  // Normalizes to "SmithJones"
+            "O'Connor",     // Normalizes to "OConnor"
+            "Van Der Berg", // Normalizes to "VanDerBerg"
+            "García-López", // Normalizes to "GarciaLopez"
+        };
+        
+        for (String testCase : testCases) {
+            String normalized = lastNameAttribute.normalize(testCase);
+            boolean validOriginal = lastNameAttribute.validate(testCase);
+            boolean validNormalized = lastNameAttribute.validate(normalized);
+            
+            // If original is valid, normalized should also be valid (idempotency)
+            if (validOriginal) {
+                assertTrue(validNormalized, 
+                    String.format("Idempotency failed: '%s' is valid but normalized '%s' is not", 
+                    testCase, normalized));
+            }
+            
+            // Double normalization should produce the same result
+            String doubleNormalized = lastNameAttribute.normalize(normalized);
+            assertEquals(normalized, doubleNormalized,
+                String.format("Normalization not idempotent: normalize('%s') != normalize(normalize('%s'))",
+                normalized, testCase));
+        }
+    }
+
+    @Test
+    void validate_NormalizedValuesShouldPassValidation() {
+        // Specific test for the idempotency requirement
+        // Validation should be stable: validate(x) == validate(normalize(x))
+        
+        // Test case 1: "N.M." normalizes to "NM" (2 consonants - INVALID)
+        String input1 = "N.M.";
+        String normalized1 = lastNameAttribute.normalize(input1);
+        assertEquals("NM", normalized1, "N.M. should normalize to NM");
+        
+        boolean valid1 = lastNameAttribute.validate(input1);
+        boolean validNormalized1 = lastNameAttribute.validate(normalized1);
+        assertEquals(valid1, validNormalized1, 
+            "Validation should be idempotent: validate('N.M.') == validate('NM')");
+        assertFalse(valid1, "N.M. should be invalid (normalizes to 2 consonants)");
+        
+        // Test case 2: "A.I." normalizes to "AI" (2 vowels - VALID)
+        String input2 = "A.I.";
+        String normalized2 = lastNameAttribute.normalize(input2);
+        assertEquals("AI", normalized2, "A.I. should normalize to AI");
+        
+        boolean valid2 = lastNameAttribute.validate(input2);
+        boolean validNormalized2 = lastNameAttribute.validate(normalized2);
+        assertEquals(valid2, validNormalized2,
+            "Validation should be idempotent: validate('A.I.') == validate('AI')");
+        assertTrue(valid2, "A.I. should be valid (normalizes to 2 vowels)");
+    }
 }
