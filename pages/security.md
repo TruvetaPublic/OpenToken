@@ -11,7 +11,7 @@ Cryptographic building blocks, key management expectations, and security conside
 OpenToken generates cryptographically secure tokens for privacy-preserving person matching across datasets. The system uses deterministic hashing and optional encryption to prevent re-identification while enabling matching on identical person attributes.
 
 **Key security properties:**
-- Tokens are one-way (cannot reverse to original data without secrets)
+- Tokens are one-way (cannot reverse to original data without the required private keys)
 - Same input produces same token (deterministic matching)
 - Metadata tracks processing statistics without exposing person data
 
@@ -29,9 +29,9 @@ Token Signature (normalized attributes)
   ↓
 SHA-256 Hash (one-way digest, 256-bit)
   ↓
-HMAC-SHA256 (authenticated hash with hashing secret)
+HMAC-SHA256 (authenticated hash with derived hashing key)
   ↓
-AES-256-GCM Encrypt (symmetric encryption with encryption key)
+AES-256-GCM Encrypt (symmetric encryption with derived encryption key)
   ↓
 Base64 Encode (storable format)
 ```
@@ -42,10 +42,13 @@ Token Signature
   ↓
 SHA-256 Hash
   ↓
-HMAC-SHA256 (with hashing secret)
+HMAC-SHA256 (with derived hashing key)
   ↓
 Base64 Encode
 ```
+
+**Where the keys come from:**
+- In key-exchange workflows, hashing + encryption keys are derived via ECDH from the sender's private key and the receiver's public key (no dedicated shared secrets are exchanged).
 
 ### SHA-256 (Secure Hash Algorithm)
 
@@ -62,14 +65,14 @@ Base64 Encode
 ### HMAC-SHA256 (Hash-based Message Authentication Code)
 
 - **Standard**: FIPS 198-1
-- **Input**: SHA-256 hash + hashing secret
+- **Input**: SHA-256 hash + hashing key
 - **Output**: 256-bit authenticated hash
 - **Purpose**: Prevent rainbow table attacks and verify secret usage
 
 **Security benefits:**
-- Requires secret key to generate matching hashes
+- Requires key material to generate matching hashes
 - Prevents pre-computation of token values
-- Different secret produces completely different output for same input
+- Different key material produces completely different output for same input
 
 **Formula:**
 ```
@@ -98,130 +101,98 @@ HMAC-SHA256(message, key) = SHA256((key ⊕ opad) || SHA256((key ⊕ ipad) || me
 ---
 
 ## Key Management & Secrets
+## Key Management (ECDH Public Key Exchange)
 
-This section consolidates practical guidance for managing the cryptographic secrets OpenToken requires.
+OpenToken supports exchanging token data without sharing dedicated symmetric secrets. Instead, it uses ECDH key exchange:
 
-### Types of Secrets
+- Each party generates an ECDH keypair (`keypair.pem`) and derives a public key (`public_key.pem`).
+- The **receiver shares only their public key** with the sender.
+- The **sender** tokenizes and encrypts using:
+  - sender private key (`--sender-keypair-path`)
+  - receiver public key (`--receiver-public-key`)
+- The **receiver** decrypts using:
+  - receiver private key (`--receiver-keypair-path`)
+  - sender public key (usually included in the output package)
 
-OpenToken expects **two secrets** (one required, one optional depending on mode):
+### What to Protect
 
-| Secret             | CLI Flag                 | Purpose                                   | Requirements                                                |
-| ------------------ | ------------------------ | ----------------------------------------- | ----------------------------------------------------------- |
-| **Hashing Secret** | `-h` / `--hashingsecret` | HMAC-SHA256 key for deterministic hashing | Required in all modes; 8+ characters recommended, 16+ ideal |
-| **Encryption Key** | `-e` / `--encryptionkey` | AES-256-GCM symmetric key                 | Required for encryption mode; **exactly 32 characters**     |
+- **Private keys are secrets.** Protect `keypair.pem` the same way you would protect encryption keys.
+- Public keys can be shared, but still validate/verify them (see Metadata verification below).
 
-**Hash-only mode** (`--hash-only`) skips AES encryption; only the hashing secret is needed.
-
-### Handling Secrets in Practice
-
-#### Development / Local Testing
-
-Use clearly marked placeholder values:
-
-```bash
-# Placeholder secrets for local testing only
-java -jar opentoken-cli-*.jar \
-  -i sample.csv -t csv -o output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
-```
-
-Store these in a local `.env` file (not committed):
+### Development / Local Testing
 
 ```bash
-# .env (add to .gitignore)
-OPENTOKEN_HASHING_SECRET=HashingKey
-OPENTOKEN_ENCRYPTION_KEY=Secret-Encryption-Key-Goes-Here.
+# Receiver: generate keypair (share public key with sender)
+opentoken generate-keypair --output-dir ./keys/receiver --ecdh-curve P-384
+
+# Sender: generate keypair
+opentoken generate-keypair --output-dir ./keys/sender --ecdh-curve P-384
+
+# Sender: tokenize
+opentoken tokenize \
+  -i sample.csv -t csv -o output.zip \
+  --receiver-public-key ./keys/receiver/public_key.pem \
+  --sender-keypair-path ./keys/sender/keypair.pem \
+  --ecdh-curve P-384
+
+# Receiver: decrypt
+opentoken decrypt \
+  -i output.zip -t csv -o decrypted.csv \
+  --receiver-keypair-path ./keys/receiver/keypair.pem \
+  --ecdh-curve P-384
 ```
 
-Load and use:
+### Production
 
-```bash
-source .env
-java -jar opentoken-cli-*.jar \
-  -i sample.csv -t csv -o output.csv \
-  -h "$OPENTOKEN_HASHING_SECRET" \
-  -e "$OPENTOKEN_ENCRYPTION_KEY"
-```
+Store private keys in a managed secret store or HSM-backed solution and inject them into jobs at runtime.
 
-#### Production
+| Platform   | Key Store / Secret Store | Injection Method                            |
+| ---------- | ------------------------ | ------------------------------------------- |
+| AWS        | KMS + Secrets Manager    | ECS/Lambda secrets, SSM, or file mounts     |
+| Azure      | Key Vault                | App Service key references or secret mounts |
+| GCP        | KMS + Secret Manager     | Workload identity + secret mounts           |
+| On-prem    | HashiCorp Vault          | Vault agent + file template                 |
+| Databricks | Databricks Secrets       | `dbutils.secrets.get(...)` + ephemeral file |
 
-Store secrets in a managed secret store and inject via environment variables at runtime:
+### Key Rotation
 
-| Platform   | Secret Store       | Injection Method                                            |
-| ---------- | ------------------ | ----------------------------------------------------------- |
-| AWS        | Secrets Manager    | `aws secretsmanager get-secret-value` or ECS/Lambda secrets |
-| Azure      | Key Vault          | `az keyvault secret show` or App Service key references     |
-| GCP        | Secret Manager     | `gcloud secrets versions access` or workload identity       |
-| On-prem    | HashiCorp Vault    | `vault kv get` or agent auto-auth                           |
-| Databricks | Databricks Secrets | `dbutils.secrets.get("scope", "key")`                       |
-
-**Example (AWS Secrets Manager):**
-
-```bash
-export OPENTOKEN_HASHING_SECRET=$(aws secretsmanager get-secret-value \
-  --secret-id opentoken-hash-key --query SecretString --output text)
-export OPENTOKEN_ENCRYPTION_KEY=$(aws secretsmanager get-secret-value \
-  --secret-id opentoken-enc-key --query SecretString --output text)
-
-java -jar opentoken-cli-*.jar \
-  -i data.csv -t csv -o tokens.csv \
-  -h "$OPENTOKEN_HASHING_SECRET" \
-  -e "$OPENTOKEN_ENCRYPTION_KEY"
-```
-
-**Example (Databricks):**
-
-```python
-from opentoken_pyspark import SparkPersonTokenProcessor
-
-processor = SparkPersonTokenProcessor(
-    spark=spark,
-    hashing_secret=dbutils.secrets.get("opentoken", "hashing_secret"),
-    encryption_key=dbutils.secrets.get("opentoken", "encryption_key")
-)
-```
-
-### Secret Rotation
-
-1. **Generate new secrets** – use a cryptographically secure generator.
-2. **Re-run token generation** – tokens are deterministic; same input + same secrets = same tokens. New secrets = new tokens.
-3. **Version secrets in your store** – keep old versions for auditability.
-4. **Coordinate downstream** – any system that decrypts tokens needs the matching encryption key.
+1. Generate a new keypair.
+2. Distribute the new public key to partners.
+3. Re-run token generation and decryption for the desired period.
+4. Retire old private keys only after all dependent downstream jobs have moved.
 
 ### What NOT to Do
 
-- **Never commit secrets to source control.** Add `.env` and similar files to `.gitignore`.
-- **Never log secrets.** CLI output and metadata files contain hashes of secrets, not the secrets themselves.
-- **Never hard-code secrets in scripts checked into git.** Use environment variables or secret-store references.
+- Never commit private keys to source control.
+- Never log private keys.
+- Avoid hard-coding key paths in scripts checked into git; use environment-specific configuration.
 
-### Secret Verification via Metadata
+### Key Verification via Metadata
 
-Each run produces a `.metadata.json` with SHA-256 hashes of secrets:
+Each run produces a `.metadata.json` with SHA-256 hashes of the public keys used:
 
 ```json
 {
-  "HashingSecretHash": "e0b4e60b...",
-  "EncryptionSecretHash": "a1b2c3d4..."
+  "KeyExchangeMethod": "ECDH-P-384",
+  "SenderPublicKeyHash": "a85b4bd6...",
+  "ReceiverPublicKeyHash": "32bc0e98..."
 }
 ```
 
-Use [tools/hash_calculator.py](https://github.com/TruvetaPublic/OpenToken/blob/main/tools/hash_calculator.py) to verify:
+You can verify these hashes locally using the public key files:
 
 ```bash
-python tools/hash_calculator.py \
-  --hashing-secret "YourSecret" \
-  --encryption-key "YourEncryptionKey"
-# Compare output hashes to metadata file
+sha256sum ./keys/sender/public_key.pem
+sha256sum ./keys/receiver/public_key.pem
 ```
 
 ### Cross-References
 
-- **CLI flags for secrets**: [CLI Reference](reference/cli.md)
+- **CLI commands and flags**: [CLI Reference](reference/cli.md)
 - **Environment variable usage**: [Configuration](config/configuration.md#environment-variables)
-- **Databricks / Spark secrets**: [Spark or Databricks](operations/spark-or-databricks.md)
+- **Databricks / Spark secrets (shared-secret mode)**: [Spark or Databricks](operations/spark-or-databricks.md)
 - **Running the CLI**: [Running OpenToken](running-opentoken/index.md)
-- **Metadata format (hash fields)**: [Reference: Metadata Format](reference/metadata-format.md)
+- **Metadata format (key hashes)**: [Reference: Metadata Format](reference/metadata-format.md)
 
 ---
 
@@ -229,23 +200,23 @@ python tools/hash_calculator.py \
 
 ### What OpenToken Protects Against
 
-**✓ Re-identification without secrets:**
-- Encrypted tokens cannot be reversed without encryption key
+**✓ Re-identification without the required private keys:**
+- Encrypted tokens cannot be reversed without the receiver private key
 - Hashed tokens cannot be reversed (one-way HMAC-SHA256)
 - Attacker with tokens alone cannot recover person data
 
 **✓ Rainbow table attacks:**
-- HMAC-SHA256 with secret prevents pre-computed lookup tables
-- Different secret produces different tokens for same input
+- HMAC-SHA256 with key material prevents pre-computed lookup tables
+- Different key material produces different tokens for same input
 
 **✓ Data quality issues:**
 Metadata captures processing statistics; data quality guidance lives in the concepts documentation.
 
 ### What OpenToken Does NOT Protect Against
 
-**✗ Compromise of secrets:**
-- If attacker obtains hashing secret + encryption key, they can regenerate tokens from known person data
-- Token security depends entirely on secret protection
+**✗ Compromise of private keys:**
+- If an attacker obtains the required private key(s), they can decrypt token packages intended for that receiver
+- Token security depends on private key protection and secure operational controls
 
 **✗ Side-channel attacks:**
 - Timing attacks, memory access patterns not specifically mitigated

@@ -17,6 +17,8 @@ import org.apache.parquet.schema.MessageTypeParser;
 
 import com.truveta.opentoken.cli.io.PersonAttributesWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 /**
@@ -79,7 +81,13 @@ public class PersonAttributesParquetWriter implements PersonAttributesWriter {
 
         this.schema = MessageTypeParser.parseMessageType(schemaBuilder.toString());
         GroupWriteSupport.setSchema(schema, conf);
-        Path path = new Path(filePath);
+        java.nio.file.Path localPath = Paths.get(filePath).toAbsolutePath();
+        java.nio.file.Path parentDir = localPath.getParent();
+        if (parentDir != null) {
+            Files.createDirectories(parentDir);
+        }
+
+        Path path = new Path(localPath.toString());
 
         writer = ExampleParquetWriter.builder(path)
                 .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)

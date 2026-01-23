@@ -1,7 +1,6 @@
 """
 Copyright (c) Truveta. All rights reserved.
 """
-import pytest
 from opentoken.tokens.token_registry import TokenRegistry
 
 def test_load_all_tokens_returns_non_empty_dict():

@@ -3,7 +3,7 @@ Copyright (c) Truveta. All rights reserved.
 """
 
 import hashlib
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 
 import pytest
 
@@ -19,7 +19,9 @@ class TestSHA256Tokenizer:
         """Set up test fixtures before each test method."""
         # Mocking TokenTransformer implementations (Hash and Encrypt)
         self.hash_transformer_mock = Mock(spec=HashTokenTransformer)
+        self.hash_transformer_mock.transform.return_value = SHA256Tokenizer.EMPTY
         self.encrypt_transformer_mock = Mock(spec=EncryptTokenTransformer)
+        self.encrypt_transformer_mock.transform.return_value = SHA256Tokenizer.EMPTY
 
         # List of transformers to pass to SHA256Tokenizer
         transformers = [

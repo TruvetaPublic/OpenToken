@@ -29,12 +29,10 @@ class PersonAttributesWriter(ABC):
         Raises:
             IOError: Errors encountered while writing to the output data source.
         """
-        pass
 
     @abstractmethod
     def close(self) -> None:
         """Close the writer and release any resources."""
-        pass
 
     def __enter__(self):
         """Context manager entry."""

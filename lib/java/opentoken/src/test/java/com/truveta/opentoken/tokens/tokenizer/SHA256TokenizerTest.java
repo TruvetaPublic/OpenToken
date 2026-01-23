@@ -31,10 +31,11 @@ class SHA256TokenizerTest {
     private SHA256Tokenizer tokenizer;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         // Mocking TokenTransformer implementations (Hash and Encrypt)
         hashTransformerMock = Mockito.mock(HashTokenTransformer.class);
         encryptTransformerMock = Mockito.mock(EncryptTokenTransformer.class);
+        when(encryptTransformerMock.transform(null)).thenReturn(Token.BLANK);
 
         // List of transformers to pass to SHA256Tokenizer
         List<TokenTransformer> transformers = new ArrayList<>();

@@ -5,7 +5,6 @@ Copyright (c) Truveta. All rights reserved.
 import os
 import tempfile
 
-import pytest
 
 from opentoken.attributes.general.record_id_attribute import RecordIdAttribute
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute

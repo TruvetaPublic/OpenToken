@@ -41,47 +41,60 @@ mvn clean install -DskipTests
 
 ## Run Token Generation
 
-### Basic Encrypted Tokens
+### Basic Encrypted Tokens (Key Exchange)
+
+First generate keypairs (receiver and sender):
 
 ```bash
 java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i ../../resources/sample.csv \
-  -t csv \
-  -o ../../resources/output.csv \
-  -h "YourHashingSecret" \
-  -e "YourEncryptionKey-32Chars-Here!"
+  generate-keypair --output-dir ../../resources/keys/receiver --ecdh-curve P-384
+
+java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  generate-keypair --output-dir ../../resources/keys/sender --ecdh-curve P-384
+```
+
+```bash
+java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  tokenize \
+  -i ../../resources/sample.csv -t csv -o ../../resources/output.zip \
+  --receiver-public-key ../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../resources/keys/sender/keypair.pem
 ```
 
 ### Hash-Only Mode (No Encryption)
 
 ```bash
 java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i ../../resources/sample.csv \
-  -t csv \
-  -o ../../resources/output.csv \
-  -h "YourHashingSecret" \
-  --hash-only
+  tokenize \
+  --hash-only \
+  -i ../../resources/sample.csv -t csv -o ../../resources/output-hash-only.zip \
+  --receiver-public-key ../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../resources/keys/sender/keypair.pem
 ```
 
 ### Parquet Format
 
 ```bash
 java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i input.parquet \
-  -t parquet \
-  -o output.parquet \
-  -h "YourHashingSecret" \
-  -e "YourEncryptionKey-32Chars-Here!"
+  tokenize \
+  -i input.parquet -t parquet -o output.zip \
+  --receiver-public-key ../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../resources/keys/sender/keypair.pem
 ```
 
 ## Verify Output
 
 ```bash
-# View token output
-head ../../resources/output.csv
+# Decrypt to inspect hash-only tokens
+java -jar opentoken-cli/target/opentoken-cli-*.jar \
+  decrypt \
+  -i ../../resources/output.zip -t csv -o ../../resources/decrypted.csv \
+  --receiver-keypair-path ../../resources/keys/receiver/keypair.pem
+
+head ../../resources/decrypted.csv
 
 # View metadata
-cat ../../resources/output.metadata.json
+cat ../../resources/output.zip.metadata.json
 ```
 
 **Expected output.csv:**

@@ -9,7 +9,6 @@ from opentoken.attributes.attribute_loader import AttributeLoader
 from opentoken.tokens.base_token_definition import BaseTokenDefinition
 from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokens.tokenizer.tokenizer import Tokenizer
-from opentoken.tokens.token import Token
 from opentoken.tokens.token_generator_result import TokenGeneratorResult
 from opentoken.tokens.token_generation_exception import TokenGenerationException
 from opentoken.tokentransformer.token_transformer import TokenTransformer
@@ -148,12 +147,11 @@ class TokenGenerator:
         signature = self._get_token_signature(token_id, person_attributes, result)
         logger.debug(f"Token signature for token id {token_id}: {signature}")
 
+        if signature is None:
+            result.blank_tokens_by_rule.add(token_id)
+
         try:
-            token = self.tokenizer.tokenize(signature)
-            # Track blank tokens by rule
-            if Token.BLANK == token:
-                result.blank_tokens_by_rule.add(token_id)
-            return token
+            return self.tokenizer.tokenize(signature)
         except Exception as e:
             logger.error(f"Error generating token for token id: {token_id}", exc_info=e)
             raise TokenGenerationException("Error generating token", e)

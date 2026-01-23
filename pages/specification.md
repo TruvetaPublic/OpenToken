@@ -221,7 +221,7 @@ Parquet format includes compression and is suitable for large datasets.
 **Contents:**
 - Processing statistics (record counts, invalid attributes, blank tokens)
 - System information (platform, versions, timestamps)
-- Secret hashes (SHA-256 of hashing secret and encryption key)
+- Key exchange fingerprints (e.g., SHA-256 hashes of public keys)
 - File paths (input, output, metadata)
 
 **Example:**
@@ -230,6 +230,10 @@ Parquet format includes compression and is suitable for large datasets.
   "Platform": "Java",
   "JavaVersion": "21.0.0",
   "OpenTokenVersion": "1.7.0",
+  "KeyExchangeMethod": "ECDH-P-384",
+  "Curve": "P-384",
+  "SenderPublicKeyHash": "a85b4bd6...",
+  "ReceiverPublicKeyHash": "32bc0e98...",
   "TotalRows": 100,
   "TotalRowsWithInvalidAttributes": 3,
   "InvalidAttributesByType": {
@@ -239,9 +243,7 @@ Parquet format includes compression and is suitable for large datasets.
   "BlankTokensByRule": {
     "T1": 2,
     "T2": 1
-  },
-  "HashingSecretHash": "abc123...",
-  "EncryptionSecretHash": "def456..."
+  }
 }
 ```
 

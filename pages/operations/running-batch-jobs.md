@@ -13,7 +13,7 @@ How to run OpenToken in batch mode across CSV or Parquet files at scale using CL
 OpenToken processes input files (CSV or Parquet) and produces two outputs:
 
 1. **Tokens file** (CSV or Parquet): Contains `RecordId`, `RuleId`, `Token` columns
-2. **Metadata file** (JSON): Processing statistics, secret hashes, and validation counts
+2. **Metadata file** (JSON): Processing statistics, key fingerprints, and validation counts
 
 ---
 
@@ -22,26 +22,15 @@ OpenToken processes input files (CSV or Parquet) and produces two outputs:
 ### Basic Syntax
 
 ```bash
-opentoken-cli [OPTIONS] -i <input> -t <type> -o <output> -h <hashing-secret> [-e <encryption-key>]
+opentoken <command> [OPTIONS]
+
+# commands:
+#   generate-keypair
+#   tokenize
+#   decrypt
 ```
 
-### Required Arguments
-
-| Argument | Alias             | Description                          | Example         |
-| -------- | ----------------- | ------------------------------------ | --------------- |
-| `-i`     | `--input`         | Input file path                      | `-i data.csv`   |
-| `-t`     | `--type`          | Input file type (`csv` or `parquet`) | `-t csv`        |
-| `-o`     | `--output`        | Output file path                     | `-o tokens.csv` |
-| `-h`     | `--hashingsecret` | HMAC-SHA256 hashing secret           | `-h "MyKey"`    |
-
-### Optional Arguments
-
-| Argument | Alias             | Description                    | Default                       |
-| -------- | ----------------- | ------------------------------ | ----------------------------- |
-| `-e`     | `--encryptionkey` | AES-256 encryption key         | Required unless `--hash-only` |
-| `-ot`    | `--output-type`   | Output file type               | Same as input                 |
-|          | `--hash-only`     | Hash-only mode (no encryption) | False                         |
-| `-d`     | `--decrypt`       | Decrypt mode                   | False                         |
+See the [CLI Reference](../reference/cli.md) for the complete list of flags.
 
 ### Java CLI Example
 
@@ -50,11 +39,10 @@ cd lib/java
 mvn clean install -DskipTests
 
 java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i ../../resources/sample.csv \
-  -t csv \
-  -o ../../resources/output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  tokenize \
+  -i ../../resources/sample.csv -t csv -o ../../resources/output.zip \
+  --receiver-public-key ../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../resources/keys/sender/keypair.pem
 ```
 
 ### Python CLI Example
@@ -65,11 +53,10 @@ source ../../.venv/bin/activate
 pip install -r requirements.txt -e . -e ../opentoken
 
 python -m opentoken_cli.main \
-  -i ../../../resources/sample.csv \
-  -t csv \
-  -o ../../../resources/output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  tokenize \
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.zip \
+  --receiver-public-key ../../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../../resources/keys/sender/keypair.pem
 ```
 
 ---
@@ -83,11 +70,12 @@ python -m opentoken_cli.main \
 cd /path/to/OpenToken
 
 ./run-opentoken.sh \
+  tokenize \
   -i ./resources/sample.csv \
   -o ./resources/output.csv \
   -t csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  --receiver-public-key ./resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ./resources/keys/sender/keypair.pem
 ```
 
 **PowerShell (Windows):**
@@ -95,20 +83,21 @@ cd /path/to/OpenToken
 cd C:\path\to\OpenToken
 
 .\run-opentoken.ps1 `
+  -c tokenize `
   -i .\resources\sample.csv `
   -o .\resources\output.csv `
-  -FileType csv `
-  -h "HashingKey" `
-  -e "Secret-Encryption-Key-Goes-Here."
+  -t csv `
+  -ReceiverPublicKey .\resources\keys\receiver\public_key.pem `
+  -SenderKeypairPath .\resources\keys\sender\keypair.pem
 ```
 
 ### Script Options
 
-| Option       | Bash | PowerShell   | Description          |
-| ------------ | ---- | ------------ | -------------------- |
-| File type    | `-t` | `-FileType`  | `csv` or `parquet`   |
-| Skip rebuild | `-s` | `-SkipBuild` | Reuse existing image |
-| Verbose      | `-v` | `-Verbose`   | Show detailed output |
+| Option       | Bash | PowerShell       | Description          |
+| ------------ | ---- | ---------------- | -------------------- |
+| File type    | `-t` | `-t`             | `csv` or `parquet`   |
+| Skip rebuild | `-s` | `-SkipBuild`     | Reuse existing image |
+| Verbose      | `-v` | `-VerboseOutput` | Show detailed output |
 
 ### Manual Docker Commands
 
@@ -119,11 +108,10 @@ docker build -t opentoken:latest .
 # Run with sample data
 docker run --rm -v $(pwd)/resources:/app/resources \
   opentoken:latest \
-  -i /app/resources/sample.csv \
-  -t csv \
-  -o /app/resources/output.csv \
-  -h "HashingKey" \
-  -e "Secret-Encryption-Key-Goes-Here."
+  tokenize \
+  -i /app/resources/sample.csv -t csv -o /app/resources/output.zip \
+  --receiver-public-key /app/resources/keys/receiver/public_key.pem \
+  --sender-keypair-path /app/resources/keys/sender/keypair.pem
 
 # View output
 cat resources/output.csv
@@ -162,12 +150,14 @@ ID001,T2,pUxPgYL9+cMxkA+8928Pil+9W+dm9kISwHYPdkZS+I2nQ/bQ/8HyL3FOVf3NYPW5NKZZO1O
   "Platform": "Java",
   "JavaVersion": "21.0.0",
   "OpenTokenVersion": "1.0.0",
+  "KeyExchangeMethod": "ECDH-P-384",
+  "Curve": "P-384",
+  "SenderPublicKeyHash": "a85b4bd6...",
+  "ReceiverPublicKeyHash": "32bc0e98...",
   "TotalRows": 100,
   "TotalRowsWithInvalidAttributes": 3,
   "InvalidAttributesByType": { "BirthDate": 2, "PostalCode": 1 },
-  "BlankTokensByRule": { "T1": 2, "T2": 1 },
-  "HashingSecretHash": "abc123...",
-  "EncryptionSecretHash": "def456..."
+  "BlankTokensByRule": { "T1": 2, "T2": 1 }
 }
 ```
 
@@ -177,17 +167,9 @@ See [Reference: Metadata Format](../reference/metadata-format.md) for complete f
 
 ## Common Patterns
 
-### Environment Variables for Secrets
+### Environment Variables
 
-```bash
-export OPENTOKEN_HASHING_SECRET="MyHashingKey"
-export OPENTOKEN_ENCRYPTION_KEY="MyEncryptionKey32CharactersLong"
-
-java -jar opentoken-cli-*.jar \
-  -i data.csv -t csv -o tokens.csv \
-  -h "$OPENTOKEN_HASHING_SECRET" \
-  -e "$OPENTOKEN_ENCRYPTION_KEY"
-```
+Prefer file-based key material (`--receiver-public-key`, `--sender-keypair-path`, `--receiver-keypair-path`) instead of passing sensitive values directly on the command line.
 
 ### Logging and Monitoring
 
@@ -202,7 +184,7 @@ Check the metadata file after each run for:
 
 | Problem                       | Solution                                                                |
 | ----------------------------- | ----------------------------------------------------------------------- |
-| "Encryption key not provided" | Add `-e "YourKey"` or use `--hash-only`                                 |
+| "Missing receiver public key" | Provide `--receiver-public-key` (tokenize)                              |
 | "Invalid BirthDate"           | Use YYYY-MM-DD format; date must be 1910-01-01 to today                 |
 | "Column not found"            | Check column names match [accepted aliases](../config/configuration.md) |
 | Docker build fails            | Ensure Docker is running; use absolute paths                            |

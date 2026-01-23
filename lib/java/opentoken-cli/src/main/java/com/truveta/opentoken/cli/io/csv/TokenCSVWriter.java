@@ -25,6 +25,7 @@ public class TokenCSVWriter implements TokenWriter {
     private static final Logger logger = LoggerFactory.getLogger(TokenCSVWriter.class);
 
     private final BufferedWriter writer;
+    private boolean closed = false;
 
     /**
      * Initialize the class with the output file in CSV format.
@@ -61,11 +62,17 @@ public class TokenCSVWriter implements TokenWriter {
 
         writer.write(String.format("%s,%s,%s", ruleId, token, recordId));
         writer.write('\n'); // Use LF line ending to match Python output
+        writer.flush(); // Flush to ensure data is written immediately
     }
 
     @Override
     public void close() throws IOException {
+        if (closed) {
+            return;
+        }
+        closed = true;
         if (writer != null) {
+            writer.flush();
             writer.close();
         }
     }

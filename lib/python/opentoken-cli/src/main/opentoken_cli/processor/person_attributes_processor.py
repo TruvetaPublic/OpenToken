@@ -142,8 +142,9 @@ class PersonAttributesProcessor:
 
             try:
                 writer.write_attributes(row_result)
-            except IOError:
+            except IOError as exc:
                 logger.error(f"Error writing attributes to file for row {row_counter:,}", exc_info=True)
+                raise exc
 
     @staticmethod
     def _keep_track_of_invalid_attributes(token_generator_result: TokenGeneratorResult,

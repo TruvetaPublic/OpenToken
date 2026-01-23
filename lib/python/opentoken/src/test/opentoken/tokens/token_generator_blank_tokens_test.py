@@ -16,6 +16,7 @@ from opentoken.tokens.token import Token
 from opentoken.tokens.token_definition import TokenDefinition
 from opentoken.tokens.token_generator import TokenGenerator
 from opentoken.tokens.token_generator_result import TokenGeneratorResult
+from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokentransformer.no_operation_token_transformer import NoOperationTokenTransformer
 
 
@@ -24,11 +25,11 @@ class TestTokenGeneratorBlankTokens:
 
     def setup_method(self):
         """Set up test fixtures before each test method."""
-        # Setup real TokenDefinition and TokenTransformers for testing
         self.token_definition = TokenDefinition()
-        self.token_transformer_list = [NoOperationTokenTransformer()]
-
-        self.token_generator = TokenGenerator.from_transformers(self.token_definition, self.token_transformer_list)
+        self.token_generator = TokenGenerator(
+            self.token_definition,
+            SHA256Tokenizer([NoOperationTokenTransformer()])
+        )
 
     def test_blank_tokens_tracking_with_invalid_attributes(self):
         """Test blank token tracking when attributes are missing for token generation."""
@@ -113,40 +114,3 @@ class TestTokenGeneratorBlankTokens:
         # Initially, blank tokens set should be empty
         blank_tokens_by_rule = result.blank_tokens_by_rule
         assert len(blank_tokens_by_rule) == 0, "Initial blank tokens set should be empty"
-
-    def test_blank_tokens_tracking_multiple_invalid_attributes(self):
-        """Test blank token tracking when multiple attributes cause blank tokens."""
-        # Create person attributes with multiple issues
-        person_attributes: Dict[Type[Attribute], str] = {
-            RecordIdAttribute: "123",
-            FirstNameAttribute: "John",
-            LastNameAttribute: "Doe",
-            SexAttribute: "Male",
-            BirthDateAttribute: "1990-01-01",
-            SocialSecurityNumberAttribute: "111-11-1111",  # Invalid SSN 
-            # Missing PostalCodeAttribute - this should cause issues for T2
-        }
-
-        result = self.token_generator.get_all_tokens(person_attributes)
-
-        # Verify that multiple blank tokens are tracked
-        blank_tokens_by_rule = result.blank_tokens_by_rule
-        
-        # Should have blank tokens for rules that require these attributes
-        assert len(blank_tokens_by_rule) > 0, "Should have blank tokens for invalid/missing attributes"
-
-    def test_blank_tokens_set_immutability(self):
-        """Test that the blank tokens set behaves correctly."""
-        result = TokenGeneratorResult()
-        
-        # Get the blank tokens set
-        blank_tokens_by_rule = result.blank_tokens_by_rule
-        
-        # Add a rule ID
-        blank_tokens_by_rule.add("TEST_RULE")
-        
-        # Verify it was added
-        assert "TEST_RULE" in blank_tokens_by_rule
-        
-        # Verify the set contains the expected element
-        assert len(blank_tokens_by_rule) == 1

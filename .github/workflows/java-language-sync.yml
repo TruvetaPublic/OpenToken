@@ -11,6 +11,10 @@ on:
       - "lib/nodejs/opentoken/src/**/*.js"
       - "lib/nodejs/opentoken/src/**/*.ts"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sync-check:
     runs-on: ubuntu-latest

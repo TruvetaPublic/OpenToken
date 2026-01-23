@@ -31,7 +31,6 @@ class PersonAttributesReader(ABC, Iterator[Dict[Type[Attribute], str]]):
         Returns:
             A person attributes map.
         """
-        pass
 
     @abstractmethod
     def __iter__(self):
@@ -41,7 +40,6 @@ class PersonAttributesReader(ABC, Iterator[Dict[Type[Attribute], str]]):
     @abstractmethod
     def close(self) -> None:
         """Close the reader and release any resources."""
-        pass
 
     def __enter__(self):
         """Context manager entry."""

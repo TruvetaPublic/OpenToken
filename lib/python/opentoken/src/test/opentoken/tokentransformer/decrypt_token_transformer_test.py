@@ -49,7 +49,24 @@ class TestDecryptTokenTransformer:
         with pytest.raises(ValueError) as exc_info:
             DecryptTokenTransformer(self.INVALID_KEY)  # Key is too short
         
-        assert "Key must be 32 characters long" == str(exc_info.value)
+        assert "Key must be 32 bytes long" == str(exc_info.value)
+
+    def test_constructor_none_key_raises_value_error(self):
+        """None inputs should raise a helpful ValueError."""
+        with pytest.raises(ValueError, match="must not be None"):
+            DecryptTokenTransformer(None)
+
+    def test_constructor_invalid_type_raises_type_error(self):
+        """Unsupported key types surface as TypeError."""
+        with pytest.raises(TypeError, match="bytes-like"):
+            DecryptTokenTransformer(12345)  # type: ignore[arg-type]
+
+    def test_constructor_accepts_bytes_input(self):
+        """Bytes input should be accepted and copied internally."""
+        key_bytes = self.VALID_KEY.encode('latin-1')
+        decryptor = DecryptTokenTransformer(key_bytes)
+        encrypted_token = self.encryptor.transform("bytes-compatible")
+        assert decryptor.transform(encrypted_token) == "bytes-compatible"
 
     def test_transform_valid_encrypted_token_returns_decrypted_token(self):
         """Test that transforming a valid encrypted token returns the decrypted token."""
@@ -133,3 +150,32 @@ class TestDecryptTokenTransformer:
         # Should throw an exception
         with pytest.raises(Exception):
             wrong_decryptor.transform(encrypted_token)
+    def test_constructor_with_bytes_key(self):
+        """Test that constructor accepts bytes directly without charset conversion."""
+        key_bytes = self.VALID_KEY.encode('latin-1')
+        transformer = DecryptTokenTransformer(key_bytes)
+        
+        # The transformer should work with bytes
+        encrypted_token = self.encryptor.transform("test-token")
+        result = transformer.transform(encrypted_token)
+        assert result == "test-token"
+
+    def test_constructor_with_bytearray_key(self):
+        """Test that constructor accepts bytearray directly."""
+        key_array = bytearray(self.VALID_KEY.encode('latin-1'))
+        transformer = DecryptTokenTransformer(key_array)
+        
+        # The transformer should work with bytearray
+        encrypted_token = self.encryptor.transform("test-token")
+        result = transformer.transform(encrypted_token)
+        assert result == "test-token"
+
+    def test_constructor_with_memoryview_key(self):
+        """Test that constructor accepts memoryview directly."""
+        key_view = memoryview(self.VALID_KEY.encode('latin-1'))
+        transformer = DecryptTokenTransformer(key_view)
+        
+        # The transformer should work with memoryview
+        encrypted_token = self.encryptor.transform("test-token")
+        result = transformer.transform(encrypted_token)
+        assert result == "test-token"

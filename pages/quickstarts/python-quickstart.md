@@ -51,47 +51,60 @@ pip install -r requirements.txt -e .
 
 ## Run Token Generation
 
-### Basic Encrypted Tokens
+### Basic Encrypted Tokens (Key Exchange)
+
+First generate keypairs (receiver and sender):
 
 ```bash
 python -m opentoken_cli.main \
-  -i ../../../resources/sample.csv \
-  -t csv \
-  -o ../../../resources/output.csv \
-  -h "YourHashingSecret" \
-  -e "YourEncryptionKey-32Chars-Here!"
+  generate-keypair --output-dir ../../../resources/keys/receiver --ecdh-curve P-384
+
+python -m opentoken_cli.main \
+  generate-keypair --output-dir ../../../resources/keys/sender --ecdh-curve P-384
+```
+
+```bash
+python -m opentoken_cli.main \
+  tokenize \
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.zip \
+  --receiver-public-key ../../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../../resources/keys/sender/keypair.pem
 ```
 
 ### Hash-Only Mode (No Encryption)
 
 ```bash
 python -m opentoken_cli.main \
-  -i ../../../resources/sample.csv \
-  -t csv \
-  -o ../../../resources/output.csv \
-  -h "YourHashingSecret" \
-  --hash-only
+  tokenize \
+  --hash-only \
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/output-hash-only.zip \
+  --receiver-public-key ../../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../../resources/keys/sender/keypair.pem
 ```
 
 ### Parquet Format
 
 ```bash
 python -m opentoken_cli.main \
-  -i input.parquet \
-  -t parquet \
-  -o output.parquet \
-  -h "YourHashingSecret" \
-  -e "YourEncryptionKey-32Chars-Here!"
+  tokenize \
+  -i input.parquet -t parquet -o output.zip \
+  --receiver-public-key ../../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../../resources/keys/sender/keypair.pem
 ```
 
 ## Verify Output
 
 ```bash
-# View token output
-head ../../../resources/output.csv
+# Decrypt to inspect hash-only tokens
+python -m opentoken_cli.main \
+  decrypt \
+  -i ../../../resources/output.zip -t csv -o ../../../resources/decrypted.csv \
+  --receiver-keypair-path ../../../resources/keys/receiver/keypair.pem
+
+head ../../../resources/decrypted.csv
 
 # View metadata
-cat ../../../resources/output.metadata.json
+cat ../../../resources/output.zip.metadata.json
 ```
 
 ## Using the Python API Programmatically

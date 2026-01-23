@@ -2,7 +2,6 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
-import pytest
 
 from opentoken.attributes.person.birth_date_attribute import BirthDateAttribute
 from opentoken.attributes.person.first_name_attribute import FirstNameAttribute

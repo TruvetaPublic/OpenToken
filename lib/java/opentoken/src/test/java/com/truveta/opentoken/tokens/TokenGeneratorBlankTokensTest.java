@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +35,7 @@ class TokenGeneratorBlankTokensTest {
     void setUp() {
         tokenGenerator = new TokenGenerator(new TokenDefinition(),
                 new SHA256Tokenizer(
-                        java.util.Collections.singletonList(new NoOperationTokenTransformer())));
+                        Collections.singletonList(new NoOperationTokenTransformer())));
     }
 
     @Test

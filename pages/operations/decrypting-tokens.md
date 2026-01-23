@@ -23,28 +23,28 @@ Decryption is useful for:
 
 ## CLI Decrypt Mode
 
-Use the `-d` or `--decrypt` flag with the same encryption key used for token generation.
+Use the `decrypt` subcommand with the receiver keypair. In most workflows, the sender public key is included in the `.zip` output produced by `tokenize`.
 
 ### Java
 
 ```bash
-java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -d \
-  -i ../../resources/output.csv \
+java -jar opentoken-cli/target/opentoken-cli-*.jar decrypt \
+  -i ../../resources/output.zip \
   -t csv \
   -o ../../resources/decrypted.csv \
-  -e "Secret-Encryption-Key-Goes-Here."
+  --receiver-keypair-path /path/to/receiver/keypair.pem \
+  --ecdh-curve P-384
 ```
 
 ### Python
 
 ```bash
-python -m opentoken_cli.main \
-  -d \
-  -i ../../../resources/output.csv \
+opentoken decrypt \
+  -i ../../../resources/output.zip \
   -t csv \
   -o ../../../resources/decrypted.csv \
-  -e "Secret-Encryption-Key-Goes-Here."
+  --receiver-keypair-path /path/to/receiver/keypair.pem \
+  --ecdh-curve P-384
 ```
 
 ### Docker
@@ -52,11 +52,11 @@ python -m opentoken_cli.main \
 ```bash
 docker run --rm -v $(pwd)/resources:/app/resources \
   opentoken:latest \
-  -d \
-  -i /app/resources/output.csv \
+  decrypt \
+  -i /app/resources/output.zip \
   -t csv \
   -o /app/resources/decrypted.csv \
-  -e "Secret-Encryption-Key-Goes-Here."
+  --receiver-keypair-path /app/resources/receiver/keypair.pem
 ```
 
 ---
@@ -83,6 +83,8 @@ This output can be used to:
 
 A Python decryptor tool is available in `tools/decryptor/`:
 
+**Note:** This tool is for the legacy shared-secret encryption flow (AES key provided directly). For ECDH public key exchange workflows, use the OpenToken CLI `decrypt` command.
+
 ```bash
 cd tools/decryptor
 pip install pycryptodome
@@ -103,25 +105,27 @@ python decryptor.py \
 
 ## Cross-Language Decryption
 
-Tokens encrypted by Java can be decrypted by Python and vice versa:
+Tokens encrypted by Java can be decrypted by Python and vice versa (as long as the receiver uses the correct keypair and the sender public key is available):
 
 ```bash
-# Encrypt with Java
-java -jar opentoken-cli-*.jar \
-  -i data.csv -t csv -o tokens.csv \
-  -h "HashingKey" -e "EncryptionKey32Characters!!!!!"
+# Tokenize with Java
+java -jar opentoken-cli-*.jar tokenize \
+  -i data.csv -t csv -o tokens.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path /path/to/sender/keypair.pem \
+  --ecdh-curve P-384
 
 # Decrypt with Python
-python -m opentoken_cli.main \
-  -d \
-  -i tokens.csv -t csv -o decrypted.csv \
-  -e "EncryptionKey32Characters!!!!!"
+opentoken decrypt \
+  -i tokens.zip -t csv -o decrypted.csv \
+  --receiver-keypair-path /path/to/receiver/keypair.pem \
+  --ecdh-curve P-384
 ```
 
 **Requirements for cross-language compatibility:**
-- Same encryption key (exactly 32 characters/bytes)
+- Same curve (`--ecdh-curve`) and compatible key material
+- Sender public key available (either provided explicitly or included in the `.zip`)
 - Same token file format
-- Both implementations use AES-256-GCM with identical parameters
 
 ---
 
@@ -129,17 +133,13 @@ python -m opentoken_cli.main \
 
 ### Key Handling
 
-- **Never commit encryption keys** to version control
-- **Use environment variables** or secret stores:
-  ```bash
-  export OPENTOKEN_ENCRYPTION_KEY="YourKey32Characters!!!!!!!!!!!!"
-  java -jar opentoken-cli-*.jar -d -e "$OPENTOKEN_ENCRYPTION_KEY" ...
-  ```
-- **Rotate keys periodically** and re-encrypt tokens as needed
+- **Never commit private keys** (`keypair.pem`) to version control
+- **Store private keys in a secret store** and materialize them only at runtime (for example, via secret mounts)
+- **Rotate keys periodically** and coordinate key rollovers with partners
 
 ### Access Control
 
-- **Limit decryption access**: Only authorized personnel should have encryption keys
+- **Limit decryption access**: Only authorized personnel should have access to receiver private keys
 - **Audit decryption events**: Log when and why tokens are decrypted
 - **Secure decrypted output**: Decrypted tokens are still sensitive (HMAC hashes)
 
@@ -154,9 +154,9 @@ Token Signature: DOE|JOHN|MALE|1980-01-15
     ↓
 SHA-256 Hash: abc123...
     ↓
-HMAC-SHA256: def456...  ← Decryption reveals this
+  HMAC-SHA256: def456...  ← Decryption reveals this
     ↓
-AES-256-GCM: xyz789...  ← Encrypted token
+  AES-256-GCM: xyz789...  ← Encrypted token
 ```
 
 You **cannot** reverse the original attribute values from decrypted tokens.
@@ -167,8 +167,9 @@ You **cannot** reverse the original attribute values from decrypted tokens.
 
 | Problem                             | Solution                                                                                 |
 | ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| "Decryption error"                  | Verify encryption key matches the key used for encryption                                |
-| Key length error                    | Encryption key must be exactly 32 characters                                             |
+| "Decryption error"                  | Verify receiver keypair and sender public key match the token package                    |
+| "Public key file not found"         | Provide `--sender-public-key` or ensure the input `.zip` includes it                     |
+| "Keypair file not found"            | Verify `--receiver-keypair-path` exists and is readable                                  |
 | Blank tokens in output              | Blank tokens in input (from invalid records) remain blank                                |
 | Tokens don't match across languages | Run interoperability test: `tools/interoperability/java_python_interoperability_test.py` |
 

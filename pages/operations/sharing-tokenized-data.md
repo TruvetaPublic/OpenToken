@@ -15,9 +15,10 @@ Organizations often need to identify overlapping individuals across datasets wit
 **Typical scenario:**
 
 1. Organization A and Organization B each hold patient records
-2. Both organizations run OpenToken on their data using **the same secrets**
-3. They exchange only the token output (no raw PII)
-4. Matching tokens indicate the same person exists in both datasets
+2. The intended **receiver** shares a public key with the sender
+3. The sender runs OpenToken using ECDH key exchange (sender private key + receiver public key)
+4. The sender transfers a token package (no raw PII, no private keys)
+5. The receiver decrypts to hash-only form and performs matching
 
 ```text
 ┌─────────────────┐                    ┌─────────────────┐
@@ -28,7 +29,7 @@ Organizations often need to identify overlapping individuals across datasets wit
          ▼                                      ▼
 ┌─────────────────┐                    ┌─────────────────┐
 │   OpenToken     │                    │   OpenToken     │
-│ (same secrets)  │                    │ (same secrets)  │
+│ (ECDH exchange) │                    │ (ECDH exchange) │
 └────────┬────────┘                    └────────┬────────┘
          │                                      │
          ▼                                      ▼
@@ -50,41 +51,36 @@ Organizations often need to identify overlapping individuals across datasets wit
 
 The sending organization prepares tokenized data for sharing.
 
-### Step 1: Agree on Shared Secrets
+### Step 1: Obtain Receiver Public Key
 
-Before tokenization, both parties must agree on:
+The receiver generates a keypair and shares only their public key (`public_key.pem`) with the sender.
 
-- **Hashing secret** (required): Used for HMAC-SHA256
-- **Encryption key** (recommended for external sharing): Used for AES-256-GCM
-
-**Best practice:** Use a secure channel (encrypted email, secure file transfer, or direct key exchange in person) to share secrets. Never send secrets alongside token files.
-
-### Step 2: Run OpenToken
-
-Generate tokens using the agreed-upon secrets.
-
-**Encrypted mode (recommended for external sharing):**
+### Step 2: Generate (or Reuse) Sender Keypair
 
 ```bash
-java -jar opentoken-cli-*.jar \
-  -i patient_data.csv \
-  -t csv \
-  -o tokens_for_partner.csv \
-  -h "$SHARED_HASHING_SECRET" \
-  -e "$SHARED_ENCRYPTION_KEY"
+opentoken generate-keypair --output-dir ./keys/sender --ecdh-curve P-384
 ```
 
-**Hash-only mode (overlap analysis helper, internal artifact):**
+### Step 3: Tokenize for the Receiver
 
-Hash-only output is primarily used **inside your environment** to support overlap analysis against encrypted tokens received from a partner:
+Generate a token package (commonly a `.zip`) using ECDH key exchange.
 
 ```bash
-java -jar opentoken-cli-*.jar \
+opentoken tokenize \
+  -i patient_data.csv -t csv -o tokens_for_partner.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path ./keys/sender/keypair.pem \
+  --ecdh-curve P-384
+```
+
+**Hash-only mode (internal helper):**
+
+```bash
+opentoken tokenize \
   --hash-only \
-  -i local_patient_data.csv \
-  -t csv \
-  -o local_hash_only_tokens.csv \
-  -h "$SHARED_HASHING_SECRET"
+  -i local_patient_data.csv -t csv -o local_hash_only.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path ./keys/sender/keypair.pem
 ```
 
 Typical pattern:
@@ -96,12 +92,16 @@ Typical pattern:
 
 See [Hash-Only Mode](hash-only-mode.md) for trade-offs between encrypted and hash-only tokens.
 
-### Step 3: Review Metadata
+### Step 4: Review Metadata
 
 Check the generated `.metadata.json` for processing statistics:
 
 ```json
 {
+  "KeyExchangeMethod": "ECDH-P-384",
+  "Curve": "P-384",
+  "SenderPublicKeyHash": "a85b4bd6...",
+  "ReceiverPublicKeyHash": "32bc0e98...",
   "TotalRows": 50000,
   "TotalRowsWithInvalidAttributes": 120,
   "InvalidAttributesByType": {
@@ -111,9 +111,7 @@ Check the generated `.metadata.json` for processing statistics:
   "BlankTokensByRule": {
     "T1": 80,
     "T3": 80
-  },
-  "HashingSecretHash": "e0b4e60b...",
-  "EncryptionSecretHash": "a1b2c3d4..."
+  }
 }
 ```
 
@@ -121,22 +119,21 @@ Check the generated `.metadata.json` for processing statistics:
 
 - `TotalRowsWithInvalidAttributes`: High counts may indicate data quality issues
 - `BlankTokensByRule`: T1 and T3 require SSN; blanks are expected if SSN is often missing
-- `HashingSecretHash` / `EncryptionSecretHash`: Share these hashes (not the secrets) so the recipient can verify they used the correct keys
+- `SenderPublicKeyHash` / `ReceiverPublicKeyHash`: Share these hashes so the receiver can confirm the expected keys were used
 
-### Step 4: Prepare Transfer Package
+### Step 5: Prepare Transfer Package
 
 Include in the transfer:
 
-| File                         | Purpose                              | Contains Secrets?         |
-| ---------------------------- | ------------------------------------ | ------------------------- |
-| `tokens.csv` (or `.parquet`) | Token output                         | No                        |
-| `tokens.metadata.json`       | Processing stats, secret hashes      | Hashes only (not secrets) |
-| Data dictionary (optional)   | Column definitions, RecordId mapping | No                        |
+| File                       | Purpose                                               | Contains Private Keys? |
+| -------------------------- | ----------------------------------------------------- | ---------------------- |
+| `tokens_for_partner.zip`   | Token package (tokens + metadata + sender public key) | No                     |
+| Data dictionary (optional) | Column definitions, RecordId mapping                  | No                     |
 
 **Do NOT include:**
 
 - Raw input data (PII)
-- Hashing secret or encryption key (share separately via secure channel)
+- Any private keys (`keypair.pem`)
 - Decrypted tokens
 
 ### Step 5: Transfer Securely
@@ -153,33 +150,29 @@ Use encrypted file transfer:
 
 The receiving organization ingests shared tokens and matches against their own data.
 
-### Step 1: Obtain Shared Secrets
+### Step 1: Generate Receiver Keypair
 
-Receive the hashing secret (and encryption key, if applicable) through a secure channel separate from the token files.
-
-### Step 2: Verify Secret Hashes
-
-Before processing, verify that your secrets match the sender's:
+The receiver generates a keypair and shares their public key with the sender.
 
 ```bash
-python tools/hash_calculator.py \
-  --hashing-secret "$SHARED_HASHING_SECRET" \
-  --encryption-key "$SHARED_ENCRYPTION_KEY"
+opentoken generate-keypair --output-dir ./keys/receiver --ecdh-curve P-384
 ```
 
-Compare the output hashes with `HashingSecretHash` and `EncryptionSecretHash` in the received metadata file. If they don't match, tokens will not match correctly.
+### Step 2: Verify Public Key Hashes (Optional but Recommended)
 
-### Step 3: Generate Your Own Tokens
-
-Run OpenToken on your local data using the **same secrets**:
+Compare the metadata hashes to your local public key file hashes:
 
 ```bash
-java -jar opentoken-cli-*.jar \
-  -i local_patient_data.csv \
-  -t csv \
-  -o local_tokens.csv \
-  -h "$SHARED_HASHING_SECRET" \
-  -e "$SHARED_ENCRYPTION_KEY"
+sha256sum ./keys/receiver/public_key.pem
+```
+
+### Step 3: Decrypt Received Token Package
+
+```bash
+opentoken decrypt \
+  -i tokens_for_partner.zip -t csv -o partner_decrypted.csv \
+  --receiver-keypair-path ./keys/receiver/keypair.pem \
+  --ecdh-curve P-384
 ```
 
 ### Step 4: Match Tokens
@@ -208,16 +201,7 @@ See [Matching Model](../concepts/matching-model.md) for matching strategies.
 
 ### Step 5: Handle Encrypted Tokens (If Applicable)
 
-If tokens are encrypted and you need to debug or verify:
-
-```bash
-java -jar opentoken-cli-*.jar \
-  -d \
-  -i partner_tokens.csv \
-  -t csv \
-  -o partner_decrypted.csv \
-  -e "$SHARED_ENCRYPTION_KEY"
-```
+Decryption is the normal step for matching workflows because encrypted tokens are randomized (due to AES-GCM IVs) and will not match by comparing ciphertext blobs directly.
 
 See [Decrypting Tokens](decrypting-tokens.md) for details.
 
@@ -227,7 +211,7 @@ See [Decrypting Tokens](decrypting-tokens.md) for details.
 
 ### Use Encrypted Tokens for External Sharing
 
-Encrypted mode (`-e` flag) adds AES-256-GCM encryption on top of HMAC-SHA256:
+Encrypted mode adds AES-256-GCM encryption on top of HMAC-SHA256:
 
 | Mode      | External Sharing   | Defense in Depth | Reversible              |
 | --------- | ------------------ | ---------------- | ----------------------- |
@@ -236,12 +220,12 @@ Encrypted mode (`-e` flag) adds AES-256-GCM encryption on top of HMAC-SHA256:
 
 Encrypted tokens provide an additional security layer if token files are intercepted.
 
-### Protect Shared Secrets
+### Protect Private Keys
 
-- **Never send secrets with token files.** Use a separate secure channel.
-- **Store secrets in a vault** (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault)
-- **Limit access** to secrets to authorized personnel only
-- **Rotate secrets periodically** and re-tokenize as needed
+- Never send private keys with token files.
+- Store private keys in a vault / secret store (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault).
+- Limit access to private keys to authorized personnel only.
+- Rotate keypairs periodically and coordinate rollovers with partners.
 
 ### Verify Partner Identity
 
@@ -265,10 +249,10 @@ Before sharing:
 
 ### What Tokens Do NOT Reveal
 
-Tokens are one-way transformations. Without the hashing secret:
+Tokens are one-way transformations. Without the required private keys:
 
-- Attackers cannot reverse tokens to original attributes
-- Attackers cannot generate new tokens for known individuals
+- Attackers cannot reverse encrypted tokens to hash-only form
+- Attackers cannot reverse hash-only tokens to original attributes
 - Attackers cannot determine which attributes produced a token
 
 With only the token file, an attacker cannot identify individuals.
@@ -277,13 +261,14 @@ With only the token file, an attacker cannot identify individuals.
 
 ## Common Pitfalls
 
-| Issue                         | Cause                     | Solution                                                |
-| ----------------------------- | ------------------------- | ------------------------------------------------------- |
-| Zero matches between datasets | Different secrets used    | Verify secret hashes match in metadata files            |
-| Partial matches only          | Normalization differences | Ensure both parties use the same OpenToken version      |
-| High invalid record counts    | Data quality issues       | Clean data before tokenization; review validation rules |
-| Secrets exposed in logs       | Logging misconfiguration  | Configure logging to exclude sensitive parameters       |
-| Token file intercepted        | Insecure transfer         | Use encrypted file transfer; prefer encrypted tokens    |
+| Issue                         | Cause                                             | Solution                                                                |
+| ----------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------- |
+| Decrypt fails                 | Wrong receiver keypair or wrong sender public key | Verify key paths and compare public key hashes in metadata              |
+| Zero matches between datasets | Different versions or different key material      | Ensure both sides use the same OpenToken version and key exchange curve |
+| Partial matches only          | Normalization differences                         | Ensure both parties use the same OpenToken version                      |
+| High invalid record counts    | Data quality issues                               | Clean data before tokenization; review validation rules                 |
+| Private keys exposed in logs  | Logging misconfiguration                          | Configure logging to exclude sensitive parameters                       |
+| Token file intercepted        | Insecure transfer                                 | Use encrypted file transfer; prefer encrypted tokens                    |
 
 ---
 
@@ -291,17 +276,17 @@ With only the token file, an attacker cannot identify individuals.
 
 **Sender:**
 
-- [ ] Agreed on secrets with recipient (via secure channel)
-- [ ] Generated tokens with correct secrets
+- [ ] Obtained receiver public key
+- [ ] Generated tokens with correct receiver public key and sender keypair
 - [ ] Verified metadata shows expected row counts
 - [ ] Prepared transfer package (tokens + metadata only)
 - [ ] Using encrypted file transfer
 
 **Recipient:**
 
-- [ ] Received secrets via secure channel (separate from token files)
-- [ ] Verified secret hashes match sender's metadata
-- [ ] Generated own tokens with same secrets
+- [ ] Generated receiver keypair and shared receiver public key
+- [ ] Verified public key hashes match metadata (recommended)
+- [ ] Decrypted partner token package using receiver private key
 - [ ] Matching logic uses correct RuleId and Token columns
 
 ---
@@ -311,6 +296,6 @@ With only the token file, an attacker cannot identify individuals.
 - [Hash-Only Mode](hash-only-mode.md) — When to skip encryption
 - [Decrypting Tokens](decrypting-tokens.md) — Reversing encrypted tokens for verification
 - [Security](../security.md) — Cryptographic details and key management
-- [Key Management & Secrets](../security.md#key-management--secrets) — Secret handling best practices
+- [Key Management](../security.md#key-management-ecdh-public-key-exchange) — Private key handling best practices
 - [Configuration](../config/configuration.md) — CLI arguments and environment variables
 - [Matching Model](../concepts/matching-model.md) — How token matching works

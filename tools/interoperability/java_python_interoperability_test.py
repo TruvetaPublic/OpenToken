@@ -2,7 +2,7 @@
 Interoperability tests for OpenToken Java and Python implementations.
 
 These tests validate that both implementations produce identical results
-and can work with each other's outputs.
+and can work with each other's outputs using ECDH key exchange.
 """
 
 import subprocess
@@ -18,8 +18,6 @@ from typing import Dict, Any
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "lib/python/opentoken/src/main"))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "tools"))
 
-from decryptor.decryptor import decrypt_tokens
-
 
 class OpenTokenCLI:
     """Base class for OpenToken CLI operations."""
@@ -33,29 +31,55 @@ class OpenTokenCLI:
         self.java_jar_path = jar_files[0]
         self.python_main = self.project_root / "lib/python/opentoken-cli/src/main/opentoken_cli/main.py"
         self.sample_csv = self.project_root / "resources/sample.csv"
-        self.decryptor_path = self.project_root / "tools/decryptor/decryptor.py"
         
-        # Test credentials
-        self.hashing_key = "TestHashingKey123"
-        self.encryption_key = "TestEncryptionKey123456789012345"  # 32 chars for AES
+        # Default ECDH curve
+        self.ecdh_curve = "P-384"
 
 
 class JavaCLI(OpenTokenCLI):
     """Command Line wrapper for OpenToken-Java."""
     
-    def generate_tokens(self, input_file: Path, output_file: Path) -> subprocess.CompletedProcess:
-        """OpenToken-Java -- Generate tokens."""
+    def generate_keypair(self, output_dir: Path) -> subprocess.CompletedProcess:
+        """Generate ECDH keypair using Java CLI."""
         cmd = [
             "java", "-jar", str(self.java_jar_path),
+            "generate-keypair",
+            "--output-dir", str(output_dir),
+            "--ecdh-curve", self.ecdh_curve
+        ]
+        
+        print(f"Generating Java keypair in {output_dir}")
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
+        
+        if result.returncode != 0:
+            print(f"Java keypair generation stderr: {result.stderr}")
+            print(f"Java keypair generation stdout: {result.stdout}")
+            raise RuntimeError(f"Java keypair generation failed: {result.stderr}")
+        
+        return result
+    
+    def generate_tokens(self, input_file: Path, output_file: Path, 
+                       receiver_public_key: Path, sender_keypair_path: Path = None,
+                       hash_only: bool = False) -> subprocess.CompletedProcess:
+        """OpenToken-Java -- Generate tokens using ECDH."""
+        cmd = [
+            "java", "-jar", str(self.java_jar_path),
+            "tokenize",
             "-i", str(input_file),
             "-t", "csv",
             "-o", str(output_file),
             "-ot", "csv",
-            "-h", self.hashing_key,
-            "-e", self.encryption_key
+            "--receiver-public-key", str(receiver_public_key),
+            "--ecdh-curve", self.ecdh_curve
         ]
         
-        print("Running Java\n")
+        if sender_keypair_path:
+            cmd.extend(["--sender-keypair-path", str(sender_keypair_path)])
+        
+        if hash_only:
+            cmd.append("--hash-only")
+        
+        print("Running Java tokenize\n")
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
         
         if result.returncode != 0:
@@ -64,26 +88,84 @@ class JavaCLI(OpenTokenCLI):
             raise RuntimeError(f"Java CLI failed with return code {result.returncode}: {result.stderr}")
         
         return result
+    
+    def decrypt_tokens(self, input_file: Path, output_file: Path,
+                      sender_public_key: Path, receiver_keypair_path: Path = None) -> subprocess.CompletedProcess:
+        """OpenToken-Java -- Decrypt tokens using ECDH."""
+        cmd = [
+            "java", "-jar", str(self.java_jar_path),
+            "decrypt",
+            "-i", str(input_file),
+            "-t", "csv",
+            "-o", str(output_file),
+            "-ot", "csv",
+            "--sender-public-key", str(sender_public_key),
+            "--ecdh-curve", self.ecdh_curve
+        ]
+        
+        if receiver_keypair_path:
+            cmd.extend(["--receiver-keypair-path", str(receiver_keypair_path)])
+        
+        print("Running Java decrypt\n")
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
+        
+        if result.returncode != 0:
+            print(f"Java decrypt stderr: {result.stderr}")
+            print(f"Java decrypt stdout: {result.stdout}")
+            raise RuntimeError(f"Java decrypt failed: {result.stderr}")
+        
+        return result
 
 
 class PythonCLI(OpenTokenCLI):
     """Command Line wrapper for OpenToken-Python."""
 
-    def generate_tokens(self, input_file: Path, output_file: Path) -> subprocess.CompletedProcess:
-        """OpenToken-Python -- Generate tokens"""
+    def generate_keypair(self, output_dir: Path) -> subprocess.CompletedProcess:
+        """Generate ECDH keypair using Python CLI."""
         cmd = [
             "python3", str(self.python_main),
-            "-i", str(input_file),
-            "-t", "csv",
-            "-o", str(output_file),
-            "-ot", "csv",
-            "-h", self.hashing_key,
-            "-e", self.encryption_key
+            "generate-keypair",
+            "--output-dir", str(output_dir),
+            "--ecdh-curve", self.ecdh_curve
         ]
         
         env = {**os.environ, "PYTHONPATH": str(self.project_root / "lib/python/opentoken/src/main") + ":" + str(self.project_root / "lib/python/opentoken-cli/src/main")}
         
-        print("Running Python\n")
+        print(f"Generating Python keypair in {output_dir}")
+        result = subprocess.run(cmd, capture_output=True, text=True, 
+                              cwd=self.project_root, env=env)
+        
+        if result.returncode != 0:
+            print(f"Python keypair generation stderr: {result.stderr}")
+            print(f"Python keypair generation stdout: {result.stdout}")
+            raise RuntimeError(f"Python keypair generation failed: {result.stderr}")
+        
+        return result
+
+    def generate_tokens(self, input_file: Path, output_file: Path,
+                       receiver_public_key: Path, sender_keypair_path: Path = None,
+                       hash_only: bool = False) -> subprocess.CompletedProcess:
+        """OpenToken-Python -- Generate tokens using ECDH"""
+        cmd = [
+            "python3", str(self.python_main),
+            "tokenize",
+            "-i", str(input_file),
+            "-t", "csv",
+            "-o", str(output_file),
+            "-ot", "csv",
+            "--receiver-public-key", str(receiver_public_key),
+            "--ecdh-curve", self.ecdh_curve
+        ]
+        
+        if sender_keypair_path:
+            cmd.extend(["--sender-keypair-path", str(sender_keypair_path)])
+        
+        if hash_only:
+            cmd.append("--hash-only")
+        
+        env = {**os.environ, "PYTHONPATH": str(self.project_root / "lib/python/opentoken/src/main") + ":" + str(self.project_root / "lib/python/opentoken-cli/src/main")}
+        
+        print("Running Python tokenize\n")
         result = subprocess.run(cmd, capture_output=True, text=True, 
                               cwd=self.project_root, env=env)
         
@@ -93,24 +175,36 @@ class PythonCLI(OpenTokenCLI):
             raise RuntimeError(f"OpenToken-Python failed with return code {result.returncode}: {result.stderr}")
         
         return result
-
-
-class TokenDecryptor:
-    """Wrapper for the decryptor tool."""
     
-    def __init__(self, encryption_key: str):
-        self.encryption_key = encryption_key
-        self.project_root = Path(__file__).parent.parent.parent
-    
-    def decrypt_file(self, input_file: Path, output_file: Path):
-        """Decrypt tokens from input file to output file."""
-        print(f"  Decrypting {input_file.name}...")
+    def decrypt_tokens(self, input_file: Path, output_file: Path,
+                      sender_public_key: Path, receiver_keypair_path: Path = None) -> subprocess.CompletedProcess:
+        """OpenToken-Python -- Decrypt tokens using ECDH."""
+        cmd = [
+            "python3", str(self.python_main),
+            "decrypt",
+            "-i", str(input_file),
+            "-t", "csv",
+            "-o", str(output_file),
+            "-ot", "csv",
+            "--sender-public-key", str(sender_public_key),
+            "--ecdh-curve", self.ecdh_curve
+        ]
         
-        # Use the decryptor function directly
-        decrypt_tokens(self.encryption_key, str(input_file), str(output_file))
+        if receiver_keypair_path:
+            cmd.extend(["--receiver-keypair-path", str(receiver_keypair_path)])
         
-        if not output_file.exists():
-            raise RuntimeError(f"Decryption failed - output file {output_file} not created")
+        env = {**os.environ, "PYTHONPATH": str(self.project_root / "lib/python/opentoken/src/main") + ":" + str(self.project_root / "lib/python/opentoken-cli/src/main")}
+        
+        print("Running Python decrypt\n")
+        result = subprocess.run(cmd, capture_output=True, text=True,
+                              cwd=self.project_root, env=env)
+        
+        if result.returncode != 0:
+            print(f"Python decrypt stderr: {result.stderr}")
+            print(f"Python decrypt stdout: {result.stdout}")
+            raise RuntimeError(f"Python decrypt failed: {result.stderr}")
+        
+        return result
 
 
 class TokenValidator:
@@ -185,30 +279,51 @@ class TokenValidator:
 
 
 class TestTokenCompatibility:
-    """Test token compatibility between OpenToken-Java and OpenToken-Python."""
+    """Test token compatibility between OpenToken-Java and OpenToken-Python using ECDH."""
     
     def setup_method(self):
         """Set up environment for each method."""
         self.java_cli = JavaCLI()
         self.python_cli = PythonCLI()
         self.validator = TokenValidator()
-                
-        # Create decryptor
-        self.decryptor = TokenDecryptor(self.java_cli.encryption_key)
     
     def test_full_interoperability_pipeline(self):
         """
-        Complete interoperability test:
-        1. Run Java implementation on sample.csv
-        2. Run Python implementation on sample.csv  
-        3. Decrypt both outputs
-        4. Compare decrypted tokens to ensure they're identical
+        Complete interoperability test with ECDH:
+        1. Generate keypairs for sender (hospital) and receiver (pharmacy)
+        2. Run Java implementation on sample.csv (as sender)
+        3. Run Python implementation on sample.csv (as sender)
+        4. Decrypt Java output using Java CLI (as receiver)
+        5. Decrypt Python output using Python CLI (as receiver)
+        6. Compare decrypted tokens to ensure they're identical
         """
-        print("Running Java/Python Interoperability Test")
+        print("Running Java/Python Interoperability Test (ECDH)")
         print("-" * 50)
         
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
+            
+            # Create key directories
+            hospital_key_dir = temp_path / "hospital_keys"
+            pharmacy_key_dir = temp_path / "pharmacy_keys"
+            hospital_key_dir.mkdir()
+            pharmacy_key_dir.mkdir()
+            
+            print("1. Generating keypairs...")
+            
+            # Generate keypairs for hospital (sender) and pharmacy (receiver)
+            self.java_cli.generate_keypair(hospital_key_dir)
+            self.python_cli.generate_keypair(pharmacy_key_dir)
+            
+            # Key paths
+            hospital_private_key = hospital_key_dir / "keypair.pem"
+            hospital_public_key = hospital_key_dir / "public_key.pem"
+            pharmacy_private_key = pharmacy_key_dir / "keypair.pem"
+            pharmacy_public_key = pharmacy_key_dir / "public_key.pem"
+            
+            # Verify keys were created
+            for key_path in [hospital_private_key, hospital_public_key, pharmacy_private_key, pharmacy_public_key]:
+                assert key_path.exists(), f"Key file {key_path} was not created"
             
             # Output files
             java_output = temp_path / "java_output.csv"
@@ -216,39 +331,55 @@ class TestTokenCompatibility:
             java_decrypted = temp_path / "java_decrypted.csv"
             python_decrypted = temp_path / "python_decrypted.csv"
             
-            print("1. Running Java implementation...")
+            print("2. Running Java implementation (as hospital/sender)...")
             
-            # Generate tokens with Java
+            # Generate tokens with Java (hospital sends to pharmacy)
             self.java_cli.generate_tokens(
                 input_file=self.java_cli.sample_csv,
-                output_file=java_output
+                output_file=java_output,
+                receiver_public_key=pharmacy_public_key,
+                sender_keypair_path=hospital_private_key
             )
             
             # Verify Java output exists
             assert java_output.exists(), f"Java output file {java_output} was not created"
             
-            print("2. Running Python implementation...")
+            print("3. Running Python implementation (as hospital/sender)...")
             
-            # Generate tokens with Python
+            # Generate tokens with Python (hospital sends to pharmacy)
             self.python_cli.generate_tokens(
                 input_file=self.python_cli.sample_csv,
-                output_file=python_output
+                output_file=python_output,
+                receiver_public_key=pharmacy_public_key,
+                sender_keypair_path=hospital_private_key
             )
             
             # Verify Python output exists
             assert python_output.exists(), f"Python output file {python_output} was not created"
             
-            print("3. Decrypting outputs...")
+            print("4. Decrypting Java output (as pharmacy/receiver)...")
             
-            # Decrypt Java output
-            self.decryptor.decrypt_file(java_output, java_decrypted)
+            # Decrypt Java output with Java CLI
+            self.java_cli.decrypt_tokens(
+                input_file=java_output,
+                output_file=java_decrypted,
+                sender_public_key=hospital_public_key,
+                receiver_keypair_path=pharmacy_private_key
+            )
             assert java_decrypted.exists(), f"Java decrypted file {java_decrypted} was not created"
             
-            # Decrypt Python output
-            self.decryptor.decrypt_file(python_output, python_decrypted)
+            print("5. Decrypting Python output (as pharmacy/receiver)...")
+            
+            # Decrypt Python output with Python CLI
+            self.python_cli.decrypt_tokens(
+                input_file=python_output,
+                output_file=python_decrypted,
+                sender_public_key=hospital_public_key,
+                receiver_keypair_path=pharmacy_private_key
+            )
             assert python_decrypted.exists(), f"Python decrypted file {python_decrypted} was not created"
             
-            print("4. Comparing results...")
+            print("6. Comparing results...")
             
             # Compare decrypted outputs
             comparison = self.validator.compare_token_files(java_decrypted, python_decrypted)
@@ -259,6 +390,11 @@ class TestTokenCompatibility:
                 print(f"⚠️  {len(comparison['mismatched_records'])} mismatched records found")
                 for record_id in comparison['mismatched_records'][:3]:  # Show first 3
                     print(f"  • Record {record_id} differs")
+                    if record_id in comparison['detailed_mismatches']:
+                        for rule_id, details in comparison['detailed_mismatches'][record_id].items():
+                            print(f"    Rule {rule_id}:")
+                            print(f"      Java:   {details['file1_token'][:50]}...")
+                            print(f"      Python: {details['file2_token'][:50]}...")
             
             if comparison['missing_in_file1'] or comparison['missing_in_file2']:
                 print(f"⚠️  Missing records - Java: {len(comparison['missing_in_file1'])}, Python: {len(comparison['missing_in_file2'])}")
@@ -278,18 +414,41 @@ class TestTokenCompatibility:
     
     def test_metadata_consistency(self):
         """Test that metadata files are consistent between implementations."""
-        print("\nTesting Metadata Consistency")
+        print("\nTesting Metadata Consistency (ECDH)")
         print("-" * 30)
         
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             
+            # Create key directories
+            sender_key_dir = temp_path / "sender_keys"
+            receiver_key_dir = temp_path / "receiver_keys"
+            sender_key_dir.mkdir()
+            receiver_key_dir.mkdir()
+            
+            # Generate keypairs
+            self.java_cli.generate_keypair(sender_key_dir)
+            self.python_cli.generate_keypair(receiver_key_dir)
+            
+            sender_private_key = sender_key_dir / "keypair.pem"
+            receiver_public_key = receiver_key_dir / "public_key.pem"
+            
             java_output = temp_path / "java_metadata_test.csv"
             python_output = temp_path / "python_metadata_test.csv"
             
             # Generate tokens with both implementations
-            self.java_cli.generate_tokens(self.java_cli.sample_csv, java_output)
-            self.python_cli.generate_tokens(self.python_cli.sample_csv, python_output)
+            self.java_cli.generate_tokens(
+                self.java_cli.sample_csv, 
+                java_output,
+                receiver_public_key,
+                sender_private_key
+            )
+            self.python_cli.generate_tokens(
+                self.python_cli.sample_csv, 
+                python_output,
+                receiver_public_key,
+                sender_private_key
+            )
             
             # Check for metadata files
             java_metadata = java_output.with_suffix('.metadata.json')
@@ -306,12 +465,20 @@ class TestTokenCompatibility:
                 python_meta = json.load(f)
             
             # Compare essential fields (platform-specific fields will differ)
-            essential_fields = ['OutputFormat']
+            essential_fields = ['OutputFormat', 'KeyExchangeMethod']
             
             for field in essential_fields:
                 if field in java_meta and field in python_meta:
                     assert java_meta[field] == python_meta[field], \
                         f"Metadata field '{field}' differs: Java={java_meta[field]}, Python={python_meta[field]}"
+            
+            # Verify ECDH-specific fields exist
+            for meta, impl_name in [(java_meta, "Java"), (python_meta, "Python")]:
+                assert 'KeyExchangeMethod' in meta, f"{impl_name} metadata missing KeyExchangeMethod"
+                assert meta['KeyExchangeMethod'].startswith('ECDH'), f"{impl_name} should use ECDH key exchange, got: {meta['KeyExchangeMethod']}"
+                assert 'Curve' in meta, f"{impl_name} metadata missing Curve"
+                assert 'SenderPublicKeyHash' in meta, f"{impl_name} metadata missing SenderPublicKeyHash"
+                assert 'ReceiverPublicKeyHash' in meta, f"{impl_name} metadata missing ReceiverPublicKeyHash"
             
             print("✅ Metadata consistency verified!")
             print("-" * 30)

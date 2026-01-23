@@ -16,9 +16,8 @@ At a high level you must always specify:
 
 - the input path and type (CSV or Parquet)
 - an output path for tokens
-- a hashing secret (required)
-- either an encryption key (for encrypted mode) or `--hash-only` (for hash-only mode)
-- optionally `--decrypt` when reading previously encrypted tokens
+- a key exchange configuration (receiver public key for `tokenize`; receiver keypair for `decrypt`)
+- optionally `--hash-only` when you want hash-only output
 
 For the complete, authoritative list of flags, short options, and defaults, see the [CLI Reference](../reference/cli.md).
 
@@ -26,31 +25,18 @@ For the complete, authoritative list of flags, short options, and defaults, see 
 
 ## Environment Variables
 
-Secrets can be passed via environment variables for security:
-
-```bash
-export OPENTOKEN_HASHING_SECRET="MyHashingKey"
-export OPENTOKEN_ENCRYPTION_KEY="MyEncryptionKey32CharactersLong"
-
-java -jar opentoken-cli-*.jar \
-  -i data.csv -t csv -o tokens.csv \
-  -h "$OPENTOKEN_HASHING_SECRET" \
-  -e "$OPENTOKEN_ENCRYPTION_KEY"
-```
+Prefer passing key file paths (not raw key material) via CLI flags.
 
 ### Docker Environment
 
 ```bash
 docker run --rm \
-  -e OPENTOKEN_HASHING_SECRET="MyHashingKey" \
-  -e OPENTOKEN_ENCRYPTION_KEY="MyEncryptionKey32CharactersLong" \
   -v $(pwd)/resources:/app/resources \
   opentoken:latest \
-  -i /app/resources/sample.csv \
-  -t csv \
-  -o /app/resources/output.csv \
-  -h "$OPENTOKEN_HASHING_SECRET" \
-  -e "$OPENTOKEN_ENCRYPTION_KEY"
+  tokenize \
+  -i /app/resources/sample.csv -t csv -o /app/resources/output.zip \
+  --receiver-public-key /app/resources/keys/receiver/public_key.pem \
+  --sender-keypair-path /app/resources/keys/sender/keypair.pem
 ```
 
 ---
@@ -119,9 +105,11 @@ Use `-ot` to specify a different output format:
 ```bash
 # Input CSV, output Parquet
 java -jar opentoken-cli-*.jar \
+  tokenize \
   -i data.csv -t csv \
   -o tokens.parquet -ot parquet \
-  -h "HashingKey" -e "EncryptionKey"
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path /path/to/sender/keypair.pem
 ```
 
 ### Output Files Generated
@@ -135,11 +123,11 @@ Each run produces two files:
 
 ## Processing Modes
 
-OpenToken supports three processing modes that control how token signatures are transformed:
+OpenToken supports three CLI modes:
 
-- **Encryption (default)** – produces encrypted tokens suitable for external exchange; requires both a hashing secret and an encryption key.
-- **Hash-only** – produces one-way hashed tokens for internal matching and overlap analysis; requires only the hashing secret.
-- **Decrypt** – takes previously encrypted tokens and decrypts them back to their hashed form (equivalent to hash-only output).
+- **Tokenize (default)** – produces an encrypted token package suitable for external exchange.
+- **Tokenize + `--hash-only`** – produces hash-only output (no encryption).
+- **Decrypt** – takes a previously encrypted token package and decrypts it back to hash-only output.
 
 For the exact CLI flags that enable each mode, see the [CLI Reference](../reference/cli.md).
 
@@ -147,17 +135,15 @@ For the exact CLI flags that enable each mode, see the [CLI Reference](../refere
 
 ## Secret Requirements
 
-### Hashing Secret
+### Key Requirements (CLI)
 
-- **Purpose**: HMAC-SHA256 key for deterministic hashing
-- **Minimum length**: 8 characters recommended
-- **Best practice**: 16+ characters with mixed case and digits
+- **Receiver public key**: Required for `tokenize` (`--receiver-public-key`).
+- **Sender keypair**: Optional for `tokenize` (`--sender-keypair-path`, default is typically `~/.opentoken/keypair.pem`).
+- **Receiver keypair**: Required for `decrypt` (`--receiver-keypair-path`).
 
-### Encryption Key
+### Library APIs (Java/Python/PySpark)
 
-- **Purpose**: AES-256-GCM symmetric encryption key
-- **Required length**: Exactly 32 characters (32 bytes)
-- **Error if wrong length**: "Key must be 32 characters long"
+Some library APIs still accept explicit hashing secrets and encryption keys for in-process token generation. See the relevant API references for details.
 
 ---
 
@@ -170,25 +156,30 @@ For the exact CLI flags that enable each mode, see the [CLI Reference](../refere
 cd lib/java
 mvn clean install -DskipTests
 java -jar opentoken-cli/target/opentoken-cli-*.jar \
-  -i ../../resources/sample.csv -t csv -o ../../resources/output.csv \
-  -h "HashingKey" -e "EncryptionKey32Characters!!!!!"
+  tokenize \
+  -i ../../resources/sample.csv -t csv -o ../../resources/output.zip \
+  --receiver-public-key ../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../resources/keys/sender/keypair.pem
 
 # Python
 source /workspaces/OpenToken/.venv/bin/activate
 python -m opentoken_cli.main \
-  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.csv \
-  -h "HashingKey" -e "EncryptionKey32Characters!!!!!"
+  tokenize \
+  -i ../../../resources/sample.csv -t csv -o ../../../resources/output.zip \
+  --receiver-public-key ../../../resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ../../../resources/keys/sender/keypair.pem
 ```
 
 ### Docker Container
 
 ```bash
 ./run-opentoken.sh \
+  tokenize \
   -i ./resources/sample.csv \
   -o ./resources/output.csv \
   -t csv \
-  -h "HashingKey" \
-  -e "EncryptionKey32Characters!!!!!"
+  --receiver-public-key ./resources/keys/receiver/public_key.pem \
+  --sender-keypair-path ./resources/keys/sender/keypair.pem
 ```
 
 ### Spark/Databricks Cluster

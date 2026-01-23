@@ -7,6 +7,10 @@ on:
     branches: ["main", "develop"]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   MIN_COVERAGE_OVERALL: 60
   MIN_COVERAGE_CHANGED_FILES: 80
@@ -80,6 +84,189 @@ jobs:
           directory: ${{ github.workspace }}/lib/java
           maven-args: "-B -DskipTests"
 
+  java-cli-smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      matrix:
+        file-type: ["csv", "parquet"]
+    env:
+      INPUT_TYPE: ${{ matrix.file-type }}
+      INPUT_FILE: ${{ github.workspace }}/resources/sample.${{ matrix.file-type }}
+      OUTPUT_TYPE: ${{ matrix.file-type }}
+      OUTPUT_ZIP: target/output-${{ matrix.file-type }}.zip
+      DECRYPTED_FILE: target/decrypted.${{ matrix.file-type }}
+      HASH_ONLY_FILE: target/hash_only_output.${{ matrix.file-type }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup toolchain (Java + Python for Parquet compare)
+        uses: ./.github/actions/setup-toolchain
+        with:
+          enable-java: true
+          enable-python: true
+          python-version: "3.10"
+
+      - name: Build Java CLI
+        run: |
+          cd lib/java
+          mvn -B -pl opentoken-cli -am package -DskipTests
+
+      - name: Install Python compare dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas pyarrow
+
+      - name: Run CLI smoke test (ECDH key exchange)
+        run: |
+          cd lib/java/opentoken-cli
+          mkdir -p target keys
+          CLI_JAR=$(ls target/opentoken-cli-*.jar | head -n 1)
+          if [ -z "$CLI_JAR" ]; then
+            echo "Error: opentoken-cli jar not found"
+            exit 1
+          fi
+
+          # Generate receiver keypair
+          java -jar "$CLI_JAR" generate-keypair --output-dir target/keys/receiver --ecdh-curve P-384
+
+          # Generate sender keypair
+          java -jar "$CLI_JAR" generate-keypair --output-dir target/keys/sender --ecdh-curve P-384
+
+          # Tokenize with ECDH (sender creates encrypted tokens)
+          java -jar "$CLI_JAR" tokenize \
+            -i "$INPUT_FILE" \
+            -t "$INPUT_TYPE" \
+            -o "$OUTPUT_ZIP" \
+            --receiver-public-key target/keys/receiver/public_key.pem \
+            --sender-keypair-path target/keys/sender/keypair.pem \
+            --ecdh-curve P-384 \
+            -ot "$OUTPUT_TYPE"
+
+          # Decrypt tokens with ECDH (receiver decrypts)
+          java -jar "$CLI_JAR" decrypt \
+            -i "$OUTPUT_ZIP" \
+            -t "$OUTPUT_TYPE" \
+            -o "$DECRYPTED_FILE" \
+            --receiver-keypair-path target/keys/receiver/keypair.pem \
+            -ot "$OUTPUT_TYPE"
+
+          # Tokenize with hash-only mode (no encryption)
+          java -jar "$CLI_JAR" tokenize \
+            -i "$INPUT_FILE" \
+            -t "$INPUT_TYPE" \
+            -o "$HASH_ONLY_FILE" \
+            -ot "$OUTPUT_TYPE" \
+            --receiver-public-key target/keys/receiver/public_key.pem \
+            --sender-keypair-path target/keys/sender/keypair.pem \
+            --hash-only
+
+      - name: Validate CLI output files
+        run: |
+          cd lib/java/opentoken-cli
+          if [ ! -f "$OUTPUT_ZIP" ]; then
+            echo "Error: $OUTPUT_ZIP not created"
+            exit 1
+          fi
+          if [ ! -f "$DECRYPTED_FILE" ]; then
+            echo "Error: $DECRYPTED_FILE not created"
+            exit 1
+          fi
+          if [ ! -f "$HASH_ONLY_FILE" ]; then
+            echo "Error: $HASH_ONLY_FILE not created"
+            exit 1
+          fi
+
+      - name: Compare decrypted and hash-only outputs
+        run: |
+          cd lib/java/opentoken-cli
+          python3 << 'EOF'
+          import csv
+          import os
+
+          def extract_tokens_by_record(file_path, file_type):
+            """Extract tokens grouped by record ID and rule ID."""
+            records = {}
+            if file_type == "parquet":
+              import pandas as pd
+              df = pd.read_parquet(file_path)
+              for _, row in df.iterrows():
+                record_id = row.get('RecordId', '')
+                rule_id = row.get('RuleId', '')
+                token = row.get('Token', '')
+                if record_id and rule_id:
+                  records.setdefault(record_id, {})[rule_id] = token
+              return records
+
+            with open(file_path, 'r') as f:
+              reader = csv.DictReader(f)
+              for row in reader:
+                record_id = row.get('RecordId', '')
+                rule_id = row.get('RuleId', '')
+                token = row.get('Token', '')
+                if record_id and rule_id:
+                  records.setdefault(record_id, {})[rule_id] = token
+            return records
+
+          file_type = os.environ.get("OUTPUT_TYPE", "csv")
+          decrypted_file = os.environ.get("DECRYPTED_FILE", "target/decrypted.csv")
+          hash_only_file = os.environ.get("HASH_ONLY_FILE", "target/hash_only_output.csv")
+
+          decrypted = extract_tokens_by_record(decrypted_file, file_type)
+          hash_only = extract_tokens_by_record(hash_only_file, file_type)
+
+          shared_records = set(decrypted.keys()) & set(hash_only.keys())
+          print(f"Comparing {len(shared_records)} shared records...")
+          print(f"  Decrypted has {len(decrypted)} total records")
+          print(f"  Hash-only has {len(hash_only)} total records")
+
+          mismatches = 0
+          for record_id in sorted(shared_records):
+              dec_tokens = decrypted[record_id]
+              hash_tokens = hash_only[record_id]
+
+              shared_rules = set(dec_tokens.keys()) & set(hash_tokens.keys())
+              for rule in sorted(shared_rules):
+                  dec_val = dec_tokens[rule]
+                  hash_val = hash_tokens[rule]
+                  if dec_val != hash_val:
+                      print(f"Mismatch in record {record_id}, rule {rule}:")
+                      print(f"  Decrypted: {dec_val[:64]}...")
+                      print(f"  Hash-only: {hash_val[:64]}...")
+                      mismatches += 1
+
+          if mismatches == 0:
+              print("✓ Success: All tokens match for shared records and token rules")
+          else:
+              print(f"✗ Error: Found {mismatches} token mismatches")
+              exit(1)
+          EOF
+
+      - name: Validate CLI output content
+        run: |
+          cd lib/java/opentoken-cli
+          python3 << 'EOF'
+          import os
+
+          file_type = os.environ.get("OUTPUT_TYPE", "csv")
+          decrypted_file = os.environ.get("DECRYPTED_FILE", "target/decrypted.csv")
+
+          if file_type == "parquet":
+              import pandas as pd
+              df = pd.read_parquet(decrypted_file)
+              line_count = len(df) + 1
+          else:
+              with open(decrypted_file, "r") as f:
+                  line_count = sum(1 for _ in f)
+
+          if line_count <= 1:
+              raise SystemExit("Error: Decrypted file appears to be empty or only contains headers")
+
+          print(f"Decrypted file contains {line_count} lines")
+          EOF
+
   python-tests:
     runs-on: ubuntu-latest
     permissions:
@@ -135,15 +322,17 @@ jobs:
           comment_mode: always
           compare_to_earlier_commit: false
 
-      - name: Add Python code coverage to PR
-        if: matrix.python-version == '3.10'
-        uses: orgoro/coverage@v3.2
-        with:
-          coverageFile: lib/python/opentoken/coverage.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
-          thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
-          thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+      # TODO: Re-enable once issues with correct threshold calculation and reporting are resolved in orgoro/coverage action
+      # - name: Add Python code coverage to PR
+      #   if: matrix.python-version == '3.10'
+      #   uses: orgoro/coverage@v3.2
+      #   with:
+      #     coverageFile: lib/python/opentoken/coverage.xml
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
+      #     thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+      #     thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+      #     sourceDir: lib/python/opentoken/src/main
 
   python-cli-tests:
     runs-on: ubuntu-latest
@@ -202,33 +391,188 @@ jobs:
           comment_mode: always
           compare_to_earlier_commit: false
 
-      - name: Run CLI smoke test
+  python-cli-smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+        file-type: ["csv", "parquet"]
+    env:
+      INPUT_TYPE: ${{ matrix.file-type }}
+      INPUT_FILE: ${{ github.workspace }}/resources/sample.${{ matrix.file-type }}
+      OUTPUT_TYPE: ${{ matrix.file-type }}
+      OUTPUT_ZIP: target/output-${{ matrix.file-type }}.zip
+      DECRYPTED_FILE: target/decrypted.${{ matrix.file-type }}
+      HASH_ONLY_FILE: target/hash_only_output.${{ matrix.file-type }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup toolchain (Python)
+        uses: ./.github/actions/setup-toolchain
+        with:
+          enable-java: false
+          enable-python: true
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Python CLI dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r lib/python/opentoken/requirements.txt
+          pip install -e lib/python/opentoken/
+          pip install -r lib/python/opentoken-cli/requirements.txt
+          pip install -e lib/python/opentoken-cli/
+          pip install pandas pyarrow
+
+      - name: Run CLI smoke test (ECDH key exchange)
         run: |
           cd lib/python/opentoken-cli
-          mkdir -p target
-          opentoken -i ../../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+          mkdir -p target keys
+
+          # Generate receiver keypair
+          opentoken generate-keypair --output-dir target/keys/receiver --ecdh-curve P-384
+
+          # Generate sender keypair
+          opentoken generate-keypair --output-dir target/keys/sender --ecdh-curve P-384
+
+          # Tokenize with ECDH (sender creates encrypted tokens)
+          opentoken tokenize \
+            -i "$INPUT_FILE" \
+            -t "$INPUT_TYPE" \
+            -o "$OUTPUT_ZIP" \
+            --receiver-public-key target/keys/receiver/public_key.pem \
+            --sender-keypair-path target/keys/sender/keypair.pem \
+            --ecdh-curve P-384 \
+            -ot "$OUTPUT_TYPE"
+
+          # Decrypt tokens with ECDH (receiver decrypts)
+          opentoken decrypt \
+            -i "$OUTPUT_ZIP" \
+            -t "$OUTPUT_TYPE" \
+            -o "$DECRYPTED_FILE" \
+            --receiver-keypair-path target/keys/receiver/keypair.pem \
+            -ot "$OUTPUT_TYPE"
+
+          # Tokenize with hash-only mode (no encryption)
+          opentoken tokenize \
+            -i "$INPUT_FILE" \
+            -t "$INPUT_TYPE" \
+            -o "$HASH_ONLY_FILE" \
+            -ot "$OUTPUT_TYPE" \
+            --receiver-public-key target/keys/receiver/public_key.pem \
+            --sender-keypair-path target/keys/sender/keypair.pem \
+            --hash-only
 
       - name: Validate CLI output files
         run: |
           cd lib/python/opentoken-cli
-          if [ ! -f "target/output.csv" ]; then
-            echo "Error: output.csv not created"
+          if [ ! -f "$OUTPUT_ZIP" ]; then
+            echo "Error: $OUTPUT_ZIP not created"
             exit 1
           fi
-          if [ ! -f "target/output.metadata.json" ]; then
-            echo "Error: metadata file not created"
+          if [ ! -f "$DECRYPTED_FILE" ]; then
+            echo "Error: $DECRYPTED_FILE not created"
             exit 1
           fi
+          if [ ! -f "$HASH_ONLY_FILE" ]; then
+            echo "Error: $HASH_ONLY_FILE not created"
+            exit 1
+          fi
+
+      - name: Compare decrypted and hash-only outputs
+        run: |
+          cd lib/python/opentoken-cli
+          # Extract token columns (T1-T5) from both files and compare
+          # Skip the metadata.json files and compare just the CSV/Parquet data
+          python3 << 'EOF'
+          import csv
+          import os
+
+          def extract_tokens_by_record(file_path, file_type):
+            """Extract tokens grouped by record ID and rule ID."""
+            records = {}
+            if file_type == "parquet":
+              import pandas as pd
+              df = pd.read_parquet(file_path)
+              for _, row in df.iterrows():
+                record_id = row.get('RecordId', '')
+                rule_id = row.get('RuleId', '')
+                token = row.get('Token', '')
+                if record_id and rule_id:
+                  records.setdefault(record_id, {})[rule_id] = token
+              return records
+
+            with open(file_path, 'r') as f:
+              reader = csv.DictReader(f)
+              for row in reader:
+                record_id = row.get('RecordId', '')
+                rule_id = row.get('RuleId', '')
+                token = row.get('Token', '')
+                if record_id and rule_id:
+                  records.setdefault(record_id, {})[rule_id] = token
+            return records
+
+          file_type = os.environ.get("OUTPUT_TYPE", "csv")
+          decrypted_file = os.environ.get("DECRYPTED_FILE", "target/decrypted.csv")
+          hash_only_file = os.environ.get("HASH_ONLY_FILE", "target/hash_only_output.csv")
+
+          decrypted = extract_tokens_by_record(decrypted_file, file_type)
+          hash_only = extract_tokens_by_record(hash_only_file, file_type)
+
+          # Find shared records (encryption may skip records with all blank tokens)
+          shared_records = set(decrypted.keys()) & set(hash_only.keys())
+          print(f"Comparing {len(shared_records)} shared records...")
+          print(f"  Decrypted has {len(decrypted)} total records")
+          print(f"  Hash-only has {len(hash_only)} total records")
+
+          mismatches = 0
+          for record_id in sorted(shared_records):
+              dec_tokens = decrypted[record_id]
+              hash_tokens = hash_only[record_id]
+
+              # Only compare token rules that exist in BOTH outputs
+              # Encrypted output may skip blank tokens that hash-only includes
+              shared_rules = set(dec_tokens.keys()) & set(hash_tokens.keys())
+              for rule in sorted(shared_rules):
+                  dec_val = dec_tokens[rule]
+                  hash_val = hash_tokens[rule]
+                  if dec_val != hash_val:
+                      print(f"Mismatch in record {record_id}, rule {rule}:")
+                      print(f"  Decrypted: {dec_val[:64]}...")
+                      print(f"  Hash-only: {hash_val[:64]}...")
+                      mismatches += 1
+
+          if mismatches == 0:
+              print("✓ Success: All tokens match for shared records and token rules")
+          else:
+              print(f"✗ Error: Found {mismatches} token mismatches")
+              exit(1)
+          EOF
 
       - name: Validate CLI output content
         run: |
           cd lib/python/opentoken-cli
-          line_count=$(wc -l < target/output.csv)
-          if [ "$line_count" -le 1 ]; then
-            echo "Error: Output CSV appears to be empty or only contains headers"
-            exit 1
-          fi
-          echo "Output CSV contains $line_count lines"
+          python3 << 'EOF'
+          import os
+
+          file_type = os.environ.get("OUTPUT_TYPE", "csv")
+          decrypted_file = os.environ.get("DECRYPTED_FILE", "target/decrypted.csv")
+
+          if file_type == "parquet":
+              import pandas as pd
+              df = pd.read_parquet(decrypted_file)
+              line_count = len(df) + 1
+          else:
+              with open(decrypted_file, "r") as f:
+                  line_count = sum(1 for _ in f)
+
+          if line_count <= 1:
+              raise SystemExit("Error: Decrypted file appears to be empty or only contains headers")
+
+          print(f"Decrypted file contains {line_count} lines")
+          EOF
 
   pyspark-bridge-tests:
     runs-on: ubuntu-latest
@@ -315,6 +659,7 @@ jobs:
           thresholdAll: ${{ env.MIN_COVERAGE_OVERALL_RATIO }}
           thresholdNew: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
           thresholdModified: ${{ env.MIN_COVERAGE_CHANGED_FILES_RATIO }}
+          sourceDir: lib/python/opentoken-pyspark/src/main
 
   interoperability-tests:
     runs-on: ubuntu-latest

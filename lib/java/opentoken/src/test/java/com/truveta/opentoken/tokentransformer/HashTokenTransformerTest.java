@@ -67,7 +67,7 @@ class HashTokenTransformerTest {
 
     @Test
     void testConstructor_NullSecret_InitializesWithNullMac() throws Exception {
-        HashTokenTransformer nullSecretTransformer = new HashTokenTransformer(null);
+        HashTokenTransformer nullSecretTransformer = new HashTokenTransformer((String) null);
         assertThrows(NullPointerException.class, () -> {
             nullSecretTransformer.transform(VALID_TOKEN);
         });

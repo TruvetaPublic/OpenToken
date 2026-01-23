@@ -16,13 +16,6 @@
             "auto_sync": false,
             "requires_manual_review": true
         },
-        "lib/java/opentoken/src/main/java/com/truveta/opentoken/CommandLineArguments.java": {
-            "python_file": "lib/python/opentoken/src/main/opentoken/command_line_arguments.py",
-            "sync_priority": "high",
-            "description": "CLI argument parsing - affects user interface",
-            "auto_sync": false,
-            "requires_manual_review": true
-        },
         "lib/java/opentoken/src/main/java/com/truveta/opentoken/io/TokenReader.java": {
             "python_file": "lib/python/opentoken/src/main/opentoken/io/token_reader.py",
             "sync_priority": "high",
@@ -94,6 +87,36 @@
             "sync_priority": "high",
             "description": "Encryption constants shared by transformers",
             "auto_sync": false
+        },
+        "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/PemUtils.java": {
+            "python_file": "lib/python/opentoken/src/main/opentoken/keyexchange/pem_utils.py",
+            "sync_priority": "medium",
+            "description": "PEM encoding/decoding utilities",
+            "auto_sync": false
+        },
+        "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/KeyPairManager.java": {
+            "python_file": "lib/python/opentoken/src/main/opentoken/keyexchange/key_pair_manager.py",
+            "sync_priority": "high",
+            "description": "Manages ECDH keypair lifecycle",
+            "auto_sync": false
+        },
+        "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/KeyExchange.java": {
+            "python_file": "lib/python/opentoken/src/main/opentoken/keyexchange/key_exchange.py",
+            "sync_priority": "high",
+            "description": "Performs ECDH + HKDF derivation",
+            "auto_sync": false
+        },
+        "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/PublicKeyLoader.java": {
+            "python_file": "lib/python/opentoken/src/main/opentoken/keyexchange/public_key_loader.py",
+            "sync_priority": "high",
+            "description": "Loads and validates PEM public keys",
+            "auto_sync": false
+        },
+        "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/KeyExchangeException.java": {
+            "python_file": "lib/python/opentoken/src/main/opentoken/keyexchange/key_exchange_exception.py",
+            "sync_priority": "medium",
+            "description": "Key exchange exception wrapper",
+            "auto_sync": false
         }
     },
     "directory_mappings": {
@@ -115,6 +138,13 @@
             "python_directory": "lib/python/opentoken/src/main/opentoken/tokentransformer/",
             "sync_priority": "medium",
             "description": "Token transformation logic",
+            "auto_sync": true,
+            "naming_convention": "snake_case"
+        },
+        "lib/java/opentoken/src/main/java/com/truveta/opentoken/keyexchange/": {
+            "python_directory": "lib/python/opentoken/src/main/opentoken/keyexchange/",
+            "sync_priority": "medium",
+            "description": "ECDH key exchange and key derivation",
             "auto_sync": true,
             "naming_convention": "snake_case"
         },

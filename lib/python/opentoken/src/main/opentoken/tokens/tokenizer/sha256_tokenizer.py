@@ -53,18 +53,19 @@ class SHA256Tokenizer(Tokenizer):
             Exception: If an error is thrown by the transformer.
         """
         if value is None or value.strip() == "":
-            return self.EMPTY
+            transformed_token = self.EMPTY
 
-        # Convert string to bytes using UTF-8 encoding
-        value_bytes = value.encode('utf-8')
+        else:
+            # Convert string to bytes using UTF-8 encoding
+            value_bytes = value.encode('utf-8')
 
-        # Create SHA-256 hash
-        digest = hashlib.sha256()
-        digest.update(value_bytes)
-        hash_bytes = digest.digest()
+            # Create SHA-256 hash
+            digest = hashlib.sha256()
+            digest.update(value_bytes)
+            hash_bytes = digest.digest()
 
-        # Convert to hex string
-        transformed_token = hash_bytes.hex()
+            # Convert to hex string
+            transformed_token = hash_bytes.hex()
 
         # Apply transformers
         for token_transformer in self.token_transformer_list:

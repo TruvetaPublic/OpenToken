@@ -19,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.truveta.opentoken.tokens.Token;
+
 /**
  * Transforms the token using a cryptographic hash function with
  * a secret key.
@@ -32,6 +34,7 @@ public class HashTokenTransformer implements TokenTransformer {
     private transient Mac mac;
     private transient Encoder encoder;
     private final String hashingSecret;
+    private final byte[] hashingSecretBytes;
 
     /**
      * Initializes the underlying MAC with the secret key.
@@ -44,14 +47,31 @@ public class HashTokenTransformer implements TokenTransformer {
      *                                                initializing this HMAC.
      */
     public HashTokenTransformer(String hashingSecret) throws NoSuchAlgorithmException, InvalidKeyException {
+        this(hashingSecret, hashingSecret == null ? null : hashingSecret.getBytes(StandardCharsets.ISO_8859_1));
+    }
+
+    /**
+     * Initializes the underlying MAC with the secret key provided as raw bytes.
+     * This avoids charset expansion when secrets are derived from binary key
+     * material (for example, ECDH-derived keys).
+     */
+    public HashTokenTransformer(byte[] hashingSecretBytes) throws NoSuchAlgorithmException, InvalidKeyException {
+        this(hashingSecretBytes == null ? null
+                : new String(hashingSecretBytes, StandardCharsets.ISO_8859_1), hashingSecretBytes);
+    }
+
+    private HashTokenTransformer(String hashingSecret, byte[] hashingSecretBytes)
+            throws NoSuchAlgorithmException, InvalidKeyException {
         this.hashingSecret = hashingSecret;
-        if (StringUtils.isEmpty(this.hashingSecret)) {
+        this.hashingSecretBytes = hashingSecretBytes == null ? null : hashingSecretBytes.clone();
+        if (StringUtils.isEmpty(this.hashingSecret) || this.hashingSecretBytes == null
+                || this.hashingSecretBytes.length == 0) {
             this.mac = null;
             this.encoder = null;
             return;
         }
         this.mac = Mac.getInstance("HmacSHA256");
-        this.mac.init(new SecretKeySpec(this.hashingSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+        this.mac.init(new SecretKeySpec(this.hashingSecretBytes, "HmacSHA256"));
         this.encoder = Base64.getEncoder();
     }
 
@@ -72,6 +92,10 @@ public class HashTokenTransformer implements TokenTransformer {
         if (token == null || token.isBlank()) {
             logger.error("Invalid Argument. Token can't be Null.");
             throw new IllegalArgumentException("Invalid Argument. Token can't be Null.");
+        }
+
+        if (Token.BLANK.equals(token)) {
+            return Token.BLANK; // Return blank token as is
         }
 
         synchronized (this.mac) {
@@ -95,8 +119,10 @@ public class HashTokenTransformer implements TokenTransformer {
                 this.encoder = null;
                 return;
             }
+            byte[] secretBytes = this.hashingSecretBytes != null ? this.hashingSecretBytes
+                    : this.hashingSecret.getBytes(StandardCharsets.ISO_8859_1);
             this.mac = Mac.getInstance("HmacSHA256");
-            this.mac.init(new SecretKeySpec(this.hashingSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            this.mac.init(new SecretKeySpec(secretBytes, "HmacSHA256"));
             this.encoder = Base64.getEncoder();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new IOException("Failed to reconstruct MAC", e);

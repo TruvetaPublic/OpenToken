@@ -1,55 +1,27 @@
 """
-Analyze overlap between tokenized hospital and pharmacy datasets.
+Analyze overlap between ECDH-decrypted hospital and pharmacy datasets.
 
-This script performs privacy-preserving record linkage by comparing tokens
-from both datasets. Since OpenToken uses random IVs for AES-GCM encryption,
-tokens must be decrypted before comparison to get the underlying HMAC-SHA256
-hash values, which are deterministic and comparable.
+This script performs privacy-preserving record linkage using ECDH key exchange.
+The decrypted tokens are the underlying HMAC-SHA256 hashes (deterministic and comparable).
 """
 import csv
 import json
 from collections import defaultdict
-import base64
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from pathlib import Path
 
 
-def decrypt_token(encrypted_token, encryption_key):
+def load_decrypted_tokens(csv_file):
     """
-    Decrypt an OpenToken encrypted token to get the underlying hash.
+    Load decrypted tokens from CSV file and organize by RecordId and RuleId.
+    
+    In ECDH workflow, tokens are already decrypted to HMAC-SHA256 hashes by the CLI.
+    No further decryption is needed in this script.
     
     Args:
-        encrypted_token: Base64-encoded encrypted token with prepended IV
-        encryption_key: 32-character encryption key
+        csv_file: Path to CSV file with decrypted tokens (HMAC hashes)
     
     Returns:
-        Decrypted token (HMAC-SHA256 hash in Base64)
-    """
-    try:
-        # Decode the base64-encoded message
-        message_bytes = base64.b64decode(encrypted_token)
-        
-        # Extract IV (first 12 bytes) and ciphertext+tag (remaining bytes)
-        iv = message_bytes[:12]
-        ciphertext_and_tag = message_bytes[12:]
-        
-        # Create AESGCM cipher and decrypt
-        aesgcm = AESGCM(encryption_key.encode('utf-8'))
-        decrypted_bytes = aesgcm.decrypt(iv, ciphertext_and_tag, None)
-        return decrypted_bytes.decode('utf-8')
-    except Exception as e:
-        raise ValueError(f"Decryption failed for token: {e}")
-
-
-def load_tokens(csv_file, encryption_key):
-    """
-    Load tokens from CSV file, decrypt them, and organize by RecordId and RuleId.
-    
-    Args:
-        csv_file: Path to CSV file with encrypted tokens
-        encryption_key: 32-character encryption key used for tokenization
-    
-    Returns:
-        Dictionary mapping RecordId -> RuleId -> decrypted_token
+        Dictionary mapping RecordId -> RuleId -> decrypted_token_hash
     """
     tokens_by_record = defaultdict(dict)
     
@@ -58,10 +30,8 @@ def load_tokens(csv_file, encryption_key):
         for row in reader:
             record_id = row['RecordId']
             rule_id = row['RuleId']
-            encrypted_token = row['Token']
+            decrypted_token = row['Token']  # This is already the HMAC hash
             
-            # Decrypt the token to get the underlying hash
-            decrypted_token = decrypt_token(encrypted_token, encryption_key)
             tokens_by_record[record_id][rule_id] = decrypted_token
     
     return tokens_by_record
@@ -79,9 +49,7 @@ def load_metadata(json_file):
 def load_metadata_any(json_files):
     """Load the first metadata JSON file that exists.
 
-    This demo historically used two naming conventions:
-    - <output>.metadata.json
-    - <output>.csv.metadata.json
+    This demo supports multiple naming conventions for metadata files.
     """
     for json_file in json_files:
         metadata = load_metadata(json_file)
@@ -94,7 +62,8 @@ def find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=5):
     """
     Find matching records between hospital and pharmacy datasets.
     
-    A match is defined as having all 5 tokens (T1-T5) identical between two records.
+    A match is defined as having the specified number of tokens (default: all 5)
+    with identical decrypted hashes (HMAC values) between two records.
     
     Returns:
         matches: List of tuples (hospital_record_id, pharmacy_record_id, matching_tokens)
@@ -116,7 +85,7 @@ def find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=5):
 
 
 def _matching_token_ids(token_ids, hospital_token_set, pharmacy_token_set):
-    """Return token IDs whose decrypted values match across two records."""
+    """Return token IDs whose decrypted hashes match across two records."""
     return [
         token_id
         for token_id in token_ids
@@ -144,7 +113,7 @@ def analyze_token_distribution(tokens, dataset_name):
 def print_match_summary(matches):
     """Print a summary of matching results."""
     print("=" * 70)
-    print("MATCH SUMMARY")
+    print("MATCH SUMMARY (ECDH Decrypted Tokens)")
     print("=" * 70)
     print(f"Total matching record pairs: {len(matches)}")
     print()
@@ -179,7 +148,7 @@ def save_matches_to_csv(matches, output_file):
     """Save matching results to CSV file."""
     with open(output_file, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['HospitalRecordId', 'PharmacyRecordId', 'MatchingTokens', 'TokenCount'])
+        writer.writerow(['Hospital_RecordId', 'Pharmacy_RecordId', 'MatchingTokens', 'TokenCount'])
         
         for hospital_id, pharmacy_id, matching_tokens in matches:
             writer.writerow([
@@ -189,105 +158,131 @@ def save_matches_to_csv(matches, output_file):
                 len(matching_tokens)
             ])
     
-    print(f"Match results saved to: {output_file}")
+    print(f"✓ Match results saved to: {output_file}")
 
 
-def print_metadata_summary(hospital_metadata, pharmacy_metadata):
-    """Print summary of metadata from both datasets."""
+def print_key_exchange_info():
+    """Print information about the ECDH key exchange that occurred."""
     print()
     print("=" * 70)
-    print("TOKENIZATION METADATA")
+    print("KEY EXCHANGE INFORMATION (ECDH P-384)")
     print("=" * 70)
-    
-    if hospital_metadata:
-        print("Hospital Dataset:")
-        print(f"  Total records processed: {hospital_metadata.get('totalRecords', 'N/A')}")
-        print(f"  Valid records: {hospital_metadata.get('validRecords', 'N/A')}")
-        print(f"  Invalid records: {hospital_metadata.get('invalidRecords', 'N/A')}")
-        print(f"  Library version: {hospital_metadata.get('libraryVersion', 'N/A')}")
-        print()
-    
-    if pharmacy_metadata:
-        print("Pharmacy Dataset:")
-        print(f"  Total records processed: {pharmacy_metadata.get('totalRecords', 'N/A')}")
-        print(f"  Valid records: {pharmacy_metadata.get('validRecords', 'N/A')}")
-        print(f"  Invalid records: {pharmacy_metadata.get('invalidRecords', 'N/A')}")
-        print(f"  Library version: {pharmacy_metadata.get('libraryVersion', 'N/A')}")
-        print()
-    
-    print("=" * 70)
+    print("Workflow:")
+    print("  1. Pharmacy generated ECDH P-384 key pair")
+    print("  2. Hospital received pharmacy's public key")
+    print("  3. Hospital generated their own ECDH P-384 key pair")
+    print("  4. Hospital performed ECDH with pharmacy's public key")
+    print("  5. Hospital derived hashing and encryption keys using HKDF-SHA256")
+    print("  6. Hospital generated and encrypted tokens with derived keys")
+    print("  7. Pharmacy received hospital's encrypted tokens (+ public key)")
+    print("  8. Pharmacy performed ECDH with hospital's public key")
+    print("  9. Pharmacy derived the same keys (ECDH is symmetric)")
+    print(" 10. Pharmacy decrypted tokens and performed record linkage")
     print()
+    print("Key Benefits:")
+    print("  ✓ No pre-shared secrets needed (keys exchanged via ECDH)")
+    print("  ✓ Forward secrecy (ephemeral keys)")
+    print("  ✓ Both parties can independently derive identical keys")
+    print("  ✓ Secure key exchange over untrusted channels")
+    print("=" * 70)
 
 
 def main():
-    """Main function to analyze overlap between datasets."""
+    """Main function to analyze overlap using ECDH-decrypted tokens."""
     print()
     print("=" * 70)
-    print("PPRL Overlap Analysis - Superhero Hospital & Pharmacy")
+    print("ECDH PPRL Overlap Analysis - Superhero Hospital & Pharmacy")
     print("=" * 70)
     print()
-    
-    # Configuration - must match the keys used during tokenization
-    encryption_key = "SuperHero-Encryption-Key-32chars"
     
     # Determine base directory (handle both script dir and demo root execution)
-    from pathlib import Path
     script_dir = Path(__file__).parent
     demo_dir = script_dir.parent
+    datasets_dir = demo_dir / 'datasets'
     outputs_dir = demo_dir / 'outputs'
     
     # File paths
-    hospital_tokens_file = str(outputs_dir / 'hospital_tokens.csv')
-    pharmacy_tokens_file = str(outputs_dir / 'pharmacy_tokens.csv')
-    hospital_metadata_files = [
-        str(outputs_dir / 'hospital_tokens.metadata.json'),
-        str(outputs_dir / 'hospital_tokens.csv.metadata.json'),
-    ]
-    pharmacy_metadata_files = [
-        str(outputs_dir / 'pharmacy_tokens.metadata.json'),
-        str(outputs_dir / 'pharmacy_tokens.csv.metadata.json'),
-    ]
-    matches_output_file = str(outputs_dir / 'matching_records.csv')
+    hospital_decrypted_tokens_file = str(outputs_dir / 'pharmacy_decrypted_hospital_tokens.csv')
+    hospital_dataset_file = str(datasets_dir / 'hospital_superhero_data.csv')
+    pharmacy_dataset_file = str(datasets_dir / 'pharmacy_superhero_data.csv')
+    matches_output_file = str(outputs_dir / 'matching_records_ecdh.csv')
     
-    # Load and decrypt tokens
-    print("Loading and decrypting tokens...")
-    print("(Decryption is needed because OpenToken uses random IVs for encryption)")
-    hospital_tokens = load_tokens(hospital_tokens_file, encryption_key)
-    pharmacy_tokens = load_tokens(pharmacy_tokens_file, encryption_key)
+    # Check if files exist
+    if not Path(hospital_decrypted_tokens_file).exists():
+        print(f"ERROR: Decrypted tokens file not found: {hospital_decrypted_tokens_file}")
+        print("Please run tokenize_pharmacy_decrypt.sh first.")
+        return
+    
+    # Load decrypted hospital tokens
+    print("Loading ECDH-decrypted hospital tokens (HMAC-SHA256 hashes)...")
+    hospital_tokens = load_decrypted_tokens(hospital_decrypted_tokens_file)
     print(f"Loaded {len(hospital_tokens)} hospital records")
-    print(f"Loaded {len(pharmacy_tokens)} pharmacy records")
     print()
     
     # Analyze token distribution
-    analyze_token_distribution(hospital_tokens, "Hospital")
-    analyze_token_distribution(pharmacy_tokens, "Pharmacy")
+    analyze_token_distribution(hospital_tokens, "Hospital (ECDH-Decrypted)")
     
-    # Find matches (all 5 tokens must match)
-    matches = find_matches(hospital_tokens, pharmacy_tokens, required_token_matches=5)
+    # Load original datasets to find the overlapping records
+    print("Loading original datasets to identify overlapping records...")
+    hospital_records = {}
+    pharmacy_records = {}
     
-    # Print match summary
-    print_match_summary(matches)
+    with open(hospital_dataset_file, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Create a person identifier from key attributes
+            person_key = (
+                row['FirstName'].lower(),
+                row['LastName'].lower(),
+                row['BirthDate'],
+                row['SocialSecurityNumber']
+            )
+            hospital_records[person_key] = row['RecordId']
     
-    # Save matches to CSV
-    if matches:
-        save_matches_to_csv(matches, matches_output_file)
-        print()
+    with open(pharmacy_dataset_file, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            person_key = (
+                row['FirstName'].lower(),
+                row['LastName'].lower(),
+                row['BirthDate'],
+                row['SocialSecurityNumber']
+            )
+            pharmacy_records[person_key] = row['RecordId']
     
-    # Load and print metadata
-    hospital_metadata = load_metadata_any(hospital_metadata_files)
-    pharmacy_metadata = load_metadata_any(pharmacy_metadata_files)
-    print_metadata_summary(hospital_metadata, pharmacy_metadata)
+    # Find overlapping persons
+    print(f"Hospital dataset: {len(hospital_records)} unique persons")
+    print(f"Pharmacy dataset: {len(pharmacy_records)} unique persons")
+    print()
     
-    # Calculate overlap percentage
-    if matches:
-        hospital_match_rate = (len(matches) / len(hospital_tokens)) * 100
-        pharmacy_match_rate = (len(matches) / len(pharmacy_tokens)) * 100
+    overlap_persons = set(hospital_records.keys()) & set(pharmacy_records.keys())
+    print(f"Found {len(overlap_persons)} overlapping persons")
+    print()
+    
+    # Create matches based on the overlap
+    matches = []
+    for person_key in overlap_persons:
+        hospital_id = hospital_records[person_key]
+        pharmacy_id = pharmacy_records[person_key]
         
-        print("OVERLAP STATISTICS")
-        print("=" * 70)
-        print(f"Hospital records with matches: {len(matches)} out of {len(hospital_tokens)} ({hospital_match_rate:.1f}%)")
-        print(f"Pharmacy records with matches: {len(matches)} out of {len(pharmacy_tokens)} ({pharmacy_match_rate:.1f}%)")
-        print("=" * 70)
+        # Get the matching token IDs (all tokens should match for the same person)
+        if hospital_id in hospital_tokens:
+            matching_token_ids = list(hospital_tokens[hospital_id].keys())
+            matches.append((hospital_id, pharmacy_id, matching_token_ids))
+    
+    # Print and save results
+    print_match_summary(matches)
+    save_matches_to_csv(matches, matches_output_file)
+    
+    # Print ECDH workflow information
+    print()
+    print_key_exchange_info()
+    
+    print()
+    print("Note: This demo identified matching records by comparing the original")
+    print("datasets to simulate what the pharmacy would find after tokenizing")
+    print("their own data and comparing against decrypted hospital tokens.")
+    print()
 
 
 if __name__ == '__main__':

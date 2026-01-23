@@ -4,7 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 
 import hashlib
 import sys
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class Metadata:
@@ -18,6 +18,18 @@ class Metadata:
     ENCRYPTION_SECRET_HASH = "EncryptionSecretHash"
     HASHING_SECRET_HASH = "HashingSecretHash"
     BLANK_TOKENS_BY_RULE = "BlankTokensByRule"
+    
+    # Key exchange metadata keys
+    KEY_EXCHANGE_METHOD = "KeyExchangeMethod"
+    SENDER_PUBLIC_KEY_HASH = "SenderPublicKeyHash"
+    RECEIVER_PUBLIC_KEY_HASH = "ReceiverPublicKeyHash"
+    CURVE = "Curve"
+    
+    # Key exchange values
+    KEY_EXCHANGE_METHOD_ECDH = "ECDH"
+    KEY_EXCHANGE_METHOD_SECRET = "SharedSecret"
+    CURVE_P256 = "P-256"
+    CURVE_P384 = "P-384"
 
     # Metadata values
     PLATFORM_PYTHON = "Python"
@@ -64,9 +76,35 @@ class Metadata:
         if secret_to_hash and secret_to_hash.strip():
             self.metadata_map[secret_key] = self.calculate_secure_hash(secret_to_hash)
         return self.metadata_map
+    
+    def add_key_exchange_metadata(self, sender_public_key_bytes: bytes,
+                                  receiver_public_key_bytes: bytes,
+                                  curve_name: str = None) -> Dict[str, Any]:
+        """
+        Add key exchange metadata for ECDH-based encryption.
+        
+        Args:
+            sender_public_key_bytes: The sender's public key bytes
+            receiver_public_key_bytes: The receiver's public key bytes
+            curve_name: The elliptic curve used for ECDH (e.g., P-384)
+            
+        Returns:
+            The metadata map for method chaining
+        """
+        curve_value = self.CURVE_P384 if not curve_name or not curve_name.strip() else curve_name
+        self.metadata_map[self.KEY_EXCHANGE_METHOD] = f"ECDH-{curve_value}"
+        self.metadata_map[self.CURVE] = curve_value
+        
+        if sender_public_key_bytes:
+            self.metadata_map[self.SENDER_PUBLIC_KEY_HASH] = self.calculate_secure_hash_bytes(sender_public_key_bytes)
+        
+        if receiver_public_key_bytes:
+            self.metadata_map[self.RECEIVER_PUBLIC_KEY_HASH] = self.calculate_secure_hash_bytes(receiver_public_key_bytes)
+        
+        return self.metadata_map
 
     @staticmethod
-    def calculate_secure_hash(input_str: str) -> str:
+    def calculate_secure_hash(input_str: str) -> Optional[str]:
         """
         Calculate a secure SHA-256 hash of the given input.
         The hash is returned as a hexadecimal string.
@@ -86,6 +124,33 @@ class Metadata:
         try:
             # Create SHA-256 hash
             hash_object = hashlib.sha256(input_str.encode('utf-8'))
+            hex_string = hash_object.hexdigest()
+            return hex_string
+
+        except Exception as e:
+            raise HashCalculationException("Error calculating SHA-256 hash", e)
+    
+    @staticmethod
+    def calculate_secure_hash_bytes(input_bytes: bytes) -> Optional[str]:
+        """
+        Calculate a secure SHA-256 hash of the given byte array.
+        The hash is returned as a hexadecimal string.
+
+        Args:
+            input_bytes: The input bytes to hash
+
+        Returns:
+            The SHA-256 hash as a hexadecimal string
+
+        Raises:
+            HashCalculationException: If there's an error calculating the hash
+        """
+        if not input_bytes:
+            return None
+
+        try:
+            # Create SHA-256 hash
+            hash_object = hashlib.sha256(input_bytes)
             hex_string = hash_object.hexdigest()
             return hex_string
 

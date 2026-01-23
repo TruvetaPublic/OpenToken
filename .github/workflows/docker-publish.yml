@@ -12,6 +12,10 @@ on:
     workflows: ["Create Release on Merge"]
     types: [completed]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Minimal global token permissions; jobs override as needed
 permissions:
   contents: read

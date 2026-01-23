@@ -11,6 +11,8 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.truveta.opentoken.keyexchange.KeyPairManager;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,262 +24,291 @@ import org.junit.jupiter.api.io.TempDir;
  */
 class MainTest {
 
-    @TempDir
-    Path tempDir;
+        @TempDir
+        Path tempDir;
 
-    private Path inputCsv;
-    private Path outputCsv;
-    private Path outputParquet;
-    private PrintStream originalErr;
+        private Path inputCsv;
+        private Path outputCsv;
+        private Path outputParquet;
+        private PrintStream originalErr;
 
-    private static final String HASHING_SECRET = "TestHashingSecret";
-    private static final String ENCRYPTION_KEY = "TestEncryptionKeyValue1234567890"; // Must be exactly 32 chars
+        private String[] tokenizeCommand(String... args) {
+                return withCommand("tokenize", args);
+        }
 
-    @BeforeEach
-    void setUp() throws IOException {
-        // Create test input CSV
-        inputCsv = tempDir.resolve("input.csv");
-        outputCsv = tempDir.resolve("output.csv");
-        outputParquet = tempDir.resolve("output.parquet");
+        private String[] decryptCommand(String... args) {
+                return withCommand("decrypt", args);
+        }
 
-        String csvContent = "RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber\n"
-                + "test-001,John,Doe,98004,Male,2000-01-01,123-45-6789\n"
-                + "test-002,Jane,Smith,12345,Female,1990-05-15,234-56-7890\n";
-        Files.writeString(inputCsv, csvContent);
+        private String[] withCommand(String command, String... args) {
+                String[] fullArgs = new String[args.length + 1];
+                fullArgs[0] = command;
+                System.arraycopy(args, 0, fullArgs, 1, args.length);
+                return fullArgs;
+        }
 
-        // Capture stderr for error logging verification
-        originalErr = System.err;
-    }
+        // Helper method to generate a keypair directory and return path to files
+        private Path createAndSaveKeyPair(String dirName) throws Exception {
+                Path keyDir = tempDir.resolve(dirName);
+                KeyPairManager kpm = new KeyPairManager(keyDir.toString());
+                kpm.generateAndSaveKeyPair();
+                return keyDir;
+        }
 
-    @AfterEach
-    void tearDown() {
-        System.setErr(originalErr);
-    }
+        @BeforeEach
+        void setUp() throws IOException {
+                // Create test input CSV
+                inputCsv = tempDir.resolve("input.csv");
+                outputCsv = tempDir.resolve("output.csv");
+                outputParquet = tempDir.resolve("output.parquet");
 
-    @Test
-    void testTokenGenerationCsvToCsv() throws IOException {
-        String[] args = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
-        };
+                String csvContent = "RecordId,FirstName,LastName,PostalCode,Sex,BirthDate,SocialSecurityNumber\n"
+                                + "test-001,John,Doe,98004,Male,2000-01-01,123-45-6789\n"
+                                + "test-002,Jane,Smith,12345,Female,1990-05-15,234-56-7890\n";
+                Files.writeString(inputCsv, csvContent);
 
-        assertDoesNotThrow(() -> Main.main(args));
+                // Capture stderr for error logging verification
+                originalErr = System.err;
+        }
 
-        assertTrue(Files.exists(outputCsv), "Output CSV should be created");
-        assertTrue(Files.size(outputCsv) > 0, "Output CSV should not be empty");
+        @AfterEach
+        void tearDown() {
+                System.setErr(originalErr);
+        }
 
-        // Check metadata file
-        Path metadataPath = tempDir.resolve("output.metadata.json");
-        assertTrue(Files.exists(metadataPath), "Metadata file should be created");
-    }
+        @Test
+        void testTokenGenerationCsvToCsv() throws Exception {
+                Path receiverDir = createAndSaveKeyPair("receiver");
+                Path senderDir = createAndSaveKeyPair("sender");
 
-    @Test
-    void testTokenGenerationCsvToParquet() throws IOException {
-        String[] args = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputParquet.toString(),
-                "-ot", "parquet",
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
-        };
+                String[] args = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString(),
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
 
-        assertDoesNotThrow(() -> Main.main(args));
+                assertDoesNotThrow(() -> Main.main(args));
 
-        assertTrue(Files.exists(outputParquet), "Output Parquet should be created");
-        assertTrue(Files.size(outputParquet) > 0, "Output Parquet should not be empty");
-    }
+                assertTrue(Files.exists(outputCsv), "Output CSV should be created");
+                assertTrue(Files.size(outputCsv) > 0, "Output CSV should not be empty");
 
-    @Test
-    void testHashOnlyMode() throws IOException {
-        String[] args = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "--hash-only"
-        };
+                // Check metadata file
+                Path metadataPath = tempDir.resolve("output.metadata.json");
+                assertTrue(Files.exists(metadataPath), "Metadata file should be created");
+        }
 
-        assertDoesNotThrow(() -> Main.main(args));
+        @Test
+        void testTokenGenerationCsvToParquet() throws Exception {
+                Path receiverDir = createAndSaveKeyPair("receiver_parquet");
+                Path senderDir = createAndSaveKeyPair("sender_parquet");
 
-        assertTrue(Files.exists(outputCsv), "Output CSV should be created");
-        assertTrue(Files.size(outputCsv) > 0, "Output CSV should not be empty");
-    }
+                String[] args = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputParquet.toString(),
+                                "-ot", "parquet",
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
 
-    @Test
-    void testDecryptMode() throws IOException {
-        // First, generate encrypted tokens
-        String[] encryptArgs = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
-        };
-        Main.main(encryptArgs);
+                assertDoesNotThrow(() -> Main.main(args));
 
-        // Now decrypt them
-        Path decryptedCsv = tempDir.resolve("decrypted.csv");
-        String[] decryptArgs = {
-                "-d",
-                "-i", outputCsv.toString(),
-                "-t", "csv",
-                "-o", decryptedCsv.toString(),
-                "-e", ENCRYPTION_KEY
-        };
+                assertTrue(Files.exists(outputParquet), "Output Parquet should be created");
+                assertTrue(Files.size(outputParquet) > 0, "Output Parquet should not be empty");
+        }
 
-        assertDoesNotThrow(() -> Main.main(decryptArgs));
+        @Test
+        void testHashOnlyMode() throws Exception {
+                Path receiverDir = createAndSaveKeyPair("receiver_hashonly");
 
-        assertTrue(Files.exists(decryptedCsv), "Decrypted CSV should be created");
-        assertTrue(Files.size(decryptedCsv) > 0, "Decrypted CSV should not be empty");
-    }
+                String[] args = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString(),
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--hash-only");
 
-    @Test
-    void testInvalidInputType() throws IOException {
-        String[] args = {
-                "-i", inputCsv.toString(),
-                "-t", "invalid",
-                "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
-        };
+                assertDoesNotThrow(() -> Main.main(args));
 
-        // Should not throw, but should log error and return early
-        assertDoesNotThrow(() -> Main.main(args));
-        // Output should not exist due to early exit
-        assertTrue(!Files.exists(outputCsv) || Files.size(outputCsv) == 0);
-    }
+                assertTrue(Files.exists(outputCsv), "Output CSV should be created");
+                assertTrue(Files.size(outputCsv) > 0, "Output CSV should not be empty");
+        }
 
-    @Test
-    void testInvalidOutputType() {
-        String[] args = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString(),
-                "-ot", "invalid",
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
-        };
+        @Test
+        void testDecryptMode() throws Exception {
+                // Generate keypairs
+                Path receiverDir = createAndSaveKeyPair("receiver_decrypt");
+                Path senderDir = createAndSaveKeyPair("sender_decrypt");
 
-        // Should not throw, but should log error and return early
-        assertDoesNotThrow(() -> Main.main(args));
-    }
+                // First, generate encrypted tokens
+                String[] encryptArgs = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString(),
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
+                Main.main(encryptArgs);
 
-    @Test
-    void testMissingHashingSecret() {
-        String[] args = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString(),
-                "-e", ENCRYPTION_KEY
-        };
+                // Now decrypt them
+                Path decryptedCsv = tempDir.resolve("decrypted.csv");
+                String[] decryptArgs = decryptCommand(
+                                "-i", outputCsv.toString(),
+                                "-t", "csv",
+                                "-o", decryptedCsv.toString(),
+                                "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
+                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString());
 
-        // Should not throw, but should log error and return early
-        assertDoesNotThrow(() -> Main.main(args));
-    }
+                assertDoesNotThrow(() -> Main.main(decryptArgs));
 
-    @Test
-    void testMissingEncryptionKeyWithoutHashOnly() {
-        String[] args = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET
-        };
+                assertTrue(Files.exists(decryptedCsv), "Decrypted CSV should be created");
+                assertTrue(Files.size(decryptedCsv) > 0, "Decrypted CSV should not be empty");
+        }
 
-        // Should not throw, but should log error and return early
-        assertDoesNotThrow(() -> Main.main(args));
-    }
+        @Test
+        void testInvalidInputType() throws Exception {
+                Path receiverDir = createAndSaveKeyPair("receiver_invalidinput");
+                String[] args = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "invalid",
+                                "-o", outputCsv.toString(),
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--sender-keypair-path", receiverDir.resolve("keypair.pem").toString());
 
-    @Test
-    void testDecryptModeWithMissingEncryptionKey() throws IOException {
-        // Create a dummy encrypted tokens file
-        Path dummyTokens = tempDir.resolve("tokens.csv");
-        Files.writeString(dummyTokens, "RecordId,RuleId,Token\ntest-001,T1,encrypted_token\n");
+                // Should not throw, but should log error and return early
+                assertDoesNotThrow(() -> Main.main(args));
+                // Output should not exist due to early exit
+                assertTrue(!Files.exists(outputCsv) || Files.size(outputCsv) == 0);
+        }
 
-        String[] args = {
-                "-d",
-                "-i", dummyTokens.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString()
-        };
+        @Test
+        void testInvalidOutputType() throws Exception {
+                Path receiverDir = createAndSaveKeyPair("receiver_invalidoutput");
+                String[] args = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString(),
+                                "-ot", "invalid",
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--sender-keypair-path", receiverDir.resolve("keypair.pem").toString());
 
-        // Should not throw, but should log error and return early
-        assertDoesNotThrow(() -> Main.main(args));
-    }
+                // Should not throw, but should log error and return early
+                assertDoesNotThrow(() -> Main.main(args));
+        }
 
-    @Test
-    void testOutputTypeDefaultsToInputType() throws IOException {
-        String[] args = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
-        };
+        @Test
+        void testMissingReceiverPublicKey() {
+                String[] args = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString(),
+                                "--sender-keypair-path", tempDir.resolve("sender").resolve("keypair.pem").toString());
 
-        assertDoesNotThrow(() -> Main.main(args));
+                // Should not throw, but should log error and return early due to missing receiver public key
+                assertDoesNotThrow(() -> Main.main(args));
+        }
 
-        // Verify CSV output was created (same as input type)
-        assertTrue(Files.exists(outputCsv));
-        String content = Files.readString(outputCsv);
-        assertTrue(content.contains("RecordId"));
-    }
+        @Test
+        void testMissingSenderKeypairWithEncryption() throws Exception {
+                Path receiverDir = createAndSaveKeyPair("receiver_missing_sender");
+                String[] args = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString(),
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString());
 
-    @Test
-    void testParquetInputToParquetOutput() throws IOException {
-        // First create a parquet file from CSV
-        Path tempParquet = tempDir.resolve("temp.parquet");
-        String[] createArgs = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", tempParquet.toString(),
-                "-ot", "parquet",
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
-        };
-        Main.main(createArgs);
+                // Should not throw, but should still proceed (sender keypair will be created in default location or current dir)
+                assertDoesNotThrow(() -> Main.main(args));
+        }
 
-        // Now use parquet as input
-        Path outputParquet2 = tempDir.resolve("output2.parquet");
-        String[] args = {
-                "-d",
-                "-i", tempParquet.toString(),
-                "-t", "parquet",
-                "-o", outputParquet2.toString(),
-                "-e", ENCRYPTION_KEY
-        };
+        @Test
+        void testDecryptModeWithMissingEncryptionKey() throws IOException {
+                // Create a dummy encrypted tokens file
+                Path dummyTokens = tempDir.resolve("tokens.csv");
+                Files.writeString(dummyTokens, "RecordId,RuleId,Token\ntest-001,T1,encrypted_token\n");
 
-        assertDoesNotThrow(() -> Main.main(args));
-    }
+                String[] args = decryptCommand(
+                                "-i", dummyTokens.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString());
 
-    @Test
-    void testDecryptCsvToParquet() throws IOException {
-        // First generate encrypted tokens
-        String[] encryptArgs = {
-                "-i", inputCsv.toString(),
-                "-t", "csv",
-                "-o", outputCsv.toString(),
-                "-h", HASHING_SECRET,
-                "-e", ENCRYPTION_KEY
-        };
-        Main.main(encryptArgs);
+                // Should not throw, but should log error and return early
+                assertDoesNotThrow(() -> Main.main(args));
+        }
 
-        // Decrypt CSV to Parquet
-        Path decryptedParquet = tempDir.resolve("decrypted.parquet");
-        String[] decryptArgs = {
-                "-d",
-                "-i", outputCsv.toString(),
-                "-t", "csv",
-                "-o", decryptedParquet.toString(),
-                "-ot", "parquet",
-                "-e", ENCRYPTION_KEY
-        };
+        @Test
+        void testOutputTypeDefaultsToInputType() throws Exception {
+                Path receiverDir = createAndSaveKeyPair("receiver_outputdefault");
+                Path senderDir = createAndSaveKeyPair("sender_outputdefault");
 
-        assertDoesNotThrow(() -> Main.main(decryptArgs));
-        assertTrue(Files.exists(decryptedParquet));
-    }
+                String[] args = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString(),
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
+
+                assertDoesNotThrow(() -> Main.main(args));
+
+                // Verify CSV output was created (same as input type)
+                assertTrue(Files.exists(outputCsv));
+                String content = Files.readString(outputCsv);
+                assertTrue(content.contains("RecordId"));
+        }
+
+        @Test
+        void testParquetInputToParquetOutput() throws Exception {
+                // First create a parquet file from CSV
+                Path tempParquet = tempDir.resolve("temp.parquet");
+                Path receiverDir = createAndSaveKeyPair("receiver_parquet_input");
+                Path senderDir = createAndSaveKeyPair("sender_parquet_input");
+
+                String[] createArgs = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", tempParquet.toString(),
+                                "-ot", "parquet",
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
+                Main.main(createArgs);
+
+                // Now use parquet as input
+                Path outputParquet2 = tempDir.resolve("output2.parquet");
+                String[] args = decryptCommand(
+                                "-i", tempParquet.toString(),
+                                "-t", "parquet",
+                                "-o", outputParquet2.toString(),
+                                "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
+                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString());
+
+                assertDoesNotThrow(() -> Main.main(args));
+        }
+
+        @Test
+        void testDecryptCsvToParquet() throws Exception {
+                // Generate keypairs
+                Path receiverDir = createAndSaveKeyPair("receiver_decrypt_parquet");
+                Path senderDir = createAndSaveKeyPair("sender_decrypt_parquet");
+
+                // First generate encrypted tokens
+                String[] encryptArgs = tokenizeCommand(
+                                "-i", inputCsv.toString(),
+                                "-t", "csv",
+                                "-o", outputCsv.toString(),
+                                "--receiver-public-key", receiverDir.resolve("public_key.pem").toString(),
+                                "--sender-keypair-path", senderDir.resolve("keypair.pem").toString());
+                Main.main(encryptArgs);
+
+                // Decrypt CSV to Parquet
+                Path decryptedParquet = tempDir.resolve("decrypted.parquet");
+                String[] decryptArgs = decryptCommand(
+                                "-i", outputCsv.toString(),
+                                "-t", "csv",
+                                "-o", decryptedParquet.toString(),
+                                "-ot", "parquet",
+                                "--sender-public-key", senderDir.resolve("public_key.pem").toString(),
+                                "--receiver-keypair-path", receiverDir.resolve("keypair.pem").toString());
+
+                assertDoesNotThrow(() -> Main.main(decryptArgs));
+                assertTrue(Files.exists(decryptedParquet));
+        }
 }

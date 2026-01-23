@@ -40,6 +40,7 @@ class TokenCSVWriter(TokenWriter):
         os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
 
         self.file_handle = open(file_path, 'w', newline='', encoding='utf-8')
+        self._closed = False
         self.csv_writer = csv.DictWriter(
             self.file_handle,
             fieldnames=[TokenConstants.RULE_ID, TokenConstants.TOKEN, TokenConstants.RECORD_ID],
@@ -67,7 +68,11 @@ class TokenCSVWriter(TokenWriter):
 
     def close(self):
         """Close the file handle."""
+        if self._closed:
+            return
+        self._closed = True
         if self.file_handle:
+            self.file_handle.flush()
             self.file_handle.close()
 
     def __enter__(self):

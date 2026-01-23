@@ -124,7 +124,7 @@ public final class PersonAttributesProcessor {
     }
 
     private static void writeTokens(PersonAttributesWriter writer, Map<Class<? extends Attribute>, String> row,
-            long rowCounter, TokenGeneratorResult tokenGeneratorResult) {
+            long rowCounter, TokenGeneratorResult tokenGeneratorResult) throws IOException {
 
         Set<String> tokenIds = new TreeSet<>(tokenGeneratorResult.getTokens().keySet());
 
@@ -144,6 +144,7 @@ public final class PersonAttributesProcessor {
                 writer.writeAttributes(rowResult);
             } catch (IOException e) {
                 logger.error(String.format("Error writing attributes to file for row %,d", rowCounter), e);
+                throw e;
             }
         }
     }

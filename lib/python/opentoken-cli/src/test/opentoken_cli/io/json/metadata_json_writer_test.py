@@ -5,10 +5,8 @@ Copyright (c) Truveta. All rights reserved.
 import json
 import os
 import tempfile
-from pathlib import Path
 from typing import Dict, Any
 
-import pytest
 
 from opentoken_cli.io.json.metadata_json_writer import MetadataJsonWriter
 from opentoken_cli.io.metadata_writer import MetadataWriter

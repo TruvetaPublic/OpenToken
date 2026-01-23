@@ -128,6 +128,10 @@ Always JSON format, suffixed `.metadata.json` (e.g., `output.metadata.json`):
   "JavaVersion": "21.0.0",
   "OpenTokenVersion": "1.0.0",
   "Platform": "Java",
+  "KeyExchangeMethod": "ECDH-P-384",
+  "Curve": "P-384",
+  "SenderPublicKeyHash": "a85b4bd6...",
+  "ReceiverPublicKeyHash": "32bc0e98...",
   "TotalRows": 3,
   "TotalRowsWithInvalidAttributes": 1,
   "InvalidAttributesByType": {
@@ -140,9 +144,7 @@ Always JSON format, suffixed `.metadata.json` (e.g., `output.metadata.json`):
     "T3": 1,
     "T4": 1,
     "T5": 1
-  },
-  "HashingSecretHash": "abc123def456...",
-  "EncryptionSecretHash": "fed456abc123..."
+  }
 }
 ```
 
@@ -154,12 +156,13 @@ See [Reference: Metadata Format](../reference/metadata-format.md) for detailed f
 
 ### Encryption Mode (Default)
 
-Generates encrypted tokens using HMAC-SHA256 + AES-256.
+Generates encrypted tokens using HMAC-SHA256 + AES-256 (keys derived via ECDH in key-exchange workflows).
 
 ```bash
-java -jar opentoken-cli-*.jar \
-  -i data.csv -t csv -o tokens.csv \
-  -h "HashingKey" -e "EncryptionKey"
+opentoken tokenize \
+  -i data.csv -t csv -o tokens.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path /path/to/sender/keypair.pem
 ```
 
 **Process:**
@@ -167,17 +170,18 @@ java -jar opentoken-cli-*.jar \
 Token Signature → SHA-256 Hash → HMAC-SHA256(hash, key) → AES-256 Encrypt → Base64 Encode
 ```
 
-**Requires:** Hashing secret (`-h`) and encryption key (`-e`)
+**Requires:** Key exchange inputs (receiver public key + sender keypair)
 
 ### Hash-Only Mode
 
 Generates hashed tokens without encryption. Useful for token matching scenarios where encryption overhead is unnecessary.
 
 ```bash
-java -jar opentoken-cli-*.jar \
+opentoken tokenize \
   --hash-only \
-  -i data.csv -t csv -o tokens.csv \
-  -h "HashingKey"
+  -i data.csv -t csv -o tokens-hash-only.zip \
+  --receiver-public-key /path/to/receiver/public_key.pem \
+  --sender-keypair-path /path/to/sender/keypair.pem
 ```
 
 **Process:**
@@ -185,7 +189,7 @@ java -jar opentoken-cli-*.jar \
 Token Signature → SHA-256 Hash → HMAC-SHA256(hash, key) → Base64 Encode
 ```
 
-**Requires:** Hashing secret only (`-h`)
+**Requires:** Key exchange inputs (receiver public key + sender keypair)
 
 **Benefits:**
 - Faster processing
@@ -198,10 +202,9 @@ Token Signature → SHA-256 Hash → HMAC-SHA256(hash, key) → Base64 Encode
 Reverse previous encryption to inspect or verify token generation.
 
 ```bash
-java -jar opentoken-cli-*.jar \
-  -d \
-  -i encrypted-tokens.csv -t csv -o decrypted-tokens.csv \
-  -e "EncryptionKey"
+opentoken decrypt \
+  -i encrypted-tokens.zip -t csv -o decrypted-tokens.csv \
+  --receiver-keypair-path /path/to/receiver/keypair.pem
 ```
 
 **Output:** HMAC-SHA256 hashed tokens (base64 encoded) **before** AES encryption—equivalent to `--hash-only` output.
@@ -223,7 +226,7 @@ To define custom token rules beyond T1–T5, see:
 
 ## Cross-Language Compatibility
 
-OpenToken Java and Python implementations produce **identical tokens** for the same input and secrets.
+OpenToken Java and Python implementations produce **identical tokens** for the same input and key exchange inputs.
 
 **Verified for:**
 - Attribute normalization

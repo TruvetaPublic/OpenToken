@@ -29,6 +29,8 @@ from opentoken.tokens.tokenizer.sha256_tokenizer import SHA256Tokenizer
 from opentoken.tokens.tokenizer.passthrough_tokenizer import PassthroughTokenizer
 from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
 from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
+from opentoken.keyexchange.key_exchange import KeyExchange
+from opentoken.keyexchange.key_pair_manager import KeyPairManager
 
 
 logger = logging.getLogger(__name__)
@@ -123,6 +125,83 @@ class OpenTokenProcessor:
         except Exception as e:
             logger.error("Error initializing token transformers", exc_info=e)
             raise ValueError(f"Invalid secrets provided: {e}")
+
+    @classmethod
+    def from_ecdh(cls, receiver_public_key_path: str, sender_keypair_path: str,
+                  ecdh_curve: str = "P-384",
+                  token_definition: Optional[BaseTokenDefinition] = None) -> 'OpenTokenProcessor':
+        """
+        Create an OpenToken processor using ECDH key exchange.
+
+        This method performs Elliptic Curve Diffie-Hellman (ECDH) key exchange between
+        the sender and receiver to derive the hashing and encryption keys automatically.
+
+        Args:
+            receiver_public_key_path: Path to the receiver's public key PEM file
+            sender_keypair_path: Path to the sender's keypair PEM file (contains private key)
+            ecdh_curve: Elliptic curve name (default: "P-384"). Supported: P-256, P-384, P-521
+            token_definition: Optional custom token definition. If None, uses default tokens (T1-T5).
+
+        Returns:
+            OpenTokenProcessor instance with keys derived from ECDH
+
+        Raises:
+            ValueError: If key files are invalid or ECDH fails
+            FileNotFoundError: If key files don't exist
+
+        Example:
+            >>> # Generate receiver keypair (done once, offline)
+            >>> receiver_mgr = KeyPairManager(key_directory="./receiver_keys", curve_name="P-384")
+            >>> receiver_mgr.generate_and_save_key_pair()
+            >>>
+            >>> # Generate sender keypair (done once, offline)
+            >>> sender_mgr = KeyPairManager(key_directory="./sender_keys", curve_name="P-384")
+            >>> sender_mgr.generate_and_save_key_pair()
+            >>>
+            >>> # Sender creates processor using ECDH
+            >>> processor = OpenTokenProcessor.from_ecdh(
+            ...     receiver_public_key_path="./receiver_keys/public_key.pem",
+            ...     sender_keypair_path="./sender_keys/keypair.pem",
+            ...     ecdh_curve="P-384"
+            ... )
+            >>>
+            >>> # Generate tokens
+            >>> tokens_df = processor.process_dataframe(df)
+        """
+        try:
+            # Load receiver's public key
+            key_mgr = KeyPairManager(curve_name=ecdh_curve)
+            receiver_public_key = key_mgr.load_public_key(receiver_public_key_path)
+            logger.info(f"Loaded receiver's public key from {receiver_public_key_path}")
+
+            # Load sender's keypair
+            sender_private_key, _ = key_mgr.load_key_pair(sender_keypair_path)
+            logger.info(f"Loaded sender's keypair from {sender_keypair_path}")
+
+            # Perform ECDH key exchange and derive keys
+            key_exchange = KeyExchange()
+            derived_keys = key_exchange.exchange_and_derive_keys(sender_private_key, receiver_public_key)
+
+            # Convert bytes to strings for use with token transformers
+            hashing_secret = derived_keys.get_hashing_key_as_string()
+            encryption_key = derived_keys.get_encryption_key_as_string()
+
+            logger.info("ECDH key exchange successful, keys derived")
+            logger.debug(f"Derived hashing key: {len(derived_keys.get_hashing_key())} bytes")
+            logger.debug(f"Derived encryption key: {len(derived_keys.get_encryption_key())} bytes")
+
+            # Create processor with derived keys
+            return cls(
+                hashing_secret=hashing_secret,
+                encryption_key=encryption_key,
+                token_definition=token_definition
+            )
+
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Key file not found: {e}")
+        except Exception as e:
+            logger.error(f"ECDH key exchange failed: {e}", exc_info=True)
+            raise ValueError(f"Failed to perform ECDH key exchange: {e}")
 
     def process_dataframe(self, df: DataFrame) -> DataFrame:
         """
