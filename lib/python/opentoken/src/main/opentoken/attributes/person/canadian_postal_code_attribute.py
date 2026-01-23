@@ -25,6 +25,7 @@ class CanadianPostalCodeAttribute(BaseAttribute):
     # Supports 3-character (ZIP-3), partial (4-5 char), and full 6-character formats
     CANADIAN_POSTAL_REGEX = r"^\s*[A-Za-z]\d[A-Za-z](\s?\d([A-Za-z]\d?)?)?\s*$"
 
+    # Full 6-character invalid postal codes
     INVALID_ZIP_CODES = {
         # 6-character Canadian postal code placeholders
         "A1A 1A1",
@@ -34,9 +35,12 @@ class CanadianPostalCodeAttribute(BaseAttribute):
         "A0A 0A0",
         "B1B 1B1",
         "C2C 2C2",
-        # 3-character invalid codes (ZIP-3 prefixes that should be invalidated)
-        # Note: "K1A" invalidates "K1A 0A6" and all codes starting with "K1A"
-        # Note: "H0H" invalidates "H0H 0H0" and all codes starting with "H0H"
+        "K1A 0A6",  # Canadian government address
+        "H0H 0H0"   # Santa Claus postal code
+    }
+
+    # 3-character codes that are invalid when standalone (not when part of full codes)
+    INVALID_ZIP3_CODES = {
         "K1A",  # Canadian government
         "M7A",  # Government of Ontario
         "H0H"   # Santa Claus
@@ -49,12 +53,56 @@ class CanadianPostalCodeAttribute(BaseAttribute):
         Args:
             min_length: Minimum length for postal codes (default: 6)
         """
-        validation_rules = [
-            RegexValidator(self.CANADIAN_POSTAL_REGEX),
-            NotStartsWithValidator(self.INVALID_ZIP_CODES)
-        ]
+        validation_rules = []
         super().__init__(validation_rules)
         self.min_length = min_length
+        self.regex_validator = RegexValidator(self.CANADIAN_POSTAL_REGEX)
+        self.not_starts_with_validator = NotStartsWithValidator(self.INVALID_ZIP_CODES)
+
+    def validate(self, value: str) -> bool:
+        """
+        Validate the Canadian postal code value.
+
+        Args:
+            value: The postal code value to validate
+
+        Returns:
+            True if the value is a valid Canadian postal code, False otherwise
+        """
+        if value is None:
+            return False
+
+        # First, check the regex pattern on the ORIGINAL value
+        # This ensures the format is valid before normalization
+        if not self.regex_validator.eval(value):
+            return False
+
+        # Normalize the value to ensure idempotency
+        # This converts to uppercase and formats consistently
+        normalized_value = self.normalize(value)
+
+        # Validate the NORMALIZED value against the full invalid codes
+        # This ensures "k1a 0a6" and "K1A 0A6" are treated consistently
+        for invalid_code in self.INVALID_ZIP_CODES:
+            if normalized_value.upper() == invalid_code.upper():
+                return False
+
+        # Additionally check for codes starting with invalid ZIP-3 prefixes
+        # But ONLY for padded partial codes (normalized length is 7 and ends with padding)
+        # Full 6-character codes (without padding) are checked against the exact invalid list above
+        if len(normalized_value) == 7 and " " in normalized_value:
+            zip3 = normalized_value[:3].upper()
+            for invalid_zip3 in self.INVALID_ZIP3_CODES:
+                if zip3 == invalid_zip3.upper():
+                    # Check if this is a padded partial code
+                    # Padded codes end with "000" (3-char), "A0" (4-char), or "0" (5-char after last letter)
+                    last_part = normalized_value[4:]  # After "K1A "
+                    if (last_part == "000" or                      # K1A → K1A 000
+                        re.match(r'\dA0$', last_part) or          # K1A1 → K1A 1A0
+                        re.match(r'\d[A-Z]0$', last_part)):       # K1A1A → K1A 1A0
+                        return False
+
+        return True
 
     def get_name(self) -> str:
         return self.NAME

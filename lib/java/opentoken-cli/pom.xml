@@ -7,13 +7,13 @@
     <parent>
         <groupId>com.truveta</groupId>
         <artifactId>opentoken-parent</artifactId>
-        <version>1.12.2</version>
+        <version>1.12.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>opentoken-cli</artifactId>
     <packaging>jar</packaging>
-    <version>1.12.2</version>
+    <version>1.12.3</version>
 
     <name>opentoken-cli</name>
     <description>OpenToken CLI - Command-line interface with CSV and Parquet support for token generation</description>
@@ -29,7 +29,7 @@
             <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
-                <version>1.11.4</version>
+                <version>1.12.1</version>
             </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>
@@ -51,7 +51,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>32.1.3-jre</version>
+                <version>33.5.0-jre</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -155,7 +155,7 @@
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-hadoop</artifactId>
-            <version>1.16.0</version>
+            <version>1.17.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.hadoop</groupId>

@@ -57,10 +57,10 @@ class LastNameAttribute(BaseAttribute):
     def __init__(self):
         """Initialize the LastNameAttribute with validation rules."""
         validation_rules = [
-            NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES),
-            RegexValidator(self.LAST_NAME_REGEX)
+            NotInValidator(AttributeUtilities.COMMON_PLACEHOLDER_NAMES)
         ]
         super().__init__(validation_rules)
+        self.regex_validator = RegexValidator(self.LAST_NAME_REGEX)
 
     def validate(self, value: str) -> bool:
         """
@@ -75,15 +75,22 @@ class LastNameAttribute(BaseAttribute):
         if value is None:
             return False
 
-        # Trim the value to check its actual content
-        trimmed_value = value.strip()
-
-        # Reject single letters (even if surrounded by whitespace)
-        if len(trimmed_value) == 1:
+        # First, check placeholder values on the ORIGINAL value using built-in validators
+        # This ensures "N/A", "<masked>", etc. are properly rejected
+        if not super().validate(value):
             return False
 
-        # Continue with the regular validation
-        return super().validate(value)
+        # Normalize the value for pattern matching
+        # This ensures that validate(normalize(x)) == validate(normalize(normalize(x)))
+        normalized_value = self.normalize(value)
+
+        # Reject single letters after normalization
+        if len(normalized_value) == 1:
+            return False
+
+        # Validate the normalized value against the regex pattern
+        # Use the pre-created regex validator instance to avoid creating new instances on each call
+        return self.regex_validator.eval(normalized_value)
 
     def get_name(self) -> str:
         """

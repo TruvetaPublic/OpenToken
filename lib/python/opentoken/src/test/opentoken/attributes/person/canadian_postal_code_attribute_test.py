@@ -341,3 +341,31 @@ class TestCanadianPostalCodeAttribute:
     def test_validate_invalid_codes_parametrized(self, invalid_code):
         """Parametrized test for validation with invalid Canadian postal codes."""
         assert self.canadian_postal_code_attribute.validate(invalid_code) is False
+
+    def test_validate_idempotency_should_be_stable(self):
+        """Test that validation is idempotent: validate(x) == validate(normalize(x))"""
+        # This ensures that normalized values can be re-validated successfully
+        
+        test_cases = [
+            "k1a0b1",     # lowercase without space
+            "K1A 0B1",    # uppercase with space (normalized form)
+            "k1a 0b1",    # lowercase with space
+            "j1x0a6",     # valid code lowercase
+            "J1X 0A6",    # valid code uppercase
+            "h0h0h0",     # Santa Claus postal code (invalid)
+            "H0H 0H0",    # Santa Claus postal code uppercase (invalid)
+        ]
+        
+        for test_case in test_cases:
+            normalized = self.canadian_postal_code_attribute.normalize(test_case)
+            valid_original = self.canadian_postal_code_attribute.validate(test_case)
+            valid_normalized = self.canadian_postal_code_attribute.validate(normalized)
+            
+            # Validation should be idempotent
+            assert valid_original == valid_normalized, \
+                f"Idempotency failed: validate('{test_case}') = {valid_original}, but validate('{normalized}') = {valid_normalized}"
+            
+            # Double normalization should produce the same result
+            double_normalized = self.canadian_postal_code_attribute.normalize(normalized)
+            assert normalized == double_normalized, \
+                f"Normalization not idempotent: normalize('{normalized}') != normalize(normalize('{test_case}'))"

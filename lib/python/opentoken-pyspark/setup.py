@@ -17,13 +17,13 @@ except FileNotFoundError:
 
 # Core dependencies (version-agnostic, no PySpark)
 core_requirements = [
-    "opentoken==1.12.2",
+    "opentoken==1.12.3",
     "pycryptodome>=3.18.0",
 ]
 
 setup(
     name="opentoken-pyspark",
-    version="1.12.2",
+    version="1.12.3",
     author="Truveta",
     description="OpenToken PySpark bridge for distributed token generation",
     long_description=long_description,
@@ -38,10 +38,17 @@ setup(
     python_requires=">=3.10",
     install_requires=core_requirements,
     extras_require={
+        # Spark 4.1.x - Latest for Java 21
+        # Note: PySpark 4.1+ requires pandas 2.0+
+        "spark41": [
+            "pyspark>=4.1.0,<4.2",
+            "pyarrow>=17.0.0,<18.0",  # Upper bound to prevent future incompatibilities
+            "pandas>=2.0.0,<2.4",  # PySpark 4.1+ requires pandas 2.0+
+        ],
         # Spark 4.0.x - Recommended for Java 21
         # Note: PySpark 4.0+ requires pandas 2.0+
         "spark40": [
-            "pyspark>=4.0.1,<5.0",
+            "pyspark>=4.0.1,<4.1",
             "pyarrow>=17.0.0,<18.0",  # Upper bound to prevent future incompatibilities
             "pandas>=2.0.0,<2.4",  # PySpark 4.0+ requires pandas 2.0+
         ],
@@ -54,7 +61,7 @@ setup(
         # Spark 3.4.x - Legacy support
         "spark34": [
             "pyspark>=3.4.0,<3.5",
-            "pyarrow>=10.0.0,<15",
+            "pyarrow>=10.0.0,<23",
             "pandas>=1.5,<2.2",  # Supports both pandas 1.x and 2.x
         ],
         # Development dependencies

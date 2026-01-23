@@ -56,11 +56,13 @@ public class LastNameAttribute extends BaseAttribute {
      */
     private static final @NotNull String LAST_NAME_REGEX = "^\\s*(?:(?:.{3,})|(?:[^aeiouAEIOU\\s][aeiouAEIOU])|(?:[aeiouAEIOU][^aeiouAEIOU\\s])|(?:[aeiouAEIOU]{2})|(?:[Nn][Gg]))\\s*$";
 
+    private final RegexValidator regexValidator;
+
     public LastNameAttribute() {
         super(List.of(
                 new NotInValidator(
-                        AttributeUtilities.COMMON_PLACEHOLDER_NAMES),
-                new RegexValidator(LAST_NAME_REGEX)));
+                        AttributeUtilities.COMMON_PLACEHOLDER_NAMES)));
+        this.regexValidator = new RegexValidator(LAST_NAME_REGEX);
     }
 
     @Override
@@ -69,16 +71,24 @@ public class LastNameAttribute extends BaseAttribute {
             return false;
         }
 
-        // Trim the value to check its actual content
-        String trimmedValue = value.trim();
-
-        // Reject single letters (even if surrounded by whitespace)
-        if (trimmedValue.length() == 1) {
+        // First, check placeholder values on the ORIGINAL value using built-in validators
+        // This ensures "N/A", "<masked>", etc. are properly rejected
+        if (!super.validate(value)) {
             return false;
         }
 
-        // Continue with the regular validation
-        return super.validate(value);
+        // Normalize the value for pattern matching
+        // This ensures that validate(normalize(x)) == validate(normalize(normalize(x)))
+        String normalizedValue = normalize(value);
+
+        // Reject single letters after normalization
+        if (normalizedValue.length() == 1) {
+            return false;
+        }
+
+        // Validate the normalized value against the regex pattern
+        // Use the pre-created regex validator instance to avoid creating new instances on each call
+        return regexValidator.eval(normalizedValue);
     }
 
     @Override

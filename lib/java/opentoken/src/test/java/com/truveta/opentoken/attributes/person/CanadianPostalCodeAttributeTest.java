@@ -322,4 +322,37 @@ class CanadianPostalCodeAttributeTest {
                     "Validation should be identical for value: " + value);
         }
     }
+
+    @Test
+    void validate_IdempotencyShouldBeStable() {
+        // Test that validation is idempotent: validate(x) == validate(normalize(x))
+        // This ensures that normalized values can be re-validated successfully
+        
+        String[] testCases = {
+            "k1a0b1",     // lowercase without space
+            "K1A 0B1",    // uppercase with space (normalized form)
+            "k1a 0b1",    // lowercase with space
+            "j1x0a6",     // valid code lowercase
+            "J1X 0A6",    // valid code uppercase
+            "h0h0h0",     // Santa Claus postal code (invalid)
+            "H0H 0H0",    // Santa Claus postal code uppercase (invalid)
+        };
+        
+        for (String testCase : testCases) {
+            String normalized = canadianPostalCodeAttribute.normalize(testCase);
+            boolean validOriginal = canadianPostalCodeAttribute.validate(testCase);
+            boolean validNormalized = canadianPostalCodeAttribute.validate(normalized);
+            
+            // Validation should be idempotent
+            assertEquals(validOriginal, validNormalized,
+                String.format("Idempotency failed: validate('%s') = %s, but validate('%s') = %s",
+                testCase, validOriginal, normalized, validNormalized));
+            
+            // Double normalization should produce the same result
+            String doubleNormalized = canadianPostalCodeAttribute.normalize(normalized);
+            assertEquals(normalized, doubleNormalized,
+                String.format("Normalization not idempotent: normalize('%s') != normalize(normalize('%s'))",
+                normalized, testCase));
+        }
+    }
 }

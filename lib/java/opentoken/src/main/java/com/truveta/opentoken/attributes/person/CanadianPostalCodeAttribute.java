@@ -54,6 +54,7 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
      */
     private static final String CANADIAN_POSTAL_REGEX = "^\\s*[A-Za-z]\\d[A-Za-z](\\s?\\d([A-Za-z]\\d?)?)?\\s*$";
 
+    // Full 6-character invalid postal codes
     private static final Set<String> INVALID_ZIP_CODES = Set.of(
             // 6-character Canadian postal code placeholders
             "A1A 1A1",
@@ -63,15 +64,20 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
             "A0A 0A0",
             "B1B 1B1",
             "C2C 2C2",
-            // 3-character invalid codes (ZIP-3 prefixes that should be invalidated)
-            // Note: "K1A" invalidates "K1A 0A6" and all codes starting with "K1A"
-            // Note: "H0H" invalidates "H0H 0H0" and all codes starting with "H0H"
-            "K1A", // Canadian government
-            "M7A", // Government of Ontario
-            "H0H"  // Santa Claus
+            "K1A 0A6",  // Canadian government address
+            "H0H 0H0"   // Santa Claus postal code
+    );
+
+    // 3-character codes that are invalid when standalone (not when part of full codes)
+    private static final Set<String> INVALID_ZIP3_CODES = Set.of(
+            "K1A",  // Canadian government
+            "M7A",  // Government of Ontario
+            "H0H"   // Santa Claus
     );
 
     private final int minLength;
+    private final RegexValidator regexValidator;
+    private final NotStartsWithValidator notStartsWithValidator;
 
     /**
      * Constructs a CanadianPostalCodeAttribute with default minimum length of 6.
@@ -86,10 +92,56 @@ public class CanadianPostalCodeAttribute extends BaseAttribute {
      * @param minLength The minimum length for postal codes (e.g., 3, 4, 5, or 6)
      */
     public CanadianPostalCodeAttribute(int minLength) {
-        super(List.of(
-                new RegexValidator(CANADIAN_POSTAL_REGEX),
-                new NotStartsWithValidator(INVALID_ZIP_CODES)));
+        super(List.of());
         this.minLength = minLength;
+        this.regexValidator = new RegexValidator(CANADIAN_POSTAL_REGEX);
+        this.notStartsWithValidator = new NotStartsWithValidator(INVALID_ZIP_CODES);
+    }
+
+    @Override
+    public boolean validate(String value) {
+        if (value == null) {
+            return false;
+        }
+
+        // First, check the regex pattern on the ORIGINAL value
+        // This ensures the format is valid before normalization
+        if (!regexValidator.eval(value)) {
+            return false;
+        }
+
+        // Normalize the value to ensure idempotency
+        // This converts to uppercase and formats consistently
+        String normalizedValue = normalize(value);
+
+        // Validate the NORMALIZED value against the full invalid codes
+        // This ensures "k1a 0a6" and "K1A 0A6" are treated consistently
+        for (String invalidCode : INVALID_ZIP_CODES) {
+            if (normalizedValue.equalsIgnoreCase(invalidCode)) {
+                return false;
+            }
+        }
+
+        // Additionally check for codes starting with invalid ZIP-3 prefixes
+        // But ONLY for padded partial codes (normalized length is 7 and ends with padding)
+        // Full 6-character codes (without padding) are checked against the exact invalid list above
+        if (normalizedValue.length() == 7 && normalizedValue.contains(" ")) {
+            String zip3 = normalizedValue.substring(0, 3).toUpperCase();
+            for (String invalidZip3 : INVALID_ZIP3_CODES) {
+                if (zip3.equals(invalidZip3.toUpperCase())) {
+                    // Check if this is a padded partial code
+                    // Padded codes end with "000" (3-char), "A0" (4-char), or "0" (5-char after last letter)
+                    String lastPart = normalizedValue.substring(4); // After "K1A "
+                    if (lastPart.equals("000") ||           // K1A → K1A 000
+                        lastPart.matches("\\dA0") ||        // K1A1 → K1A 1A0
+                        lastPart.matches("\\d[A-Z]0")) {    // K1A1A → K1A 1A0
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     @Override
