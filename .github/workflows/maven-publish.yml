@@ -49,8 +49,22 @@ jobs:
 
       - name: Publish to GitHub Packages Apache Maven
         run: |
-          cd lib/java/opentoken && mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-          cd ../opentoken-cli && mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+          set -euo pipefail
+          base_url="https://maven.pkg.github.com/TruvetaPublic/OpenToken/com/truveta"
+          version="${VERSION}"
+          parent_metadata_url="${base_url}/opentoken-parent/maven-metadata.xml"
+
+          if metadata=$(curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "$parent_metadata_url"); then
+            if echo "$metadata" | grep -q "<version>${version}</version>"; then
+              echo "OpenToken parent ${version} already published. Skipping deploy."
+              exit 0
+            fi
+          fi
+
+          (cd lib/java && mvn deploy -s "$GITHUB_WORKSPACE/settings.xml")
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
