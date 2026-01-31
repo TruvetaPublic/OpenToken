@@ -426,5 +426,5 @@ This format builds on established IETF standards:
 
 - [Token Rules](token-rules.md) — Standard token generation rules (T1–T5)
 - [Security](../security.md) — Cryptographic building blocks
-- [Configuration](../config/configuration.md) — Key and secret management
+- [Configuration](../config/configuration.md) — Configuration options for inputs, outputs, secrets, and runtime behavior
 - [Full Specification](../../docs/match-token-format.md) — Detailed technical specification
