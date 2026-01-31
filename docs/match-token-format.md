@@ -157,7 +157,7 @@ The encrypted payload contains the privacy-protected identifiers and metadata:
 
 | Field      | Type   | Description                                                   |
 | ---------- | ------ | ------------------------------------------------------------- |
-| `rlid`     | string | Token rule identifier (e.g., `T1`–`T5`, `T6`, `T7`, `T8`)     |
+| `rlid`     | string | Token rule identifier (e.g., `T1`–`T5`)                       |
 | `hash_alg` | string | Hash algorithm used before HMAC (e.g., `SHA-256`, `SHA3-512`) |
 | `mac_alg`  | string | HMAC algorithm identifier (e.g., `HS256`, `HS384`, `HS512`)   |
 | `ppid`     | array  | Array of base64url-encoded privacy-protected identifiers      |
@@ -174,16 +174,13 @@ The encrypted payload contains the privacy-protected identifiers and metadata:
 
 ### Token Rule Identifiers (`rlid`)
 
-| Identifier | Description                       | PPID Format              |
-| ---------- | --------------------------------- | ------------------------ |
-| `T1`       | Last + First[0] + Sex + BirthDate | Single hash              |
-| `T2`       | Last + First + BirthDate + ZIP3   | Single hash              |
-| `T3`       | Last + First + Sex + BirthDate    | Single hash              |
-| `T4`       | SSN + Sex + BirthDate             | Single hash              |
-| `T5`       | Last + First[0:3] + Sex           | Single hash              |
-| `T6`       | Custom token rule (user-defined)  | Single hash              |
-| `T7`       | Locality-sensitive hashing        | Array of hashes          |
-| `T8`       | Vector embeddings                 | Array of floats (base64) |
+| Identifier | Description                       | PPID Format |
+| ---------- | --------------------------------- | ----------- |
+| `T1`       | Last + First[0] + Sex + BirthDate | Single hash |
+| `T2`       | Last + First + BirthDate + ZIP3   | Single hash |
+| `T3`       | Last + First + Sex + BirthDate    | Single hash |
+| `T4`       | SSN + Sex + BirthDate             | Single hash |
+| `T5`       | Last + First[0:3] + Sex           | Single hash |
 
 ### Hash Algorithm Identifiers (`hash_alg`)
 

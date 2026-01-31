@@ -176,14 +176,6 @@ The `rlid` field identifies which token signature rule was used:
 | `T4` | SSN + Sex + BirthDate             | SSN-based matching      |
 | `T5` | Last + First[0:3] + Sex           | Candidate generation    |
 
-### Extended Rules
-
-| ID   | Description                | PPID Format        |
-| ---- | -------------------------- | ------------------ |
-| `T6` | User-defined rule          | Single hash        |
-| `T7` | Locality-sensitive hashing | Array of hashes    |
-| `T8` | ML embeddings              | Base64 float array |
-
 ---
 
 ## Cryptographic Algorithms
