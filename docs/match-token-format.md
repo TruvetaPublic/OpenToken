@@ -40,6 +40,38 @@ The JWE portion follows standard JOSE compact serialization:
 
 All components are base64url-encoded.
 
+**Component breakdown:**
+
+```
+ot.V1.<header>.<encrypted-key>.<iv>.<ciphertext>.<auth-tag>
+      │        │              │    │            │
+      │        │              │    │            └─ Integrity proof (GCM tag)
+      │        │              │    │
+      │        │              │    └─ Encrypted payload lives HERE
+      │        │              │
+      │        │              └─ Random initialization vector (unique per token)
+      │        │
+      │        └─ CEK wrapped with KEK (empty for "dir" mode)
+      │
+      └─ Metadata (alg, enc, kid) - readable WITHOUT decryption
+```
+
+**Encryption process:**
+
+```
+AES-GCM-Encrypt(CEK, IV, plaintext_payload) → (ciphertext, auth_tag)
+                         │
+                         └─ {"rlid":"T1","hash_alg":"SHA-256","ppid":[...],...}
+```
+
+**Decryption process:**
+
+```
+AES-GCM-Decrypt(CEK, IV, ciphertext, auth_tag) → plaintext_payload
+```
+
+The authentication tag verifies integrity—if anyone modifies the ciphertext, decryption fails.
+
 ## Protected Header
 
 The JWE protected header contains cryptographic parameters and token type identification:
@@ -64,18 +96,18 @@ The JWE protected header contains cryptographic parameters and token type identi
 
 #### Symmetric Key Wrapping
 
-| Algorithm            | `alg` Value    | `enc` Value | Notes                    |
-| -------------------- | -------------- | ----------- | ------------------------ |
-| AES-256-GCM Key Wrap | `A256GCMKW`    | `A256GCM`   | Recommended default      |
-| Direct AES-256-GCM   | `dir`          | `A256GCM`   | For pre-shared keys      |
+| Algorithm            | `alg` Value | `enc` Value | Notes               |
+| -------------------- | ----------- | ----------- | ------------------- |
+| AES-256-GCM Key Wrap | `A256GCMKW` | `A256GCM`   | Recommended default |
+| Direct AES-256-GCM   | `dir`       | `A256GCM`   | For pre-shared keys |
 
 #### Asymmetric Key Wrapping
 
-| Algorithm            | `alg` Value         | `enc` Value | Notes                           |
-| -------------------- | ------------------- | ----------- | ------------------------------- |
-| RSA-OAEP-256         | `RSA-OAEP-256`      | `A256GCM`   | RSA public key encryption       |
-| ECDH-ES (direct)     | `ECDH-ES`           | `A256GCM`   | Ephemeral-static key agreement  |
-| ECDH-ES + Key Wrap   | `ECDH-ES+A256KW`    | `A256GCM`   | ECDH with AES key wrapping      |
+| Algorithm          | `alg` Value      | `enc` Value | Notes                          |
+| ------------------ | ---------------- | ----------- | ------------------------------ |
+| RSA-OAEP-256       | `RSA-OAEP-256`   | `A256GCM`   | RSA public key encryption      |
+| ECDH-ES (direct)   | `ECDH-ES`        | `A256GCM`   | Ephemeral-static key agreement |
+| ECDH-ES + Key Wrap | `ECDH-ES+A256KW` | `A256GCM`   | ECDH with AES key wrapping     |
 
 #### ECDH Key Agreement
 
@@ -96,9 +128,9 @@ When using ECDH algorithms, the header includes an ephemeral public key (`epk`):
 }
 ```
 
-| Field | Description |
-|-------|-------------|
-| `epk` | Sender's ephemeral public key (EC point) |
+| Field | Description                                |
+| ----- | ------------------------------------------ |
+| `epk` | Sender's ephemeral public key (EC point)   |
 | `crv` | Elliptic curve (`P-256`, `P-384`, `P-521`) |
 
 The receiver combines `epk` with their private key to derive the shared secret. The IV is randomly generated per token, and the authentication tag is computed by AES-GCM.

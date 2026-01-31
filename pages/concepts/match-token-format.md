@@ -12,13 +12,13 @@ OpenToken supports a self-contained match token format that embeds versioning an
 
 Traditional token formats store metadata externally (in file headers or separate configuration). The match token format bundles everything together:
 
-| Benefit | Description |
-|---------|-------------|
-| **Version tracking** | Each token identifies which OpenToken version generated it |
-| **Cryptographic agility** | Algorithm changes are self-documented per token |
-| **Ring identification** | Key management metadata travels with the token |
-| **Scanner safety** | Distinct prefix prevents confusion with access tokens |
-| **Batch processing** | Metadata queryable without decryption |
+| Benefit                   | Description                                                |
+| ------------------------- | ---------------------------------------------------------- |
+| **Version tracking**      | Each token identifies which OpenToken version generated it |
+| **Cryptographic agility** | Algorithm changes are self-documented per token            |
+| **Ring identification**   | Key management metadata travels with the token             |
+| **Scanner safety**        | Distinct prefix prevents confusion with access tokens      |
+| **Batch processing**      | Metadata queryable without decryption                      |
 
 ---
 
@@ -32,10 +32,10 @@ ot.V1.<JWE-compact-serialization>
 
 **Components:**
 
-| Part | Description |
-|------|-------------|
-| `ot` | OpenToken prefix (scanner-safe) |
-| `V1` | Envelope format version |
+| Part    | Description                                          |
+| ------- | ---------------------------------------------------- |
+| `ot`    | OpenToken prefix (scanner-safe)                      |
+| `V1`    | Envelope format version                              |
 | `<JWE>` | Standard JWE (RFC 7516) containing encrypted payload |
 
 ### Example Token
@@ -43,6 +43,30 @@ ot.V1.<JWE-compact-serialization>
 ```
 ot.V1.eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwidHlwIjoibWF0Y2gtdG9rZW4iLCJraWQiOiJyaW5nLTIwMjYtcTEifQ.K7q3nT8Xh2Yk5L9m.Gw5hT2Qk9Lm3Np7R.dGhlIHF1aWNrIGJyb3duIGZveA.4vT8kL2mNpQ9rStYz
 ```
+
+### Token Structure
+
+The JWE portion has 5 dot-separated components:
+
+```
+ot.V1.<header>.<encrypted-key>.<iv>.<ciphertext>.<auth-tag>
+      │        │              │    │            │
+      │        │              │    │            └─ Integrity proof (GCM tag)
+      │        │              │    │
+      │        │              │    └─ Encrypted payload lives HERE
+      │        │              │
+      │        │              └─ Random IV (unique per token)
+      │        │
+      │        └─ CEK wrapped with KEK (empty for "dir" mode)
+      │
+      └─ Metadata (alg, enc, kid) - readable WITHOUT decryption
+```
+
+**Encryption:** `AES-GCM(CEK, IV, payload) → (ciphertext, auth_tag)`
+
+**Decryption:** `AES-GCM-Decrypt(CEK, IV, ciphertext, auth_tag) → payload`
+
+The authentication tag ensures integrity—any modification to the ciphertext causes decryption to fail.
 
 ---
 
@@ -59,22 +83,22 @@ The protected header (visible without decryption) contains:
 }
 ```
 
-| Field | Purpose | Example |
-|-------|---------|---------|
-| `alg` | Key wrapping algorithm | `A256GCMKW` |
-| `enc` | Content encryption algorithm | `A256GCM` |
-| `typ` | Token type (always `match-token`) | `match-token` |
-| `kid` | Ring/key identifier | `ring-2026-q1` |
+| Field | Purpose                           | Example        |
+| ----- | --------------------------------- | -------------- |
+| `alg` | Key wrapping algorithm            | `A256GCMKW`    |
+| `enc` | Content encryption algorithm      | `A256GCM`      |
+| `typ` | Token type (always `match-token`) | `match-token`  |
+| `kid` | Ring/key identifier               | `ring-2026-q1` |
 
 ### Supported Key Wrapping Algorithms
 
-| Algorithm | `alg` Value | Use Case |
-|-----------|-------------|----------|
-| AES-256-GCM Key Wrap | `A256GCMKW` | Symmetric (recommended default) |
-| Direct | `dir` | Pre-shared symmetric keys |
-| RSA-OAEP-256 | `RSA-OAEP-256` | Asymmetric (RSA) |
-| ECDH-ES | `ECDH-ES` | Asymmetric (elliptic curve, direct) |
-| ECDH-ES + Key Wrap | `ECDH-ES+A256KW` | Asymmetric (elliptic curve + AES wrap) |
+| Algorithm            | `alg` Value      | Use Case                               |
+| -------------------- | ---------------- | -------------------------------------- |
+| AES-256-GCM Key Wrap | `A256GCMKW`      | Symmetric (recommended default)        |
+| Direct               | `dir`            | Pre-shared symmetric keys              |
+| RSA-OAEP-256         | `RSA-OAEP-256`   | Asymmetric (RSA)                       |
+| ECDH-ES              | `ECDH-ES`        | Asymmetric (elliptic curve, direct)    |
+| ECDH-ES + Key Wrap   | `ECDH-ES+A256KW` | Asymmetric (elliptic curve + AES wrap) |
 
 ### ECDH Key Exchange
 
@@ -119,22 +143,22 @@ The encrypted payload contains the actual token data:
 
 ### Required Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `rlid` | string | Token rule (T1–T8) |
+| Field      | Type   | Description                              |
+| ---------- | ------ | ---------------------------------------- |
+| `rlid`     | string | Token rule (T1–T8)                       |
 | `hash_alg` | string | Hash algorithm (SHA-256, SHA3-512, etc.) |
-| `mac_alg` | string | HMAC algorithm (HS256, HS512, etc.) |
-| `ppid` | array | Privacy-protected identifier(s) |
-| `rid` | string | Ring identifier |
+| `mac_alg`  | string | HMAC algorithm (HS256, HS512, etc.)      |
+| `ppid`     | array  | Privacy-protected identifier(s)          |
+| `rid`      | string | Ring identifier                          |
 
 ### Optional Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `iss` | string | Issuer (who generated the token) |
+| Field | Type   | Description                        |
+| ----- | ------ | ---------------------------------- |
+| `iss` | string | Issuer (who generated the token)   |
 | `iat` | number | Issued-at timestamp (Unix seconds) |
-| `exp` | number | Expiration timestamp |
-| `nbf` | number | Not-before timestamp |
+| `exp` | number | Expiration timestamp               |
+| `nbf` | number | Not-before timestamp               |
 
 ---
 
@@ -144,21 +168,21 @@ The `rlid` field identifies which token signature rule was used:
 
 ### Standard Rules
 
-| ID | Signature | Use Case |
-|----|-----------|----------|
-| `T1` | Last + First[0] + Sex + BirthDate | High recall matching |
-| `T2` | Last + First + BirthDate + ZIP3 | Geographic matching |
-| `T3` | Last + First + Sex + BirthDate | High precision matching |
-| `T4` | SSN + Sex + BirthDate | SSN-based matching |
-| `T5` | Last + First[0:3] + Sex | Candidate generation |
+| ID   | Signature                         | Use Case                |
+| ---- | --------------------------------- | ----------------------- |
+| `T1` | Last + First[0] + Sex + BirthDate | High recall matching    |
+| `T2` | Last + First + BirthDate + ZIP3   | Geographic matching     |
+| `T3` | Last + First + Sex + BirthDate    | High precision matching |
+| `T4` | SSN + Sex + BirthDate             | SSN-based matching      |
+| `T5` | Last + First[0:3] + Sex           | Candidate generation    |
 
 ### Extended Rules
 
-| ID | Description | PPID Format |
-|----|-------------|-------------|
-| `T6` | User-defined rule | Single hash |
-| `T7` | Locality-sensitive hashing | Array of hashes |
-| `T8` | ML embeddings | Base64 float array |
+| ID   | Description                | PPID Format        |
+| ---- | -------------------------- | ------------------ |
+| `T6` | User-defined rule          | Single hash        |
+| `T7` | Locality-sensitive hashing | Array of hashes    |
+| `T8` | ML embeddings              | Base64 float array |
 
 ---
 
@@ -166,25 +190,25 @@ The `rlid` field identifies which token signature rule was used:
 
 ### Hash Algorithms (`hash_alg`)
 
-| Identifier | Output Size | Notes |
-|------------|-------------|-------|
-| `SHA-256` | 32 bytes | Default, FIPS approved |
-| `SHA-384` | 48 bytes | FIPS approved |
-| `SHA-512` | 64 bytes | FIPS approved |
-| `SHA3-256` | 32 bytes | NIST standard |
-| `SHA3-384` | 48 bytes | NIST standard |
-| `SHA3-512` | 64 bytes | NIST standard |
+| Identifier | Output Size | Notes                  |
+| ---------- | ----------- | ---------------------- |
+| `SHA-256`  | 32 bytes    | Default, FIPS approved |
+| `SHA-384`  | 48 bytes    | FIPS approved          |
+| `SHA-512`  | 64 bytes    | FIPS approved          |
+| `SHA3-256` | 32 bytes    | NIST standard          |
+| `SHA3-384` | 48 bytes    | NIST standard          |
+| `SHA3-512` | 64 bytes    | NIST standard          |
 
 ### MAC Algorithms (`mac_alg`)
 
-| Identifier | Algorithm | Output Size |
-|------------|-----------|-------------|
-| `HS256` | HMAC-SHA256 | 32 bytes |
-| `HS384` | HMAC-SHA384 | 48 bytes |
-| `HS512` | HMAC-SHA512 | 64 bytes |
-| `HS3-256` | HMAC-SHA3-256 | 32 bytes |
-| `HS3-384` | HMAC-SHA3-384 | 48 bytes |
-| `HS3-512` | HMAC-SHA3-512 | 64 bytes |
+| Identifier | Algorithm     | Output Size |
+| ---------- | ------------- | ----------- |
+| `HS256`    | HMAC-SHA256   | 32 bytes    |
+| `HS384`    | HMAC-SHA384   | 48 bytes    |
+| `HS512`    | HMAC-SHA512   | 64 bytes    |
+| `HS3-256`  | HMAC-SHA3-256 | 32 bytes    |
+| `HS3-384`  | HMAC-SHA3-384 | 48 bytes    |
+| `HS3-512`  | HMAC-SHA3-512 | 64 bytes    |
 
 ---
 
@@ -242,11 +266,11 @@ The `rlid` field identifies which token signature rule was used:
 
 **Differences from Standard:**
 
-| Component | Standard | High-Security |
-|-----------|----------|---------------|
-| Hash algorithm | SHA-256 (32 bytes) | SHA3-512 (64 bytes) |
-| MAC algorithm | HS256 (HMAC-SHA256) | HS512 (HMAC-SHA512) |
-| Key wrapping | A256GCMKW (symmetric) | RSA-OAEP-256 (asymmetric) |
+| Component      | Standard              | High-Security             |
+| -------------- | --------------------- | ------------------------- |
+| Hash algorithm | SHA-256 (32 bytes)    | SHA3-512 (64 bytes)       |
+| MAC algorithm  | HS256 (HMAC-SHA256)   | HS512 (HMAC-SHA512)       |
+| Key wrapping   | A256GCMKW (symmetric) | RSA-OAEP-256 (asymmetric) |
 
 ### Example 3: Vector Embedding (T8)
 
@@ -385,12 +409,12 @@ AKIA1234567890ABCDEF...     ← AWS key (definitely triggers scanners)
 
 ### Cryptographic Properties
 
-| Property | Mechanism |
-|----------|-----------|
-| Confidentiality | AES-256-GCM encryption |
-| Integrity | GCM authentication tag |
-| Key identification | `kid` header field |
-| Algorithm agility | `alg`/`enc` header fields |
+| Property           | Mechanism                 |
+| ------------------ | ------------------------- |
+| Confidentiality    | AES-256-GCM encryption    |
+| Integrity          | GCM authentication tag    |
+| Key identification | `kid` header field        |
+| Algorithm agility  | `alg`/`enc` header fields |
 
 ---
 
@@ -398,11 +422,11 @@ AKIA1234567890ABCDEF...     ← AWS key (definitely triggers scanners)
 
 This format builds on established IETF standards:
 
-| Standard | Usage |
-|----------|-------|
+| Standard                                                  | Usage                           |
+| --------------------------------------------------------- | ------------------------------- |
 | [RFC 7516](https://datatracker.ietf.org/doc/html/rfc7516) | JWE structure and serialization |
-| [RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517) | Key identification (`kid`) |
-| [RFC 7518](https://datatracker.ietf.org/doc/html/rfc7518) | Algorithm identifiers |
+| [RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517) | Key identification (`kid`)      |
+| [RFC 7518](https://datatracker.ietf.org/doc/html/rfc7518) | Algorithm identifiers           |
 
 ---
 
