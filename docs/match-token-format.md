@@ -62,11 +62,46 @@ The JWE protected header contains cryptographic parameters and token type identi
 
 ### Supported Algorithms
 
+#### Symmetric Key Wrapping
+
 | Algorithm            | `alg` Value    | `enc` Value | Notes                    |
 | -------------------- | -------------- | ----------- | ------------------------ |
 | AES-256-GCM Key Wrap | `A256GCMKW`    | `A256GCM`   | Recommended default      |
 | Direct AES-256-GCM   | `dir`          | `A256GCM`   | For pre-shared keys      |
-| RSA-OAEP-256         | `RSA-OAEP-256` | `A256GCM`   | For asymmetric scenarios |
+
+#### Asymmetric Key Wrapping
+
+| Algorithm            | `alg` Value         | `enc` Value | Notes                           |
+| -------------------- | ------------------- | ----------- | ------------------------------- |
+| RSA-OAEP-256         | `RSA-OAEP-256`      | `A256GCM`   | RSA public key encryption       |
+| ECDH-ES (direct)     | `ECDH-ES`           | `A256GCM`   | Ephemeral-static key agreement  |
+| ECDH-ES + Key Wrap   | `ECDH-ES+A256KW`    | `A256GCM`   | ECDH with AES key wrapping      |
+
+#### ECDH Key Agreement
+
+When using ECDH algorithms, the header includes an ephemeral public key (`epk`):
+
+```json
+{
+  "alg": "ECDH-ES+A256KW",
+  "enc": "A256GCM",
+  "typ": "match-token",
+  "kid": "ring-2026-q1",
+  "epk": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "WKn-ZIGevcwGFOM...",
+    "y": "y77t-RvAHRKTsSG..."
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `epk` | Sender's ephemeral public key (EC point) |
+| `crv` | Elliptic curve (`P-256`, `P-384`, `P-521`) |
+
+The receiver combines `epk` with their private key to derive the shared secret. The IV is randomly generated per token, and the authentication tag is computed by AES-GCM.
 
 ## Payload Structure
 

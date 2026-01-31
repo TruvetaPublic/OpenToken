@@ -66,6 +66,39 @@ The protected header (visible without decryption) contains:
 | `typ` | Token type (always `match-token`) | `match-token` |
 | `kid` | Ring/key identifier | `ring-2026-q1` |
 
+### Supported Key Wrapping Algorithms
+
+| Algorithm | `alg` Value | Use Case |
+|-----------|-------------|----------|
+| AES-256-GCM Key Wrap | `A256GCMKW` | Symmetric (recommended default) |
+| Direct | `dir` | Pre-shared symmetric keys |
+| RSA-OAEP-256 | `RSA-OAEP-256` | Asymmetric (RSA) |
+| ECDH-ES | `ECDH-ES` | Asymmetric (elliptic curve, direct) |
+| ECDH-ES + Key Wrap | `ECDH-ES+A256KW` | Asymmetric (elliptic curve + AES wrap) |
+
+### ECDH Key Exchange
+
+For ECDH algorithms, the header includes an ephemeral public key:
+
+```json
+{
+  "alg": "ECDH-ES+A256KW",
+  "enc": "A256GCM",
+  "typ": "match-token",
+  "kid": "ring-2026-q1",
+  "epk": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "WKn-ZIGevcwGFOM...",
+    "y": "y77t-RvAHRKTsSG..."
+  }
+}
+```
+
+- `epk`: Sender's ephemeral public key
+- Receiver derives shared secret using `epk` + their private key
+- IV is randomly generated; authentication tag is computed by AES-GCM
+
 ---
 
 ## Payload Structure
