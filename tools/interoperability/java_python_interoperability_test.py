@@ -43,7 +43,7 @@ class OpenTokenCLI:
 class JavaCLI(OpenTokenCLI):
     """Command Line wrapper for OpenToken-Java."""
     
-    def generate_tokens(self, input_file: Path, output_file: Path) -> subprocess.CompletedProcess:
+    def generate_tokens(self, input_file: Path, output_file: Path, ring_id: str = None) -> subprocess.CompletedProcess:
         """OpenToken-Java -- Generate tokens."""
         cmd = [
             "java", "-jar", str(self.java_jar_path),
@@ -54,6 +54,10 @@ class JavaCLI(OpenTokenCLI):
             "-h", self.hashing_key,
             "-e", self.encryption_key
         ]
+        
+        # Add ring-id if provided
+        if ring_id:
+            cmd.extend(["--ring-id", ring_id])
         
         print("Running Java\n")
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
@@ -69,7 +73,7 @@ class JavaCLI(OpenTokenCLI):
 class PythonCLI(OpenTokenCLI):
     """Command Line wrapper for OpenToken-Python."""
 
-    def generate_tokens(self, input_file: Path, output_file: Path) -> subprocess.CompletedProcess:
+    def generate_tokens(self, input_file: Path, output_file: Path, ring_id: str = None) -> subprocess.CompletedProcess:
         """OpenToken-Python -- Generate tokens"""
         cmd = [
             "python3", str(self.python_main),
@@ -80,6 +84,10 @@ class PythonCLI(OpenTokenCLI):
             "-h", self.hashing_key,
             "-e", self.encryption_key
         ]
+        
+        # Add ring-id if provided
+        if ring_id:
+            cmd.extend(["--ring-id", ring_id])
         
         env = {**os.environ, "PYTHONPATH": str(self.project_root / "lib/python/opentoken/src/main") + ":" + str(self.project_root / "lib/python/opentoken-cli/src/main")}
         
@@ -203,8 +211,10 @@ class TestTokenCompatibility:
         2. Run Python implementation on sample.csv  
         3. Decrypt both outputs
         4. Compare decrypted tokens to ensure they're identical
+        
+        Note: This test uses legacy tokens (no ring-id).
         """
-        print("Running Java/Python Interoperability Test")
+        print("Running Java/Python Interoperability Test (Legacy Tokens)")
         print("-" * 50)
         
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -218,7 +228,7 @@ class TestTokenCompatibility:
             
             print("1. Running Java implementation...")
             
-            # Generate tokens with Java
+            # Generate tokens with Java (no ring-id = legacy format)
             self.java_cli.generate_tokens(
                 input_file=self.java_cli.sample_csv,
                 output_file=java_output
@@ -229,7 +239,7 @@ class TestTokenCompatibility:
             
             print("2. Running Python implementation...")
             
-            # Generate tokens with Python
+            # Generate tokens with Python (no ring-id = legacy format)
             self.python_cli.generate_tokens(
                 input_file=self.python_cli.sample_csv,
                 output_file=python_output
@@ -274,6 +284,108 @@ class TestTokenCompatibility:
                 f"Records missing in Python output: {comparison['missing_in_file2']}"
             
             print(f"✅ SUCCESS: All {comparison['total_records']} records have identical tokens!")
+            print("-" * 50)
+    
+    def test_v1_token_interoperability(self):
+        """
+        Test V1 token format interoperability:
+        1. Run Java implementation with ring-id on sample.csv
+        2. Run Python implementation with same ring-id on sample.csv
+        3. Decrypt both outputs
+        4. Compare decrypted tokens to ensure they're identical
+        5. Verify tokens have V1 format (ot.V1. prefix)
+        """
+        print("\nRunning Java/Python V1 Token Interoperability Test")
+        print("-" * 50)
+        
+        test_ring_id = "test-ring-12345678-1234-5678-1234-567812345678"
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            
+            # Output files
+            java_output = temp_path / "java_v1_output.csv"
+            python_output = temp_path / "python_v1_output.csv"
+            java_decrypted = temp_path / "java_v1_decrypted.csv"
+            python_decrypted = temp_path / "python_v1_decrypted.csv"
+            
+            print(f"Using ring-id: {test_ring_id}")
+            print("1. Running Java implementation with V1 format...")
+            
+            # Generate V1 tokens with Java
+            self.java_cli.generate_tokens(
+                input_file=self.java_cli.sample_csv,
+                output_file=java_output,
+                ring_id=test_ring_id
+            )
+            
+            assert java_output.exists(), f"Java V1 output file {java_output} was not created"
+            
+            # Verify V1 format
+            with open(java_output, 'r') as f:
+                reader = csv.DictReader(f)
+                first_row = next(reader)
+                first_token = first_row['Token']
+                assert first_token.startswith('ot.V1.'), \
+                    f"Java token doesn't have V1 prefix: {first_token[:20]}..."
+                print(f"   ✓ Java produces V1 tokens: {first_token[:30]}...")
+            
+            print("2. Running Python implementation with V1 format...")
+            
+            # Generate V1 tokens with Python
+            self.python_cli.generate_tokens(
+                input_file=self.python_cli.sample_csv,
+                output_file=python_output,
+                ring_id=test_ring_id
+            )
+            
+            assert python_output.exists(), f"Python V1 output file {python_output} was not created"
+            
+            # Verify V1 format
+            with open(python_output, 'r') as f:
+                reader = csv.DictReader(f)
+                first_row = next(reader)
+                first_token = first_row['Token']
+                assert first_token.startswith('ot.V1.'), \
+                    f"Python token doesn't have V1 prefix: {first_token[:20]}..."
+                print(f"   ✓ Python produces V1 tokens: {first_token[:30]}...")
+            
+            print("3. Decrypting V1 outputs...")
+            
+            # Decrypt Java output
+            self.decryptor.decrypt_file(java_output, java_decrypted)
+            assert java_decrypted.exists(), f"Java V1 decrypted file {java_decrypted} was not created"
+            
+            # Decrypt Python output
+            self.decryptor.decrypt_file(python_output, python_decrypted)
+            assert python_decrypted.exists(), f"Python V1 decrypted file {python_decrypted} was not created"
+            
+            print("4. Comparing results...")
+            
+            # Compare decrypted outputs
+            comparison = self.validator.compare_token_files(java_decrypted, python_decrypted)
+            
+            print(f"\nResults: {comparison['matching_records']}/{comparison['total_records']} records match")
+            
+            if comparison['mismatched_records']:
+                print(f"⚠️  {len(comparison['mismatched_records'])} mismatched records found")
+                for record_id in comparison['mismatched_records'][:3]:
+                    print(f"  • Record {record_id} differs")
+            
+            if comparison['missing_in_file1'] or comparison['missing_in_file2']:
+                print(f"⚠️  Missing records - Java: {len(comparison['missing_in_file1'])}, Python: {len(comparison['missing_in_file2'])}")
+            
+            # Assert that all tokens match
+            assert comparison['matching_records'] == comparison['total_records'], \
+                f"V1 Token mismatch found! {len(comparison['mismatched_records'])} records don't match"
+            
+            assert len(comparison['missing_in_file1']) == 0, \
+                f"Records missing in Java V1 output: {comparison['missing_in_file1']}"
+            
+            assert len(comparison['missing_in_file2']) == 0, \
+                f"Records missing in Python V1 output: {comparison['missing_in_file2']}"
+            
+            print(f"✅ SUCCESS: All {comparison['total_records']} V1 records have identical tokens!")
             print("-" * 50)
     
     def test_metadata_consistency(self):
@@ -323,6 +435,7 @@ if __name__ == "__main__":
     
     try:
         test.test_full_interoperability_pipeline()
+        test.test_v1_token_interoperability()
         test.test_metadata_consistency()
                 
         print("\nALL TESTS PASSED!")
