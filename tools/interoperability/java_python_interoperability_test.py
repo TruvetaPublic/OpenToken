@@ -206,16 +206,18 @@ class TestTokenCompatibility:
     
     def test_full_interoperability_pipeline(self):
         """
-        Complete interoperability test:
-        1. Run Java implementation on sample.csv
-        2. Run Python implementation on sample.csv  
+        Complete interoperability test with V1 tokens:
+        1. Run Java implementation with fixed ring-id on sample.csv
+        2. Run Python implementation with same ring-id on sample.csv  
         3. Decrypt both outputs
         4. Compare decrypted tokens to ensure they're identical
-        
-        Note: This test uses legacy tokens (no ring-id).
+        5. Verify tokens have V1 format (ot.V1. prefix)
         """
-        print("Running Java/Python Interoperability Test (Legacy Tokens)")
+        print("Running Java/Python V1 Token Interoperability Test")
         print("-" * 50)
+        
+        # Use fixed ring-id for both implementations to ensure identical outputs
+        test_ring_id = "test-ring-12345678-1234-5678-1234-567812345678"
         
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -226,27 +228,48 @@ class TestTokenCompatibility:
             java_decrypted = temp_path / "java_decrypted.csv"
             python_decrypted = temp_path / "python_decrypted.csv"
             
+            print(f"Using ring-id: {test_ring_id}")
             print("1. Running Java implementation...")
             
-            # Generate tokens with Java (no ring-id = legacy format)
+            # Generate tokens with Java (with ring-id)
             self.java_cli.generate_tokens(
                 input_file=self.java_cli.sample_csv,
-                output_file=java_output
+                output_file=java_output,
+                ring_id=test_ring_id
             )
             
             # Verify Java output exists
             assert java_output.exists(), f"Java output file {java_output} was not created"
             
+            # Verify V1 format
+            with open(java_output, 'r') as f:
+                reader = csv.DictReader(f)
+                first_row = next(reader)
+                first_token = first_row['Token']
+                assert first_token.startswith('ot.V1.'), \
+                    f"Java token doesn't have V1 prefix: {first_token[:20]}..."
+                print(f"   ✓ Java produces V1 tokens: {first_token[:30]}...")
+            
             print("2. Running Python implementation...")
             
-            # Generate tokens with Python (no ring-id = legacy format)
+            # Generate tokens with Python (with same ring-id)
             self.python_cli.generate_tokens(
                 input_file=self.python_cli.sample_csv,
-                output_file=python_output
+                output_file=python_output,
+                ring_id=test_ring_id
             )
             
             # Verify Python output exists
             assert python_output.exists(), f"Python output file {python_output} was not created"
+            
+            # Verify V1 format
+            with open(python_output, 'r') as f:
+                reader = csv.DictReader(f)
+                first_row = next(reader)
+                first_token = first_row['Token']
+                assert first_token.startswith('ot.V1.'), \
+                    f"Python token doesn't have V1 prefix: {first_token[:20]}..."
+                print(f"   ✓ Python produces V1 tokens: {first_token[:30]}...")
             
             print("3. Decrypting outputs...")
             
@@ -283,7 +306,7 @@ class TestTokenCompatibility:
             assert len(comparison['missing_in_file2']) == 0, \
                 f"Records missing in Python output: {comparison['missing_in_file2']}"
             
-            print(f"✅ SUCCESS: All {comparison['total_records']} records have identical tokens!")
+            print(f"✅ SUCCESS: All {comparison['total_records']} records have identical V1 tokens!")
             print("-" * 50)
     
     def test_v1_token_interoperability(self):
@@ -393,15 +416,18 @@ class TestTokenCompatibility:
         print("\nTesting Metadata Consistency")
         print("-" * 30)
         
+        # Use fixed ring-id for consistent comparison
+        test_ring_id = "test-ring-12345678-1234-5678-1234-567812345678"
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             
             java_output = temp_path / "java_metadata_test.csv"
             python_output = temp_path / "python_metadata_test.csv"
             
-            # Generate tokens with both implementations
-            self.java_cli.generate_tokens(self.java_cli.sample_csv, java_output)
-            self.python_cli.generate_tokens(self.python_cli.sample_csv, python_output)
+            # Generate tokens with both implementations (with same ring-id)
+            self.java_cli.generate_tokens(self.java_cli.sample_csv, java_output, ring_id=test_ring_id)
+            self.python_cli.generate_tokens(self.python_cli.sample_csv, python_output, ring_id=test_ring_id)
             
             # Check for metadata files
             java_metadata = java_output.with_suffix('.metadata.json')
@@ -438,10 +464,10 @@ if __name__ == "__main__":
         test.test_v1_token_interoperability()
         test.test_metadata_consistency()
                 
-        print("\nALL TESTS PASSED!")
+        print("\n✅ ALL TESTS PASSED!")
         
     except Exception as e:
-        print(f"\nTEST FAILED: {str(e)}")
+        print(f"\n❌ TEST FAILED: {str(e)}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
