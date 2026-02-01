@@ -4,6 +4,7 @@ Copyright (c) Truveta. All rights reserved.
 JWE Match Token Formatter for OpenToken V1 format.
 """
 
+import base64
 import json
 import time
 from typing import Optional
@@ -48,8 +49,10 @@ class JweMatchTokenFormatter:
         self.rule_id = rule_id
         self.issuer = issuer if issuer else "truveta.opentoken"
         
-        # Create JWK from the encryption key
-        self.jwk_key = jwk.JWK(kty="oct", k=encryption_key.encode('utf-8'))
+        # Create JWK from the encryption key - needs to be base64url-encoded
+        key_bytes = encryption_key.encode('utf-8')
+        key_b64 = base64.urlsafe_b64encode(key_bytes).decode('utf-8').rstrip('=')
+        self.jwk_key = jwk.JWK(kty="oct", k=key_b64)
     
     def transform(self, token: str) -> str:
         """
