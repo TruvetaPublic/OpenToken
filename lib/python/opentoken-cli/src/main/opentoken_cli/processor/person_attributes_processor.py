@@ -41,17 +41,21 @@ class PersonAttributesProcessor:
     def process(reader: PersonAttributesReader,
                 writer: PersonAttributesWriter,
                 token_transformer_list: List[TokenTransformer],
-                metadata_map: Dict[str, Any] = None) -> None:
+                metadata_map: Dict[str, Any] = None,
+                encryption_key: str = None,
+                ring_id: str = None) -> None:
         """
         Read person attributes from the input data source, generate tokens, and
         write the result back to the output data source. The tokens can be optionally
-        transformed before writing.
+        transformed before writing and wrapped in JWE format if ring ID is provided.
 
         Args:
             reader: The reader initialized with the input data source.
             writer: The writer initialized with the output data source.
             token_transformer_list: A list of token transformers.
             metadata_map: Optional metadata map to update with processing statistics.
+            encryption_key: Optional encryption key for JWE wrapping (None to skip JWE).
+            ring_id: Optional ring ID for JWE wrapping (None to skip JWE).
         """
         # TokenGenerator code
         token_definition = TokenDefinition()
@@ -77,7 +81,7 @@ class PersonAttributesProcessor:
                 )
 
                 PersonAttributesProcessor._write_tokens(
-                    writer, row, row_counter, token_generator_result
+                    writer, row, row_counter, token_generator_result, encryption_key, ring_id
                 )
 
                 if row_counter % 10000 == 0:
@@ -115,15 +119,19 @@ class PersonAttributesProcessor:
     def _write_tokens(writer: PersonAttributesWriter,
                       row: Dict[Type[Attribute], str],
                       row_counter: int,
-                      token_generator_result: TokenGeneratorResult) -> None:
+                      token_generator_result: TokenGeneratorResult,
+                      encryption_key: str = None,
+                      ring_id: str = None) -> None:
         """
-        Write tokens to the output writer.
+        Write tokens to the output writer. Optionally wraps tokens in JWE format.
 
         Args:
             writer: The writer to write tokens to.
             row: The original row data.
             row_counter: The current row number.
             token_generator_result: The result from token generation.
+            encryption_key: Optional encryption key for JWE wrapping (None to skip JWE).
+            ring_id: Optional ring ID for JWE wrapping (None to skip JWE).
         """
         # Sort token IDs for consistent output
         token_ids = sorted(token_generator_result.tokens.keys())
@@ -134,9 +142,25 @@ class PersonAttributesProcessor:
             record_id = str(uuid.uuid4())
 
         for token_id in token_ids:
+            token = token_generator_result.tokens[token_id]
+            
+            # Apply JWE wrapping if encryption key and ring ID are provided
+            if encryption_key and ring_id and token:
+                try:
+                    from opentoken.tokentransformer.jwe_match_token_formatter import JweMatchTokenFormatter
+                    jwe_formatter = JweMatchTokenFormatter(
+                        encryption_key, ring_id, token_id, "truveta.opentoken"
+                    )
+                    token = jwe_formatter.transform(token)
+                except Exception as e:
+                    logger.error(
+                        f"Error wrapping token in JWE format for row {row_counter:,}, rule {token_id}: {e}",
+                        exc_info=True
+                    )
+            
             row_result = {
                 TokenConstants.RULE_ID: token_id,
-                TokenConstants.TOKEN: token_generator_result.tokens[token_id],
+                TokenConstants.TOKEN: token,
                 TokenConstants.RECORD_ID: record_id
             }
 
