@@ -7,7 +7,7 @@ applyTo: "**/*.py"
 
 ## Python Instructions
 
-- Write clear and concise comments for each function.
+- Prefer clear, descriptive docstrings for functions; use inline comments sparingly to explain non-obvious intent or constraints, not obvious behavior.
 - Ensure functions have descriptive names and include type hints.
 - Provide docstrings following PEP 257 conventions.
 - Use the `typing` module for type annotations (e.g., `List[str]`, `Dict[str, int]`).
