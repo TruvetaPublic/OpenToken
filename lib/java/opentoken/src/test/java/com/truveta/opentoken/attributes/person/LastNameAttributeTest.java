@@ -472,4 +472,38 @@ class LastNameAttributeTest {
             "Validation should be idempotent: validate('A.I.') == validate('AI')");
         assertTrue(valid2, "A.I. should be valid (normalizes to 2 vowels)");
     }
+
+    @Test
+    void validate_ShouldRejectValuesNormalizingToPlaceholders() {
+        // Test that values which normalize to placeholder values are rejected
+        // This ensures idempotency: validate(x) should equal validate(normalize(x))
+        
+        // "TEST16" normalizes to "TEST" which is a placeholder
+        assertFalse(lastNameAttribute.validate("TEST16"), 
+            "TEST16 should be rejected (normalizes to placeholder TEST)");
+        
+        // "SAMPLE123" normalizes to "SAMPLE" which is a placeholder
+        assertFalse(lastNameAttribute.validate("SAMPLE123"), 
+            "SAMPLE123 should be rejected (normalizes to placeholder SAMPLE)");
+        
+        // "Unknown999" normalizes to "Unknown" which is a placeholder
+        assertFalse(lastNameAttribute.validate("Unknown999"), 
+            "Unknown999 should be rejected (normalizes to placeholder Unknown)");
+        
+        // "Patient-123" normalizes to "Patient123" then "Patient" which is a placeholder
+        assertFalse(lastNameAttribute.validate("Patient-123"), 
+            "Patient-123 should be rejected (normalizes to placeholder Patient)");
+        
+        // Verify normalization produces placeholder values
+        assertEquals("TEST", lastNameAttribute.normalize("TEST16"));
+        assertEquals("SAMPLE", lastNameAttribute.normalize("SAMPLE123"));
+        assertEquals("Unknown", lastNameAttribute.normalize("Unknown999"));
+        assertEquals("Patient", lastNameAttribute.normalize("Patient-123"));
+        
+        // Verify the normalized values themselves are invalid
+        assertFalse(lastNameAttribute.validate("TEST"), "TEST is a placeholder");
+        assertFalse(lastNameAttribute.validate("SAMPLE"), "SAMPLE is a placeholder");
+        assertFalse(lastNameAttribute.validate("Unknown"), "Unknown is a placeholder");
+        assertFalse(lastNameAttribute.validate("Patient"), "Patient is a placeholder");
+    }
 }

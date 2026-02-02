@@ -88,7 +88,8 @@ public class FirstNameAttribute extends BaseAttribute {
             return false;
         }
 
-        return true;
+        // Check that normalized value is not a placeholder
+        return super.validate(normalizedValue);
     }
 
     @Override

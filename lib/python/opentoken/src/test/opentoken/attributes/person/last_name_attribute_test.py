@@ -455,4 +455,35 @@ class TestLastNameAttribute:
         assert valid2 == valid_normalized2, \
             "Validation should be idempotent: validate('A.I.') == validate('AI')"
         assert valid2, "A.I. should be valid (normalizes to 2 vowels)"
+
+    def test_validate_should_reject_values_normalizing_to_placeholders(self):
+        """Test that values which normalize to placeholder values are rejected"""
+        # This ensures idempotency: validate(x) should equal validate(normalize(x))
         
+        # "TEST16" normalizes to "TEST" which is a placeholder
+        assert self.last_name_attribute.validate("TEST16") is False, \
+            "TEST16 should be rejected (normalizes to placeholder TEST)"
+        
+        # "SAMPLE123" normalizes to "SAMPLE" which is a placeholder
+        assert self.last_name_attribute.validate("SAMPLE123") is False, \
+            "SAMPLE123 should be rejected (normalizes to placeholder SAMPLE)"
+        
+        # "Unknown999" normalizes to "Unknown" which is a placeholder
+        assert self.last_name_attribute.validate("Unknown999") is False, \
+            "Unknown999 should be rejected (normalizes to placeholder Unknown)"
+        
+        # "Patient-123" normalizes to "Patient123" then "Patient" which is a placeholder
+        assert self.last_name_attribute.validate("Patient-123") is False, \
+            "Patient-123 should be rejected (normalizes to placeholder Patient)"
+        
+        # Verify normalization produces placeholder values
+        assert self.last_name_attribute.normalize("TEST16") == "TEST"
+        assert self.last_name_attribute.normalize("SAMPLE123") == "SAMPLE"
+        assert self.last_name_attribute.normalize("Unknown999") == "Unknown"
+        assert self.last_name_attribute.normalize("Patient-123") == "Patient"
+        
+        # Verify the normalized values themselves are invalid
+        assert self.last_name_attribute.validate("TEST") is False, "TEST is a placeholder"
+        assert self.last_name_attribute.validate("SAMPLE") is False, "SAMPLE is a placeholder"
+        assert self.last_name_attribute.validate("Unknown") is False, "Unknown is a placeholder"
+        assert self.last_name_attribute.validate("Patient") is False, "Patient is a placeholder"
