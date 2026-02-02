@@ -69,38 +69,37 @@ java -jar opentoken-cli/target/opentoken-cli-*.jar \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-See [Quickstarts](docs/quickstarts/index.md) for Python CLI and detailed setup instructions.
+See [Quickstarts](pages/quickstarts/index.md) for Python CLI and detailed setup instructions.
 
 ## Key Matching Ideas
 
-- **Token rules**: Five rules (T1–T5) combine attributes in different ways — see [Token Rules](docs/concepts/token-rules.md)
-- **Normalization**: Names, dates, postal codes normalized before tokenization — see [Normalization and Validation](docs/concepts/normalization-and-validation.md)
-- **Metadata**: Processing statistics and audit trail — see [Metadata Format](docs/reference/metadata-format.md)
+- **Token rules**: Five rules (T1–T5) combine attributes in different ways — see [Token Rules](pages/concepts/token-rules.md)
+- **Normalization**: Names, dates, postal codes normalized before tokenization — see [Normalization and Validation](pages/concepts/normalization-and-validation.md)
+- **Metadata**: Processing statistics and audit trail — see [Metadata Format](pages/reference/metadata-format.md)
 
 ## Running OpenToken
 
-- **CLI modes**: Encrypt (default), hash-only (`--hash-only`), decrypt (`-d`) — see [Running OpenToken](docs/running-opentoken/index.md)
-- **Docker**: Convenience scripts for containerized runs — see [Quickstarts](docs/quickstarts/index.md)
-- **PySpark**: Distributed processing for large datasets — see [Spark or Databricks](docs/operations/spark-or-databricks.md)
+- **CLI modes**: Encrypt (default), hash-only (`--hash-only`), decrypt (`-d`) — see [Running OpenToken](pages/running-opentoken/index.md)
+- **Docker**: Convenience scripts for containerized runs — see [Quickstarts](pages/quickstarts/index.md)
+- **PySpark**: Distributed processing for large datasets — see [Spark or Databricks](pages/operations/spark-or-databricks.md)
 
 ## Security Notes
 
-- **Crypto pipeline**: Token signature → SHA-256 → HMAC-SHA256 → AES-256 (or hash-only) — see [Security](docs/security.md)
+- **Crypto pipeline**: Token signature → SHA-256 → HMAC-SHA256 → AES-256 (or hash-only) — see [Security](pages/security.md)
 - **Secret management**: Handle hashing/encryption secrets securely; avoid committing secrets; prefer env/secret stores
 - **Validation**: Reject placeholders and malformed attributes before tokenization
 
 ## Contributing & Community
 
-- [Contributing Guide](docs/community/contributing.md) — Branching, PR expectations, coding standards
-- [Code of Conduct](docs/community/code-of-conduct.md)
-- [Release Notes](docs/community/release-notes.md)
+- [Contributing Guide](pages/community/contributing.md) — Branching, PR expectations, coding standards
+- [Code of Conduct](pages/community/code-of-conduct.md)
 
 ## Documentation
 
-- [Documentation Index](docs/index.md)
-- [Quickstarts](docs/quickstarts/index.md)
-- [Specification](docs/specification.md)
-- [CLI Reference](docs/reference/cli.md)
-- [Metadata Format](docs/reference/metadata-format.md)
+- [Documentation Index](pages/index.md)
+- [Quickstarts](pages/quickstarts/index.md)
+- [Specification](pages/specification.md)
+- [CLI Reference](pages/reference/cli.md)
+- [Metadata Format](pages/reference/metadata-format.md)
 
 For issues or support, file an issue in this repository.

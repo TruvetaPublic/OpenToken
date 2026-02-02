@@ -74,7 +74,7 @@ dev/* (feature work) → develop → release/x.y.z → main → develop (auto-sy
 
 ## Dev Container
 
-A VS Code dev container is provided with Java, Maven, Python, and Docker CLI pre-installed. See [docs/dev-guide-development.md](../dev-guide-development.md) for details.
+A VS Code dev container is provided with Java, Maven, Python, and Docker CLI pre-installed. See [Developer Guide](../dev-guide-development.md) for details.
 
 ## Issues & Discussions
 
