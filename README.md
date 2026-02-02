@@ -69,37 +69,37 @@ java -jar opentoken-cli/target/opentoken-cli-*.jar \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
-See [Quickstarts](https://truvetapublic.github.io/OpenToken/quickstarts/) for Python CLI and detailed setup instructions.
+See <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_blank" rel="noopener noreferrer">Quickstarts</a> for Python CLI and detailed setup instructions.
 
 ## Key Matching Ideas
 
-- **Token rules**: Five rules (T1–T5) combine attributes in different ways — see [Token Rules](https://truvetapublic.github.io/OpenToken/concepts/token-rules/)
-- **Normalization**: Names, dates, postal codes normalized before tokenization — see [Normalization and Validation](https://truvetapublic.github.io/OpenToken/concepts/normalization-and-validation/)
-- **Metadata**: Processing statistics and audit trail — see [Metadata Format](https://truvetapublic.github.io/OpenToken/reference/metadata-format/)
+- **Token rules**: Five rules (T1–T5) combine attributes in different ways — see <a href="https://truvetapublic.github.io/OpenToken/concepts/token-rules/" target="_blank" rel="noopener noreferrer">Token Rules</a>
+- **Normalization**: Names, dates, postal codes normalized before tokenization — see <a href="https://truvetapublic.github.io/OpenToken/concepts/normalization-and-validation/" target="_blank" rel="noopener noreferrer">Normalization and Validation</a>
+- **Metadata**: Processing statistics and audit trail — see <a href="https://truvetapublic.github.io/OpenToken/reference/metadata-format/" target="_blank" rel="noopener noreferrer">Metadata Format</a>
 
 ## Running OpenToken
 
-- **CLI modes**: Encrypt (default), hash-only (`--hash-only`), decrypt (`-d`) — see [Running OpenToken](https://truvetapublic.github.io/OpenToken/running-opentoken/)
-- **Docker**: Convenience scripts for containerized runs — see [Quickstarts](https://truvetapublic.github.io/OpenToken/quickstarts/)
-- **PySpark**: Distributed processing for large datasets — see [Spark or Databricks](https://truvetapublic.github.io/OpenToken/operations/spark-or-databricks/)
+- **CLI modes**: Encrypt (default), hash-only (`--hash-only`), decrypt (`-d`) — see <a href="https://truvetapublic.github.io/OpenToken/running-opentoken/" target="_blank" rel="noopener noreferrer">Running OpenToken</a>
+- **Docker**: Convenience scripts for containerized runs — see <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_blank" rel="noopener noreferrer">Quickstarts</a>
+- **PySpark**: Distributed processing for large datasets — see <a href="https://truvetapublic.github.io/OpenToken/operations/spark-or-databricks.html" target="_blank" rel="noopener noreferrer">Spark or Databricks</a>
 
 ## Security Notes
 
-- **Crypto pipeline**: Token signature → SHA-256 → HMAC-SHA256 → AES-256 (or hash-only) — see [Security](https://truvetapublic.github.io/OpenToken/security/)
+- **Crypto pipeline**: Token signature → SHA-256 → HMAC-SHA256 → AES-256 (or hash-only) — see <a href="https://truvetapublic.github.io/OpenToken/security/" target="_blank" rel="noopener noreferrer">Security</a>
 - **Secret management**: Handle hashing/encryption secrets securely; avoid committing secrets; prefer env/secret stores
 - **Validation**: Reject placeholders and malformed attributes before tokenization
 
 ## Contributing & Community
 
-- [Contributing Guide](https://truvetapublic.github.io/OpenToken/community/contributing/) — Branching, PR expectations, coding standards
-- [Code of Conduct](https://truvetapublic.github.io/OpenToken/community/code-of-conduct/)
+- <a href="https://truvetapublic.github.io/OpenToken/community/contributing/" target="_blank" rel="noopener noreferrer">Contributing Guide</a> — Branching, PR expectations, coding standards
+- <a href="https://truvetapublic.github.io/OpenToken/community/code-of-conduct/" target="_blank" rel="noopener noreferrer">Code of Conduct</a>
 
 ## Documentation
 
-- [Documentation Index](https://truvetapublic.github.io/OpenToken/)
-- [Quickstarts](https://truvetapublic.github.io/OpenToken/quickstarts/)
-- [Specification](https://truvetapublic.github.io/OpenToken/specification/)
-- [CLI Reference](https://truvetapublic.github.io/OpenToken/reference/cli/)
-- [Metadata Format](https://truvetapublic.github.io/OpenToken/reference/metadata-format/)
+- <a href="https://truvetapublic.github.io/OpenToken/" target="_blank" rel="noopener noreferrer">Documentation Index</a>
+- <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_blank" rel="noopener noreferrer">Quickstarts</a>
+- <a href="https://truvetapublic.github.io/OpenToken/specification/" target="_blank" rel="noopener noreferrer">Specification</a>
+- <a href="https://truvetapublic.github.io/OpenToken/reference/cli/" target="_blank" rel="noopener noreferrer">CLI Reference</a>
+- <a href="https://truvetapublic.github.io/OpenToken/reference/metadata-format/" target="_blank" rel="noopener noreferrer">Metadata Format</a>
 
 For issues or support, file an issue in this repository.
