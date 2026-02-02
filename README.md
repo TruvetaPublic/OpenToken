@@ -73,9 +73,9 @@ See <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_bl
 
 ## Key Matching Ideas
 
-- **Token rules**: Five rules (T1–T5) combine attributes in different ways — see <a href="https://truvetapublic.github.io/OpenToken/concepts/token-rules/" target="_blank" rel="noopener noreferrer">Token Rules</a>
-- **Normalization**: Names, dates, postal codes normalized before tokenization — see <a href="https://truvetapublic.github.io/OpenToken/concepts/normalization-and-validation/" target="_blank" rel="noopener noreferrer">Normalization and Validation</a>
-- **Metadata**: Processing statistics and audit trail — see <a href="https://truvetapublic.github.io/OpenToken/reference/metadata-format/" target="_blank" rel="noopener noreferrer">Metadata Format</a>
+- **Token rules**: Five rules (T1–T5) combine attributes in different ways — see <a href="https://truvetapublic.github.io/OpenToken/concepts/token-rules.html" target="_blank" rel="noopener noreferrer">Token Rules</a>
+- **Normalization**: Names, dates, postal codes normalized before tokenization — see <a href="https://truvetapublic.github.io/OpenToken/concepts/normalization-and-validation.html" target="_blank" rel="noopener noreferrer">Normalization and Validation</a>
+- **Metadata**: Processing statistics and audit trail — see <a href="https://truvetapublic.github.io/OpenToken/reference/metadata-format.html" target="_blank" rel="noopener noreferrer">Metadata Format</a>
 
 ## Running OpenToken
 
@@ -85,21 +85,21 @@ See <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_bl
 
 ## Security Notes
 
-- **Crypto pipeline**: Token signature → SHA-256 → HMAC-SHA256 → AES-256 (or hash-only) — see <a href="https://truvetapublic.github.io/OpenToken/security/" target="_blank" rel="noopener noreferrer">Security</a>
+- **Crypto pipeline**: Token signature → SHA-256 → HMAC-SHA256 → AES-256 (or hash-only) — see <a href="https://truvetapublic.github.io/OpenToken/security.html" target="_blank" rel="noopener noreferrer">Security</a>
 - **Secret management**: Handle hashing/encryption secrets securely; avoid committing secrets; prefer env/secret stores
 - **Validation**: Reject placeholders and malformed attributes before tokenization
 
 ## Contributing & Community
 
-- <a href="https://truvetapublic.github.io/OpenToken/community/contributing/" target="_blank" rel="noopener noreferrer">Contributing Guide</a> — Branching, PR expectations, coding standards
-- <a href="https://truvetapublic.github.io/OpenToken/community/code-of-conduct/" target="_blank" rel="noopener noreferrer">Code of Conduct</a>
+- <a href="https://truvetapublic.github.io/OpenToken/community/contributing.html" target="_blank" rel="noopener noreferrer">Contributing Guide</a> — Branching, PR expectations, coding standards
+- <a href="https://truvetapublic.github.io/OpenToken/community/code-of-conduct.html" target="_blank" rel="noopener noreferrer">Code of Conduct</a>
 
 ## Documentation
 
 - <a href="https://truvetapublic.github.io/OpenToken/" target="_blank" rel="noopener noreferrer">Documentation Index</a>
 - <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_blank" rel="noopener noreferrer">Quickstarts</a>
-- <a href="https://truvetapublic.github.io/OpenToken/specification/" target="_blank" rel="noopener noreferrer">Specification</a>
-- <a href="https://truvetapublic.github.io/OpenToken/reference/cli/" target="_blank" rel="noopener noreferrer">CLI Reference</a>
-- <a href="https://truvetapublic.github.io/OpenToken/reference/metadata-format/" target="_blank" rel="noopener noreferrer">Metadata Format</a>
+- <a href="https://truvetapublic.github.io/OpenToken/specification.html" target="_blank" rel="noopener noreferrer">Specification</a>
+- <a href="https://truvetapublic.github.io/OpenToken/reference/cli.html" target="_blank" rel="noopener noreferrer">CLI Reference</a>
+- <a href="https://truvetapublic.github.io/OpenToken/reference/metadata-format.html" target="_blank" rel="noopener noreferrer">Metadata Format</a>
 
 For issues or support, file an issue in this repository.
