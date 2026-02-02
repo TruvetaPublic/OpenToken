@@ -13,7 +13,7 @@ applyTo: "**/*.java"
 
 ## Best practices
 
-- **Imports**: Always use direct imports instead of fully qualified class names in code. Only use full class names when necessary to resolve naming conflicts between classes with the same simple name.
+- **Imports**: Always use direct imports instead of fully qualified class names in code. NEVER use fully qualified class names in Java code - always add import statements and use short class names.
 - **Lombok**: This codebase uses Lombok extensively. Use:
   - `@Builder` for immutable object construction (preferred over Java Records for complex objects)
   - `@NonNull` for required fields with null-checking
