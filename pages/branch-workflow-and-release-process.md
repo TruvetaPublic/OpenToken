@@ -264,7 +264,6 @@ A: Repository admins can override branch protection, but it's strongly discourag
 
 ## Related Documentation
 
-- [Branch Protection and Release Workflows](./branch-protection-and-release-workflows.md) - Admin setup instructions for branch protection
 - [Development Guide](./dev-guide-development.md) - Development environment setup and language-specific build instructions
 - Workflow files:
   - `.github/workflows/auto-version-bump.yml`
