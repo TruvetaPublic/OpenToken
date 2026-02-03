@@ -86,6 +86,12 @@ public class LastNameAttribute extends BaseAttribute {
             return false;
         }
 
+        // Check that normalized value is not a placeholder
+        // This ensures idempotency: values like "TEST16" normalize to "TEST" which is a placeholder
+        if (!super.validate(normalizedValue)) {
+            return false;
+        }
+
         // Validate the normalized value against the regex pattern
         // Use the pre-created regex validator instance to avoid creating new instances on each call
         return regexValidator.eval(normalizedValue);

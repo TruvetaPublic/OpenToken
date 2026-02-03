@@ -1,6 +1,10 @@
 ARG JAVA_VERSION=21
 FROM mcr.microsoft.com/devcontainers/java:1-${JAVA_VERSION}-bookworm
 
+# Fix Yarn repository GPG key issue - remove the Yarn repo to prevent feature installation failures
+# The Yarn InRelease file is signed with key 62D54FD4003F6525 which is no longer in their pubkey.gpg
+RUN rm -f /etc/apt/sources.list.d/yarn.list
+
 # Check for Zscaler certificates and install if found using external script
 COPY .devcontainer/scripts/detect_zscaler.sh /tmp/
 

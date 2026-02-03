@@ -88,6 +88,11 @@ class LastNameAttribute(BaseAttribute):
         if len(normalized_value) == 1:
             return False
 
+        # Check that normalized value is not a placeholder
+        # This ensures idempotency: values like "TEST16" normalize to "TEST" which is a placeholder
+        if not super().validate(normalized_value):
+            return False
+
         # Validate the normalized value against the regex pattern
         # Use the pre-created regex validator instance to avoid creating new instances on each call
         return self.regex_validator.eval(normalized_value)
