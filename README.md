@@ -103,3 +103,6 @@ See <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_bl
 - <a href="https://truvetapublic.github.io/OpenToken/reference/metadata-format.html" target="_blank" rel="noopener noreferrer">Metadata Format</a>
 
 For issues or support, file an issue in this repository.
+
+<!-- Re-run CI checks -->
+
