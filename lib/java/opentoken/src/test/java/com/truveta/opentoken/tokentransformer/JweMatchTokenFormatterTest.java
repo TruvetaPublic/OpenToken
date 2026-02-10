@@ -3,13 +3,15 @@
  */
 package com.truveta.opentoken.tokentransformer;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEObject;
 import org.junit.jupiter.api.Test;
-
-import java.text.ParseException;
 
 /**
  * Unit tests for {@link JweMatchTokenFormatter}.

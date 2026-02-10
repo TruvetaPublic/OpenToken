@@ -3,6 +3,8 @@
  */
 package com.truveta.opentoken.cli;
 
+import java.util.UUID;
+
 import com.beust.jcommander.Parameter;
 import lombok.Getter;
 
@@ -54,5 +56,5 @@ public class CommandLineArguments {
         @Getter
         @Parameter(names = {
                         "--ring-id" }, description = "Ring identifier for key management. Defaults to a random UUID if not provided.", required = false)
-        private String ringId = java.util.UUID.randomUUID().toString();
+        private String ringId = UUID.randomUUID().toString();
 }

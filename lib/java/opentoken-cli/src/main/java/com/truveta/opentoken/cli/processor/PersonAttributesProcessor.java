@@ -26,6 +26,7 @@ import com.truveta.opentoken.tokens.TokenDefinition;
 import com.truveta.opentoken.tokens.TokenGenerator;
 import com.truveta.opentoken.tokens.TokenGeneratorResult;
 import com.truveta.opentoken.tokens.tokenizer.SHA256Tokenizer;
+import com.truveta.opentoken.tokentransformer.JweMatchTokenFormatter;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
 
 /**
@@ -102,6 +103,8 @@ public final class PersonAttributesProcessor {
         long rowCounter = 0;
         Map<String, Long> invalidAttributeCount = initializeInvalidAttributeCount(tokenDefinition);
         Map<String, Long> blankTokensByRuleCount = initializeBlankTokensByRuleCount(tokenDefinition);
+        Map<String, JweMatchTokenFormatter> jweFormatterCache = initializeJweFormatterCache(tokenDefinition,
+                encryptionKey, ringId);
 
         while (reader.hasNext()) {
             row = reader.next();
@@ -116,7 +119,7 @@ public final class PersonAttributesProcessor {
             keepTrackOfBlankTokens(tokenGeneratorResult, rowCounter,
                     blankTokensByRuleCount);
 
-            writeTokens(writer, row, rowCounter, tokenGeneratorResult, encryptionKey, ringId);
+            writeTokens(writer, row, rowCounter, tokenGeneratorResult, jweFormatterCache);
 
             if (rowCounter % 10000 == 0) {
                 logger.info(String.format("Processed \"%,d\" records", rowCounter));
@@ -149,7 +152,8 @@ public final class PersonAttributesProcessor {
     }
 
     private static void writeTokens(PersonAttributesWriter writer, Map<Class<? extends Attribute>, String> row,
-            long rowCounter, TokenGeneratorResult tokenGeneratorResult, String encryptionKey, String ringId) {
+            long rowCounter, TokenGeneratorResult tokenGeneratorResult,
+            Map<String, JweMatchTokenFormatter> jweFormatterCache) {
 
         Set<String> tokenIds = new TreeSet<>(tokenGeneratorResult.getTokens().keySet());
 
@@ -161,20 +165,18 @@ public final class PersonAttributesProcessor {
 
         for (String tokenId : tokenIds) {
             String token = tokenGeneratorResult.getTokens().get(tokenId);
-            
-            // Apply JWE wrapping if encryption key and ring ID are provided
-            if (encryptionKey != null && ringId != null && !token.isEmpty()) {
+
+            // Apply JWE wrapping using cached formatter if available
+            JweMatchTokenFormatter jweFormatter = jweFormatterCache.get(tokenId);
+            if (jweFormatter != null && !token.isEmpty()) {
                 try {
-                    com.truveta.opentoken.tokentransformer.JweMatchTokenFormatter jweFormatter = 
-                        new com.truveta.opentoken.tokentransformer.JweMatchTokenFormatter(
-                            encryptionKey, ringId, tokenId, "truveta.opentoken");
                     token = jweFormatter.transform(token);
                 } catch (Exception e) {
-                    logger.error(String.format("Error wrapping token in JWE format for row %,d, rule %s", 
-                        rowCounter, tokenId), e);
+                    logger.error(String.format("Error wrapping token in JWE format for row %,d, rule %s",
+                            rowCounter, tokenId), e);
                 }
             }
-            
+
             var rowResult = new HashMap<String, String>();
             rowResult.put(TokenConstants.RECORD_ID, recordId);
             rowResult.put(TokenConstants.RULE_ID, tokenId);
@@ -266,5 +268,36 @@ public final class PersonAttributesProcessor {
             blankTokensByRuleCount.put(tokenId, 0L);
         }
         return blankTokensByRuleCount;
+    }
+
+    /**
+     * Initialize the JWE formatter cache with formatters for each token identifier.
+     * Creates formatters once per unique tokenId to avoid repeated JOSE encrypter
+     * initialization during row processing.
+     *
+     * @param tokenDefinition the token definition containing all token identifiers
+     * @param encryptionKey the encryption key for JWE wrapping (optional)
+     * @param ringId the ring ID for JWE wrapping (optional)
+     * @return a map of tokenId to cached JweMatchTokenFormatter instances,
+     *         or an empty map if encryptionKey or ringId is null
+     */
+    private static Map<String, JweMatchTokenFormatter> initializeJweFormatterCache(
+            TokenDefinition tokenDefinition, String encryptionKey, String ringId) {
+        Map<String, JweMatchTokenFormatter> cache = new HashMap<>();
+
+        // Only create formatters if both encryption key and ring ID are provided
+        if (encryptionKey != null && ringId != null) {
+            for (String tokenId : tokenDefinition.getTokenIdentifiers()) {
+                try {
+                    cache.put(tokenId, new JweMatchTokenFormatter(
+                            encryptionKey, ringId, tokenId, "truveta.opentoken"));
+                } catch (Exception e) {
+                    logger.warn(String.format(
+                            "Failed to initialize JWE formatter for token rule %s", tokenId), e);
+                }
+            }
+        }
+
+        return cache;
     }
 }
