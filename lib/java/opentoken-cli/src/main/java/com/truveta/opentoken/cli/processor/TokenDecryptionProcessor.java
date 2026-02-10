@@ -37,8 +37,8 @@ public final class TokenDecryptionProcessor {
      * @throws IOException if an I/O error occurs
      */
     public static void process(TokenReader reader,
-                                TokenWriter writer,
-                                DecryptTokenTransformer decryptor) throws IOException {
+            TokenWriter writer,
+            DecryptTokenTransformer decryptor) throws IOException {
         long rowCounter = 0;
         long decryptedCounter = 0;
         long errorCounter = 0;
@@ -46,9 +46,9 @@ public final class TokenDecryptionProcessor {
         while (reader.hasNext()) {
             Map<String, String> row = reader.next();
             rowCounter++;
-            
+
             String token = row.get(TokenConstants.TOKEN);
-            
+
             // Decrypt the token if it's not blank
             if (token != null && !token.isEmpty() && !Token.BLANK.equals(token)) {
                 try {
@@ -56,13 +56,13 @@ public final class TokenDecryptionProcessor {
                     row.put(TokenConstants.TOKEN, decryptedToken);
                     decryptedCounter++;
                 } catch (Exception e) {
-                    logger.error("Failed to decrypt token for RecordId {}, RuleId {}: {}", 
-                               row.get(TokenConstants.RECORD_ID), row.get(TokenConstants.RULE_ID), e.getMessage());
+                    logger.error("Failed to decrypt token for RecordId {}, RuleId {}: {}",
+                            row.get(TokenConstants.RECORD_ID), row.get(TokenConstants.RULE_ID), e.getMessage());
                     errorCounter++;
                     // Keep the encrypted token in case of error
                 }
             }
-            
+
             // Write token
             writer.writeToken(row);
 

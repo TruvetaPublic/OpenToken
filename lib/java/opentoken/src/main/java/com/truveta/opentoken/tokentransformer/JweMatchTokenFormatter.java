@@ -15,6 +15,9 @@ import com.nimbusds.jose.jwk.OctetSequenceKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
@@ -40,7 +43,8 @@ public class JweMatchTokenFormatter implements TokenTransformer {
     private final String ringId;
     private final String ruleId;
     private final String issuer;
-    private final DirectEncrypter encrypter;
+    private final String encryptionKey;
+    private transient DirectEncrypter encrypter;
 
     /**
      * Initializes the JWE match token formatter.
@@ -66,6 +70,7 @@ public class JweMatchTokenFormatter implements TokenTransformer {
         this.ringId = ringId;
         this.ruleId = ruleId;
         this.issuer = (issuer != null && !issuer.isEmpty()) ? issuer : "truveta.opentoken";
+        this.encryptionKey = encryptionKey;
 
         // Create a 256-bit key from the encryption key
         byte[] keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
@@ -73,6 +78,21 @@ public class JweMatchTokenFormatter implements TokenTransformer {
 
         // Initialize direct encrypter for AES-256-GCM
         this.encrypter = new DirectEncrypter(jwk);
+    }
+
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        oos.defaultWriteObject();
+    }
+
+    private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        ois.defaultReadObject();
+        try {
+            byte[] keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
+            OctetSequenceKey jwk = new OctetSequenceKey.Builder(keyBytes).build();
+            this.encrypter = new DirectEncrypter(jwk);
+        } catch (JOSEException e) {
+            throw new IOException("Failed to reconstruct JWE encrypter", e);
+        }
     }
 
     /**
@@ -87,7 +107,7 @@ public class JweMatchTokenFormatter implements TokenTransformer {
      */
     @Override
     public String transform(String token) throws Exception {
-        if (token == null || token.isEmpty()) {
+        if (token == null || token.isBlank()) {
             logger.warn("Received null or empty token for rule {}", ruleId);
             return token; // Return as-is for blank tokens
         }

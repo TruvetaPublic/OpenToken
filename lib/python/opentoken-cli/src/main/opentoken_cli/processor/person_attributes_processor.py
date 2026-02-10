@@ -14,6 +14,7 @@ from opentoken_cli.processor.token_constants import TokenConstants
 from opentoken.tokens.token_definition import TokenDefinition
 from opentoken.tokens.token_generator import TokenGenerator
 from opentoken.tokens.token_generator_result import TokenGeneratorResult
+from opentoken.tokentransformer.jwe_match_token_formatter import JweMatchTokenFormatter
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
@@ -65,6 +66,18 @@ class PersonAttributesProcessor:
         invalid_attribute_count: Dict[str, int] = PersonAttributesProcessor._initialize_invalid_attribute_count(token_definition)
         blank_tokens_by_rule_count: Dict[str, int] = PersonAttributesProcessor._initialize_blank_tokens_by_rule_count(token_definition)
 
+        # Cache JWE formatters if encryption is enabled
+        jwe_formatters: Dict[str, Any] = {}
+        if encryption_key and ring_id:
+            try:
+                for token_id in token_definition.get_token_identifiers():
+                    jwe_formatters[token_id] = JweMatchTokenFormatter(
+                        encryption_key, ring_id, token_id, "truveta.opentoken"
+                    )
+            except Exception as e:
+                logger.error(f"Error initializing JWE formatters: {e}", exc_info=True)
+                jwe_formatters = {}
+
         try:
             for row in reader:
                 row_counter += 1
@@ -81,7 +94,7 @@ class PersonAttributesProcessor:
                 )
 
                 PersonAttributesProcessor._write_tokens(
-                    writer, row, row_counter, token_generator_result, encryption_key, ring_id
+                    writer, row, row_counter, token_generator_result, encryption_key, ring_id, jwe_formatters
                 )
 
                 if row_counter % 10000 == 0:
@@ -121,7 +134,8 @@ class PersonAttributesProcessor:
                       row_counter: int,
                       token_generator_result: TokenGeneratorResult,
                       encryption_key: str = None,
-                      ring_id: str = None) -> None:
+                      ring_id: str = None,
+                      jwe_formatters: Dict[str, JweMatchTokenFormatter] = None) -> None:
         """
         Write tokens to the output writer. Optionally wraps tokens in JWE format.
 
@@ -147,11 +161,9 @@ class PersonAttributesProcessor:
             # Apply JWE wrapping if encryption key and ring ID are provided
             if encryption_key and ring_id and token:
                 try:
-                    from opentoken.tokentransformer.jwe_match_token_formatter import JweMatchTokenFormatter
-                    jwe_formatter = JweMatchTokenFormatter(
-                        encryption_key, ring_id, token_id, "truveta.opentoken"
-                    )
-                    token = jwe_formatter.transform(token)
+                    jwe_formatter = (jwe_formatters or {}).get(token_id)
+                    if jwe_formatter:
+                        token = jwe_formatter.transform(token)
                 except Exception as e:
                     logger.error(
                         f"Error wrapping token in JWE format for row {row_counter:,}, rule {token_id}: {e}",
