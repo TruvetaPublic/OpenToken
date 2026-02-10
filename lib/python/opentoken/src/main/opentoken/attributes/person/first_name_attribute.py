@@ -70,6 +70,11 @@ class FirstNameAttribute(BaseAttribute):
         if normalized_value is None or not normalized_value.strip():
             return False
 
+        # Check that normalized value is not a placeholder
+        # This ensures idempotency: values like "TEST16" normalize to "TEST" which is a placeholder
+        if not super().validate(normalized_value):
+            return False
+
         return True
 
     def get_name(self) -> str:

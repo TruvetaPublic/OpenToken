@@ -72,7 +72,7 @@ class FirstNameAttributeTest {
     void validate_ShouldReturnFalseForNullOrEmptyString() {
         assertFalse(firstNameAttribute.validate(null), "Null value should not be allowed");
         assertFalse(firstNameAttribute.validate(""), "Empty value should not be allowed");
-        assertTrue(firstNameAttribute.validate("test123"), "Non-empty value should be allowed");
+        assertFalse(firstNameAttribute.validate("Test123"), "Non-empty value should be allowed");
     }
 
     @Test
@@ -480,33 +480,33 @@ class FirstNameAttributeTest {
     void validate_IdempotencyShouldBeStable() {
         // Test that validation is idempotent: validate(x) == validate(normalize(x))
         // This ensures that normalized values can be re-validated successfully
-        
+
         String[] testCases = {
-            "A.B.",         // Normalizes to "AB"
-            "N.M.",         // Normalizes to "NM"
-            "Dr. John",     // Normalizes to "John"
-            "Mary-Ann",     // Normalizes to "MaryAnn"
-            "José",         // Normalizes to "Jose"
-            "Jean-Marc",    // Normalizes to "JeanMarc"
+                "A.B.", // Normalizes to "AB"
+                "N.M.", // Normalizes to "NM"
+                "Dr. John", // Normalizes to "John"
+                "Mary-Ann", // Normalizes to "MaryAnn"
+                "José", // Normalizes to "Jose"
+                "Jean-Marc", // Normalizes to "JeanMarc"
         };
-        
+
         for (String testCase : testCases) {
             String normalized = firstNameAttribute.normalize(testCase);
             boolean validOriginal = firstNameAttribute.validate(testCase);
             boolean validNormalized = firstNameAttribute.validate(normalized);
-            
+
             // If original is valid, normalized should also be valid (idempotency)
             if (validOriginal) {
-                assertTrue(validNormalized, 
-                    String.format("Idempotency failed: '%s' is valid but normalized '%s' is not", 
-                    testCase, normalized));
+                assertTrue(validNormalized,
+                        String.format("Idempotency failed: '%s' is valid but normalized '%s' is not",
+                                testCase, normalized));
             }
-            
+
             // Double normalization should produce the same result
             String doubleNormalized = firstNameAttribute.normalize(normalized);
             assertEquals(normalized, doubleNormalized,
-                String.format("Normalization not idempotent: normalize('%s') != normalize(normalize('%s'))",
-                normalized, testCase));
+                    String.format("Normalization not idempotent: normalize('%s') != normalize(normalize('%s'))",
+                            normalized, testCase));
         }
     }
 
@@ -514,19 +514,53 @@ class FirstNameAttributeTest {
     void validate_NormalizedValuesShouldPassValidation() {
         // Specific test for idempotency issue
         // "A.B." should normalize to "AB" and "AB" should still be valid
-        
+
         String input = "A.B.";
         String normalized = firstNameAttribute.normalize(input);
-        
+
         assertEquals("AB", normalized, "A.B. should normalize to AB");
-        
+
         // The normalized value should pass validation
         boolean originalValid = firstNameAttribute.validate(input);
         boolean normalizedValid = firstNameAttribute.validate(normalized);
-        
+
         if (originalValid) {
-            assertTrue(normalizedValid, 
-                "Normalized value 'AB' should be valid if original 'A.B.' was valid");
+            assertTrue(normalizedValid,
+                    "Normalized value 'AB' should be valid if original 'A.B.' was valid");
         }
+    }
+
+    @Test
+    void validate_ShouldRejectValuesNormalizingToPlaceholders() {
+        // Test that values which normalize to placeholder values are rejected
+        // This ensures idempotency: validate(x) should equal validate(normalize(x))
+
+        // "TEST16" normalizes to "TEST" which is a placeholder
+        assertFalse(firstNameAttribute.validate("TEST16"),
+                "TEST16 should be rejected (normalizes to placeholder TEST)");
+
+        // "SAMPLE123" normalizes to "SAMPLE" which is a placeholder
+        assertFalse(firstNameAttribute.validate("SAMPLE123"),
+                "SAMPLE123 should be rejected (normalizes to placeholder SAMPLE)");
+
+        // "Unknown999" normalizes to "Unknown" which is a placeholder
+        assertFalse(firstNameAttribute.validate("Unknown999"),
+                "Unknown999 should be rejected (normalizes to placeholder Unknown)");
+
+        // "Patient-123" normalizes to "Patient123" then "Patient" which is a placeholder
+        assertFalse(firstNameAttribute.validate("Patient-123"),
+                "Patient-123 should be rejected (normalizes to placeholder Patient)");
+
+        // Verify normalization produces placeholder values
+        assertEquals("TEST", firstNameAttribute.normalize("TEST16"));
+        assertEquals("SAMPLE", firstNameAttribute.normalize("SAMPLE123"));
+        assertEquals("Unknown", firstNameAttribute.normalize("Unknown999"));
+        assertEquals("Patient", firstNameAttribute.normalize("Patient-123"));
+
+        // Verify the normalized values themselves are invalid
+        assertFalse(firstNameAttribute.validate("TEST"), "TEST is a placeholder");
+        assertFalse(firstNameAttribute.validate("SAMPLE"), "SAMPLE is a placeholder");
+        assertFalse(firstNameAttribute.validate("Unknown"), "Unknown is a placeholder");
+        assertFalse(firstNameAttribute.validate("Patient"), "Patient is a placeholder");
     }
 }
