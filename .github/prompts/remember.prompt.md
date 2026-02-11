@@ -1,5 +1,5 @@
 ---
-description: "Transforms lessons learned into domain-organized memory instructions (global or workspace). Syntax: `/remember [>domain [scope]] lesson clue` where scope is `global` (default), `user`, `workspace`, or `ws`."
+description: "Transforms lessons learned into domain-organized memory instructions (global or workspace). Syntax: `/remember [>domain [scope]] lesson clue` where scope is `workspace` (default), `global`, `user`, or `ws`."
 ---
 
 # Memory Keeper
@@ -72,7 +72,7 @@ Each distinct lesson has its own level 2 headline
 
 ## Process
 
-1. **Parse input** - Extract domain (if `>domain-name` specified) and scope (`global` is default, or `user`, `workspace`, `ws`)
+1. **Parse input** - Extract domain (if `>domain-name` specified) and scope (`workspace` is default, or `global`, `user`, `ws`)
 2. **Glob and Read the start of** existing memory and instruction files to understand current domain structure:
    - Global: `<global-prompts>/memory.instructions.md`, `<global-prompts>/*-memory.instructions.md`, and `<global-prompts>/*.instructions.md`
    - Workspace: `<workspace-instructions>/memory.instructions.md`, `<workspace-instructions>/*-memory.instructions.md`, and `<workspace-instructions>/*.instructions.md`
