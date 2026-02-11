@@ -1428,7 +1428,7 @@ gh project item-list 123
 gh project item-create 123 --title "New item"
 
 # Add item to project
-gh project item-add 123 --owner-owner --repo repo --issue 456
+gh project item-add 123 --owner owner --repo repo --issue 456
 
 # Edit item
 gh project item-edit 123 --id 456 --title "Updated title"
@@ -1745,8 +1745,8 @@ gh ssh-key delete --title "My laptop"
 # List GPG keys
 gh gpg-key list
 
-# Add GPG key
-gh gpg-key add ~/.ssh/id_rsa.pub
+# Add GPG key from ASCII-armored public key file
+gh gpg-key add ~/my-gpg-key.asc
 
 # Delete GPG key
 gh gpg-key delete 12345
