@@ -1428,7 +1428,7 @@ gh project item-list 123
 gh project item-create 123 --title "New item"
 
 # Add item to project
-gh project item-add 123 --owner-owner --repo repo --issue 456
+gh project item-add 123 --owner owner --repo repo --issue 456
 
 # Edit item
 gh project item-edit 123 --id 456 --title "Updated title"
