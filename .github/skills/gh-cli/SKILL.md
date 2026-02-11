@@ -1745,8 +1745,8 @@ gh ssh-key delete --title "My laptop"
 # List GPG keys
 gh gpg-key list
 
-# Add GPG key
-gh gpg-key add ~/.ssh/id_rsa.pub
+# Add GPG key from ASCII-armored public key file
+gh gpg-key add ~/my-gpg-key.asc
 
 # Delete GPG key
 gh gpg-key delete 12345
