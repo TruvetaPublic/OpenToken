@@ -26,7 +26,11 @@ BLANK_TOKEN = '0000000000000000000000000000000000000000000000000000000000000000'
 V1_TOKEN_PREFIX = 'ot.V1.'
 
 def decrypt_v1_token(token, encryption_key):
-    """Decrypt V1 JWE token. Returns the PPID from the payload."""
+    """Decrypt V1 JWE token and return the underlying token value.
+
+    V1 payloads currently store the legacy AES-GCM token in `ppid[0]`.
+    For interoperability checks, attempt to unwrap that inner token too.
+    """
     if not JWE_SUPPORT:
         raise RuntimeError("jwcrypto library required for V1 token decryption. Install with: pip install jwcrypto")
     
@@ -49,8 +53,18 @@ def decrypt_v1_token(token, encryption_key):
     # Extract the PPID (first element if it's an array)
     ppid = payload.get('ppid', [])
     if isinstance(ppid, list) and len(ppid) > 0:
-        return ppid[0]
-    return str(ppid)
+        ppid_value = ppid[0]
+    else:
+        ppid_value = str(ppid)
+
+    if not isinstance(ppid_value, str) or not ppid_value:
+        return ppid_value
+
+    try:
+        return decrypt_legacy_token(ppid_value, encryption_key)
+    except Exception:
+        # Keep compatibility with any future payloads that store plaintext PPIDs.
+        return ppid_value
 
 
 def decrypt_legacy_token(token, encryption_key):
