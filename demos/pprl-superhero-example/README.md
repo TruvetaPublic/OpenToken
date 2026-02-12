@@ -181,7 +181,7 @@ This demonstration shows how to properly compare tokens from two organizations t
 
 ### Prerequisites <!-- omit in toc -->
 
-- Java 11 or higher
+- Java 17 or higher
 - Maven 3.6 or higher
 - Python 3.7+ (for data generation and analysis)
 

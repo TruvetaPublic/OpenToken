@@ -54,7 +54,7 @@ This guide centralizes contributor-facing information. It covers local setup, la
 
 | Tool              | Recommended Version | Notes                                                                    |
 | ----------------- | ------------------- | ------------------------------------------------------------------------ |
-| Java JDK          | 21.x                | Required for Java module & CLI JAR (outputs Java 11 compatible bytecode) |
+| Java JDK          | 21.x                | Required for Java module & CLI JAR (outputs Java 17 compatible bytecode) |
 | Maven             | 3.8+                | Build Java artifacts (`mvn clean install`)                               |
 | Python            | 3.10+               | For Python implementation & scripts                                      |
 | pip / venv        | Latest              | Manage Python dependencies                                               |
@@ -88,7 +88,7 @@ This section combines the previous standalone Java and Python development sectio
 
 Prerequisites:
 
-- Java 21 SDK or higher (JAR output is Java 11 compatible)
+- Java 21 SDK or higher (JAR output is Java 17 compatible)
 - Maven 3.8.8 or higher
 
 Build all modules (from `lib/java`):
