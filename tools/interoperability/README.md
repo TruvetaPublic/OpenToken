@@ -7,7 +7,7 @@ This directory contains tests that validate compatibility and consistency betwee
 - Python 3.10 or higher
 - pip (Python package installer)
 
-- Java 21 SDK or higher (JAR output compatible with Java 11)
+- Java 21 SDK or higher (JAR output compatible with Java 17)
 
 ## Test Categories
 
