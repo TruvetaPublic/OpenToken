@@ -69,14 +69,15 @@ class PersonAttributesProcessor:
         # Cache JWE formatters if encryption is enabled
         jwe_formatters: Dict[str, Any] = {}
         if encryption_key and ring_id:
-            try:
-                for token_id in token_definition.get_token_identifiers():
+            for token_id in token_definition.get_token_identifiers():
+                try:
                     jwe_formatters[token_id] = JweMatchTokenFormatter(
                         encryption_key, ring_id, token_id, "truveta.opentoken"
                     )
-            except Exception as e:
-                logger.error(f"Error initializing JWE formatters: {e}", exc_info=True)
-                jwe_formatters = {}
+                except Exception as e:
+                    error_msg = f"Failed to initialize JWE formatter for token rule {token_id}"
+                    logger.error(error_msg, exc_info=True)
+                    raise RuntimeError(error_msg) from e
 
         try:
             for row in reader:
@@ -160,15 +161,14 @@ class PersonAttributesProcessor:
             
             # Apply JWE wrapping if encryption key and ring ID are provided
             if encryption_key and ring_id and token:
-                try:
-                    jwe_formatter = (jwe_formatters or {}).get(token_id)
-                    if jwe_formatter:
+                jwe_formatter = (jwe_formatters or {}).get(token_id)
+                if jwe_formatter:
+                    try:
                         token = jwe_formatter.transform(token)
-                except Exception as e:
-                    logger.error(
-                        f"Error wrapping token in JWE format for row {row_counter:,}, rule {token_id}: {e}",
-                        exc_info=True
-                    )
+                    except Exception as e:
+                        error_msg = f"Error wrapping token in JWE format for row {row_counter:,}, rule {token_id}"
+                        logger.error(error_msg, exc_info=True)
+                        raise RuntimeError(error_msg) from e
             
             row_result = {
                 TokenConstants.RULE_ID: token_id,

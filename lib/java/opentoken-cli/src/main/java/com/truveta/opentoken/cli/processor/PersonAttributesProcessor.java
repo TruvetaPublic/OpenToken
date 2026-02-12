@@ -172,8 +172,11 @@ public final class PersonAttributesProcessor {
                 try {
                     token = jweFormatter.transform(token);
                 } catch (Exception e) {
-                    logger.error(String.format("Error wrapping token in JWE format for row %,d, rule %s",
-                            rowCounter, tokenId), e);
+                    String errorMsg = String.format(
+                            "Error wrapping token in JWE format for row %,d, rule %s",
+                            rowCounter, tokenId);
+                    logger.error(errorMsg, e);
+                    throw new RuntimeException(errorMsg, e);
                 }
             }
 
@@ -292,8 +295,10 @@ public final class PersonAttributesProcessor {
                     cache.put(tokenId, new JweMatchTokenFormatter(
                             encryptionKey, ringId, tokenId, "truveta.opentoken"));
                 } catch (Exception e) {
-                    logger.warn(String.format(
-                            "Failed to initialize JWE formatter for token rule %s", tokenId), e);
+                    String errorMsg = String.format(
+                            "Failed to initialize JWE formatter for token rule %s", tokenId);
+                    logger.error(errorMsg, e);
+                    throw new RuntimeException(errorMsg, e);
                 }
             }
         }
