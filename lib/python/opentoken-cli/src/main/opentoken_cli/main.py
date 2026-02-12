@@ -220,7 +220,7 @@ def _decrypt_tokens(input_path: str, output_path: str, input_type: str, output_t
         
         with _create_token_reader(input_path, input_type) as reader, \
              _create_token_writer(output_path, output_type) as writer:
-            TokenDecryptionProcessor.process(reader, writer, decryptor)
+            TokenDecryptionProcessor.process_with_key(reader, writer, decryptor, encryption_key)
                 
     except Exception as e:
         logger.error(f"Error during token decryption: {e}")

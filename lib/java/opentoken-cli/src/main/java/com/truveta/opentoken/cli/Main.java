@@ -122,7 +122,8 @@ public class Main {
                 return;
             }
 
-            processTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey, hashOnlyMode, ringId);
+            processTokens(inputPath, outputPath, inputType, outputType, hashingSecret, encryptionKey, hashOnlyMode,
+                    ringId);
         }
     }
 
@@ -261,7 +262,7 @@ public class Main {
 
             try (TokenReader reader = createTokenReader(inputPath, inputType);
                     TokenWriter writer = createTokenWriter(outputPath, outputType)) {
-                TokenDecryptionProcessor.process(reader, writer, decryptor);
+                TokenDecryptionProcessor.process(reader, writer, decryptor, encryptionKey);
             }
         } catch (Exception e) {
             logger.error("Error during token decryption: ", e);

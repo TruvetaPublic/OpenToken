@@ -2,8 +2,11 @@
 Copyright (c) Truveta. All rights reserved.
 """
 
+import base64
+import json
 import logging
 
+from jwcrypto import jwe, jwk
 from opentoken_cli.io.token_reader import TokenReader
 from opentoken_cli.io.token_writer import TokenWriter
 from opentoken_cli.processor.token_constants import TokenConstants
@@ -33,6 +36,25 @@ class TokenDecryptionProcessor:
             writer: Writer instance with write_token method
             decryptor: The decryption transformer
         """
+        TokenDecryptionProcessor.process_with_key(reader, writer, decryptor, None)
+
+    @staticmethod
+    def process_with_key(
+        reader: TokenReader,
+        writer: TokenWriter,
+        decryptor: DecryptTokenTransformer,
+        encryption_key: str | None,
+    ):
+        """
+        Reads encrypted tokens from the input data source, decrypts them, and
+        writes the result back to the output data source.
+
+        Args:
+            reader: Iterator providing encrypted token rows
+            writer: Writer instance with write_token method
+            decryptor: The decryption transformer
+            encryption_key: Encryption key for decrypting JWE tokens
+        """
         row_counter = 0
         decrypted_counter = 0
         error_counter = 0
@@ -45,7 +67,9 @@ class TokenDecryptionProcessor:
             # Decrypt the token if it's not blank
             if token and token != Token.BLANK:
                 try:
-                    decrypted_token = decryptor.transform(token)
+                    decrypted_token = TokenDecryptionProcessor._decrypt_token(
+                        token, decryptor, encryption_key
+                    )
                     row[TokenConstants.TOKEN] = decrypted_token
                     decrypted_counter += 1
                 except Exception as e:
@@ -64,3 +88,49 @@ class TokenDecryptionProcessor:
         logger.info(f'Successfully decrypted {decrypted_counter:,} tokens')
         if error_counter > 0:
             logger.warning(f'Failed to decrypt {error_counter:,} tokens')
+
+    @staticmethod
+    def _decrypt_token(
+        token: str,
+        decryptor: DecryptTokenTransformer,
+        encryption_key: str | None,
+    ) -> str:
+        if token.startswith(TokenDecryptionProcessor._v1_token_prefix()):
+            return TokenDecryptionProcessor._decrypt_v1_token(token, decryptor, encryption_key)
+        return decryptor.transform(token)
+
+    @staticmethod
+    def _decrypt_v1_token(
+        token: str,
+        decryptor: DecryptTokenTransformer,
+        encryption_key: str | None,
+    ) -> str:
+        if not encryption_key:
+            raise ValueError("Encryption key is required for JWE token decryption")
+
+        jwe_compact = token[len(TokenDecryptionProcessor._v1_token_prefix()):]
+        key_bytes = encryption_key.encode('utf-8')
+        key_b64 = base64.urlsafe_b64encode(key_bytes).decode('utf-8').rstrip('=')
+        jwk_key = jwk.JWK(kty="oct", k=key_b64)
+
+        jwe_token = jwe.JWE()
+        jwe_token.deserialize(jwe_compact)
+        jwe_token.decrypt(jwk_key)
+
+        payload = json.loads(jwe_token.payload.decode('utf-8'))
+        ppid_value = payload.get("ppid", [])
+        if isinstance(ppid_value, list):
+            ppid_value = ppid_value[0] if ppid_value else ""
+
+        if not ppid_value or ppid_value == Token.BLANK:
+            return ppid_value
+
+        try:
+            return decryptor.transform(ppid_value)
+        except Exception as e:
+            logger.debug("Failed to decrypt legacy token inside JWE payload", exc_info=e)
+            return ppid_value
+
+    @staticmethod
+    def _v1_token_prefix() -> str:
+        return "ot.V1."
