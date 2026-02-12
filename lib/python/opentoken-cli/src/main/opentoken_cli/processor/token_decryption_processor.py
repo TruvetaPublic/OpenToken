@@ -49,8 +49,9 @@ class TokenDecryptionProcessor:
                     row[TokenConstants.TOKEN] = decrypted_token
                     decrypted_counter += 1
                 except Exception as e:
-                    logger.error(f"Failed to decrypt token for RecordId {row.get(TokenConstants.RECORD_ID)}, "
-                               f"RuleId {row.get(TokenConstants.RULE_ID)}: {e}")
+                    logger.error(
+                        f"Failed to decrypt token for RecordId {row.get(TokenConstants.RECORD_ID)}, "
+                        f"RuleId {row.get(TokenConstants.RULE_ID)}: {e}")
                     error_counter += 1
                     # Keep the encrypted token in case of error
             

@@ -9,9 +9,10 @@ import json
 import time
 from typing import Optional
 from jwcrypto import jwe, jwk
+from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
-class JweMatchTokenFormatter:
+class JweMatchTokenFormatter(TokenTransformer):
     """
     Formats tokens in the JWE-based match token format (ot.V1.<JWE>).
     
