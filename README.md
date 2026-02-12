@@ -105,4 +105,3 @@ See <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_bl
 For issues or support, file an issue in this repository.
 
 <!-- Re-run CI checks -->
-
