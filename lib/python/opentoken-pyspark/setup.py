@@ -19,6 +19,7 @@ except FileNotFoundError:
 core_requirements = [
     "opentoken==1.12.3",
     "pycryptodome>=3.18.0",
+    "jwcrypto>=1.5.6",
 ]
 
 setup(
