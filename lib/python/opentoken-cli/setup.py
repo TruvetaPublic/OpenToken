@@ -21,7 +21,7 @@ with open(os.path.join(this_directory, "requirements.txt"), encoding="utf-8") as
 
 setup(
     name="opentoken-cli",
-    version="1.12.3",
+    version="1.12.5",
     author="Truveta",
     description="OpenToken CLI - Command line interface for person matching",
     long_description=long_description,
