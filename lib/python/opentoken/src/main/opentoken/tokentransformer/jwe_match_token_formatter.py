@@ -8,7 +8,20 @@ import base64
 import json
 import time
 from typing import Optional
+
 from jwcrypto import jwe, jwk
+from opentoken.tokentransformer.match_token_constants import HEADER_KEY_ALGORITHM
+from opentoken.tokentransformer.match_token_constants import HEADER_KEY_ENCRYPTION
+from opentoken.tokentransformer.match_token_constants import HEADER_KEY_KEY_ID
+from opentoken.tokentransformer.match_token_constants import HEADER_KEY_TYPE
+from opentoken.tokentransformer.match_token_constants import PAYLOAD_KEY_HASH_ALGORITHM
+from opentoken.tokentransformer.match_token_constants import PAYLOAD_KEY_ISSUED_AT
+from opentoken.tokentransformer.match_token_constants import PAYLOAD_KEY_ISSUER
+from opentoken.tokentransformer.match_token_constants import PAYLOAD_KEY_MAC_ALGORITHM
+from opentoken.tokentransformer.match_token_constants import PAYLOAD_KEY_PPID
+from opentoken.tokentransformer.match_token_constants import PAYLOAD_KEY_RING_ID
+from opentoken.tokentransformer.match_token_constants import PAYLOAD_KEY_RULE_ID
+from opentoken.tokentransformer.match_token_constants import TOKEN_TYPE
 from opentoken.tokentransformer.match_token_constants import V1_TOKEN_PREFIX
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 
@@ -23,8 +36,6 @@ class JweMatchTokenFormatter(TokenTransformer):
     
     See RFC 7516 - JSON Web Encryption (JWE)
     """
-    
-    TOKEN_TYPE = "match-token"
     
     def __init__(self, encryption_key: str, ring_id: str, rule_id: str, issuer: Optional[str] = None):
         """
@@ -78,21 +89,21 @@ class JweMatchTokenFormatter(TokenTransformer):
         try:
             # Build the JWE payload with metadata
             payload = {
-                "rlid": self.rule_id,
-                "hash_alg": "SHA-256",
-                "mac_alg": "HS256",
-                "ppid": [token],  # PPID as an array (single element for hash-based tokens)
-                "rid": self.ring_id,
-                "iss": self.issuer,
-                "iat": int(time.time())
+                PAYLOAD_KEY_RULE_ID: self.rule_id,
+                PAYLOAD_KEY_HASH_ALGORITHM: "SHA-256",
+                PAYLOAD_KEY_MAC_ALGORITHM: "HS256",
+                PAYLOAD_KEY_PPID: [token],  # PPID as an array (single element for hash-based tokens)
+                PAYLOAD_KEY_RING_ID: self.ring_id,
+                PAYLOAD_KEY_ISSUER: self.issuer,
+                PAYLOAD_KEY_ISSUED_AT: int(time.time()),
             }
             
             # Create JWE header with algorithm and encryption method
             protected_header = {
-                "alg": "dir",  # Direct encryption (key used directly)
-                "enc": "A256GCM",  # AES-256-GCM encryption
-                "typ": self.TOKEN_TYPE,
-                "kid": self.ring_id
+                HEADER_KEY_ALGORITHM: "dir",  # Direct encryption (key used directly)
+                HEADER_KEY_ENCRYPTION: "A256GCM",  # AES-256-GCM encryption
+                HEADER_KEY_TYPE: TOKEN_TYPE,
+                HEADER_KEY_KEY_ID: self.ring_id,
             }
             
             # Create JWE object

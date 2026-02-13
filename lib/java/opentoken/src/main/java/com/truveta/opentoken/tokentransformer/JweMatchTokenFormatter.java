@@ -37,8 +37,6 @@ public class JweMatchTokenFormatter implements TokenTransformer {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(JweMatchTokenFormatter.class);
 
-    private static final String TOKEN_TYPE = "match-token";
-
     private final String ringId;
     private final String ruleId;
     private final String issuer;
@@ -114,17 +112,17 @@ public class JweMatchTokenFormatter implements TokenTransformer {
         try {
             // Build the JWE payload with metadata using a Map
             Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("rlid", ruleId);
-            payload.put("hash_alg", "SHA-256");
-            payload.put("mac_alg", "HS256");
-            payload.put("ppid", Collections.singletonList(token));
-            payload.put("rid", ringId);
-            payload.put("iss", issuer);
-            payload.put("iat", Instant.now().getEpochSecond());
+            payload.put(MatchTokenConstants.PAYLOAD_KEY_RULE_ID, ruleId);
+            payload.put(MatchTokenConstants.PAYLOAD_KEY_HASH_ALGORITHM, "SHA-256");
+            payload.put(MatchTokenConstants.PAYLOAD_KEY_MAC_ALGORITHM, "HS256");
+            payload.put(MatchTokenConstants.PAYLOAD_KEY_PPID, Collections.singletonList(token));
+            payload.put(MatchTokenConstants.PAYLOAD_KEY_RING_ID, ringId);
+            payload.put(MatchTokenConstants.PAYLOAD_KEY_ISSUER, issuer);
+            payload.put(MatchTokenConstants.PAYLOAD_KEY_ISSUED_AT, Instant.now().getEpochSecond());
 
             // Create JWE header with algorithm and encryption method
             JWEHeader header = new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A256GCM)
-                    .type(new JOSEObjectType(TOKEN_TYPE))
+                    .type(new JOSEObjectType(MatchTokenConstants.TOKEN_TYPE))
                     .keyID(ringId)
                     .build();
 

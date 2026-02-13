@@ -111,7 +111,7 @@ public final class TokenDecryptionProcessor {
         Map<String, Object> payload = jweObject.getPayload().toJSONObject();
         Object ppidValue = null;
         if (payload != null) {
-            Object ppid = payload.get("ppid");
+            Object ppid = payload.get(MatchTokenConstants.PAYLOAD_KEY_PPID);
             if (ppid instanceof List<?> list && !list.isEmpty()) {
                 ppidValue = list.get(0);
             } else {

@@ -12,6 +12,7 @@ from opentoken_cli.io.token_writer import TokenWriter
 from opentoken_cli.processor.token_constants import TokenConstants
 from opentoken.tokens.token import Token
 from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
+from opentoken.tokentransformer.match_token_constants import PAYLOAD_KEY_PPID
 from opentoken.tokentransformer.match_token_constants import V1_TOKEN_PREFIX
 
 
@@ -119,7 +120,7 @@ class TokenDecryptionProcessor:
         jwe_token.decrypt(jwk_key)
 
         payload = json.loads(jwe_token.payload.decode('utf-8'))
-        ppid_value = payload.get("ppid", [])
+        ppid_value = payload.get(PAYLOAD_KEY_PPID, [])
         if isinstance(ppid_value, list):
             ppid_value = ppid_value[0] if ppid_value else ""
 
