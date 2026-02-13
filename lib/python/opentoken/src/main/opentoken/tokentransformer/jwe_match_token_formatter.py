@@ -9,6 +9,7 @@ import json
 import time
 from typing import Optional
 from jwcrypto import jwe, jwk
+from opentoken.tokentransformer.match_token_constants import V1_TOKEN_PREFIX
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
@@ -23,7 +24,6 @@ class JweMatchTokenFormatter(TokenTransformer):
     See RFC 7516 - JSON Web Encryption (JWE)
     """
     
-    TOKEN_PREFIX = "ot.V1."
     TOKEN_TYPE = "match-token"
     
     def __init__(self, encryption_key: str, ring_id: str, rule_id: str, issuer: Optional[str] = None):
@@ -104,7 +104,7 @@ class JweMatchTokenFormatter(TokenTransformer):
             
             # Serialize to compact form and prepend the ot.V1. prefix
             jwe_compact = jwe_token.serialize(compact=True)
-            return self.TOKEN_PREFIX + jwe_compact
+            return V1_TOKEN_PREFIX + jwe_compact
             
         except Exception as e:
             raise Exception(f"JWE token generation failed for rule {self.rule_id}: {str(e)}")

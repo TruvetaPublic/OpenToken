@@ -37,7 +37,6 @@ public class JweMatchTokenFormatter implements TokenTransformer {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(JweMatchTokenFormatter.class);
 
-    private static final String TOKEN_PREFIX = "ot.V1.";
     private static final String TOKEN_TYPE = "match-token";
 
     private final String ringId;
@@ -137,7 +136,7 @@ public class JweMatchTokenFormatter implements TokenTransformer {
 
             // Serialize to compact form and prepend the ot.V1. prefix
             String jweCompact = jweObject.serialize();
-            return TOKEN_PREFIX + jweCompact;
+            return MatchTokenConstants.V1_TOKEN_PREFIX + jweCompact;
 
         } catch (JOSEException e) {
             logger.error("Failed to create JWE token for rule {}: {}", ruleId, e.getMessage());

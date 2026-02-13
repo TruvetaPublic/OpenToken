@@ -12,6 +12,7 @@ from opentoken_cli.io.token_writer import TokenWriter
 from opentoken_cli.processor.token_constants import TokenConstants
 from opentoken.tokens.token import Token
 from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
+from opentoken.tokentransformer.match_token_constants import V1_TOKEN_PREFIX
 
 
 logger = logging.getLogger(__name__)
@@ -95,7 +96,7 @@ class TokenDecryptionProcessor:
         decryptor: DecryptTokenTransformer,
         encryption_key: str | None,
     ) -> str:
-        if token.startswith(TokenDecryptionProcessor._v1_token_prefix()):
+        if token.startswith(V1_TOKEN_PREFIX):
             return TokenDecryptionProcessor._decrypt_v1_token(token, decryptor, encryption_key)
         return decryptor.transform(token)
 
@@ -108,7 +109,7 @@ class TokenDecryptionProcessor:
         if not encryption_key:
             raise ValueError("Encryption key is required for JWE token decryption")
 
-        jwe_compact = token[len(TokenDecryptionProcessor._v1_token_prefix()):]
+        jwe_compact = token[len(V1_TOKEN_PREFIX):]
         key_bytes = encryption_key.encode('utf-8')
         key_b64 = base64.urlsafe_b64encode(key_bytes).decode('utf-8').rstrip('=')
         jwk_key = jwk.JWK(kty="oct", k=key_b64)
@@ -130,7 +131,3 @@ class TokenDecryptionProcessor:
         except Exception as e:
             logger.debug("Failed to decrypt legacy token inside JWE payload", exc_info=e)
             return ppid_value
-
-    @staticmethod
-    def _v1_token_prefix() -> str:
-        return "ot.V1."

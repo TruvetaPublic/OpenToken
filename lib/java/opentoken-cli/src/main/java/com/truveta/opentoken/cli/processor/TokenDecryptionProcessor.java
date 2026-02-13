@@ -19,6 +19,7 @@ import com.truveta.opentoken.cli.io.TokenReader;
 import com.truveta.opentoken.cli.io.TokenWriter;
 import com.truveta.opentoken.tokens.Token;
 import com.truveta.opentoken.tokentransformer.DecryptTokenTransformer;
+import com.truveta.opentoken.tokentransformer.MatchTokenConstants;
 
 /**
  * Process encrypted tokens for decryption.
@@ -29,7 +30,6 @@ import com.truveta.opentoken.tokentransformer.DecryptTokenTransformer;
 public final class TokenDecryptionProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenDecryptionProcessor.class);
-    private static final String V1_TOKEN_PREFIX = "ot.V1.";
 
     private TokenDecryptionProcessor() {
     }
@@ -90,7 +90,7 @@ public final class TokenDecryptionProcessor {
     private static String decryptToken(String token,
             DecryptTokenTransformer decryptor,
             String encryptionKey) throws Exception {
-        if (token.startsWith(V1_TOKEN_PREFIX)) {
+        if (token.startsWith(MatchTokenConstants.V1_TOKEN_PREFIX)) {
             return decryptV1Token(token, decryptor, encryptionKey);
         }
         return decryptor.transform(token);
@@ -103,7 +103,7 @@ public final class TokenDecryptionProcessor {
             throw new IllegalArgumentException("Encryption key is required for JWE token decryption");
         }
 
-        String jweCompact = token.substring(V1_TOKEN_PREFIX.length());
+        String jweCompact = token.substring(MatchTokenConstants.V1_TOKEN_PREFIX.length());
         JWEObject jweObject = JWEObject.parse(jweCompact);
         DirectDecrypter decrypter = new DirectDecrypter(encryptionKey.getBytes(StandardCharsets.UTF_8));
         jweObject.decrypt(decrypter);
