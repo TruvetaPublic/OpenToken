@@ -67,7 +67,7 @@ class PersonAttributesProcessor:
         blank_tokens_by_rule_count: Dict[str, int] = PersonAttributesProcessor._initialize_blank_tokens_by_rule_count(token_definition)
 
         # Cache JWE formatters if encryption is enabled
-        jwe_formatters: Dict[str, Any] = {}
+        jwe_formatters: Dict[str, JweMatchTokenFormatter] = {}
         if encryption_key and ring_id:
             for token_id in token_definition.get_token_identifiers():
                 try:
