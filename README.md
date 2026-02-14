@@ -52,7 +52,7 @@ Perfect for understanding privacy-preserving record linkage concepts before divi
 
 ## Quickstart
 
-**Modern Subcommand Interface (Recommended):**
+**Subcommand Interface:**
 
 ```bash
 ./run-opentoken.sh package \
@@ -77,17 +77,6 @@ java -jar opentoken-cli/target/opentoken-cli-*.jar package \
 - `opentoken decrypt` - Decrypt encrypted tokens
 - `opentoken help [command]` - Show help for a specific command
 
-**Legacy Interface (Deprecated):**
-
-The legacy flag-based interface is still supported for backward compatibility but will be removed in v2.0:
-
-```bash
-# Legacy (deprecated) - shows deprecation warning
-./run-opentoken.sh \
-  -i ./resources/sample.csv -t csv -o ./resources/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
-```
-
 See <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_blank" rel="noopener noreferrer">Quickstarts</a> for Python CLI and detailed setup instructions.
 
 ## Key Matching Ideas
@@ -104,7 +93,6 @@ See <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_bl
   - `decrypt` - Decrypt encrypted tokens
   - `package` - Tokenize + encrypt in one step (recommended)
   - See <a href="https://truvetapublic.github.io/OpenToken/running-opentoken/" target="_blank" rel="noopener noreferrer">Running OpenToken</a>
-- **CLI modes (legacy)**: Default encrypt mode, hash-only (`--hash-only`), decrypt (`-d`) — deprecated in favor of subcommands
 - **Docker**: Convenience scripts for containerized runs — see <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_blank" rel="noopener noreferrer">Quickstarts</a>
 - **PySpark**: Distributed processing for large datasets — see <a href="https://truvetapublic.github.io/OpenToken/operations/spark-or-databricks.html" target="_blank" rel="noopener noreferrer">Spark or Databricks</a>
 
