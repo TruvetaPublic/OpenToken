@@ -6,7 +6,13 @@ import logging
 import sys
 from typing import List
 
+from opentoken.metadata import Metadata
+from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
+from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
+from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
+from opentoken.tokentransformer.token_transformer import TokenTransformer
 from opentoken_cli.command_line_arguments import CommandLineArguments
+from opentoken_cli.commands import OpenTokenCommand
 from opentoken_cli.io.csv.person_attributes_csv_reader import PersonAttributesCSVReader
 from opentoken_cli.io.csv.person_attributes_csv_writer import PersonAttributesCSVWriter
 from opentoken_cli.io.csv.token_csv_reader import TokenCSVReader
@@ -18,23 +24,78 @@ from opentoken_cli.io.parquet.token_parquet_reader import TokenParquetReader
 from opentoken_cli.io.parquet.token_parquet_writer import TokenParquetWriter
 from opentoken_cli.processor.person_attributes_processor import PersonAttributesProcessor
 from opentoken_cli.processor.token_decryption_processor import TokenDecryptionProcessor
-from opentoken.metadata import Metadata
-from opentoken.tokentransformer.decrypt_token_transformer import DecryptTokenTransformer
-from opentoken.tokentransformer.encrypt_token_transformer import EncryptTokenTransformer
-from opentoken.tokentransformer.hash_token_transformer import HashTokenTransformer
-from opentoken.tokentransformer.token_transformer import TokenTransformer
 
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 def main():
-    """Main entry point for the OpenToken application."""
+    """
+    Main entry point for the OpenToken application.
+    
+    Provides backward compatibility with legacy mode flags while
+    routing to the new subcommand-based interface.
+    """
+    args = sys.argv[1:]
+    
+    # Check if this is a legacy invocation (no subcommand)
+    if args and _is_legacy_invocation(args):
+        _handle_legacy_invocation(args)
+    else:
+        # Use new subcommand-based interface
+        exit_code = OpenTokenCommand.main(args)
+        sys.exit(exit_code)
+
+
+def _is_legacy_invocation(args: list) -> bool:
+    """Check if this is a legacy invocation (no subcommand at start)."""
+    if not args:
+        return False
+
+    first_arg = args[0]
+    # Check if first arg is a subcommand
+    if first_arg in ("tokenize", "encrypt", "decrypt", "package", "help"):
+        return False
+
+    # If first arg starts with -, it's likely a legacy flag
+    return first_arg.startswith("-")
+
+
+def _handle_legacy_invocation(args: list):
+    """Handle legacy invocation by translating to new subcommands."""
+    logger.warning("╔════════════════════════════════════════════════════════════════════╗")
+    logger.warning("║                   DEPRECATION WARNING                              ║")
+    logger.warning("╠════════════════════════════════════════════════════════════════════╣")
+    logger.warning("║ Legacy mode flags are deprecated and will be removed in v2.0.     ║")
+    logger.warning("║ Please migrate to the new subcommand interface:                   ║")
+    logger.warning("║                                                                    ║")
+
+    # Determine which legacy mode and show the appropriate migration path
+    has_decrypt = "-d" in args or "--decrypt" in args
+    has_hash_only = "--hash-only" in args
+
+    if has_decrypt:
+        logger.warning("║   Current: opentoken -d -i input.csv ...                          ║")
+        logger.warning("║   Use:     opentoken decrypt --input input.csv ...                ║")
+    elif has_hash_only:
+        logger.warning("║   Current: opentoken --hash-only -i input.csv ...                 ║")
+        logger.warning("║   Use:     opentoken tokenize --input input.csv ...               ║")
+    else:
+        logger.warning("║   Current: opentoken -i input.csv -h secret -e key ...            ║")
+        logger.warning("║   Use:     opentoken package --input input.csv ...                ║")
+
+    logger.warning("║                                                                    ║")
+    logger.warning("║ For more information: opentoken help                               ║")
+    logger.warning("╚════════════════════════════════════════════════════════════════════╝")
+
+    # Continue with legacy processing
+    _legacy_main(args)
+
+
+def _legacy_main(args: list):
+    """Legacy main method - maintains backward compatibility."""
     command_line_arguments = _load_command_line_arguments(sys.argv[1:])
     hashing_secret = command_line_arguments.hashing_secret
     encryption_key = command_line_arguments.encryption_key
