@@ -52,20 +52,39 @@ Perfect for understanding privacy-preserving record linkage concepts before divi
 
 ## Quickstart
 
-**Docker/CLI workflow:**
+**Modern Subcommand Interface (Recommended):**
 
 ```bash
-./run-opentoken.sh \
+./run-opentoken.sh package \
   -i ./resources/sample.csv -t csv -o ./resources/output.csv \
-  -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+  --hashingsecret "HashingKey" --encryptionkey "Secret-Encryption-Key-Goes-Here."
 ```
 
 **Java CLI:**
 
 ```bash
 cd lib/java && mvn clean install -DskipTests
-java -jar opentoken-cli/target/opentoken-cli-*.jar \
+java -jar opentoken-cli/target/opentoken-cli-*.jar package \
   -i ../../resources/sample.csv -t csv -o ../../resources/output.csv \
+  --hashingsecret "HashingKey" --encryptionkey "Secret-Encryption-Key-Goes-Here."
+```
+
+**Available Commands:**
+
+- `opentoken package` - Generate and encrypt tokens in one step (recommended for most use cases)
+- `opentoken tokenize` - Generate hashed tokens only (no encryption)
+- `opentoken encrypt` - Encrypt existing hashed tokens
+- `opentoken decrypt` - Decrypt encrypted tokens
+- `opentoken help [command]` - Show help for a specific command
+
+**Legacy Interface (Deprecated):**
+
+The legacy flag-based interface is still supported for backward compatibility but will be removed in v2.0:
+
+```bash
+# Legacy (deprecated) - shows deprecation warning
+./run-opentoken.sh \
+  -i ./resources/sample.csv -t csv -o ./resources/output.csv \
   -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
 ```
 
@@ -79,7 +98,13 @@ See <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_bl
 
 ## Running OpenToken
 
-- **CLI modes**: Encrypt (default), hash-only (`--hash-only`), decrypt (`-d`) — see <a href="https://truvetapublic.github.io/OpenToken/running-opentoken/" target="_blank" rel="noopener noreferrer">Running OpenToken</a>
+- **Subcommand Interface**: Modern command-based interface:
+  - `tokenize` - Hash-only token generation
+  - `encrypt` - Encrypt existing hashed tokens
+  - `decrypt` - Decrypt encrypted tokens
+  - `package` - Tokenize + encrypt in one step (recommended)
+  - See <a href="https://truvetapublic.github.io/OpenToken/running-opentoken/" target="_blank" rel="noopener noreferrer">Running OpenToken</a>
+- **CLI modes (legacy)**: Default encrypt mode, hash-only (`--hash-only`), decrypt (`-d`) — deprecated in favor of subcommands
 - **Docker**: Convenience scripts for containerized runs — see <a href="https://truvetapublic.github.io/OpenToken/quickstarts/" target="_blank" rel="noopener noreferrer">Quickstarts</a>
 - **PySpark**: Distributed processing for large datasets — see <a href="https://truvetapublic.github.io/OpenToken/operations/spark-or-databricks.html" target="_blank" rel="noopener noreferrer">Spark or Databricks</a>
 
