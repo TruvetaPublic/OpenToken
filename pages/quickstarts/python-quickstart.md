@@ -59,8 +59,8 @@ opentoken package \
   -i ../../../resources/sample.csv \
   -t csv \
   -o ../../../resources/output.csv \
-  --hashingsecret "YourHashingSecret" \
-  --encryptionkey "YourEncryptionKey-32Chars-HereXY"
+  -h "YourHashingSecret" \
+  -e "YourEncryptionKey-32Chars-Here!"
 ```
 
 ### Tokenize Command (Hash-Only, No Encryption)
@@ -70,7 +70,7 @@ opentoken tokenize \
   -i ../../../resources/sample.csv \
   -t csv \
   -o ../../../resources/output.csv \
-  --hashingsecret "YourHashingSecret"
+  -h "YourHashingSecret"
 ```
 
 ### Parquet Format
@@ -80,8 +80,8 @@ opentoken package \
   -i input.parquet \
   -t parquet \
   -o output.parquet \
-  --hashingsecret "YourHashingSecret" \
-  --encryptionkey "YourEncryptionKey-32Chars-HereXY"
+  -h "YourHashingSecret" \
+  -e "YourEncryptionKey-32Chars-Here!"
 ```
 
 ### Decrypt Command
@@ -91,7 +91,7 @@ opentoken decrypt \
   -i ../../../resources/output.csv \
   -t csv \
   -o ../../../resources/decrypted.csv \
-  --encryptionkey "YourEncryptionKey-32Chars-HereXY"
+  -e "YourEncryptionKey-32Chars-Here!"
 ```
 
 ## Getting Help
