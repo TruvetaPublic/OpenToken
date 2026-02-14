@@ -206,7 +206,7 @@ jobs:
         run: |
           cd lib/python/opentoken-cli
           mkdir -p target
-          opentoken -i ../../../resources/sample.csv -t csv -o target/output.csv -h "HashingKey" -e "Secret-Encryption-Key-Goes-Here."
+          opentoken package -i ../../../resources/sample.csv -t csv -o target/output.csv --hashingsecret "HashingKey" --encryptionkey "Secret-Encryption-Key-Goes-Here."
 
       - name: Validate CLI output files
         run: |
