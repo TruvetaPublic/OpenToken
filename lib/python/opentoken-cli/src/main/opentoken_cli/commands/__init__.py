@@ -98,6 +98,7 @@ class OpenTokenCommand:
         parsed_args = parser.parse_args(args)
 
         # Show banner for interactive runs (not for --help or piped output)
+        # Only display if a subcommand is provided (not just root help)
         if not parsed_args.command or not OpenTokenCommand._is_help_request(sys.argv if args is None else args):
             OpenTokenCommand.show_banner()
 

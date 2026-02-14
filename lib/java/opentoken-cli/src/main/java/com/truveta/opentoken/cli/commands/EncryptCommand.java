@@ -130,8 +130,11 @@ public class EncryptCommand implements Callable<Integer> {
     }
     
     private String maskString(String input) {
-        if (input == null || input.length() <= 3) {
-            return input;
+        if (input == null) {
+            return "<null>";
+        }
+        if (input.length() <= 3) {
+            return "***";
         }
         return input.substring(0, 3) + "*".repeat(input.length() - 3);
     }

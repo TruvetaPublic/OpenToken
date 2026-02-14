@@ -190,6 +190,8 @@ class PackageCommand:
     @staticmethod
     def _mask_string(input_str: str) -> str:
         """Mask a string for logging purposes, showing only first 3 characters."""
-        if input_str is None or len(input_str) <= 3:
-            return input_str
+        if input_str is None:
+            return "<None>"
+        if len(input_str) <= 3:
+            return "***"
         return input_str[:3] + "*" * (len(input_str) - 3)
