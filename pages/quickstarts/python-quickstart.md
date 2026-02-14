@@ -51,37 +51,57 @@ pip install -r requirements.txt -e .
 
 ## Run Token Generation
 
-### Basic Encrypted Tokens
+### Package Command (Tokenize + Encrypt)
 
 ```bash
-python -m opentoken_cli.main \
+python -m opentoken_cli.main package \
   -i ../../../resources/sample.csv \
   -t csv \
   -o ../../../resources/output.csv \
-  -h "YourHashingSecret" \
-  -e "YourEncryptionKey-32Chars-Here!"
+  --hashingsecret "YourHashingSecret" \
+  --encryptionkey "YourEncryptionKey-32Chars-Here!"
 ```
 
-### Hash-Only Mode (No Encryption)
+### Tokenize Command (Hash-Only, No Encryption)
 
 ```bash
-python -m opentoken_cli.main \
+python -m opentoken_cli.main tokenize \
   -i ../../../resources/sample.csv \
   -t csv \
   -o ../../../resources/output.csv \
-  -h "YourHashingSecret" \
-  --hash-only
+  --hashingsecret "YourHashingSecret"
 ```
 
 ### Parquet Format
 
 ```bash
-python -m opentoken_cli.main \
+python -m opentoken_cli.main package \
   -i input.parquet \
   -t parquet \
   -o output.parquet \
-  -h "YourHashingSecret" \
-  -e "YourEncryptionKey-32Chars-Here!"
+  --hashingsecret "YourHashingSecret" \
+  --encryptionkey "YourEncryptionKey-32Chars-Here!"
+```
+
+### Decrypt Command
+
+```bash
+python -m opentoken_cli.main decrypt \
+  -i ../../../resources/output.csv \
+  -t csv \
+  -o ../../../resources/decrypted.csv \
+  --encryptionkey "YourEncryptionKey-32Chars-Here!"
+```
+
+## Getting Help
+
+```bash
+# Show all available commands
+python -m opentoken_cli.main --help
+
+# Show help for specific command
+python -m opentoken_cli.main help package
+python -m opentoken_cli.main package --help
 ```
 
 ## Verify Output

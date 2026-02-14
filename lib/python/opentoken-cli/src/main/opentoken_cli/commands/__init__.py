@@ -82,8 +82,10 @@ class OpenTokenCommand:
         from opentoken_cli.commands.encrypt_command import EncryptCommand
         from opentoken_cli.commands.decrypt_command import DecryptCommand
         from opentoken_cli.commands.package_command import PackageCommand
+        from opentoken_cli.commands.help_command import HelpCommand
 
         # Register subcommands
+        HelpCommand.register_subcommand(subparsers)
         TokenizeCommand.register_subcommand(subparsers)
         EncryptCommand.register_subcommand(subparsers)
         DecryptCommand.register_subcommand(subparsers)
