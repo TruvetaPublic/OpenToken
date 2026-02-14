@@ -6,7 +6,7 @@ This directory contains tests to ensure parity between Java and Python implement
 
 The `cli_parity_test.py` script tests that Java and Python CLIs provide identical command structures and behavior.
 
-### Prerequisites
+- Java 21 SDK or higher (JAR output compatible with Java 17)
 
 **Java:**
 ```bash
