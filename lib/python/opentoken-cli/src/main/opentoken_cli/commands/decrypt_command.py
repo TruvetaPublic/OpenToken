@@ -9,7 +9,8 @@ from opentoken_cli.io.csv.token_csv_reader import TokenCSVReader
 from opentoken_cli.io.csv.token_csv_writer import TokenCSVWriter
 from opentoken_cli.io.parquet.token_parquet_reader import TokenParquetReader
 from opentoken_cli.io.parquet.token_parquet_writer import TokenParquetWriter
-from opentoken_cli.processor.token_decryption_processor import TokenDecryptionProcessor
+from opentoken_cli.processor.token_transformation_processor import TokenTransformationProcessor
+from opentoken_cli.util import mask_string
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +130,7 @@ class DecryptCommand:
             with DecryptCommand._create_token_reader(
                 input_path, input_type
             ) as reader, DecryptCommand._create_token_writer(output_path, output_type) as writer:
-                TokenDecryptionProcessor.process(reader, writer, decryptor)
+                TokenTransformationProcessor.process(reader, writer, decryptor, "decrypted")
 
         except Exception as e:
             logger.error(f"Error during token decryption: {e}", exc_info=True)
@@ -158,10 +159,7 @@ class DecryptCommand:
             raise ValueError(f"Unsupported output type: {file_type}")
 
     @staticmethod
+    @staticmethod
     def _mask_string(input_str: str) -> str:
-        """Mask a string for logging purposes, showing only first 3 characters."""
-        if input_str is None:
-            return "<None>"
-        if len(input_str) <= 3:
-            return "***"
-        return input_str[:3] + "*" * (len(input_str) - 3)
+        """Mask a string for logging purposes."""
+        return mask_string(input_str)

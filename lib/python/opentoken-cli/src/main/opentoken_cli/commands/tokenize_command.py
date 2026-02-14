@@ -10,6 +10,7 @@ from opentoken.tokentransformer.hash_token_transformer import HashTokenTransform
 from opentoken.tokentransformer.token_transformer import TokenTransformer
 from opentoken_cli.io.csv.person_attributes_csv_reader import PersonAttributesCSVReader
 from opentoken_cli.io.csv.person_attributes_csv_writer import PersonAttributesCSVWriter
+from opentoken_cli.util import mask_string
 from opentoken_cli.io.json.metadata_json_writer import MetadataJsonWriter
 from opentoken_cli.io.parquet.person_attributes_parquet_reader import PersonAttributesParquetReader
 from opentoken_cli.io.parquet.person_attributes_parquet_writer import PersonAttributesParquetWriter
@@ -181,10 +182,7 @@ class TokenizeCommand:
             raise ValueError(f"Unsupported output type: {file_type}")
 
     @staticmethod
+    @staticmethod
     def _mask_string(input_str: str) -> str:
-        """Mask a string for logging purposes, showing only first 3 characters."""
-        if input_str is None:
-            return "<None>"
-        if len(input_str) <= 3:
-            return "***"
-        return input_str[:3] + "*" * (len(input_str) - 3)
+        """Mask a string for logging purposes."""
+        return mask_string(input_str)

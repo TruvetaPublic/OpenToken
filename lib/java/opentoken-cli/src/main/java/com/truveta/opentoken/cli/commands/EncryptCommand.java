@@ -15,7 +15,8 @@ import com.truveta.opentoken.cli.io.csv.TokenCSVReader;
 import com.truveta.opentoken.cli.io.csv.TokenCSVWriter;
 import com.truveta.opentoken.cli.io.parquet.TokenParquetReader;
 import com.truveta.opentoken.cli.io.parquet.TokenParquetWriter;
-import com.truveta.opentoken.cli.processor.TokenEncryptionProcessor;
+import com.truveta.opentoken.cli.processor.TokenTransformationProcessor;
+import com.truveta.opentoken.cli.util.StringMaskingUtil;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 
 import picocli.CommandLine.Command;
@@ -108,7 +109,7 @@ public class EncryptCommand implements Callable<Integer> {
             
             try (TokenReader reader = createTokenReader(inputPath, inputType);
                  TokenWriter writer = createTokenWriter(outputPath, outputType)) {
-                TokenEncryptionProcessor.process(reader, writer, encryptor);
+                TokenTransformationProcessor.process(reader, writer, encryptor, "encrypted");
             }
         } catch (Exception e) {
             logger.error("Error during token encryption", e);
@@ -137,12 +138,6 @@ public class EncryptCommand implements Callable<Integer> {
     }
     
     private String maskString(String input) {
-        if (input == null) {
-            return "<null>";
-        }
-        if (input.length() <= 3) {
-            return "***";
-        }
-        return input.substring(0, 3) + "*".repeat(input.length() - 3);
+        return StringMaskingUtil.maskString(input);
     }
 }

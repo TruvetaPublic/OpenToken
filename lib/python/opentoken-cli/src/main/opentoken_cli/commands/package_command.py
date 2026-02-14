@@ -16,6 +16,7 @@ from opentoken_cli.io.parquet.person_attributes_parquet_reader import PersonAttr
 from opentoken_cli.io.parquet.person_attributes_parquet_writer import PersonAttributesParquetWriter
 from opentoken_cli.processor.person_attributes_processor import PersonAttributesProcessor
 
+from opentoken_cli.util import mask_string
 logger = logging.getLogger(__name__)
 
 
@@ -198,10 +199,7 @@ class PackageCommand:
             raise ValueError(f"Unsupported output type: {file_type}")
 
     @staticmethod
+    @staticmethod
     def _mask_string(input_str: str) -> str:
-        """Mask a string for logging purposes, showing only first 3 characters."""
-        if input_str is None:
-            return "<None>"
-        if len(input_str) <= 3:
-            return "***"
-        return input_str[:3] + "*" * (len(input_str) - 3)
+        """Mask a string for logging purposes."""
+        return mask_string(input_str)

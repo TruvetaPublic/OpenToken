@@ -22,6 +22,7 @@ import com.truveta.opentoken.cli.io.json.MetadataJsonWriter;
 import com.truveta.opentoken.cli.io.parquet.PersonAttributesParquetReader;
 import com.truveta.opentoken.cli.io.parquet.PersonAttributesParquetWriter;
 import com.truveta.opentoken.cli.processor.PersonAttributesProcessor;
+import com.truveta.opentoken.cli.util.StringMaskingUtil;
 import com.truveta.opentoken.tokentransformer.EncryptTokenTransformer;
 import com.truveta.opentoken.tokentransformer.HashTokenTransformer;
 import com.truveta.opentoken.tokentransformer.TokenTransformer;
@@ -174,12 +175,6 @@ public class PackageCommand implements Callable<Integer> {
     }
     
     private String maskString(String input) {
-        if (input == null) {
-            return "<null>";
-        }
-        if (input.length() <= 3) {
-            return "***";
-        }
-        return input.substring(0, 3) + "*".repeat(input.length() - 3);
+        return StringMaskingUtil.maskString(input);
     }
 }
