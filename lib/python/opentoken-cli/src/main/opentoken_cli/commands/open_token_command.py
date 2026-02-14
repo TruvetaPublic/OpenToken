@@ -101,7 +101,7 @@ class OpenTokenCommand:
 
         # Show banner for interactive runs (not for --help or piped output)
         # Only display if a subcommand is provided (not just root help)
-        if not parsed_args.command or not OpenTokenCommand._is_help_request(sys.argv if args is None else args):
+        if parsed_args.command and not OpenTokenCommand._is_help_request(sys.argv if args is None else args):
             OpenTokenCommand.show_banner()
 
         # If no subcommand specified, show help
