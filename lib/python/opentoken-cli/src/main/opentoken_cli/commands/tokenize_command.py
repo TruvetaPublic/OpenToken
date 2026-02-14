@@ -34,6 +34,14 @@ class TokenizeCommand:
             "tokenize",
             help="Generate hashed tokens from person attributes (hash-only mode)",
             description="Generate hashed tokens from person attributes without encryption",
+            add_help=False,  # Disable automatic -h for help to allow -h for hashingsecret
+        )
+
+        # Manually add --help (without -h short form)
+        parser.add_argument(
+            "--help",
+            action="help",
+            help="Show this help message and exit",
         )
 
         parser.add_argument(
@@ -70,6 +78,7 @@ class TokenizeCommand:
         )
 
         parser.add_argument(
+            "-h",
             "--hashingsecret",
             required=True,
             dest="hashing_secret",

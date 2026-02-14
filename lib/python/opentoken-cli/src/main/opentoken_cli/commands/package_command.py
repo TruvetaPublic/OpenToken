@@ -35,6 +35,14 @@ class PackageCommand:
             "package",
             help="Generate and encrypt tokens in one step (tokenize + encrypt)",
             description="Generate and encrypt tokens in one step",
+            add_help=False,  # Disable automatic -h for help to allow -h for hashingsecret
+        )
+
+        # Manually add --help (without -h short form)
+        parser.add_argument(
+            "--help",
+            action="help",
+            help="Show this help message and exit",
         )
 
         parser.add_argument(
@@ -71,6 +79,7 @@ class PackageCommand:
         )
 
         parser.add_argument(
+            "-h",
             "--hashingsecret",
             required=True,
             dest="hashing_secret",
@@ -78,6 +87,7 @@ class PackageCommand:
         )
 
         parser.add_argument(
+            "-e",
             "--encryptionkey",
             required=True,
             dest="encryption_key",

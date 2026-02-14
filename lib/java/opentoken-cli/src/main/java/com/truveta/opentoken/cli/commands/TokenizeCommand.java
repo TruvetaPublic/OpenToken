@@ -34,8 +34,7 @@ import picocli.CommandLine.Option;
  */
 @Command(
     name = "tokenize",
-    description = "Generate hashed tokens from person attributes (hash-only mode)",
-    mixinStandardHelpOptions = true
+    description = "Generate hashed tokens from person attributes (hash-only mode)"
 )
 public class TokenizeCommand implements Callable<Integer> {
     
@@ -59,9 +58,17 @@ public class TokenizeCommand implements Callable<Integer> {
             description = "Output file type (defaults to input type): csv or parquet")
     private String outputType;
     
-    @Option(names = {"--hashingsecret"}, required = true,
+    @Option(names = {"-h", "--hashingsecret"}, required = true,
             description = "Hashing secret for token generation")
     private String hashingSecret;
+    
+    @Option(names = {"--help"}, usageHelp = true,
+            description = "Show this help message and exit")
+    private boolean helpRequested;
+    
+    @Option(names = {"-V", "--version"}, versionHelp = true,
+            description = "Print version information and exit")
+    private boolean versionRequested;
     
     @Override
     public Integer call() {

@@ -29,6 +29,14 @@ class EncryptCommand:
             "encrypt",
             help="Encrypt hashed tokens using encryption key",
             description="Encrypt hashed tokens using encryption key",
+            add_help=False,  # Disable automatic -h for help to allow -e for encryptionkey
+        )
+
+        # Manually add --help (without -h short form)
+        parser.add_argument(
+            "--help",
+            action="help",
+            help="Show this help message and exit",
         )
 
         parser.add_argument(
@@ -65,6 +73,7 @@ class EncryptCommand:
         )
 
         parser.add_argument(
+            "-e",
             "--encryptionkey",
             required=True,
             dest="encryption_key",
