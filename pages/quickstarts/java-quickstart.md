@@ -49,7 +49,7 @@ java -jar opentoken-cli/target/opentoken-cli-*.jar package \
   -t csv \
   -o ../../resources/output.csv \
   --hashingsecret "YourHashingSecret" \
-  --encryptionkey "YourEncryptionKey-32Chars-Here!"
+  --encryptionkey "YourEncryptionKey-32Chars-HereXY"
 ```
 
 ### Tokenize Command (Hash-Only, No Encryption)
@@ -70,7 +70,7 @@ java -jar opentoken-cli/target/opentoken-cli-*.jar package \
   -t parquet \
   -o output.parquet \
   --hashingsecret "YourHashingSecret" \
-  --encryptionkey "YourEncryptionKey-32Chars-Here!"
+  --encryptionkey "YourEncryptionKey-32Chars-HereXY"
 ```
 
 ### Decrypt Command
@@ -80,7 +80,7 @@ java -jar opentoken-cli/target/opentoken-cli-*.jar decrypt \
   -i ../../resources/output.csv \
   -t csv \
   -o ../../resources/decrypted.csv \
-  --encryptionkey "YourEncryptionKey-32Chars-Here!"
+  --encryptionkey "YourEncryptionKey-32Chars-HereXY"
 ```
 
 ## Getting Help
