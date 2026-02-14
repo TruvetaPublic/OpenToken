@@ -214,4 +214,121 @@ class MainTest {
         assertDoesNotThrow(() -> OpenTokenCommand.execute(decryptArgs));
         assertTrue(Files.exists(decryptedParquet));
     }
+
+    // ===== Negative Test Cases =====
+
+    @Test
+    void testMissingRequiredParameter_HashingSecret() {
+        String[] args = {
+                "tokenize",
+                "-i", inputCsv.toString(),
+                "-t", "csv",
+                "-o", outputCsv.toString()
+                // Missing --hashingsecret
+        };
+
+        int exitCode = OpenTokenCommand.execute(args);
+        assertTrue(exitCode != 0, "Command should exit with non-zero code for missing required parameter");
+    }
+
+    @Test
+    void testMissingRequiredParameter_EncryptionKey() {
+        String[] args = {
+                "encrypt",
+                "-i", inputCsv.toString(),
+                "-t", "csv",
+                "-o", outputCsv.toString()
+                // Missing --encryptionkey
+        };
+
+        int exitCode = OpenTokenCommand.execute(args);
+        assertTrue(exitCode != 0, "Command should exit with non-zero code for missing required parameter");
+    }
+
+    @Test
+    void testMissingRequiredParameter_Input() {
+        String[] args = {
+                "tokenize",
+                // Missing -i/--input
+                "-t", "csv",
+                "-o", outputCsv.toString(),
+                "--hashingsecret", HASHING_SECRET
+        };
+
+        int exitCode = OpenTokenCommand.execute(args);
+        assertTrue(exitCode != 0, "Command should exit with non-zero code for missing required parameter");
+    }
+
+    @Test
+    void testMissingRequiredParameter_Output() {
+        String[] args = {
+                "tokenize",
+                "-i", inputCsv.toString(),
+                "-t", "csv",
+                // Missing -o/--output
+                "--hashingsecret", HASHING_SECRET
+        };
+
+        int exitCode = OpenTokenCommand.execute(args);
+        assertTrue(exitCode != 0, "Command should exit with non-zero code for missing required parameter");
+    }
+
+    @Test
+    void testInvalidInputType() {
+        String[] args = {
+                "tokenize",
+                "-i", inputCsv.toString(),
+                "-t", "invalid_type", // Invalid input type
+                "-o", outputCsv.toString(),
+                "--hashingsecret", HASHING_SECRET
+        };
+
+        int exitCode = OpenTokenCommand.execute(args);
+        assertTrue(exitCode != 0, "Command should exit with non-zero code for invalid input type");
+    }
+
+    @Test
+    void testInvalidOutputType() {
+        String[] args = {
+                "tokenize",
+                "-i", inputCsv.toString(),
+                "-t", "csv",
+                "-o", outputCsv.toString(),
+                "-ot", "invalid_type", // Invalid output type
+                "--hashingsecret", HASHING_SECRET
+        };
+
+        int exitCode = OpenTokenCommand.execute(args);
+        assertTrue(exitCode != 0, "Command should exit with non-zero code for invalid output type");
+    }
+
+    @Test
+    void testNonExistentInputFile() {
+        Path nonExistentFile = tempDir.resolve("nonexistent.csv");
+
+        String[] args = {
+                "tokenize",
+                "-i", nonExistentFile.toString(),
+                "-t", "csv",
+                "-o", outputCsv.toString(),
+                "--hashingsecret", HASHING_SECRET
+        };
+
+        int exitCode = OpenTokenCommand.execute(args);
+        assertTrue(exitCode != 0, "Command should exit with non-zero code for non-existent input file");
+    }
+
+    @Test
+    void testPackageCommandMissingBothSecrets() {
+        String[] args = {
+                "package",
+                "-i", inputCsv.toString(),
+                "-t", "csv",
+                "-o", outputCsv.toString()
+                // Missing both --hashingsecret and --encryptionkey
+        };
+
+        int exitCode = OpenTokenCommand.execute(args);
+        assertTrue(exitCode != 0, "Command should exit with non-zero code for missing required parameters");
+    }
 }

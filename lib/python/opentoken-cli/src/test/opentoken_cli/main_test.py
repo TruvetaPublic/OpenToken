@@ -210,3 +210,148 @@ class TestOpenTokenCommand:
         exit_code = OpenTokenCommand.execute(decrypt_args)
         assert exit_code == 0, "Command should execute successfully"
         assert decrypted_parquet.exists(), "Decrypted Parquet should be created"
+
+    # ===== Negative Test Cases =====
+
+    def test_missing_required_parameter_hashing_secret(self, temp_dir):
+        """Test that missing hashingsecret parameter is caught."""
+        input_csv = temp_dir / "input.csv"
+        output_csv = temp_dir / "output.csv"
+
+        args = [
+            "tokenize",
+            "-i", str(input_csv),
+            "-t", "csv",
+            "-o", str(output_csv)
+            # Missing --hashingsecret
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with missing required parameter"
+
+    def test_missing_required_parameter_encryption_key(self, temp_dir):
+        """Test that missing encryptionkey parameter is caught."""
+        input_csv = temp_dir / "input.csv"
+        output_csv = temp_dir / "output.csv"
+
+        args = [
+            "encrypt",
+            "-i", str(input_csv),
+            "-t", "csv",
+            "-o", str(output_csv)
+            # Missing --encryptionkey
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with missing required parameter"
+
+    def test_missing_required_parameter_input(self, temp_dir):
+        """Test that missing input parameter is caught."""
+        output_csv = temp_dir / "output.csv"
+
+        args = [
+            "tokenize",
+            # Missing -i/--input
+            "-t", "csv",
+            "-o", str(output_csv),
+            "--hashingsecret", self.HASHING_SECRET
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with missing required parameter"
+
+    def test_missing_required_parameter_output(self, temp_dir):
+        """Test that missing output parameter is caught."""
+        input_csv = temp_dir / "input.csv"
+
+        args = [
+            "tokenize",
+            "-i", str(input_csv),
+            "-t", "csv",
+            # Missing -o/--output
+            "--hashingsecret", self.HASHING_SECRET
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with missing required parameter"
+
+    def test_invalid_input_type(self, temp_dir):
+        """Test that invalid input type is caught."""
+        input_csv = temp_dir / "input.csv"
+        output_csv = temp_dir / "output.csv"
+
+        args = [
+            "tokenize",
+            "-i", str(input_csv),
+            "-t", "invalid_type",  # Invalid input type
+            "-o", str(output_csv),
+            "--hashingsecret", self.HASHING_SECRET
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with invalid input type"
+
+    def test_invalid_output_type(self, temp_dir):
+        """Test that invalid output type is caught."""
+        input_csv = temp_dir / "input.csv"
+        output_csv = temp_dir / "output.csv"
+
+        args = [
+            "tokenize",
+            "-i", str(input_csv),
+            "-t", "csv",
+            "-o", str(output_csv),
+            "-ot", "invalid_type",  # Invalid output type
+            "--hashingsecret", self.HASHING_SECRET
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with invalid output type"
+
+    def test_non_existent_input_file(self, temp_dir):
+        """Test that non-existent input file is caught."""
+        nonexistent_file = temp_dir / "nonexistent.csv"
+        output_csv = temp_dir / "output.csv"
+
+        args = [
+            "tokenize",
+            "-i", str(nonexistent_file),
+            "-t", "csv",
+            "-o", str(output_csv),
+            "--hashingsecret", self.HASHING_SECRET
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with non-existent input file"
+
+    def test_package_command_missing_both_secrets(self, temp_dir):
+        """Test that package command fails when both secrets are missing."""
+        input_csv = temp_dir / "input.csv"
+        output_csv = temp_dir / "output.csv"
+
+        args = [
+            "package",
+            "-i", str(input_csv),
+            "-t", "csv",
+            "-o", str(output_csv)
+            # Missing both --hashingsecret and --encryptionkey
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with missing required parameters"
+
+    def test_invalid_subcommand(self, temp_dir):
+        """Test that invalid subcommand is caught."""
+        input_csv = temp_dir / "input.csv"
+        output_csv = temp_dir / "output.csv"
+
+        args = [
+            "invalid_command",  # Invalid subcommand
+            "-i", str(input_csv),
+            "-t", "csv",
+            "-o", str(output_csv)
+        ]
+
+        exit_code = OpenTokenCommand.execute(args)
+        assert exit_code != 0, "Command should fail with invalid subcommand"
+
