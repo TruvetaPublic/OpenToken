@@ -59,6 +59,10 @@ def _is_legacy_invocation(args: list) -> bool:
     if first_arg in ("tokenize", "encrypt", "decrypt", "package", "help"):
         return False
 
+    # Check if it's a standard help/version flag - route to new CLI
+    if first_arg in ("--help", "--version", "-V"):
+        return False
+
     # If first arg starts with -, it's likely a legacy flag
     return first_arg.startswith("-")
 

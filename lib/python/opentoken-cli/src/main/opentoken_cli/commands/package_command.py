@@ -71,7 +71,6 @@ class PackageCommand:
         )
 
         parser.add_argument(
-            "-h",
             "--hashingsecret",
             required=True,
             dest="hashing_secret",
@@ -79,7 +78,6 @@ class PackageCommand:
         )
 
         parser.add_argument(
-            "-e",
             "--encryptionkey",
             required=True,
             dest="encryption_key",

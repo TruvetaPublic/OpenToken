@@ -70,7 +70,6 @@ class TokenizeCommand:
         )
 
         parser.add_argument(
-            "-h",
             "--hashingsecret",
             required=True,
             dest="hashing_secret",

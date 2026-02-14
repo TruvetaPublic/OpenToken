@@ -65,7 +65,6 @@ class EncryptCommand:
         )
 
         parser.add_argument(
-            "-e",
             "--encryptionkey",
             required=True,
             dest="encryption_key",

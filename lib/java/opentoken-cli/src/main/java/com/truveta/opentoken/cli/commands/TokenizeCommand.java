@@ -59,7 +59,7 @@ public class TokenizeCommand implements Callable<Integer> {
             description = "Output file type (defaults to input type): csv or parquet")
     private String outputType;
     
-    @Option(names = {"-h", "--hashingsecret"}, required = true,
+    @Option(names = {"--hashingsecret"}, required = true,
             description = "Hashing secret for token generation")
     private String hashingSecret;
     

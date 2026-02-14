@@ -51,7 +51,7 @@ public class DecryptCommand implements Callable<Integer> {
             description = "Output file type (defaults to input type): csv or parquet")
     private String outputType;
     
-    @Option(names = {"-e", "--encryptionkey"}, required = true,
+    @Option(names = {"--encryptionkey"}, required = true,
             description = "Encryption key for token decryption")
     private String encryptionKey;
     

@@ -94,6 +94,11 @@ public class Main {
             return false;
         }
         
+        // Check if it's a standard help/version flag - route to new CLI
+        if (firstArg.equals("--help") || firstArg.equals("--version") || firstArg.equals("-V")) {
+            return false;
+        }
+        
         // If first arg starts with -, it's likely a legacy flag
         return firstArg.startsWith("-");
     }

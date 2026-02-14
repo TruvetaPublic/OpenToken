@@ -60,11 +60,11 @@ public class PackageCommand implements Callable<Integer> {
             description = "Output file type (defaults to input type): csv or parquet")
     private String outputType;
     
-    @Option(names = {"-h", "--hashingsecret"}, required = true,
+    @Option(names = {"--hashingsecret"}, required = true,
             description = "Hashing secret for token generation")
     private String hashingSecret;
     
-    @Option(names = {"-e", "--encryptionkey"}, required = true,
+    @Option(names = {"--encryptionkey"}, required = true,
             description = "Encryption key for token encryption")
     private String encryptionKey;
     
