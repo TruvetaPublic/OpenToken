@@ -58,8 +58,8 @@ python -m opentoken_cli.main package \
   -i ../../../resources/sample.csv \
   -t csv \
   -o ../../../resources/output.csv \
-  --hashingsecret "YourHashingSecret" \
-  --encryptionkey "YourEncryptionKey-32Chars-Here!"
+  -h "YourHashingSecret" \
+  -e "YourEncryptionKey-32Chars-Here!"
 ```
 
 ### Tokenize Command (Hash-Only, No Encryption)
@@ -69,7 +69,7 @@ python -m opentoken_cli.main tokenize \
   -i ../../../resources/sample.csv \
   -t csv \
   -o ../../../resources/output.csv \
-  --hashingsecret "YourHashingSecret"
+  -h "YourHashingSecret"
 ```
 
 ### Parquet Format
@@ -79,8 +79,8 @@ python -m opentoken_cli.main package \
   -i input.parquet \
   -t parquet \
   -o output.parquet \
-  --hashingsecret "YourHashingSecret" \
-  --encryptionkey "YourEncryptionKey-32Chars-Here!"
+  -h "YourHashingSecret" \
+  -e "YourEncryptionKey-32Chars-Here!"
 ```
 
 ### Decrypt Command
@@ -90,7 +90,7 @@ python -m opentoken_cli.main decrypt \
   -i ../../../resources/output.csv \
   -t csv \
   -o ../../../resources/decrypted.csv \
-  --encryptionkey "YourEncryptionKey-32Chars-Here!"
+  -e "YourEncryptionKey-32Chars-Here!"
 ```
 
 ## Getting Help
