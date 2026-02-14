@@ -5,6 +5,7 @@ package com.truveta.opentoken.cli;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.truveta.opentoken.Metadata;
+import com.truveta.opentoken.cli.commands.OpenTokenCommand;
 import com.truveta.opentoken.cli.io.MetadataWriter;
 import com.truveta.opentoken.cli.io.PersonAttributesReader;
 import com.truveta.opentoken.cli.io.PersonAttributesWriter;
@@ -37,28 +39,103 @@ import com.truveta.opentoken.tokentransformer.TokenTransformer;
 /**
  * Entry point for the OpenToken command-line application.
  * <p>
- * This class orchestrates two primary workflows:
+ * This class provides backward compatibility with legacy mode flags while
+ * routing to the new subcommand-based interface.
+ * <p>
+ * <b>New subcommand interface (recommended):</b>
  * <ul>
- *   <li><b>Encrypt mode</b>: Reads person attributes (CSV/Parquet), validates and
- *   normalizes them, generates tokens via HMAC-SHA256 hashing and AES-256 encryption,
- *   writes tokens to CSV/Parquet, and emits a metadata JSON file.</li>
- *   <li><b>Decrypt mode</b>: Reads encrypted tokens (CSV/Parquet) and writes
- *   decrypted tokens to CSV/Parquet.</li>
+ *   <li><code>opentoken tokenize</code> - Hash-only token generation</li>
+ *   <li><code>opentoken encrypt</code> - Encrypt hashed tokens</li>
+ *   <li><code>opentoken decrypt</code> - Decrypt encrypted tokens</li>
+ *   <li><code>opentoken package</code> - Tokenize + encrypt in one step</li>
  * </ul>
- * Input and output formats support CSV and Parquet.
+ * <p>
+ * <b>Legacy flags (deprecated):</b>
+ * <ul>
+ *   <li>Default mode (no flags) maps to <code>package</code></li>
+ *   <li><code>--hash-only</code> maps to <code>tokenize</code></li>
+ *   <li><code>--decrypt</code> or <code>-d</code> maps to <code>decrypt</code></li>
+ * </ul>
  */
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     /**
-     * Application entry point. Parses command-line arguments, validates them, and
-     * routes execution to encryption or decryption workflows.
+     * Application entry point. Routes to new subcommand interface or
+     * provides backward compatibility for legacy mode flags.
      *
      * @param args command-line arguments
-     * @throws IOException if an I/O error occurs while creating readers or writers
+     * @throws IOException if an I/O error occurs
      */
     public static void main(String[] args) throws IOException {
+        // Check if this is a legacy invocation (no subcommand)
+        if (args.length > 0 && isLegacyInvocation(args)) {
+            handleLegacyInvocation(args);
+        } else {
+            // Use new subcommand-based interface
+            OpenTokenCommand.main(args);
+        }
+    }
+    
+    /**
+     * Check if this is a legacy invocation (no subcommand at start).
+     */
+    private static boolean isLegacyInvocation(String[] args) {
+        if (args.length == 0) {
+            return false;
+        }
+        
+        String firstArg = args[0];
+        // Check if first arg is a subcommand
+        if (firstArg.equals("tokenize") || firstArg.equals("encrypt") ||
+            firstArg.equals("decrypt") || firstArg.equals("package") ||
+            firstArg.equals("help")) {
+            return false;
+        }
+        
+        // If first arg starts with -, it's likely a legacy flag
+        return firstArg.startsWith("-");
+    }
+    
+    /**
+     * Handle legacy invocation by translating to new subcommands.
+     */
+    private static void handleLegacyInvocation(String[] args) throws IOException {
+        logger.warn("╔════════════════════════════════════════════════════════════════════╗");
+        logger.warn("║                   DEPRECATION WARNING                              ║");
+        logger.warn("╠════════════════════════════════════════════════════════════════════╣");
+        logger.warn("║ Legacy mode flags are deprecated and will be removed in v2.0.     ║");
+        logger.warn("║ Please migrate to the new subcommand interface:                   ║");
+        logger.warn("║                                                                    ║");
+        
+        // Determine which legacy mode and show the appropriate migration path
+        boolean hasDecrypt = Arrays.asList(args).contains("-d") || Arrays.asList(args).contains("--decrypt");
+        boolean hasHashOnly = Arrays.asList(args).contains("--hash-only");
+        
+        if (hasDecrypt) {
+            logger.warn("║   Current: opentoken -d -i input.csv ...                          ║");
+            logger.warn("║   Use:     opentoken decrypt --input input.csv ...                ║");
+        } else if (hasHashOnly) {
+            logger.warn("║   Current: opentoken --hash-only -i input.csv ...                 ║");
+            logger.warn("║   Use:     opentoken tokenize --input input.csv ...               ║");
+        } else {
+            logger.warn("║   Current: opentoken -i input.csv -h secret -e key ...            ║");
+            logger.warn("║   Use:     opentoken package --input input.csv ...                ║");
+        }
+        
+        logger.warn("║                                                                    ║");
+        logger.warn("║ For more information: opentoken help                               ║");
+        logger.warn("╚════════════════════════════════════════════════════════════════════╝");
+        
+        // Continue with legacy processing
+        legacyMain(args);
+    }
+    
+    /**
+     * Legacy main method - maintains backward compatibility.
+     */
+    private static void legacyMain(String[] args) throws IOException {
         CommandLineArguments commandLineArguments = loadCommandLineArguments(args);
         String hashingSecret = commandLineArguments.getHashingSecret();
         String encryptionKey = commandLineArguments.getEncryptionKey();
