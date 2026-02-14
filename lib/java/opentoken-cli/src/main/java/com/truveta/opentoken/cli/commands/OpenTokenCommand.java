@@ -101,6 +101,18 @@ public class OpenTokenCommand implements Callable<Integer> {
      * Main entry point for the command-line application.
      */
     public static void main(String[] args) {
+        int exitCode = execute(args);
+        System.exit(exitCode);
+    }
+    
+    /**
+     * Execute the CLI without calling System.exit().
+     * Useful for testing or when embedding the CLI in another application.
+     * 
+     * @param args command-line arguments
+     * @return exit code (0 for success, non-zero for errors)
+     */
+    public static int execute(String[] args) {
         // Show banner for interactive runs (not for --help or piped output)
         if (args.length == 0 || !isHelpRequest(args)) {
             showBanner();
@@ -109,8 +121,7 @@ public class OpenTokenCommand implements Callable<Integer> {
         CommandLine commandLine = new CommandLine(new OpenTokenCommand());
         commandLine.setExecutionStrategy(new CommandLine.RunLast());
         
-        int exitCode = commandLine.execute(args);
-        System.exit(exitCode);
+        return commandLine.execute(args);
     }
     
     /**
