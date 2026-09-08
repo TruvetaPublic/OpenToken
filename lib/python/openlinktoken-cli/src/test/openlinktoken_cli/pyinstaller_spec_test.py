@@ -63,9 +63,7 @@ def test_pyinstaller_spec_collects_ml1_runtime_dependencies():
             },
         )
 
-    assert {"openlinktoken.core.ai", "pyarrow", "tokenizers", "onnxruntime"}.issubset(
-        collected_packages
-    )
+    assert {"openlinktoken.core.ai", "pyarrow", "tokenizers", "onnxruntime"}.issubset(collected_packages)
     assert {"tokenizers:data", "onnxruntime:data"}.issubset(analysis_kwargs["datas"])
     assert {"tokenizers:binary", "onnxruntime:binary"}.issubset(analysis_kwargs["binaries"])
     assert {"tokenizers:hidden", "onnxruntime:hidden"}.issubset(analysis_kwargs["hiddenimports"])
