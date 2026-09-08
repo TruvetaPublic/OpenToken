@@ -97,7 +97,23 @@ Validation enforced by the CLI:
 - Every declared `type` must resolve to a known Open Link Token attribute class/alias.
 - Token-rule entry order is preserved and used as-is during token construction.
 
-| Type                   | Meaning                        |
+> **Note:** `expression` values are not validated at config-load time. An unknown operator (for example `Y` instead of `D`) will raise a `ValueError` per row during token generation, not at startup.
+
+## Expression Syntax
+
+See [Expression Syntax](../pages/concepts/token-rules.md#expression-syntax) in the Token Rules concept page.
+
+## Notes
+
+- `--config` works with `tokenize` for both CSV and Parquet input.
+- Custom tokenization disables ML1 ONNX inference and suppresses any configured `ML1` rule.
+- Built-in aliases continue to work when `--config` is omitted.
+
+## Attribute Types
+
+Accepted values for the field `type`. Each type applies its own normalization and validation rules — see [Normalization and Validation](../concepts/normalization-and-validation). |
+
+| `type` value           | Description                    |
 | ---------------------- | ------------------------------ |
 | `Age`                  | Age (numeric)                  |
 | `BirthDate`            | Date of birth                  |
