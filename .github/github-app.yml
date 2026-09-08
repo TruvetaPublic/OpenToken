@@ -5,7 +5,7 @@ instructions: |-
     all required sections before submitting it for review.
   - Do not invoke Superpowers planning skills automatically. Use them only when the
     user explicitly requests planning assistance.
-  - Use the GH_TOKEN environment variable for authenticated GitHub operations,
+  - Use the PUBLIC_GH_TOKEN environment variable for authenticated GitHub operations,
     including creating commits and interacting with the remote repository. Never
     hard-code, expose, or replace this credential with another authentication method.
 automation:
