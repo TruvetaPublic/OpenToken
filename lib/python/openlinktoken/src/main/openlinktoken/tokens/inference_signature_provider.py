@@ -2,19 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Protocol, runtime_checkable
 
-
-@dataclass
-class InferenceBatchResult:
-    """Results of a batched inference pass.
-
-    Attributes:
-        signatures: Hex-encoded token signatures in the same order as the input rows.
-    """
-
-    signatures: List[str] = field(default_factory=list)
+from openlinktoken.tokens.inference_batch_result import InferenceBatchResult
 
 
 @runtime_checkable

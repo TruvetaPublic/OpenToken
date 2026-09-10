@@ -23,7 +23,7 @@ from openlinktoken.core.ai.tokentransformer.rotation.rotation_embedding_transfor
     RotationEmbeddingTransformer,
 )
 from openlinktoken.tokens.definitions.t1_token import T1Token
-from openlinktoken.tokens.inference_signature_provider import InferenceBatchResult
+from openlinktoken.tokens.inference_batch_result import InferenceBatchResult
 from openlinktoken.tokens.token import Token
 from openlinktoken.tokens.token_generator_result import TokenGeneratorResult
 

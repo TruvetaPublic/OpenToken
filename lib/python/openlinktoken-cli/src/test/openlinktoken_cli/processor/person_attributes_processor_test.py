@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import openlinktoken.tokens.token_generator as token_generator_module
 from openlinktoken.metadata import Metadata
-from openlinktoken.tokens.inference_signature_provider import InferenceBatchResult
+from openlinktoken.tokens.inference_batch_result import InferenceBatchResult
 from openlinktoken.tokens.token_definition import TokenDefinition
 from openlinktoken.tokens.token_generator import TokenGenerator
 from openlinktoken.tokens.token_generator_result import TokenGeneratorResult
