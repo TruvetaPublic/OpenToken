@@ -515,7 +515,7 @@ archive. `encrypt` and `decrypt` do not generate metadata:
 {
   "Platform": "Python",
   "PythonVersion": "3.11.0",
-  "Version": "2.1.2",
+  "Version": "2.2.0",
   "TotalRows": 100,
   "TotalRowsWithInvalidAttributes": 3,
   "InvalidAttributesByType": {

@@ -250,7 +250,7 @@ the following (use `arm64` or `x86_64` on macOS):
 
 ```shell
 python -m openlinktoken_cli.util.release_assets \
-  --version 2.1.2 \
+  --version 2.2.0 \
   --runner-os Linux \
   --architecture x86_64 \
   --dist-dir dist \
