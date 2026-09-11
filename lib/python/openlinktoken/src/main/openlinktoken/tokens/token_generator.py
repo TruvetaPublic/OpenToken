@@ -54,8 +54,7 @@ class TokenGenerator:
         token_transformer_list: List[TokenTransformer],
         crypto_suite: CryptoSuite | None = None,
     ) -> "TokenGenerator":
-        """
-        Convenience constructor that creates a TokenGenerator with SHA256Tokenizer.
+        """Convenience constructor that creates a TokenGenerator with SHA256Tokenizer.
 
         Args:
             token_definition: The token definition.
@@ -63,6 +62,7 @@ class TokenGenerator:
 
         Returns:
             A TokenGenerator instance with SHA256Tokenizer.
+
         """
         return cls(token_definition, SHA256Tokenizer(token_transformer_list, crypto_suite=crypto_suite))
 
@@ -72,14 +72,14 @@ class TokenGenerator:
         tokenizer: Tokenizer,
         field_registry: Optional[FieldRegistry] = None,
     ):
-        """
-        Initialize the token generator with an explicit tokenizer.
+        """Initialize the token generator with an explicit tokenizer.
 
         Args:
             token_definition: The token definition.
             tokenizer: Tokenizer implementation. Use PassthroughTokenizer for plain mode.
             field_registry: Optional custom field registry for field-ID-based lookups.
                 When None, a default registry is created from built-in attributes.
+
         """
         self.token_definition = token_definition
         self.attribute_instance_map: Dict[Type[Attribute], Attribute] = {}
@@ -94,8 +94,7 @@ class TokenGenerator:
     def _get_token_signature(
         self, token_id: str, person_attributes: Dict[Type[Attribute], str], result: TokenGeneratorResult
     ) -> Optional[str]:
-        """
-        Get the token signature using a class-keyed person attributes map.
+        """Get the token signature using a class-keyed person attributes map.
 
         .. deprecated::
             Use :meth:`_get_token_signature_via_field_id` with a field-ID-keyed map instead.
@@ -107,6 +106,7 @@ class TokenGenerator:
 
         Returns:
             The token signature using the token definition for the given token identifier.
+
         """
         if person_attributes is None:
             raise ValueError("Person attributes cannot be null.")
@@ -150,8 +150,7 @@ class TokenGenerator:
         return "|".join(filtered_values)
 
     def get_all_token_signatures(self, person_attributes: Dict[Type[Attribute], str]) -> Dict[str, str]:
-        """
-        Get the token signatures for all token/rule identifiers using a class-keyed map.
+        """Get the token signatures for all token/rule identifiers using a class-keyed map.
 
         .. deprecated::
             Use :meth:`get_all_token_signatures_via_field_id` with a field-ID-keyed map instead.
@@ -161,6 +160,7 @@ class TokenGenerator:
 
         Returns:
             A map of token/rule identifier to the token signature.
+
         """
         signatures = {}
 
@@ -177,8 +177,7 @@ class TokenGenerator:
     def _get_token(
         self, token_id: str, person_attributes: Dict[Type[Attribute], str], result: TokenGeneratorResult
     ) -> Optional[str]:
-        """
-        Get token for a given token identifier using a class-keyed person attributes map.
+        """Get token for a given token identifier using a class-keyed person attributes map.
 
         .. deprecated::
             Use :meth:`get_all_tokens_via_field_id` with a field-ID-keyed map instead.
@@ -197,8 +196,7 @@ class TokenGenerator:
         return self._tokenize_signature(token_id, signature, result)
 
     def get_all_tokens(self, person_attributes: Dict[Type[Attribute], str]) -> TokenGeneratorResult:
-        """
-        Get the tokens for all token/rule identifiers using a class-keyed person attributes map.
+        """Get the tokens for all token/rule identifiers using a class-keyed person attributes map.
 
         .. deprecated::
             Use :meth:`get_all_tokens_via_field_id` with a field-ID-keyed ``Dict[str, str]`` map instead.
@@ -208,6 +206,7 @@ class TokenGenerator:
 
         Returns:
             A TokenGeneratorResult object containing the tokens and invalid attributes.
+
         """
         result = TokenGeneratorResult()
 
@@ -234,6 +233,7 @@ class TokenGenerator:
 
         Returns:
             A TokenGeneratorResult object containing the tokens and invalid attributes.
+
         """
         result = TokenGeneratorResult()
 
@@ -258,6 +258,7 @@ class TokenGenerator:
             result: The token generator result to update.
             token_id: The token identifier key to store the result under.
             signature: The precomputed signature string, or ``None`` for a blank token.
+
         """
         try:
             token = self.tokenizer.tokenize(signature)
@@ -280,6 +281,7 @@ class TokenGenerator:
             result: The token generator result to update.
             token_id: The token identifier key to store the result under.
             token_value: The pre-hashed token value, or ``None`` / blank to record a blank token.
+
         """
         all_transformers = self.tokenizer.get_token_transformer_list()
         encrypt_transformers = [t for t in all_transformers if not isinstance(t, HashTokenTransformer)]
@@ -306,6 +308,7 @@ class TokenGenerator:
             result: The token generator result to update.
             token_id_prefix: Prefix for derived token keys (e.g. ``"ML1-R"``).
             token_strings: Pre-computed token strings from the embedding transformer.
+
         """
         for i, token_string in enumerate(token_strings):
             result.tokens[f"{token_id_prefix}{i}"] = token_string
@@ -316,8 +319,7 @@ class TokenGenerator:
         return _get_inference_provider()
 
     def get_invalid_person_attributes(self, person_attributes: Dict[Type[Attribute], str]) -> Set[str]:
-        """
-        Get invalid person attribute names.
+        """Get invalid person attribute names.
 
         .. deprecated::
             Use field-ID-keyed person attributes with :meth:`get_all_tokens_via_field_id` instead.
@@ -327,6 +329,7 @@ class TokenGenerator:
 
         Returns:
             A set of invalid person attribute names.
+
         """
         response = set()
 
@@ -342,8 +345,7 @@ class TokenGenerator:
     def _get_token_signature_via_field_id(
         self, token_id: str, person_attributes: Dict[str, str], result: TokenGeneratorResult
     ) -> Optional[str]:
-        """
-        Get the token signature for a given token identifier.
+        """Get the token signature for a given token identifier.
 
         Args:
             token_id: The token identifier.
@@ -352,6 +354,7 @@ class TokenGenerator:
 
         Returns:
             The token signature, or None if required fields are missing or invalid.
+
         """
         if person_attributes is None:
             raise ValueError("Person attributes cannot be null.")
@@ -393,8 +396,7 @@ class TokenGenerator:
         return "|".join(filtered_values)
 
     def get_all_tokens_via_field_id(self, person_attributes: Dict[str, str]) -> TokenGeneratorResult:
-        """
-        Get the tokens for all token/rule identifiers.
+        """Get the tokens for all token/rule identifiers.
 
         This is the preferred API. It natively supports multiple fields sharing the same
         attribute type (e.g., "MotherLastName" and "FatherLastName" both backed by StringAttribute).
@@ -404,6 +406,7 @@ class TokenGenerator:
 
         Returns:
             A TokenGeneratorResult object containing the tokens and invalid attributes.
+
         """
         return self.generate_tokens_excluding_via_field_id(person_attributes, set())
 
@@ -420,6 +423,7 @@ class TokenGenerator:
 
         Returns:
             A TokenGeneratorResult object containing the generated tokens and invalid attributes.
+
         """
         result = TokenGeneratorResult()
 
@@ -441,14 +445,14 @@ class TokenGenerator:
         return result
 
     def get_all_token_signatures_via_field_id(self, person_attributes: Dict[str, str]) -> Dict[str, str]:
-        """
-        Get the token signatures for all token/rule identifiers. Mostly useful for debugging.
+        """Get the token signatures for all token/rule identifiers. Mostly useful for debugging.
 
         Args:
             person_attributes: Person attributes keyed by field ID.
 
         Returns:
             A map of token/rule identifier to the token signature.
+
         """
         signatures = {}
 
@@ -464,12 +468,15 @@ class TokenGenerator:
 
     @staticmethod
     def _has_active_provider_for_token(token_id: str, provider: Optional[InferenceSignatureProvider]) -> bool:
+        """Return whether the provider is enabled and serves the requested token."""
         return provider is not None and provider.get_token_id() == token_id and provider.is_enabled()
 
     def _has_active_inference_provider(self, token_id: str) -> bool:
+        """Return whether the configured inference provider serves this token."""
         return self._has_active_provider_for_token(token_id, _get_inference_provider())
 
     def _get_inference_signature(self, token_id: str, person_attributes: Dict[str, str]) -> Optional[str]:
+        """Generate an inference signature when the matching provider is active."""
         provider = _get_inference_provider()
         if not self._has_active_provider_for_token(token_id, provider):
             return None
@@ -482,6 +489,7 @@ class TokenGenerator:
     def _tokenize_signature(
         self, token_id: str, signature: Optional[str], result: TokenGeneratorResult
     ) -> Optional[str]:
+        """Tokenize a signature and record blank-token results for the rule."""
         try:
             if self._has_active_inference_provider(token_id):
                 transformers = [
@@ -500,6 +508,7 @@ class TokenGenerator:
             raise TokenGenerationException("Error generating token", error)
 
     def _to_field_id_map(self, person_attributes: Dict[Type[Attribute], str]) -> Dict[str, str]:
+        """Convert class-keyed attributes to the field identifiers used by providers."""
         return {
             attribute.get_name(): value
             for attribute_class, value in person_attributes.items()
