@@ -105,7 +105,7 @@ sympy==1.14.0 ; python_full_version < '3.11'
     # via
     #   onnxruntime
     #   onnxruntime-gpu
-tokenizers==0.23.1
+tokenizers==0.23.2
     # via openlinktoken-core-ai
 tqdm==4.70.0
     # via huggingface-hub
